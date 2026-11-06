@@ -30,11 +30,13 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
 import mpensum.bienvenida.Bienvenida
 import mpensum.carrera.Interior
+import mpensum.componentes.LocalVentana
+import mpensum.componentes.medirVentana
 import mpensum.datos.rememberCarreras
-import mpensum.plataforma.animacionesQuitadas
 import mpensum.plataforma.BarrasDelSistema
 import mpensum.plataforma.ManejarAtras
 import mpensum.plataforma.Preferencias
+import mpensum.plataforma.animacionesQuitadas
 import mpensum.portada.Portada
 import mpensum.tema.Paleta
 import mpensum.tema.Tema
@@ -103,7 +105,10 @@ fun App() {
     val densidad = LocalDensity.current
     val escala = if (grande) 1.15f else 1f
     CompositionLocalProvider(LocalDensity provides Density(densidad.density, densidad.fontScale * escala)) {
-        TemaVivo(juego) { Pantallas() }
+        // La ventana se mide una vez aquí, ya con la letra final, y las pantallas la leen con ventana()
+        CompositionLocalProvider(LocalVentana provides medirVentana()) {
+            TemaVivo(juego) { Pantallas() }
+        }
     }
 }
 
