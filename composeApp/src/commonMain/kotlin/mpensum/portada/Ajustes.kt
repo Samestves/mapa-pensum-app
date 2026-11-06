@@ -117,7 +117,7 @@ fun BoxScope.HojaAjustes(
         ancho = if (esApaisado()) 840.dp else 560.dp,
         cabecera = {
             // La de la hoja de avance: etiqueta en versales y el título debajo
-            Row(Modifier.fillMaxWidth().padding(start = margenPantalla(), end = margenPantalla(), top = Espacio.xxs, bottom = Espacio.m), verticalAlignment = Alignment.CenterVertically) {
+            Row(Modifier.fillMaxWidth().padding(start = margenPantalla(), end = margenPantalla(), top = Espacio.xxs, bottom = if (esApaisado()) Espacio.xs else Espacio.m), verticalAlignment = Alignment.CenterVertically) {
                 // La flecha de volver solo si se llegó desde el menú; abierta directo en la lista, se cierra y ya
                 val conVolver = actual != PaginaAjustes.MENU && ultima == PaginaAjustes.MENU
                 if (conVolver) {
@@ -168,18 +168,28 @@ fun BoxScope.HojaAjustes(
                 val web = { abrir(enlaces, WEB) }
                 val codigo = { abrir(enlaces, REPO) }
                 if (esApaisado()) {
-                    // Acostado la hoja es baja: lo tuyo a la izquierda y lo de fuera a la derecha, sin tanto scroll
-                    Row(Modifier.padding(start = margenPantalla(), end = margenPantalla(), top = Espacio.xxs, bottom = Espacio.xl), horizontalArrangement = Arrangement.spacedBy(Espacio.m)) {
-                        Column(Modifier.weight(1f)) {
-                            FilaCarrera(propia, tuCarrera)
-                            Spacer(Modifier.height(Espacio.xs))
-                            FilaPersonalizar(personalizar)
-                            Version(Modifier.padding(top = 28.dp))
+                    // Acostado, dos filas que se leen como una rejilla: lo tuyo junto a la ayuda arriba, el
+                    // proyecto a todo el ancho debajo y la versión al pie. Cada bloque abre con su rótulo,
+                    // así las dos columnas empiezan a la misma altura
+                    val rotuloArriba = Modifier.padding(start = Espacio.xxs, bottom = Espacio.s)
+                    Column(Modifier.padding(start = margenPantalla(), end = margenPantalla(), top = Espacio.xxs, bottom = Espacio.l)) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(Espacio.m)) {
+                            Column(Modifier.weight(1f)) {
+                                Etiqueta("TU MAPA", rotuloArriba)
+                                FilaCarrera(propia, tuCarrera)
+                                Spacer(Modifier.height(Espacio.xs))
+                                FilaPersonalizar(personalizar)
+                            }
+                            Column(Modifier.weight(1f)) {
+                                BloqueAyuda(guia, reporte, rotuloArriba)
+                            }
                         }
-                        Column(Modifier.weight(1f)) {
-                            BloqueAyuda(guia, reporte, Modifier.padding(start = Espacio.xxs, bottom = Espacio.s))
-                            BloqueProyecto(web, codigo)
+                        Etiqueta("EL PROYECTO", Modifier.padding(start = Espacio.xxs, top = Espacio.xl, bottom = Espacio.s))
+                        Row(horizontalArrangement = Arrangement.spacedBy(Espacio.m)) {
+                            Box(Modifier.weight(1f)) { Renglon(Lucide.mundo, "Abrir la versión web", "mapa-pensum.vercel.app", fuera = true, alPulsar = web) }
+                            Box(Modifier.weight(1f)) { Renglon(Lucide.codigo, "Código abierto", "Revísalo en GitHub", fuera = true, alPulsar = codigo) }
                         }
+                        Version(Modifier.padding(top = Espacio.xl))
                     }
                 } else {
                     Column(Modifier.padding(start = margenPantalla(), end = margenPantalla(), top = Espacio.xxs, bottom = Espacio.xl)) {
