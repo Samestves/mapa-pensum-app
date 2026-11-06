@@ -1,0 +1,46 @@
+# El perfil de arranque propio, escrito a mano: la herramienta que lo genera
+# sola pide un teléfono conectado. Lo que va aquí se compila antes de abrir la
+# app por primera vez, sin esperar a que el JIT lo descubra en caliente: el
+# arranque, la portada y, sobre todo, el mapa (tarjetas, cables, cámara y
+# gestos), que en un teléfono modesto es lo primero que tironea.
+#
+# H = caliente, S = arranque, P = después del arranque; L = la clase entera.
+# Compose, foundation y demás traen su propio perfil en su paquete.
+
+# La actividad y la raíz de la app
+HSPLmpensum/MainActivity*;->**(**)**
+HSPLmpensum/AppKt*;->**(**)**
+Lmpensum/MainActivity;
+Lmpensum/AppKt*;
+
+# El mapa: cámara, gestos, tarjetas, cables, cabeceras y efectos
+HSPLmpensum/mapa/**;->**(**)**
+Lmpensum/mapa/**;
+
+# Lo que pinta el mapa y la portada: tema, paleta, dibujos y cristal
+HSPLmpensum/tema/**;->**(**)**
+Lmpensum/tema/**;
+HSPLmpensum/componentes/**;->**(**)**
+Lmpensum/componentes/**;
+
+# La portada, el interior de la carrera y la barra
+HSPLmpensum/portada/**;->**(**)**
+Lmpensum/portada/**;
+HSPLmpensum/carrera/**;->**(**)**
+Lmpensum/carrera/**;
+
+# Leer el pensum y calcular situaciones al abrir una carrera
+HSPLmpensum/datos/**;->**(**)**
+Lmpensum/datos/**;
+HSPLmpensum/logica/**;->**(**)**
+Lmpensum/logica/**;
+HSPLmpensum/plataforma/**;->**(**)**
+Lmpensum/plataforma/**;
+
+# Librerías sin perfil propio que corren al arrancar o en el mapa
+HSPLdev/chrisbanes/haze/**;->**(**)**
+Ldev/chrisbanes/haze/**;
+HSPLkotlinx/serialization/json/**;->**(**)**
+Lkotlinx/serialization/json/**;
+HSPLorg/jetbrains/compose/resources/**;->**(**)**
+Lorg/jetbrains/compose/resources/**;

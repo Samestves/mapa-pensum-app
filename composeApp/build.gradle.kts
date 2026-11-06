@@ -26,6 +26,8 @@ kotlin {
         }
         androidMain.dependencies {
             implementation("androidx.activity:activity-compose:1.10.1")
+            // Instala el perfil de arranque al abrir la app aunque no venga de Play (ya llegaba por Compose; aquí queda explícito)
+            implementation("androidx.profileinstaller:profileinstaller:1.4.0")
         }
         // Las pruebas corren en la JVM: la lógica lee las fixtures del disco, y
         // Robolectric pinta pantallas de verdad para ver el mapa sin teléfono
@@ -57,6 +59,10 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
+    sourceSets {
+        // El perfil de arranque propio, escrito a mano: en KMP la fuente de Android es src/androidMain, no src/main
+        getByName("main").baselineProfiles.srcDir("src/androidMain/baselineProfiles")
+    }
     testOptions {
         // Las capturas necesitan los recursos de la app: fuentes y pensums
         unitTests.isIncludeAndroidResources = true
@@ -66,6 +72,8 @@ android {
             // R8 encoge y optimiza: en un teléfono modesto es lo que más se nota frente a la versión de depuración
             isMinifyEnabled = true
             isShrinkResources = true
+            // Lo de serie en release, escrito para que nadie lo active sin querer: depurable, ART no compila con el perfil
+            isDebuggable = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             // Firmado con la clave de depuracion para poder instalarlo a mano
             signingConfig = signingConfigs.getByName("debug")
