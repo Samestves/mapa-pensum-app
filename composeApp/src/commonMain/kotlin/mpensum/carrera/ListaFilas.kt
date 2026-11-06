@@ -124,7 +124,7 @@ private val FONDO_GRUPO get() = porTema(Paleta.panelSuave, Color.White.copy(alph
 internal fun colorDe(t: Tono): Color = when (t) {
     Tono.TENUE -> Paleta.tenue
     Tono.VERDE -> Paleta.verde
-    Tono.AMBAR -> Paleta.ambar
+    Tono.AMBAR -> Paleta.cursando
     Tono.AZUL -> Paleta.azul
 }
 
@@ -301,7 +301,7 @@ private fun CabeceraSeccion(seccion: SeccionLista, abierto: Boolean, conDeshacer
                     BasicText(
                         buildAnnotatedString {
                             append(seccion.resumen)
-                            if (seccion.coletilla.isNotEmpty()) withStyle(SpanStyle(color = Paleta.ambar)) { append(seccion.coletilla) }
+                            if (seccion.coletilla.isNotEmpty()) withStyle(SpanStyle(color = Paleta.cursando, fontWeight = FontWeight.Medium)) { append(seccion.coletilla) }
                         },
                         Modifier.padding(top = Espacio.hilo),
                         style = TextStyle(fontFamily = i, fontSize = Tipo.s, lineHeight = 16.sp, fontFeatureSettings = "tnum", color = colorDe(seccion.tonoResumen)),
@@ -338,7 +338,7 @@ private fun BotonDeshacer(relleno: Modifier, alPulsar: () -> Unit) {
 
 /**
  * El aro del semestre: lleno de verde con su check si está completo; si no,
- * el arco de lo aprobado en verde y, detrás, lo que cursas en ámbar. Los
+ * el arco de lo aprobado en verde y, detrás, lo que cursas en tinta a media opacidad. Los
  * arcos se mueven al dibujar, sin recomponer.
  */
 @Composable
@@ -364,7 +364,7 @@ private fun AroSemestre(aprobado: Float, cursado: Float, completo: Boolean) {
         val v = verde.value * 360f
         val a = ambar.value * 360f
         if (v > 0.1f) drawArc(Paleta.verde, -90f, v, false, esquina, caja, style = Stroke(g))
-        if (a > 0.1f) drawArc(Paleta.ambar, -90f + v, a, false, esquina, caja, style = Stroke(g))
+        if (a > 0.1f) drawArc(Paleta.cursando.copy(alpha = 0.45f), -90f + v, a, false, esquina, caja, style = Stroke(g))
     }
 }
 

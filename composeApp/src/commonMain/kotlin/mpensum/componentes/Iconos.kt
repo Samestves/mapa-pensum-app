@@ -38,7 +38,7 @@ private object Estados {
 /** El color de cada estado, el de la tarjeta del mapa */
 fun colorEstado(e: Situacion): Color = when (e) {
     Situacion.HECHA -> Paleta.verde
-    Situacion.CURSANDO -> Paleta.ambar
+    Situacion.CURSANDO -> Paleta.cursando
     Situacion.INSCRIBIBLE -> Paleta.azul
     Situacion.PROXIMA -> Paleta.suave
     Situacion.LEJANA -> Paleta.rojo

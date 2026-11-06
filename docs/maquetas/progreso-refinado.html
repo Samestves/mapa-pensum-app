@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Tu avance · refinado</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,100..900&family=Jost:wght@100..900&family=IBM+Plex+Mono:wght@300&display=block" rel="stylesheet">
+<style>
+/* ============ La página (presentación; no es la app) ============ */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #E6E7E9; color: #050608; font-family: Inter, sans-serif; font-optical-sizing: none; padding: 56px 40px 80px; -webkit-font-smoothing: antialiased; }
+.pagina { width: 1205px; margin: 0 auto; }
+.portada h1 { font: 300 40px/44px Jost; letter-spacing: -.01em; }
+.portada p { font: 400 15px/22px Inter; letter-spacing: -.009em; color: #34383E; margin-top: 12px; max-width: 820px; }
+.portada b { font-weight: 500; color: #050608; }
+.bloque { margin-top: 56px; }
+.bloque > h2 { font: 500 11px/16px Inter; letter-spacing: .08em; text-transform: uppercase; color: #52565C; margin-bottom: 20px; }
+.fila { display: flex; gap: 40px; align-items: flex-start; }
+.op { width: 375px; flex: none; }
+.op > h3 { font: 500 15px/20px Inter; letter-spacing: -.009em; }
+.op > p { font: 400 13px/18px Inter; color: #34383E; margin: 4px 0 16px; min-height: 36px; }
+
+/* ============ Temas: tokens de la Paleta Acero ============ */
+.ext { --lienzo:#FFFFFF; --panel:#FFFFFF; --tinta:#050608; --suave:#1C1F23; --tenue:#34383E; --apagada:#52565C; --azul:#1A47C2; --verde:#00603F; --ambar:#874700; --rojo:#A80F1A;
+       --t: 5 6 8; --a: 26 71 194; --o-sup:.045; --o-hilo:.12; --o-pas:.07; --o-pend:.14; --o-azul:.10; --velo: rgb(0 0 0 / .28); }
+.osc { --lienzo:#0B0C0E; --panel:#121316; --tinta:#ECEEF1; --suave:#B6BBC2; --tenue:#858B94; --apagada:#5D636C; --azul:#5B8AF5; --verde:#2EC27E; --ambar:#F0A53A; --rojo:#E5403A;
+       --t: 236 238 241; --a: 91 138 245; --o-sup:.05; --o-hilo:.09; --o-pas:.08; --o-pend:.16; --o-azul:.16; --velo: rgb(0 0 0 / .6); }
+.ext, .osc { --sup: rgb(var(--t) / var(--o-sup)); --hilo: rgb(var(--t) / var(--o-hilo)); --pas: rgb(var(--t) / var(--o-pas)); --pend: rgb(var(--t) / var(--o-pend)); --pas-azul: rgb(var(--a) / var(--o-azul)); color: var(--tinta); }
+
+/* ============ El teléfono y la hoja ============ */
+.tel { width: 375px; height: 812px; position: relative; overflow: hidden; border-radius: 48px; background: var(--lienzo); box-shadow: 0 0 0 1px rgb(0 0 0 / .07), 0 32px 64px -28px rgb(0 0 0 / .32); }
+.fondo { position: absolute; inset: 0; background: repeating-linear-gradient(90deg, rgb(var(--t) / .07) 0 120px, transparent 120px 136px); }
+.fondo::after { content: ''; position: absolute; inset: 0; background: var(--velo); }
+.hoja { position: absolute; inset: 48px 0 0; background: var(--panel); border-radius: 28px 28px 0 0; padding: 0 20px; overflow: hidden; }
+.osc .hoja { box-shadow: inset 0 1px 0 rgb(var(--t) / .1); }
+.asa { width: 32px; height: 4px; border-radius: 2px; background: rgb(var(--t) / .28); margin: 8px auto 0; }
+.desv { position: absolute; left: 0; right: 0; bottom: 0; height: 56px; background: linear-gradient(transparent, var(--panel)); pointer-events: none; }
+
+/* ============ Escala tipográfica (roles) ============ */
+.rot { font: 500 11px/16px Inter; letter-spacing: .08em; text-transform: uppercase; color: var(--tenue); }
+.disp { font: 300 28px/32px Jost; letter-spacing: -.005em; color: var(--tinta); }
+.tt { font: 500 15px/20px Inter; letter-spacing: -.009em; color: var(--tinta); }
+.cuerpo { font: 400 15px/20px Inter; letter-spacing: -.009em; color: var(--suave); }
+.nota { font: 400 13px/16px Inter; letter-spacing: -.003em; color: var(--tenue); }
+.num, .nota b { font-feature-settings: 'tnum'; }
+.nota b { font-weight: 500; color: var(--tinta); }
+/* Cifras: Inter Display (opsz 32) desde 24 sp; por debajo, el corte de texto */
+.cifra { font-family: Inter; font-feature-settings: 'tnum'; color: var(--tinta); white-space: nowrap; }
+.c64, .c40, .c24 { font-variation-settings: 'opsz' 32; }
+.c64 { font-size: 64px; line-height: 64px; font-weight: 200; letter-spacing: -.02em; }
+.c40 { font-size: 40px; line-height: 44px; font-weight: 200; letter-spacing: -.02em; }
+.c24 { font-size: 24px; line-height: 28px; font-weight: 300; letter-spacing: -.015em; }
+.c20 { font-size: 20px; line-height: 24px; font-weight: 300; letter-spacing: -.01em; }
+/* La unidad (%, UC): abajo, en la línea base; 40 % del tamaño (mín. 11), un peso más, tenue */
+.u { font-weight: 300; color: var(--tenue); letter-spacing: 0; font-variation-settings: 'opsz' 14; }
+.c64 .u { font-size: 26px; margin-left: 2px; font-variation-settings: 'opsz' 26; }
+.c40 .u { font-size: 16px; margin-left: 2px; }
+.c24 .u, .c20 .u { font-size: 11px; font-weight: 400; margin-left: 2px; }
+.trim { text-box: trim-both cap alphabetic; }
+.azul { color: var(--azul) !important; }
+.ambar { color: var(--ambar) !important; }
+
+/* ============ Iconos (Lucide, trazo visual 1,5 dp en todos los tamaños) ============ */
+svg.i { fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; flex: none; display: block; }
+.redondo { width: 36px; height: 36px; border-radius: 18px; background: var(--pas); color: var(--suave); display: grid; place-items: center; flex: none; }
+.pas { width: 32px; height: 32px; border-radius: 8px; background: var(--pas); color: var(--tinta); display: grid; place-items: center; flex: none; }
+.pas.azul { background: var(--pas-azul); }
+.pas.vacia { background: none; box-shadow: inset 0 0 0 1.5px rgb(var(--t) / .28); color: var(--tenue); }
+.ico { width: 32px; height: 32px; display: grid; place-items: center; flex: none; color: var(--tinta); }
+.ico.tenue { color: var(--apagada); }
+.ch { color: var(--apagada); }
+
+/* ============ Hoja principal ============ */
+.cab { display: flex; align-items: center; justify-content: space-between; margin-top: 16px; }
+.cab .disp { margin-top: 4px; }
+.tarjeta { background: var(--sup); border-radius: 24px; }
+.heroe { margin-top: 20px; padding: 16px; }
+.datos { display: flex; justify-content: space-between; align-items: flex-end; padding-top: 1px; }
+.pies { display: flex; justify-content: space-between; margin-top: 11px; }
+.barra { margin-top: 20px; display: block; }
+.barra svg { display: block; overflow: visible; }
+.frase { margin-top: 16px; }
+.frase b { font-weight: 500; color: var(--tinta); font-feature-settings: 'tnum'; }
+
+/* Filas agrupadas (Ajustes de iPhone) */
+.lista { margin-top: 16px; }
+.f { display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 0 16px; position: relative; }
+.f.corta { min-height: 48px; }
+.f + .f::before { content: ''; position: absolute; top: 0; left: 60px; right: 0; height: 1px; background: var(--hilo); }
+.f .t { flex: 1; min-width: 0; }
+.f .t > span { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.f .v { flex: none; }
+.f .v.nota { font-size: 15px; line-height: 20px; }
+.f .ch { margin-left: -4px; }
+.tt.tenue { color: var(--tenue); font-weight: 400; }
+.nota.fuerte { color: var(--tinta); font-weight: 500; }
+.seccion { display: flex; justify-content: space-between; margin: 24px 16px 8px; }
+.reinicio { margin-top: 24px; height: 48px; border-radius: 24px; background: var(--sup); color: var(--suave); display: flex; align-items: center; justify-content: center; gap: 8px; font: 500 15px/20px Inter; letter-spacing: -.009em; }
+
+/* ============ Pantallas internas ============ */
+.nav { margin-top: 12px; height: 36px; }
+.cab-int { display: grid; grid-template-columns: 32px 1fr; column-gap: 12px; margin-top: 16px; }
+.cab-int .pas { grid-row: 1; grid-column: 1; align-self: center; }
+.cab-int .disp { grid-row: 1; grid-column: 2; }
+.cab-int .cuerpo { grid-row: 2; grid-column: 2; margin-top: 2px; }
+.primero { margin-top: 24px !important; }
+.comp { display: grid; grid-template-columns: 1fr 1px 1fr; column-gap: 16px; padding: 16px; }
+.comp .sep { background: var(--hilo); }
+.comp .cifra { margin-top: 12px; }
+.comp .nota { margin-top: 8px; }
+.boton { height: 52px; border-radius: 26px; background: var(--tinta); color: var(--panel); display: grid; place-items: center; font: 500 15px/20px Inter; letter-spacing: -.009em; margin-top: 24px; }
+
+/* La cadena, en vertical */
+.cadena { margin-top: 24px; }
+.paso { display: grid; grid-template-columns: 64px 24px 1fr; column-gap: 12px; min-height: 52px; }
+.paso .cuando { font: 400 12px/16px Inter; font-feature-settings: 'tnum'; color: var(--tenue); text-align: right; padding-top: 2px; }
+.paso .via { position: relative; display: flex; justify-content: center; }
+.paso .via::after { content: ''; position: absolute; top: 18px; bottom: -2px; width: 1.5px; left: calc(50% - .75px); background: rgb(var(--t) / .16); }
+.paso:last-child .via::after { display: none; }
+.nodo { width: 12px; height: 12px; border-radius: 6px; box-shadow: inset 0 0 0 1.5px rgb(var(--t) / .42); background: var(--panel); margin-top: 4px; position: relative; z-index: 1; }
+.paso.ya .nodo { background: var(--azul); box-shadow: 0 0 0 4px rgb(var(--a) / .18); }
+.paso.ya .cuando { color: var(--azul); font-weight: 500; }
+.paso.mas .nodo { box-shadow: none; border: 1.5px dashed rgb(var(--t) / .42); }
+.paso.fin .via svg { margin-top: 1px; position: relative; z-index: 1; background: var(--panel); }
+.paso .que { padding-bottom: 16px; }
+
+/* ¿Cuándo me gradúo? */
+.anillo { height: 200px; border-radius: 24px; box-shadow: inset 0 0 0 1px rgb(var(--t) / .14); display: grid; place-items: center; text-align: center; }
+.ritmo { margin-top: 16px; padding: 16px; }
+.chips { display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px; margin-top: 12px; }
+.chips div { height: 36px; border-radius: 8px; background: var(--pas); display: grid; place-items: center; font: 500 15px/20px Inter; font-feature-settings: 'tnum'; color: var(--suave); position: relative; }
+.chips .si { background: var(--tinta); color: var(--panel); }
+.chips .tuyo::after { content: ''; position: absolute; bottom: 4px; left: calc(50% - 2px); width: 4px; height: 4px; border-radius: 2px; background: var(--tinta); }
+.ritmo .comp { padding: 0; margin-top: 20px; }
+.pie { margin: 8px 16px 0; }
+
+/* Electivas */
+.ranuras { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-top: 16px; }
+.ranuras i { height: 8px; border-radius: 2px; background: var(--pend); }
+
+/* ============ Paneles de la página ============ */
+.panel { border-radius: 28px; background: var(--panel); padding: 24px; box-shadow: 0 0 0 1px rgb(0 0 0 / .07); }
+.panel h4 { font: 300 24px/28px Jost; margin-bottom: 4px; }
+.panel .lead { font: 400 13px/18px Inter; color: var(--tenue); margin-bottom: 20px; }
+.esp { display: grid; grid-template-columns: 112px 1fr; column-gap: 16px; align-items: end; padding: 12px 0; border-top: 1px solid var(--hilo); }
+.esp:first-of-type { border-top: 0; }
+.esp .meta { font: 400 12px/16px Inter; color: var(--tenue); font-feature-settings: 'tnum'; padding-bottom: 2px; }
+.esp .meta b { display: block; font: 500 13px/16px Inter; color: var(--tinta); margin-bottom: 2px; }
+.esp .muestra { white-space: nowrap; overflow: visible; }
+
+.iconos { display: grid; grid-template-columns: repeat(5, 32px); gap: 16px 24px; margin: 4px 0 4px; }
+.cota { font: 400 12px/16px Inter; color: var(--tenue); font-feature-settings: 'tnum'; }
+.cota b { font-weight: 500; color: var(--tinta); }
+
+.conceptos { display: flex; gap: 40px; }
+.concepto { width: 375px; }
+.concepto .cab-c { display: flex; align-items: center; gap: 8px; }
+.concepto h3 { font: 300 24px/28px Jost; }
+.sello { font: 500 11px/16px Inter; letter-spacing: .08em; text-transform: uppercase; color: var(--panel); background: var(--tinta); border-radius: 10px; padding: 2px 8px; }
+.concepto p { font: 400 13px/18px Inter; color: var(--tenue); margin: 4px 0 16px; min-height: 36px; }
+.concepto .marco { background: var(--panel); border-radius: 28px; padding: 20px; box-shadow: 0 0 0 1px rgb(0 0 0 / .07); }
+.concepto .marco .heroe { margin-top: 0; }
+.porque { margin-top: 24px; font: 400 15px/22px Inter; letter-spacing: -.009em; color: #1C1F23; max-width: 900px; }
+.porque b { font-weight: 500; color: #050608; }
+
+.franja { display: grid; grid-template-columns: 1fr 1fr 360px; gap: 24px; align-items: stretch; }
+.lado { border-radius: 28px; background: var(--panel); padding: 24px; box-shadow: 0 0 0 1px rgb(0 0 0 / .07); }
+.lado .rot { margin-bottom: 20px; }
+.ejemplos { display: flex; align-items: flex-end; gap: 32px; }
+.guia { display: inline-block; text-box: trim-both cap alphabetic; box-shadow: 0 1px 0 rgb(var(--t) / .5); }
+.texto-ej { margin-top: 24px; font: 400 15px/20px Inter; color: var(--suave); }
+.texto-ej b { font-weight: 500; color: var(--tinta); }
+.viejo { font: 300 62px/.9 Inter; letter-spacing: -.045em; }
+.viejo sup { font-size: 22px; color: var(--tenue); vertical-align: top; margin-left: 3px; letter-spacing: 0; }
+.viejo.m { font-size: 40px; }
+.viejo.m sup { font-size: 14px; }
+.reglas { font: 400 13px/20px Inter; color: var(--suave); }
+.reglas li { margin: 0 0 8px 16px; }
+.reglas b { font-weight: 500; color: var(--tinta); }
+</style>
+</head>
+<body>
+<div class="pagina">
+
+<header class="portada" data-ver="intro">
+  <h1>Tu avance · refinado</h1>
+  <p>Misma estructura y mismos datos; cambia cómo se ve. <b>Cifras</b> en Inter Display ExtraLight, <b>títulos</b> en Jost Light, <b>texto</b> en Inter. El <b>%</b> baja a la línea base, más pequeño y tenue. Radios concéntricos (tarjeta 24 = pastilla 8 + margen 16), iconos Lucide a 18 dp con trazo de 1,5 dp, ritmo de 4 dp y subtítulos de cinco palabras como mucho. La barra pasa a ser la <b>huella del pensum</b>: una línea por materia.</p>
+</header>
+
+<!-- ================= Fila 1: la hoja ================= -->
+<section class="bloque" data-ver="hoja">
+  <h2>La hoja · Exterior y Oscuro</h2>
+  <div class="fila">
+    <div class="op">
+      <h3>Tu avance · Exterior</h3>
+      <p>Lo esencial arriba: cifra, fecha y la huella. Debajo, las cuatro filas y las electivas. «Reiniciar» queda al desplazar.</p>
+      <div class="tel ext" data-hoja></div>
+    </div>
+    <div class="op">
+      <h3>Tu avance · Oscuro</h3>
+      <p>Los mismos roles con los tokens del oscuro: superficies de tinta al 5 %, pendientes al 16 %.</p>
+      <div class="tel osc" data-hoja></div>
+    </div>
+
+    <!-- Este semestre -->
+    <div class="op">
+      <h3>Este semestre</h3>
+      <p>Qué te juegas con lo que cursas: la suma arriba, cada materia con lo que abre.</p>
+      <div class="tel ext"><div class="fondo"></div><div class="hoja">
+        <div class="asa"></div>
+        <div class="nav"><span class="redondo"><i data-ic="chevron-left"></i></span></div>
+        <header class="cab-int"><span class="pas"><i data-ic="book-open"></i></span><h2 class="disp">Este semestre</h2><p class="cuerpo">Qué te abre aprobarlas</p></header>
+        <section class="tarjeta comp primero">
+          <div><div class="rot">Si apruebas</div><div class="cifra c40 trim">12<span class="u">%</span></div><div class="nota">+6 UC</div></div>
+          <div class="sep"></div>
+          <div><div class="rot azul">Se te abren</div><div class="cifra c40 trim azul">3<span class="u">materias</span></div><div class="nota">Ene – Jun 2027</div></div>
+        </section>
+        <div class="seccion"><span class="rot">Cursas</span></div>
+        <section class="tarjeta">
+          <div class="f"><span class="ico ambar"><i data-ic="book-open"></i></span><span class="t"><span class="tt">Extraacadémica</span><span class="nota">No abre otras · 1 UC</span></span></div>
+          <div class="f"><span class="ico ambar"><i data-ic="book-open"></i></span><span class="t"><span class="tt">Comprensión y Expresión Ling. I</span><span class="nota">Abre <b>Comprensión II</b> y 2 más · 3 UC</span></span></div>
+        </section>
+        <div class="seccion"><span class="rot">Si repruebas una</span></div>
+        <section class="tarjeta">
+          <div class="f"><span class="ico"><i data-ic="calendar-check"></i></span><span class="t"><span class="tt">Tu fecha no cambia</span><span class="nota">Ninguna está en tu cadena</span></span></div>
+        </section>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= Fila 2: pantallas internas ================= -->
+<section class="bloque" data-ver="internas">
+  <h2>Pantallas internas</h2>
+  <div class="fila">
+    <!-- Tu próximo semestre -->
+    <div class="op">
+      <h3>Tu próximo semestre</h3>
+      <p>Qué inscribir: primero lo que te conviene a tu ritmo, después lo demás que puedes.</p>
+      <div class="tel ext"><div class="fondo"></div><div class="hoja">
+        <div class="asa"></div>
+        <div class="nav"><span class="redondo"><i data-ic="chevron-left"></i></span></div>
+        <header class="cab-int"><span class="pas azul"><i data-ic="calendar" class="azul"></i></span><h2 class="disp">Ene – Jun 2027</h2><p class="cuerpo">Para graduarte en Dic 2039</p></header>
+        <div class="seccion"><span class="rot azul">Te conviene · 6</span><span class="rot num">18 UC</span></div>
+        <section class="tarjeta">
+          <div class="f"><span class="ico azul"><i data-ic="lock-open"></i></span><span class="t"><span class="tt">Matemáticas II</span><span class="nota fuerte">En tu cadena</span></span><span class="cifra c20 v">4<span class="u">UC</span></span></div>
+          <div class="f"><span class="ico azul"><i data-ic="lock-open"></i></span><span class="t"><span class="tt">Física I</span><span class="nota">Abre 4</span></span><span class="cifra c20 v">4<span class="u">UC</span></span></div>
+          <div class="f"><span class="ico azul"><i data-ic="lock-open"></i></span><span class="t"><span class="tt">Programación I</span><span class="nota">Abre 4</span></span><span class="cifra c20 v">4<span class="u">UC</span></span></div>
+          <div class="f corta"><span class="ico"></span><span class="t"><span class="tt tenue">3 más</span></span><i data-ic="chevron-down" data-s="16" class="ch"></i></div>
+        </section>
+        <div class="seccion"><span class="rot">También puedes · 5</span></div>
+        <section class="tarjeta">
+          <div class="f"><span class="ico tenue"><i data-ic="lock-open"></i></span><span class="t"><span class="tt">Dibujo</span><span class="nota">No abre otras</span></span><span class="cifra c20 v">2<span class="u">UC</span></span></div>
+          <div class="f corta"><span class="ico"></span><span class="t"><span class="tt tenue">4 más</span></span><i data-ic="chevron-down" data-s="16" class="ch"></i></div>
+        </section>
+        <div class="boton">Verlas en el mapa</div>
+      </div></div>
+    </div>
+
+    <!-- No puedes atrasar -->
+    <div class="op">
+      <h3>No puedes atrasar</h3>
+      <p>La cadena que fija tu fecha, semestre a semestre, y lo que cuesta atrasar una.</p>
+      <div class="tel ext"><div class="fondo"></div><div class="hoja">
+        <div class="asa"></div>
+        <div class="nav"><span class="redondo"><i data-ic="chevron-left"></i></span></div>
+        <header class="cab-int"><span class="pas"><i data-ic="link"></i></span><h2 class="disp">No puedes atrasar</h2><p class="cuerpo">7 materias encadenadas</p></header>
+        <section class="tarjeta comp primero">
+          <div><div class="rot">A tiempo</div><div class="cifra c24 trim">Dic 2039</div></div>
+          <div class="sep"></div>
+          <div><div class="rot">Si atrasas una</div><div class="cifra c24 trim">Jun 2040</div><div class="nota">6 meses después</div></div>
+        </section>
+        <div class="cadena">
+          <div class="paso ya"><div class="cuando">Ene – Jun<br>2027</div><div class="via"><div class="nodo"></div></div><div class="que"><div class="tt">Matemáticas II</div><div class="nota azul">Inscríbela ya</div></div></div>
+          <div class="paso"><div class="cuando">Jul – Dic<br>2027</div><div class="via"><div class="nodo"></div></div><div class="que"><div class="tt">Matemáticas III</div><div class="nota">La abre Matemáticas II</div></div></div>
+          <div class="paso"><div class="cuando">Ene – Jun<br>2028</div><div class="via"><div class="nodo"></div></div><div class="que"><div class="tt">Matemáticas IV</div></div></div>
+          <div class="paso"><div class="cuando">Jul – Dic<br>2028</div><div class="via"><div class="nodo"></div></div><div class="que"><div class="tt">Métodos Numéricos</div></div></div>
+          <div class="paso"><div class="cuando">Ene – Jun<br>2029</div><div class="via"><div class="nodo"></div></div><div class="que"><div class="tt">Investigación de Operaciones</div></div></div>
+          <div class="paso mas"><div class="cuando">…</div><div class="via"><div class="nodo"></div></div><div class="que"><div class="tt tenue">2 más</div></div></div>
+          <div class="paso fin"><div class="cuando">Jul – Dic<br>2039</div><div class="via"><i data-ic="graduation-cap"></i></div><div class="que"><div class="tt">Trabajo de Grado</div><div class="nota">Y te gradúas</div></div></div>
+        </div>
+        <div class="boton">Verla en el mapa</div>
+      </div></div>
+    </div>
+
+    <!-- ¿Cuándo me gradúo? -->
+    <div class="op">
+      <h3>¿Cuándo me gradúo?</h3>
+      <p>El anillo no se toca. Debajo, el ritmo y tu fecha frente a la elegida.</p>
+      <div class="tel ext"><div class="fondo"></div><div class="hoja">
+        <div class="asa"></div>
+        <div class="nav"><span class="redondo"><i data-ic="chevron-left"></i></span></div>
+        <header class="cab-int"><span class="pas"><i data-ic="graduation-cap"></i></span><h2 class="disp">¿Cuándo me gradúo?</h2><p class="cuerpo">Depende de tu ritmo</p></header>
+        <div class="anillo primero"><div class="nota">El anillo que ya tenemos</div></div>
+        <section class="tarjeta ritmo">
+          <div class="rot">Materias por semestre</div>
+          <div class="chips"><div>1</div><div class="tuyo">2</div><div>3</div><div>4</div><div>5</div><div class="si">6</div><div>7</div><div>8</div></div>
+          <div class="comp">
+            <div><div class="rot">A tu ritmo · 2</div><div class="cifra c24 trim">Dic 2039</div></div>
+            <div class="sep"></div>
+            <div><div class="rot">A 6</div><div class="cifra c24 trim">Dic 2031</div><div class="nota">8 años antes</div></div>
+          </div>
+        </section>
+        <p class="nota pie">Más de 6 no adelanta: te frena la cadena.</p>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= Fila 3: electivas y sistema ================= -->
+<section class="bloque" data-ver="sistema">
+  <h2>Electivas y el sistema</h2>
+  <div class="fila">
+    <!-- Electivas técnicas -->
+    <div class="op">
+      <h3>Electivas técnicas</h3>
+      <p>Cuánto falta y las casillas de tu plan; tú eliges cuáles.</p>
+      <div class="tel ext"><div class="fondo"></div><div class="hoja">
+        <div class="asa"></div>
+        <div class="nav"><span class="redondo"><i data-ic="chevron-left"></i></span></div>
+        <header class="cab-int"><span class="pas"><i data-ic="wrench"></i></span><h2 class="disp">Electivas técnicas</h2><p class="cuerpo">Tú eliges cuáles</p></header>
+        <section class="tarjeta heroe primero">
+          <div class="datos"><div class="cifra c40 trim">0<span class="u">/15 UC</span></div><div class="nota">5 electivas de 3 UC</div></div>
+          <div class="ranuras"><i></i><i></i><i></i><i></i><i></i></div>
+        </section>
+        <div class="seccion"><span class="rot">En tu plan</span></div>
+        <section class="tarjeta">
+          <div class="f"><span class="pas vacia"><i data-ic="plus"></i></span><span class="t"><span class="tt">Electiva Técnica I</span><span class="nota">Semestre 7 · aún no se abre</span></span><span class="v nota">Elegir</span><i data-ic="chevron-right" data-s="16" class="ch"></i></div>
+          <div class="f"><span class="pas vacia"><i data-ic="plus"></i></span><span class="t"><span class="tt">Electiva Técnica II</span><span class="nota">Semestre 8</span></span><span class="v nota">Elegir</span><i data-ic="chevron-right" data-s="16" class="ch"></i></div>
+          <div class="f"><span class="pas vacia"><i data-ic="plus"></i></span><span class="t"><span class="tt">Electiva Técnica III</span><span class="nota">Semestre 9</span></span><span class="v nota">Elegir</span><i data-ic="chevron-right" data-s="16" class="ch"></i></div>
+          <div class="f corta"><span class="ico"></span><span class="t"><span class="tt tenue">2 más</span></span><i data-ic="chevron-down" data-s="16" class="ch"></i></div>
+        </section>
+      </div></div>
+    </div>
+
+    <!-- Escala tipográfica -->
+    <div class="op">
+      <h3>Escala tipográfica</h3>
+      <p>Cinco roles de texto y cuatro de cifra. Pesos finos solo en cifras grandes.</p>
+      <div class="panel ext">
+        <h4>Roles</h4>
+        <div class="lead">Familia · peso · tamaño/interlineado sp · tracking</div>
+        <div class="esp"><div class="muestra cifra c64 trim">8<span class="u">%</span></div><div class="meta"><b>Cifra héroe</b>Inter Display 200 · 64/64 · −2 %</div></div>
+        <div class="esp"><div class="muestra cifra c40 trim">12<span class="u">%</span></div><div class="meta"><b>Cifra</b>Inter Display 200 · 40/44 · −2 %</div></div>
+        <div class="esp"><div class="muestra cifra c24 trim">Dic 2039</div><div class="meta"><b>Cifra media · fechas</b>Inter Display 300 · 24/28 · −1,5 %</div></div>
+        <div class="esp"><div class="muestra cifra c20">0<span class="u">/15 UC</span></div><div class="meta"><b>Cifra de fila</b>Inter 300 · 20/24 · −1 %</div></div>
+        <div class="esp"><div class="muestra disp">Título</div><div class="meta"><b>Título</b>Jost 300 · 28/32 · −0,5 %</div></div>
+        <div class="esp"><div class="muestra tt">Este semestre</div><div class="meta"><b>Fila</b>Inter 500 · 15/20 · −0,9 %</div></div>
+        <div class="esp"><div class="muestra cuerpo">Si apruebas…</div><div class="meta"><b>Cuerpo</b>Inter 400 · 15/20 · −0,9 %</div></div>
+        <div class="esp"><div class="muestra nota">Desde el semestre 7</div><div class="meta"><b>Nota</b>Inter 400 · 13/16 · −0,3 %</div></div>
+        <div class="esp"><div class="muestra rot">Electivas</div><div class="meta"><b>Rótulo</b>Inter 500 · 11/16 · +8 % · mayúsculas</div></div>
+        <div class="esp"><div class="muestra" style="font:300 11px/16px 'IBM Plex Mono';color:var(--tenue)">0081814</div><div class="meta"><b>Código</b>IBM Plex Mono 300 · 11/16</div></div>
+      </div>
+    </div>
+
+    <!-- Radios e iconos -->
+    <div class="op">
+      <h3>Radios, pastillas e iconos</h3>
+      <p>Todo radio interior es el exterior menos el margen. Un solo set lineal.</p>
+      <div class="panel ext">
+        <h4>Concéntricos</h4>
+        <div class="lead">Radio exterior = radio interior + margen</div>
+        <div class="tarjeta" style="padding:16px;position:relative">
+          <div style="display:flex;align-items:center;gap:12px"><span class="pas"><i data-ic="book-open"></i></span><span><span class="tt" style="display:block">Este semestre</span><span class="nota" style="display:block">Lo que cursas y qué abre</span></span></div>
+          <div class="chips" style="grid-template-columns:repeat(4,1fr);margin-top:16px"><div>1</div><div class="tuyo">2</div><div class="si">3</div><div>4</div></div>
+        </div>
+        <div class="cota" style="margin-top:12px"><b>Tarjeta 24</b> (Radio.Grande) · margen 16 · <b>pastilla 32, radio 8</b> · <b>chip 36, radio 8</b></div>
+        <div class="boton" style="margin-top:16px">Botón 52 · radio 26</div>
+        <div class="reinicio" style="margin-top:8px"><i data-ic="rotate-ccw" data-s="16"></i>Reiniciar mi avance</div>
+        <div class="cota" style="margin-top:12px"><b>Hoja 28</b> arriba · <b>círculos 36</b> (atrás, cerrar) · etiquetas y barritas 2</div>
+        <h4 style="margin-top:28px">Iconos</h4>
+        <div class="lead">Lucide · 18 dp en pastilla de 32 · trazo 1,5 dp · puntas redondas</div>
+        <div class="iconos">
+          <span class="pas"><i data-ic="book-open"></i></span><span class="pas azul"><i data-ic="calendar" class="azul"></i></span><span class="pas"><i data-ic="link"></i></span><span class="pas"><i data-ic="graduation-cap"></i></span><span class="pas"><i data-ic="wrench"></i></span>
+          <span class="pas"><i data-ic="users"></i></span><span class="ico ambar"><i data-ic="book-open"></i></span><span class="ico azul"><i data-ic="lock-open"></i></span><span class="ico"><i data-ic="calendar-check"></i></span><span class="pas vacia"><i data-ic="plus"></i></span>
+        </div>
+        <div class="cota" style="margin-top:12px">Indicadores (chevrones) a 16 dp, mismo trazo · estado en el color del icono, nunca en el fondo (salvo la pastilla azul)</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= Barra de progreso: conceptos ================= -->
+<section class="bloque" data-ver="barra">
+  <h2>Barra de progreso: conceptos</h2>
+  <div class="conceptos">
+    <div class="concepto">
+      <div class="cab-c"><h3>A · Huella</h3><span class="sello">Recomendada</span></div>
+      <p>Una línea por materia, ancha según sus UC, agrupadas por semestre. Lo aprobado y lo que cursas se levantan; lo que puedes inscribir, a media altura en azul; lo bloqueado, al ras.</p>
+      <div class="marco ext" data-heroe="huella"></div>
+    </div>
+    <div class="concepto">
+      <div class="cab-c"><h3>B · Silueta</h3></div>
+      <p>Tu mapa en miniatura: una columna por semestre y un bloque por materia, alto según sus UC.</p>
+      <div class="marco ext" data-heroe="silueta"></div>
+    </div>
+    <div class="concepto">
+      <div class="cab-c"><h3>C · Regla</h3></div>
+      <p>Un tramo por semestre, largo según sus UC y lleno según lo aprobado y lo que cursas.</p>
+      <div class="marco ext" data-heroe="regla"></div>
+    </div>
+  </div>
+  <p class="porque"><b>Por qué la Huella:</b> enseña cada materia con su peso real sin crecer en alto (28 dp) y se lee de izquierda a derecha como una barra. Además es única: cada carrera tiene la suya.</p>
+</section>
+
+<!-- ================= El signo % ================= -->
+<section class="bloque" data-ver="pct">
+  <h2>El signo %: antes y después</h2>
+  <div class="franja">
+    <div class="lado ext">
+      <div class="rot">Antes · arriba, como exponente</div>
+      <div class="ejemplos">
+        <div class="viejo"><span class="guia">8<sup>%</sup></span></div>
+        <div class="viejo m"><span class="guia">41<sup>%</sup></span></div>
+      </div>
+      <p class="texto-ej">Llegas al <b>12 %</b> y se te abren <b>3</b>.</p>
+    </div>
+    <div class="lado ext">
+      <div class="rot">Después · abajo, en la línea base</div>
+      <div class="ejemplos">
+        <div class="cifra c64"><span class="guia">8<span class="u">%</span></span></div>
+        <div class="cifra c40"><span class="guia">41<span class="u">%</span></span></div>
+        <div class="cifra c24"><span class="guia">12<span class="u">%</span></span></div>
+      </div>
+      <p class="texto-ej">Llegas al <b>12%</b> y se te abren <b>3</b>.</p>
+    </div>
+    <div class="lado ext reglas">
+      <div class="rot">La norma, en toda la app</div>
+      <ul>
+        <li>El % y las unidades (UC) van <b>en la línea base</b> de la cifra. Nunca arriba.</li>
+        <li>Tamaño: <b>40 % de la cifra</b>, redondeado; nunca menos de 11 sp.</li>
+        <li>Peso: <b>uno más</b> que la cifra (200 → 300), para igualar el trazo.</li>
+        <li>Color: <b>tenue</b>. Separación: 2 dp. Sin espacio: «8%».</li>
+        <li>En texto corrido (≤ 17 sp) va igual que el número: «12%».</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+</div>
+
+<!-- La hoja principal, una vez, para Exterior y Oscuro -->
+<template id="t-hoja">
+  <div class="fondo"></div>
+  <div class="hoja">
+    <div class="asa"></div>
+    <header class="cab">
+      <div><div class="rot">Tu avance</div><h2 class="disp">Ingeniería de Sistemas</h2></div>
+      <span class="redondo"><i data-ic="x"></i></span>
+    </header>
+    <section class="tarjeta heroe" data-cuerpo-heroe="huella"></section>
+    <section class="tarjeta lista">
+      <div class="f"><span class="pas"><i data-ic="book-open"></i></span><span class="t"><span class="tt">Este semestre</span><span class="nota">Lo que cursas y qué abre</span></span><span class="cifra c20 v">2</span><i data-ic="chevron-right" data-s="16" class="ch"></i></div>
+      <div class="f"><span class="pas azul"><i data-ic="calendar" class="azul"></i></span><span class="t"><span class="tt">Tu próximo semestre</span><span class="nota">Qué inscribir · Ene – Jun 2027</span></span><span class="cifra c20 v">6</span><i data-ic="chevron-right" data-s="16" class="ch"></i></div>
+      <div class="f"><span class="pas"><i data-ic="link"></i></span><span class="t"><span class="tt">No puedes atrasar</span><span class="nota">Las que fijan tu fecha</span></span><span class="cifra c20 v">7</span><i data-ic="chevron-right" data-s="16" class="ch"></i></div>
+      <div class="f"><span class="pas"><i data-ic="graduation-cap"></i></span><span class="t"><span class="tt">¿Cuándo me gradúo?</span><span class="nota">Lo más rápido: Dic 2031</span></span><i data-ic="chevron-right" data-s="16" class="ch"></i></div>
+    </section>
+    <div class="seccion"><span class="rot">Electivas</span></div>
+    <section class="tarjeta">
+      <div class="f"><span class="pas"><i data-ic="wrench"></i></span><span class="t"><span class="tt">Técnicas</span><span class="nota">Desde el semestre 7</span></span><span class="cifra c20 v">0<span class="u">/15 UC</span></span><i data-ic="chevron-right" data-s="16" class="ch"></i></div>
+      <div class="f"><span class="pas"><i data-ic="users"></i></span><span class="t"><span class="tt">Sociohumanísticas</span><span class="nota">Ya puedes cursar 4</span></span><span class="cifra c20 v">0<span class="u">/6 UC</span></span><i data-ic="chevron-right" data-s="16" class="ch"></i></div>
+    </section>
+    <div class="reinicio"><i data-ic="rotate-ccw" data-s="16"></i>Reiniciar mi avance</div>
+    <div style="height:24px"></div>
+  </div>
+  <div class="desv"></div>
+</template>
+
+<template id="t-heroe">
+  <div class="datos">
+    <div class="cifra c64 trim">8<span class="u">%</span></div>
+    <div class="cifra c24 trim">Dic 2039</div>
+  </div>
+  <div class="pies"><span class="nota"><b>13</b> / 153 UC</span><span class="nota">Te gradúas</span></div>
+  <div class="barra"></div>
+  <p class="cuerpo frase">Si apruebas las <b class="ambar">2 que cursas</b>:<br>llegas al <b>12%</b> y se te abren <b>3</b>.</p>
+</template>
+
+<script>
+/* ---------- Iconos Lucide (rejilla de 24). El trazo se ajusta para medir 1,5 dp a cualquier tamaño ---------- */
+const IC = {
+  'book-open': '<path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/>',
+  'calendar': '<path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/>',
+  'link': '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
+  'graduation-cap': '<path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/>',
+  'wrench': '<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>',
+  'users': '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+  'chevron-right': '<path d="m9 18 6-6-6-6"/>',
+  'chevron-left': '<path d="m15 18-6-6 6-6"/>',
+  'chevron-down': '<path d="m6 9 6 6 6-6"/>',
+  'x': '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
+  'rotate-ccw': '<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>',
+  'lock-open': '<rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/>',
+  'calendar-check': '<path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="m9 16 2 2 4-4"/>',
+  'plus': '<path d="M5 12h14"/><path d="M12 5v14"/>',
+};
+
+/* ---------- El pensum de Sistemas: [UC, estado] por materia y semestre (a aprobada, c cursando, p pendiente).
+   Dentro de cada semestre: aprobadas, luego cursando, luego pendientes, cada grupo en el orden del pensum.
+   Las casillas de electiva cuentan con su UC (sociohumanística 2, técnica 3). Total 153 UC. ---------- */
+const SEM = [
+  [[3,'a'],[4,'a'],[2,'a'],[4,'a'],[1,'c'],[3,'c']],
+  [[4,'i'],[3,'i'],[1,'i'],[4,'i'],[2,'p'],[2,'i']],
+  [[1,'i'],[4,'p'],[4,'i'],[2,'p'],[3,'p'],[1,'i'],[2,'p']],
+  [[3,'p'],[4,'p'],[3,'p'],[2,'i'],[3,'p'],[1,'p'],[2,'i']],
+  [[2,'p'],[2,'p'],[2,'p'],[3,'p'],[2,'p'],[3,'p'],[3,'p']],
+  [[3,'p'],[2,'p'],[3,'p'],[3,'p'],[3,'p'],[3,'p']],
+  [[3,'p'],[3,'p'],[3,'p'],[3,'p'],[1,'p'],[3,'p']],
+  [[3,'p'],[3,'p'],[3,'p'],[2,'p'],[2,'p'],[3,'p']],
+  [[2,'p'],[2,'p'],[3,'p'],[3,'p'],[3,'p']],
+  [[6,'p']],
+];
+const UC = SEM.flat().reduce((s, [u]) => s + u, 0); // 153
+const N = SEM.flat().length;                        // 57
+const ACTUAL = 0;                                    // el semestre con materias en curso
+const COLOR = { a: 'var(--tinta)', c: 'var(--ambar)', i: 'rgb(var(--a) / .55)', p: 'var(--pend)' };
+/* La skyline: lo hecho se levanta; lo que puedes inscribir, a media altura; lo bloqueado, al ras */
+const ALTO = { a: 1, c: 1, i: .62, p: .36 };
+const f2 = n => +n.toFixed(2);
+/* La regla de semestres: un hilo, una marca por semestre y el número en Jost.
+   El actual va en un círculo de tinta; los completos en tinta; los que vienen, apagados */
+const completo = i => SEM[i].every(m => m[1] === 'a');
+const etiquetas = (centros, y0, W) => {
+  let r = `<line x1="0" y1="${y0}" x2="${W}" y2="${y0}" style="stroke:var(--hilo);stroke-width:1"/>`;
+  centros.forEach((x, i) => {
+    const xx = f2(x);
+    r += `<line x1="${xx}" y1="${y0}" x2="${xx}" y2="${y0 + 4}" style="stroke:${i === ACTUAL || completo(i) ? 'var(--tinta)' : 'var(--hilo)'};stroke-width:1"/>`;
+    if (i === ACTUAL) r += `<circle cx="${xx}" cy="${y0 + 15}" r="8.5" style="fill:var(--tinta)"/>` +
+      `<text x="${xx}" y="${y0 + 19}" text-anchor="middle" style="font:500 11px Jost;fill:var(--panel)">${i + 1}</text>`;
+    else r += `<text x="${xx}" y="${y0 + 19}" text-anchor="middle" style="font:${completo(i) ? 500 : 400} 11px Jost;fill:${completo(i) ? 'var(--tinta)' : 'var(--apagada)'}">${i + 1}</text>`;
+  });
+  return r;
+};
+
+/* A · Huella: una línea por materia, ancho = UC × k; 1,5 dp entre materias y 6 dp entre semestres */
+function huella(W, H = 28, gM = 1.5, gS = 6) {
+  const k = (W - gM * (N - SEM.length) - gS * (SEM.length - 1)) / UC;
+  let x = 0, r = '';
+  const centros = [];
+  SEM.forEach(s => {
+    const x0 = x;
+    s.forEach(([u, e], j) => {
+      const h = H * ALTO[e];
+      r += `<rect x="${f2(x)}" y="${f2(H - h)}" width="${f2(u * k)}" height="${f2(h)}" rx="1" style="fill:${COLOR[e]}"/>`;
+      x += u * k + (j < s.length - 1 ? gM : 0);
+    });
+    centros.push((x0 + x) / 2);
+    x += gS;
+  });
+  return `<svg width="${W}" height="${H + 32}" viewBox="0 0 ${W} ${H + 32}">${r}${etiquetas(centros, H + 5, W)}</svg>`;
+}
+
+/* B · Silueta: una columna por semestre; un bloque por materia, alto = UC × 2 dp; 2 dp entre bloques */
+function silueta(W, u = 2, g = 2, gS = 8) {
+  const cw = (W - gS * (SEM.length - 1)) / SEM.length;
+  const H = Math.max(...SEM.map(s => s.reduce((t, [c]) => t + c * u, 0) + g * (s.length - 1)));
+  let r = '';
+  const centros = [];
+  SEM.forEach((s, i) => {
+    const x = i * (cw + gS);
+    let y = 0;
+    s.forEach(([c, e]) => { r += `<rect x="${f2(x)}" y="${y}" width="${f2(cw)}" height="${c * u}" rx="1" style="fill:${COLOR[e]}"/>`; y += c * u + g; });
+    centros.push(x + cw / 2);
+  });
+  return `<svg width="${W}" height="${H + 32}" viewBox="0 0 ${W} ${H + 32}">${r}${etiquetas(centros, H + 5, W)}</svg>`;
+}
+
+/* C · Regla: un tramo por semestre, largo = UC del semestre × k; lleno: aprobadas y luego cursando */
+function regla(W, h = 6, gS = 4) {
+  const k = (W - gS * (SEM.length - 1)) / UC;
+  let x = 0, r = '', defs = '';
+  const centros = [];
+  SEM.forEach((s, i) => {
+    const tot = s.reduce((t, [c]) => t + c, 0) * k;
+    const ap = s.filter(m => m[1] === 'a').reduce((t, [c]) => t + c, 0) * k;
+    const cu = s.filter(m => m[1] === 'c').reduce((t, [c]) => t + c, 0) * k;
+    defs += `<clipPath id="rg${i}${W}"><rect x="${f2(x)}" y="0" width="${f2(tot)}" height="${h}" rx="${h / 2}"/></clipPath>`;
+    r += `<g clip-path="url(#rg${i}${W})"><rect x="${f2(x)}" y="0" width="${f2(tot)}" height="${h}" style="fill:var(--pend)"/>` +
+         (ap ? `<rect x="${f2(x)}" y="0" width="${f2(ap)}" height="${h}" style="fill:var(--tinta)"/>` : '') +
+         (cu ? `<rect x="${f2(x + ap)}" y="0" width="${f2(cu)}" height="${h}" style="fill:var(--ambar)"/>` : '') + `</g>`;
+    centros.push(x + tot / 2);
+    x += tot + gS;
+  });
+  return `<svg width="${W}" height="${h + 32}" viewBox="0 0 ${W} ${h + 32}"><defs>${defs}</defs>${r}${etiquetas(centros, h + 5, W)}</svg>`;
+}
+const BARRAS = { huella, silueta, regla };
+
+/* ---------- Montaje ---------- */
+const tHoja = document.getElementById('t-hoja').innerHTML;
+const tHeroe = document.getElementById('t-heroe').innerHTML;
+document.querySelectorAll('[data-hoja]').forEach(el => { el.innerHTML = tHoja; });
+document.querySelectorAll('[data-cuerpo-heroe]').forEach(el => { el.innerHTML = tHeroe; el.querySelector('.barra').innerHTML = huella(303); });
+document.querySelectorAll('[data-heroe]').forEach(el => {
+  el.innerHTML = `<section class="tarjeta heroe">${tHeroe}</section>`;
+  el.querySelector('.barra').innerHTML = BARRAS[el.dataset.heroe](303);
+});
+document.querySelectorAll('i[data-ic]').forEach(el => {
+  const s = +(el.dataset.s || 18);
+  el.outerHTML = `<svg class="i ${el.className}" width="${s}" height="${s}" viewBox="0 0 24 24" style="stroke-width:${f2(1.5 * 24 / s)}" aria-hidden="true">${IC[el.dataset.ic]}</svg>`;
+});
+
+/* ?ver=hoja|internas|sistema|barra|pct enseña solo esa parte (para revisar de cerca) */
+const ver = new URLSearchParams(location.search).get('ver');
+if (ver) document.querySelectorAll('[data-ver]').forEach(el => { if (el.dataset.ver !== ver) el.style.display = 'none'; });
+</script>
+</body>
+</html>

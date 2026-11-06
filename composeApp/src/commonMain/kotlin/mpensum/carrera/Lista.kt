@@ -329,7 +329,7 @@ private fun situacionDe(f: FiltroLista) = when (f) {
 
 private fun colorFiltro(f: FiltroLista) = when (f) {
     FiltroLista.APROBADAS -> Paleta.verde
-    FiltroLista.CURSANDO -> Paleta.ambar
+    FiltroLista.CURSANDO -> Paleta.cursando
     FiltroLista.DISPONIBLES -> Paleta.azul
     FiltroLista.BLOQUEADAS -> Paleta.rojo
 }

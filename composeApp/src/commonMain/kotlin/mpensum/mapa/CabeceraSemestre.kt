@@ -102,7 +102,7 @@ fun CabeceraSemestre(datos: DatosCabecera, tipos: TiposMapa, medidor: TextMeasur
                 val y = Lineas.BARRA * u
                 drawRect(Paleta.tinta.copy(alpha = 0.1f), Offset(0f, y), Size(size.width, 2 * u))
                 drawRect(Paleta.verde, Offset(0f, y), Size(anchoHechas * u, 2 * u))
-                drawRect(Paleta.ambar, Offset(anchoHechas * u, y), Size(anchoCursando * u, 2 * u))
+                dibujarContorno(anchoHechas * u, y, anchoCursando * u, 2 * u)
                 // Los estados de derecha a izquierda contra el borde: solo los que tienen alguna materia
                 var hasta = size.width
                 for ((s, n) in listOf(Situacion.INSCRIBIBLE to datos.inscribibles, Situacion.CURSANDO to datos.cursando)) {
@@ -170,7 +170,7 @@ private fun CabeceraCompacta(datos: DatosCabecera, tipos: TiposMapa, alAlternar:
                 val y = BARRA_COMPACTA * u
                 drawRect(Paleta.tinta.copy(alpha = 0.1f), Offset(0f, y), Size(size.width, 2 * u))
                 drawRect(Paleta.verde, Offset(0f, y), Size(anchoHechas * u, 2 * u))
-                drawRect(Paleta.ambar, Offset(anchoHechas * u, y), Size(anchoCursando * u, 2 * u))
+                dibujarContorno(anchoHechas * u, y, anchoCursando * u, 2 * u)
             },
     ) {
         BasicText(
@@ -225,8 +225,8 @@ private fun DrawScope.glifoSemestre(c: CuentaSemestre) {
         for (i in 0 until c.total) {
             val (color, grosor) = when {
                 i < c.hechas -> Paleta.verde to 2.2f
-                i < finCursando -> Paleta.ambar to 2.2f
-                i < finPendientes -> Paleta.tinta.copy(alpha = 0.42f) to 1.5f
+                i < finCursando -> Paleta.cursando.copy(alpha = 0.45f) to 2.2f
+                i < finPendientes -> Paleta.tinta.copy(alpha = 0.24f) to 1.5f
                 else -> Paleta.tinta.copy(alpha = 0.16f) to 1.5f
             }
             drawPath(tramo(i.toFloat() / c.total + hueco / 2, (i + 1f) / c.total - hueco / 2), color, style = Stroke(grosor))
@@ -239,4 +239,11 @@ private fun DrawScope.glifoSemestre(c: CuentaSemestre) {
 
 private inline fun DrawScope.scaleTo(factor: Float, crossinline bloque: DrawScope.() -> Unit) {
     scale(factor, Offset.Zero) { bloque() }
+}
+
+/** «Cursando» en una barra: contorno fino en tinta, sin relleno */
+private fun DrawScope.dibujarContorno(x: Float, y: Float, ancho: Float, alto: Float) {
+    val g = density * 0.8f
+    if (ancho <= 2 * g) return
+    drawRect(Paleta.cursando, Offset(x + g / 2, y + g / 2), Size(ancho - g, alto - g), style = Stroke(g))
 }

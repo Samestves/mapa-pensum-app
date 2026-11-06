@@ -39,6 +39,9 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
+import mpensum.componentes.estiloCifra
+import mpensum.componentes.estiloUnidad
+import mpensum.componentes.tamañoUnidad
 import mpensum.componentes.Lucide
 import mpensum.datos.Pensum
 import mpensum.datos.rememberPensum
@@ -49,6 +52,7 @@ import mpensum.tema.Paleta
 import mpensum.tema.Tipo
 import mpensum.tema.Tema
 import mpensum.tema.inter
+import mpensum.tema.interCifra
 import mpensum.tema.jost
 import mpensum.tema.porTema
 import kotlin.math.exp
@@ -140,7 +144,6 @@ private fun avanceDeDemostracion(pensum: Pensum): AvanceDemo {
 /** Letra de la escena (dibujo, en unidades del tablero)  */
 private val TAM_CIFRA = 88.sp
 private val TAM_FALTAN = 80.sp
-private val TAM_SIGNO = 26.sp
 
 /** Lo que se funde la escena con el fondo en cada borde */
 private val FUNDIDO_ARRIBA = 37.dp
@@ -180,6 +183,8 @@ fun PasoAvance(alSeguir: () -> Unit) {
 private class TextosAvance(
     val cifras: List<TextLayoutResult>,
     val signo: TextLayoutResult,
+    /** La línea base común de la cifra y su signo, medida desde el borde de arriba de la cifra de Jost */
+    val baseCifra: Float,
     val aprobado: TextLayoutResult,
     val ucs: List<TextLayoutResult>,
     val deTotal: TextLayoutResult,
@@ -189,15 +194,18 @@ private class TextosAvance(
     val semestres: TextLayoutResult,
 )
 
-private fun medirTextos(a: AvanceDemo, medidor: TextMeasurer, jost: FontFamily, inter: FontFamily): TextosAvance {
-    val cifra = TextStyle(fontFamily = jost, fontWeight = FontWeight.ExtraLight, fontSize = TAM_CIFRA, letterSpacing = (-0.035).em, color = Paleta.tinta, fontFeatureSettings = "tnum")
+private fun medirTextos(a: AvanceDemo, medidor: TextMeasurer, jost: FontFamily, inter: FontFamily, interCifra: FontFamily): TextosAvance {
+    val cifra = estiloCifra(interCifra, TAM_CIFRA)
+    // Dónde apoyaba la cifra de Jost: la línea base se conserva, el signo baja a ella
+    val baseJost = medidor.measure("0", TextStyle(fontFamily = jost, fontWeight = FontWeight.ExtraLight, fontSize = TAM_CIFRA)).firstBaseline
     val versal = TextStyle(fontFamily = jost, fontWeight = FontWeight.Medium, fontSize = Tipo.xxs, letterSpacing = 0.14.em, color = Paleta.suave)
     val numero = TextStyle(fontFamily = jost, fontWeight = FontWeight.Light, fontSize = Tipo.s, color = Paleta.apagada, fontFeatureSettings = "tnum")
     val uc = TextStyle(fontFamily = inter, fontWeight = FontWeight.SemiBold, fontSize = Tipo.s, color = Paleta.tinta, fontFeatureSettings = "tnum")
     return TextosAvance(
         // Una por cada valor que la cuenta puede tocar: contar no mide nada
         cifras = (0..a.porcentaje).map { medidor.measure("$it", cifra) },
-        signo = medidor.measure("%", TextStyle(fontFamily = jost, fontWeight = FontWeight.Light, fontSize = TAM_SIGNO, color = Paleta.verde)),
+        signo = medidor.measure("%", estiloUnidad(inter, TAM_CIFRA, color = Paleta.verde)),
+        baseCifra = baseJost,
         aprobado = medidor.measure("APROBADO", versal),
         ucs = (0..a.llevas).map { medidor.measure("$it", uc) },
         // El color va en el estilo y no en un tramo: el alfa de drawText no apaga los colores de tramo
@@ -224,10 +232,11 @@ private fun Escena(a: AvanceDemo) {
     val resolutor = LocalFontFamilyResolver.current
     val jost = jost()
     val inter = inter()
+    val interCifra = interCifra()
     // Los colores van medidos en cada texto: se vuelven a medir si cambia el tema
     val claro = Tema.claro
-    val textos = remember(a, resolutor, jost, inter, claro) {
-        medirTextos(a, TextMeasurer(resolutor, Density(1f), LayoutDirection.Ltr, 0), jost, inter)
+    val textos = remember(a, resolutor, jost, inter, interCifra, claro) {
+        medirTextos(a, TextMeasurer(resolutor, Density(1f), LayoutDirection.Ltr, 0), jost, inter, interCifra)
     }
     val escena = remember(a) { GeometriaAvance(a) }
     val toma = remember { FloatArray(5) }
@@ -350,8 +359,10 @@ private fun DrawScope.pintar(t: Float, a: AvanceDemo, g: GeometriaAvance, x: Tex
         val dy = (1f - eC) * 8f
         val n = redondear(ucHechas * 100.0 / a.de).coerceIn(0, a.porcentaje)
         val cifra = x.cifras[n]
-        texto(cifra, 40f, 106.6f + dy, alfaCifra)
-        texto(x.signo, 40f + cifra.size.width + 4f, 66f + dy, alfaCifra)
+        // Las dos sobre la misma línea base: el signo no sube
+        val base = 106.6f + x.baseCifra + dy
+        texto(cifra, 40f, base - cifra.firstBaseline, alfaCifra)
+        texto(x.signo, 40f + cifra.size.width + 2f, base - x.signo.firstBaseline, alfaCifra)
         drawCircle(Paleta.verde, 4f, Offset(44f, 133f + dy), alpha = alfaCifra)
         texto(x.aprobado, 56f, 136.8f + dy, alfaCifra)
         val uc = x.ucs[redondear(ucHechas.toDouble()).coerceIn(0, a.llevas)]

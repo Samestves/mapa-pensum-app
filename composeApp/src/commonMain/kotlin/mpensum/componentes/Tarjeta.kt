@@ -26,8 +26,8 @@ fun aspecto(e: Situacion): Aspecto {
             Paleta.verde.copy(alpha = porTema(0.30f, 0.40f)), 1f, Paleta.suave, sombraPapel(),
         )
         Situacion.CURSANDO -> Aspecto(
-            lerp(Paleta.panel, Paleta.ambar, porTema(0.11f, 0.07f)),
-            Paleta.ambar.copy(alpha = porTema(0.58f, 0.70f)), 1.25f, tinta, sombraPapel(),
+            // Cursando se reconoce por la forma: borde de 1,5 dp en tinta, sin tinte
+            Paleta.panel, Paleta.cursando, 1.5f, tinta, sombraPapel(),
         )
         // En Exterior lo inscribible lleva el borde azul: se reconoce de lejos y a pleno sol
         Situacion.INSCRIBIBLE ->

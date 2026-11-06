@@ -88,7 +88,7 @@ fun rememberTiposMapa(): TiposMapa {
 /** El color "fuerte" de cada situación: el borde de la elegida, de su cadena y su aura */
 fun fuerte(s: Situacion): Color = when (s) {
     Situacion.HECHA -> Paleta.verde
-    Situacion.CURSANDO -> Paleta.ambar
+    Situacion.CURSANDO -> Paleta.cursando
     Situacion.INSCRIBIBLE -> Paleta.azul
     else -> Paleta.tinta.copy(alpha = 0.62f)
 }

@@ -106,7 +106,7 @@ private const val CIERRE_VELOCIDAD = 0.6f
 /** Lo que dice cada situación en la cabecera, con su color (ASPECTO.marca de la web) */
 private fun palabraDe(s: Situacion): Pair<String, Color> = when (s) {
     Situacion.HECHA -> "APROBADA" to Paleta.verde
-    Situacion.CURSANDO -> "CURSANDO" to Paleta.ambar
+    Situacion.CURSANDO -> "CURSANDO" to Paleta.cursando
     Situacion.INSCRIBIBLE -> "DISPONIBLE" to Paleta.azul
     Situacion.PROXIMA -> "PRÓXIMA" to Paleta.suave
     Situacion.LEJANA -> "BLOQUEADA" to Paleta.tenue
@@ -411,7 +411,7 @@ private fun BotonCambiarElectiva(alPulsar: () -> Unit) {
 /** Las tres marcas, en el orden en que se leen */
 private val MARCAS get() = listOf(
     Triple(Marca.APROBADA, "Aprobada", Paleta.verde),
-    Triple(Marca.CURSANDO, "Cursando", Paleta.ambar),
+    Triple(Marca.CURSANDO, "Cursando", Paleta.cursando),
     Triple(null, "Sin cursar", Paleta.suave),
 )
 

@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Cursando sin ámbar y la barra de materias</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,100..900&family=Jost:wght@100..900&display=block" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #E6E7E9; font-family: Inter, sans-serif; color: #050608; padding: 48px 40px 80px; -webkit-font-smoothing: antialiased; }
+h1 { font: 300 36px/40px Jost; }
+.lead { font: 400 15px/22px Inter; color: #34383E; max-width: 900px; margin-top: 10px; }
+.lead b { font-weight: 500; color: #050608; }
+h2 { font: 500 11px/16px Inter; letter-spacing: .08em; text-transform: uppercase; color: #52565C; margin: 48px 0 16px; }
+.fila { display: flex; gap: 32px; align-items: flex-start; }
+.op { width: 380px; flex: none; }
+.op h3 { font: 300 24px/28px Jost; display: flex; align-items: center; gap: 8px; }
+.op p { font: 400 13px/18px Inter; color: #34383E; margin: 4px 0 14px; min-height: 54px; }
+.sello { font: 500 10px/16px Inter; letter-spacing: .08em; text-transform: uppercase; background: #050608; color: #fff; border-radius: 8px; padding: 1px 7px; }
+
+.ext { --fondo:#FFFFFF; --tinta:#050608; --suave:#1C1F23; --tenue:#34383E; --apagada:#52565C; --azul:#1A47C2; --verde:#00603F; --rojo:#A80F1A; --t: 5 6 8; --sup:.045; --pend:.13; --hilo:.12; }
+.osc { --fondo:#121316; --tinta:#ECEEF1; --suave:#B6BBC2; --tenue:#858B94; --apagada:#5D636C; --azul:#5B8AF5; --verde:#2EC27E; --rojo:#E5403A; --t: 236 238 241; --sup:.05; --pend:.15; --hilo:.09; }
+.panel { background: var(--fondo); border-radius: 28px; padding: 16px; color: var(--tinta); box-shadow: 0 0 0 1px rgb(0 0 0 / .06); }
+.panel + .panel { margin-top: 12px; }
+.tarjeta { background: rgb(var(--t) / var(--sup)); border-radius: 24px; padding: 16px; }
+.cifra { font-family: Inter; font-variation-settings: 'opsz' 32; font-weight: 200; font-size: 56px; line-height: 52px; letter-spacing: -.02em; font-feature-settings: 'tnum'; }
+.cifra .u { font-size: 22px; font-weight: 300; color: var(--tenue); margin-left: 2px; letter-spacing: 0; }
+.fecha { font-family: Inter; font-variation-settings: 'opsz' 32; font-weight: 300; font-size: 22px; letter-spacing: -.015em; }
+.nota { font: 400 13px/16px Inter; color: var(--tenue); font-feature-settings: 'tnum'; }
+.nota b { font-weight: 500; color: var(--tinta); }
+.datos { display: flex; justify-content: space-between; align-items: flex-end; }
+.pies { display: flex; justify-content: space-between; margin-top: 8px; }
+.barra { margin-top: 18px; }
+.leyenda { display: flex; gap: 14px; margin-top: 12px; font: 400 12px/16px Inter; color: var(--tenue); }
+.leyenda span { display: inline-flex; align-items: center; gap: 6px; }
+
+/* Renglones de la lista y tarjeta del mapa, para ver el «cursando» en contexto */
+.ren { display: flex; align-items: center; gap: 12px; padding: 10px 4px; }
+.ren + .ren { border-top: 1px solid rgb(var(--t) / var(--hilo)); }
+.ren .t b { display: block; font: 400 16px/20px Jost; }
+.ren .t span { font: 400 13px/16px Inter; color: var(--tenue); }
+.ren svg { flex: none; }
+.mapa { display: flex; gap: 10px; margin-top: 12px; }
+.tm { flex: 1; border-radius: 10px; padding: 8px 10px; background: rgb(var(--t) / .04); box-shadow: inset 0 0 0 1px rgb(var(--t) / .12); }
+.tm .c { font: 300 10px/12px 'IBM Plex Mono', monospace; color: var(--apagada); display: flex; justify-content: space-between; }
+.tm .n { font: 400 12.5px/16px Jost; margin-top: 6px; }
+</style>
+</head>
+<body>
+<h1>«Cursando» sin ámbar, y una barra que se lea como materias</h1>
+<p class="lead"><b>Lo que cambia en toda la app:</b> el ámbar desaparece. «Cursando» deja de ser un color y pasa a ser una <b>forma</b>, como hace Apple: el color se queda solo donde hay que actuar o avisar (verde aprobada, azul inscribible, rojo bloqueada). <b>La barra</b> pierde los azules y las alturas: solo dice «llevas, cursas, falta». Abajo verás tres formas de mostrar «cursando» y tres barras, cada una en claro y en oscuro, con la lista y el mapa al lado para que veas cómo queda en toda la app.</p>
+
+<h2>1 · Cómo se ve «cursando» en la app</h2>
+<div class="fila" id="cursando"></div>
+
+<h2>2 · La barra de la carrera (sin azules)</h2>
+<div class="fila" id="barras"></div>
+
+<script>
+/* Sistemas: [UC, estado] por semestre; a aprobada, c cursando, p falta */
+const SEM = [
+  [[3,'a'],[4,'a'],[2,'a'],[4,'a'],[1,'c'],[3,'c']],
+  [[4,'p'],[3,'p'],[1,'p'],[4,'p'],[2,'p'],[2,'p']],
+  [[1,'p'],[4,'p'],[4,'p'],[2,'p'],[3,'p'],[1,'p'],[2,'p']],
+  [[3,'p'],[4,'p'],[3,'p'],[2,'p'],[3,'p'],[1,'p'],[2,'p']],
+  [[2,'p'],[2,'p'],[2,'p'],[3,'p'],[2,'p'],[3,'p'],[3,'p']],
+  [[3,'p'],[2,'p'],[3,'p'],[3,'p'],[3,'p'],[3,'p']],
+  [[3,'p'],[3,'p'],[3,'p'],[3,'p'],[1,'p'],[3,'p']],
+  [[3,'p'],[3,'p'],[3,'p'],[2,'p'],[2,'p'],[3,'p']],
+  [[2,'p'],[2,'p'],[3,'p'],[3,'p'],[3,'p']],
+  [[6,'p']],
+];
+const f2 = n => +n.toFixed(2);
+let uid = 0;
+
+/* Tres formas de «cursando», sin color propio */
+const CURSANDO = {
+  contorno: { nombre: 'Contorno', rec: true, texto: 'Hueca: la materia está «abierta». Se entiende sola junto a la llena (aprobada) y la tenue (falta).',
+    pinta: (x, y, w, h, r) => `<rect x="${f2(x + .75)}" y="${f2(y + .75)}" width="${f2(Math.max(w - 1.5, .5))}" height="${f2(h - 1.5)}" rx="${r}" style="fill:none;stroke:var(--tinta);stroke-width:1.5"/>` },
+  rayas: { nombre: 'Rayado', texto: 'Líneas finas en diagonal, como «en obra». Muy clara, algo más técnica.',
+    pinta: (x, y, w, h, r) => { const id = 'ry' + (++uid); return `<defs><pattern id="${id}" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="1.6" height="4" style="fill:var(--tinta)"/></pattern></defs><rect x="${f2(x)}" y="${y}" width="${f2(w)}" height="${h}" rx="${r}" style="fill:url(#${id})"/><rect x="${f2(x + .5)}" y="${y + .5}" width="${f2(Math.max(w - 1, .5))}" height="${h - 1}" rx="${r}" style="fill:none;stroke:var(--tinta);stroke-width:1;opacity:.6"/>`; } },
+  medio: { nombre: 'Medio tono', texto: 'La misma tinta al 45 %: lo más sereno. A cambio, se distingue menos de lo que falta.',
+    pinta: (x, y, w, h, r) => `<rect x="${f2(x)}" y="${y}" width="${f2(w)}" height="${h}" rx="${r}" style="fill:rgb(var(--t) / .45)"/>` },
+};
+
+/* La pieza: aprobada llena, cursando según la forma, falta tenue */
+function pieza(e, forma, x, y, w, h, r) {
+  if (e === 'a') return `<rect x="${f2(x)}" y="${y}" width="${f2(w)}" height="${h}" rx="${r}" style="fill:var(--tinta)"/>`;
+  if (e === 'c') return CURSANDO[forma].pinta(x, y, w, h, r);
+  return `<rect x="${f2(x)}" y="${y}" width="${f2(w)}" height="${h}" rx="${r}" style="fill:rgb(var(--t) / var(--pend))"/>`;
+}
+
+/* La regla de semestres (la de la Huella, que te gustó) */
+function regla(centros, y0, W, actual = 0) {
+  let r = `<line x1="0" y1="${y0}" x2="${W}" y2="${y0}" style="stroke:rgb(var(--t) / var(--hilo));stroke-width:1"/>`;
+  centros.forEach((x, i) => {
+    r += `<line x1="${f2(x)}" y1="${y0}" x2="${f2(x)}" y2="${y0 + 4}" style="stroke:${i === actual ? 'var(--tinta)' : 'rgb(var(--t) / var(--hilo))'};stroke-width:1"/>`;
+    r += i === actual
+      ? `<circle cx="${f2(x)}" cy="${y0 + 15}" r="8.5" style="fill:var(--tinta)"/><text x="${f2(x)}" y="${y0 + 19}" text-anchor="middle" style="font:500 11px Jost;fill:var(--fondo)">${i + 1}</text>`
+      : `<text x="${f2(x)}" y="${y0 + 19}" text-anchor="middle" style="font:400 11px Jost;fill:var(--apagada)">${i + 1}</text>`;
+  });
+  return r;
+}
+
+/* A · Cápsulas: una por materia, ancho según UC, mismo alto, separadas por semestre */
+function capsulas(W, forma, H = 14) {
+  const N = SEM.flat().length, UC = SEM.flat().reduce((s, [u]) => s + u, 0), gM = 2, gS = 7;
+  const k = (W - gM * (N - SEM.length) - gS * (SEM.length - 1)) / UC;
+  let x = 0, r = ''; const c = [];
+  SEM.forEach(s => { const x0 = x; s.forEach(([u, e], j) => { r += pieza(e, forma, x, 0, u * k, H, 2.5); x += u * k + (j < s.length - 1 ? gM : 0); }); c.push((x0 + x) / 2); x += gS; });
+  return `<svg width="${W}" height="${H + 32}" viewBox="0 0 ${W} ${H + 32}" style="overflow:visible">${r}${regla(c, H + 6, W)}</svg>`;
+}
+
+/* B · Puntos: el mapa en miniatura; una columna por semestre, un punto por materia */
+function puntos(W, forma, d = 9, g = 4) {
+  const cols = SEM.length, cw = W / cols, filas = Math.max(...SEM.map(s => s.length));
+  const H = filas * d + (filas - 1) * g;
+  let r = ''; const c = [];
+  SEM.forEach((s, i) => { const cx = i * cw + cw / 2; c.push(cx); s.forEach(([u, e], j) => { r += pieza(e, forma, cx - d / 2, j * (d + g), d, d, d / 2); }); });
+  return `<svg width="${W}" height="${H + 32}" viewBox="0 0 ${W} ${H + 32}" style="overflow:visible">${r}${regla(c, H + 8, W)}</svg>`;
+}
+
+/* C · Tramos: un tramo por semestre (largo según UC), dividido en sus materias por cortes finos */
+function tramos(W, forma, H = 8) {
+  const UC = SEM.flat().reduce((s, [u]) => s + u, 0), gS = 5, gM = 1;
+  const k = (W - gS * (SEM.length - 1)) / UC;
+  let x = 0, r = '', defs = ''; const c = [];
+  SEM.forEach((s, i) => {
+    const tot = s.reduce((t, [u]) => t + u, 0) * k, id = 'tr' + (++uid);
+    defs += `<clipPath id="${id}"><rect x="${f2(x)}" y="0" width="${f2(tot)}" height="${H}" rx="${H / 2}"/></clipPath>`;
+    let xx = x, g = `<g clip-path="url(#${id})">`;
+    s.forEach(([u, e], j) => { const w = u * k - (j < s.length - 1 ? gM : 0); g += pieza(e, forma, xx, 0, w, H, 0); xx += u * k; });
+    r += g + '</g>'; c.push(x + tot / 2); x += tot + gS;
+  });
+  return `<svg width="${W}" height="${H + 32}" viewBox="0 0 ${W} ${H + 32}" style="overflow:visible"><defs>${defs}</defs>${r}${regla(c, H + 6, W)}</svg>`;
+}
+
+const icoLibro = col => `<svg width="20" height="20" viewBox="0 0 24 24" style="fill:none;stroke:${col};stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"><path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></svg>`;
+const icoCheck = `<svg width="20" height="20" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" style="fill:var(--verde)"/><path d="m8 12.5 2.5 2.5L16 9.5" style="fill:none;stroke:var(--fondo);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round"/></svg>`;
+const icoCandado = `<svg width="20" height="20" viewBox="0 0 24 24" style="fill:none;stroke:var(--azul);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"><rect width="16" height="10" x="4" y="11" rx="2" style="fill:var(--azul)"/><path d="M8 11V7a4 4 0 0 1 7.6-1.7"/></svg>`;
+
+function heroe(barra) {
+  return `<div class="tarjeta"><div class="datos"><div class="cifra">8<span class="u">%</span></div><div class="fecha">Dic 2039</div></div>
+    <div class="pies"><span class="nota"><b>13</b> / 153 UC</span><span class="nota">Te gradúas</span></div><div class="barra">${barra}</div></div>`;
+}
+const muestra = forma => `<svg width="12" height="12" style="overflow:visible">${pieza('c', forma, 0, 0, 12, 12, 3)}</svg>`;
+
+/* 1 · El «cursando» en contexto: la lista, el mapa y la barra */
+document.getElementById('cursando').innerHTML = Object.entries(CURSANDO).map(([k, v]) => `
+  <div class="op"><h3>${v.nombre}${v.rec ? '<span class="sello">Recomendada</span>' : ''}</h3><p>${v.texto}</p>
+  ${['ext', 'osc'].map(t => `<div class="panel ${t}">
+    <div class="ren">${icoLibro('var(--tinta)')}<div class="t"><b>Estadística II</b><span>2 UC · <span style="color:var(--tinta);font-weight:500">Cursando</span></span></div></div>
+    <div class="ren">${icoCheck}<div class="t"><b>Matemáticas I</b><span>4 UC · Aprobada</span></div></div>
+    <div class="ren">${icoCandado}<div class="t"><b>Sistemas de Costo</b><span>2 UC · <span style="color:var(--azul)">Puedes inscribirla</span></span></div></div>
+    <div class="mapa"><div class="tm" style="box-shadow:inset 0 0 0 1.5px var(--tinta)"><div class="c"><span>0713522</span>${icoLibro('var(--tinta)').replace('width="20" height="20"', 'width="12" height="12"')}</div><div class="n">Estadística II</div></div>
+      <div class="tm"><div class="c"><span>0713113</span></div><div class="n" style="color:var(--tenue)">Economía</div></div></div>
+    <div class="leyenda"><span>${pieza.length && `<svg width="12" height="12">${pieza('a', k, 0, 0, 12, 12, 3)}</svg>`}Aprobada</span><span>${muestra(k)}Cursando</span><span><svg width="12" height="12">${pieza('p', k, 0, 0, 12, 12, 3)}</svg>Falta</span></div>
+  </div>`).join('')}</div>`).join('');
+
+/* 2 · Las tres barras, con la forma recomendada (contorno) */
+const BARRAS = [
+  ['Cápsulas', true, 'Una cápsula por materia, ancho según sus UC y todas del mismo alto. Se ve que son piezas, y el hueco más ancho separa los semestres.', capsulas],
+  ['Puntos', false, 'Tu mapa en miniatura: una columna por semestre y un punto por materia. Es la más literal («estas son tus materias»), pero ocupa más alto.', puntos],
+  ['Tramos', false, 'Un tramo redondeado por semestre, partido en sus materias con cortes finos. Es la más discreta y se parece más a una barra de progreso clásica.', tramos],
+];
+document.getElementById('barras').innerHTML = BARRAS.map(([n, rec, txt, fn]) => `
+  <div class="op"><h3>${n}${rec ? '<span class="sello">Recomendada</span>' : ''}</h3><p>${txt}</p>
+  ${['ext', 'osc'].map(t => `<div class="panel ${t}">${heroe(fn(316, 'contorno'))}</div>`).join('')}</div>`).join('');
+</script>
+</body>
+</html>

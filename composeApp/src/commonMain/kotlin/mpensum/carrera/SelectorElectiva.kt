@@ -248,7 +248,7 @@ private fun FichaElectiva(
     val bloqueada = e == EstadoMateria.BLOQUEADA
     val nota: Pair<String, Color>? = when {
         e == EstadoMateria.APROBADA -> "Aprobada" to Paleta.verde
-        e == EstadoMateria.CURSANDO -> "Cursando" to Paleta.ambar
+        e == EstadoMateria.CURSANDO -> "Cursando" to Paleta.cursando
         enOtra -> (if (enFranja) "Ya en tu mapa" else "En otra casilla") to Paleta.tenue
         else -> null
     }

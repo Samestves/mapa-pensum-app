@@ -70,6 +70,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
+import mpensum.componentes.CifraConUnidad
+import mpensum.componentes.dibujarCifraConUnidad
+import mpensum.componentes.estiloCifra
+import mpensum.componentes.estiloUnidad
 import mpensum.componentes.CarruselTemas
 import mpensum.componentes.IconoTrazo
 import mpensum.componentes.esApaisado
@@ -375,19 +379,6 @@ private fun Rotulo(texto: String, color: Color = Paleta.tenue) {
     BasicText(texto, Modifier.padding(end = LADO_MAS + Espacio.xxs), style = versal(color), maxLines = 2, overflow = TextOverflow.Ellipsis)
 }
 
-/** Una cifra con su unidad pequeña detrás: «11 materias», «0 / 15 UC» */
-@Composable
-private fun CifraConUnidad(cifra: String, unidad: String, color: Color, modifier: Modifier = Modifier) {
-    BasicText(
-        buildAnnotatedString {
-            append(cifra)
-            withStyle(SpanStyle(fontSize = Tipo.s, fontWeight = FontWeight.Normal, color = Paleta.tenue, letterSpacing = 0.em)) { append(" $unidad") }
-        },
-        modifier,
-        style = estilo(Tipo.cifra, color, FontWeight.Light, 36).copy(letterSpacing = (-0.02).em),
-    )
-}
-
 /** «LLEVAS»: el porcentaje, lo aprobado y la barra partida en un segmento por semestre */
 @Composable
 private fun PiezaLlevas(estado: EstadoCarrera, cuentas: List<Pair<Int, CuentaSemestre>>, modifier: Modifier, alTocar: () -> Unit) {
@@ -487,7 +478,7 @@ private fun PiezaInscribir(cuantas: Int, periodo: Periodo, modifier: Modifier, a
         if (cuantas == 0) {
             BasicText("Nada por ahora", Modifier.padding(top = Espacio.xs), style = estilo(Tipo.xl, Paleta.tenue, FontWeight.Light, 24))
         } else {
-            CifraConUnidad("$cuantas", if (cuantas == 1) "materia" else "materias", Paleta.azul, Modifier.padding(top = Espacio.xxs))
+            CifraConUnidad("$cuantas", if (cuantas == 1) "materia" else "materias", Tipo.cifra, Modifier.padding(top = Espacio.xxs), color = Paleta.azul, separacion = Espacio.xxs)
             BasicText(periodo.rango(), Modifier.padding(top = Espacio.xxs), style = estilo(Tipo.xs, Paleta.tenue, interlinea = 16))
         }
     }
@@ -499,7 +490,7 @@ private fun PiezaCuota(g: AvanceGrupo, modifier: Modifier, alTocar: () -> Unit) 
     val meta = g.meta ?: return
     Pieza(alTocar, modifier) {
         Rotulo(rotuloCorto(g.titulo))
-        CifraConUnidad("${g.uc}", "/ $meta UC", Paleta.tinta, Modifier.padding(top = Espacio.xxs))
+        CifraConUnidad("${g.uc}", "/ $meta UC", Tipo.cifra, Modifier.padding(top = Espacio.xxs), separacion = Espacio.xxs)
         Spacer(Modifier.height(Espacio.s))
         BarraDeUc(g.uc, meta, 4.dp)
     }
@@ -520,22 +511,19 @@ internal fun BarraDeUc(uc: Int, meta: Int, alto: Dp) {
     }
 }
 
-/** El porcentaje grande y fino (Inter Light) con el signo pequeño arriba. Cuenta al dibujar, sin recomponer */
+/** El porcentaje grande y fino (Inter 200) con el signo pequeño en la línea base. Cuenta al dibujar, sin recomponer */
 @Composable
 private fun CifraDibujada(porcentaje: Int, modifier: Modifier = Modifier.fillMaxWidth()) {
     val cuenta = remember { Animatable(0f) }
     LaunchedEffect(porcentaje) { cuenta.animateTo(1f, tween(ENTRADA_CIFRA, easing = ENFATICA)) }
     val medidor = rememberTextMeasurer()
-    val numero = TextStyle(fontFamily = inter(), fontWeight = FontWeight.Light, fontSize = 64.sp, letterSpacing = (-0.04).em, color = Paleta.tinta, fontFeatureSettings = "tnum")
-    val signo = TextStyle(fontFamily = inter(), fontWeight = FontWeight.Light, fontSize = 24.sp, color = Paleta.tenue)
+    val numero = estiloCifra(64.sp)
+    val signo = estiloUnidad(64.sp)
     Canvas(modifier.height(60.dp).semantics { contentDescription = "$porcentaje por ciento aprobado" }) {
         val cifra = medidor.measure("${(porcentaje * cuenta.value).roundToInt()}", numero)
         val por = medidor.measure("%", signo)
         val base = size.height - 6.dp.toPx()
-        // Por línea base: la cifra apoyada abajo y el signo con su cabeza a la altura de la de los números
-        val cabeza = base - 64.sp.toPx() * 0.73f
-        drawText(cifra, topLeft = Offset(-3.dp.toPx(), base - cifra.firstBaseline))
-        drawText(por, topLeft = Offset(cifra.size.width + 4.dp.toPx(), cabeza - 2.dp.toPx()))
+        dibujarCifraConUnidad(cifra, por, -3.dp.toPx(), base)
     }
 }
 

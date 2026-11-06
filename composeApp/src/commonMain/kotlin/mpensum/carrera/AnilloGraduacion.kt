@@ -29,6 +29,11 @@ import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
 import androidx.compose.ui.unit.em
+import androidx.compose.ui.unit.sp
+import mpensum.componentes.anchoCifraConUnidad
+import mpensum.componentes.dibujarCifraConUnidad
+import mpensum.componentes.estiloCifra
+import mpensum.componentes.estiloUnidad
 import mpensum.componentes.Lucide
 import mpensum.logica.EstimacionGraduacion
 import mpensum.logica.Marca
@@ -188,8 +193,8 @@ internal fun AnilloGraduacion(a: Anillo, porcentaje: Int, anioMeta: Int?, anioHo
     val anio = estilo(10, Color.Unspecified, FontWeight.SemiBold).copy(letterSpacing = 0.04.em)
     val numeroNota = estilo(Tipo.xl, Color.Unspecified, FontWeight.SemiBold, 20)
     val palabraNota = estilo(Tipo.xs, Color.Unspecified, FontWeight.Normal, 16)
-    val grande = estilo(34, Color.Unspecified, FontWeight.Light, 36).copy(letterSpacing = (-0.03).em)
-    val porciento = estilo(20, Color.Unspecified, FontWeight.Light, 24)
+    val grande = estiloCifra(34.sp, Color.Unspecified, interlinea = 36.sp)
+    val porciento = estiloUnidad(34.sp, color = Color.Unspecified)
     val pie = estilo(10, Color.Unspecified, FontWeight.SemiBold, 14).copy(letterSpacing = 0.06.em)
     val latido = if (latidoActivo && !Tema.sinBucles) {
         rememberInfiniteTransition(label = "latidoAnillo").animateFloat(0f, 1f, infiniteRepeatable(tween(LATIDO_ANILLO_MS, easing = LinearEasing), RepeatMode.Restart), label = "latidoAnillo")
@@ -336,14 +341,14 @@ private fun DrawScope.textoCurvo(medidor: TextMeasurer, plano: PlanoAnillo, text
     }
 }
 
-/** El centro: el porcentaje con su signo y «DEL TÍTULO» debajo */
+/** El centro: el porcentaje con su signo en la línea base y «DEL TÍTULO» debajo */
 private fun DrawScope.dibujarCentro(medidor: TextMeasurer, plano: PlanoAnillo, porcentaje: Int, oa: Float, grande: TextStyle, porciento: TextStyle, pie: TextStyle) {
-    val cifra = medidor.measure("$porcentaje", grande)
-    val signo = medidor.measure("%", porciento)
-    val inicio = plano.cx - (cifra.size.width + 2f * plano.u + signo.size.width) / 2f
+    val cifra = medidor.measure("$porcentaje", grande.copy(color = Paleta.tinta))
+    val signo = medidor.measure("%", porciento.copy(color = Paleta.tenue))
+    val separacion = 2f * plano.u
+    val inicio = plano.cx - anchoCifraConUnidad(cifra, signo, separacion) / 2f
     val arriba = plano.cy - 26f * plano.u
-    drawText(cifra, Paleta.tinta.copy(alpha = oa), Offset(inicio, arriba))
-    drawText(signo, Paleta.tinta.copy(alpha = oa), Offset(inicio + cifra.size.width + 2f * plano.u, arriba + cifra.firstBaseline - signo.firstBaseline))
+    dibujarCifraConUnidad(cifra, signo, inicio, arriba + cifra.firstBaseline, separacion, oa)
     val titulo = medidor.measure("DEL TÍTULO", pie)
     drawText(titulo, Paleta.tinta.copy(alpha = 0.5f * oa), Offset(plano.cx - titulo.size.width / 2f, arriba + 38f * plano.u))
 }

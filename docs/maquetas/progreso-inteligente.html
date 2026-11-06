@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Progreso inteligente — estilo Apple</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root { --tinta:#111214; --suave:#55585e; --tenue:#8b8f96; --hilo:rgba(17,18,20,.09); --azul:#2f55d4; --verde:#1f8a4c; --ambar:#b7791f; }
+  * { box-sizing: border-box; margin: 0; }
+  body { background: #dcdde1; font-family: Inter, sans-serif; color: var(--tinta); padding: 40px; }
+  h1 { font: 300 32px Jost; margin-bottom: 6px; }
+  .nota { color: var(--suave); font-size: 14px; margin-bottom: 28px; max-width: 1150px; line-height: 1.6; }
+  .nota b { color: var(--tinta); font-weight: 500; }
+  .fila { display: flex; gap: 34px; flex-wrap: wrap; align-items: flex-start; }
+  .op { width: 375px; }
+  .op h2 { font: 500 15px Inter; margin-bottom: 4px; }
+  .op p.que { font-size: 13px; color: var(--suave); line-height: 1.5; margin-bottom: 14px; min-height: 58px; }
+
+  .tel { width: 375px; height: 812px; position: relative; overflow: hidden; border-radius: 46px; background: #e9ebef; box-shadow: 0 24px 60px rgba(0,0,0,.12); }
+  .hoja { position: absolute; left: 0; right: 0; top: 50px; bottom: 0; background: #fff; border-radius: 30px 30px 0 0; padding: 10px 20px 0; overflow: hidden; }
+  .asa { width: 36px; height: 4px; border-radius: 4px; background: rgba(17,18,20,.16); margin: 0 auto 14px; }
+  .cab { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; }
+  .rot { font: 600 11px Inter; letter-spacing: .05em; color: var(--tenue); }
+  .tit { font: 300 28px/1.1 Jost; margin-top: 4px; }
+  .x { width: 36px; height: 36px; border-radius: 50%; background: rgba(17,18,20,.07); display: grid; place-items: center; font-size: 15px; color: var(--suave); flex: none; }
+  .desvanece { position: absolute; left: 0; right: 0; bottom: 0; height: 60px; background: linear-gradient(transparent, #fff); }
+
+  /* El estilo de antes: tarjeta gris con borde y filas con su pastilla */
+  .tarjeta { background: linear-gradient(160deg, #f4f4f6, #ececef); border: 1px solid var(--hilo); border-radius: 24px; }
+  .heroe { padding: 18px 18px 16px; }
+  .cifra { font: 300 62px/.9 Inter; letter-spacing: -.045em; }
+  .cifra sup { font-size: 22px; color: var(--tenue); vertical-align: top; margin-left: 3px; letter-spacing: 0; }
+  .pastilla { width: 40px; height: 40px; border-radius: 12px; background: rgba(17,18,20,.07); display: grid; place-items: center; flex: none; }
+  .pastilla svg { width: 20px; height: 20px; fill: none; stroke: var(--tinta); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .pastilla.azul { background: rgba(47,85,212,.1); } .pastilla.azul svg { stroke: var(--azul); }
+  .segs { display: flex; gap: 3px; margin-top: 16px; }
+  .segs i { flex: 1; height: 6px; border-radius: 3px; background: rgba(17,18,20,.1); }
+  .frase { font: 400 14px/1.45 Inter; color: var(--suave); margin-top: 12px; }
+  .frase b { color: var(--tinta); font-weight: 500; }
+  .grupo { margin-top: 10px; }
+  .seccion { font: 600 11px Inter; letter-spacing: .05em; color: var(--tenue); margin: 20px 4px 8px; }
+  .f { display: flex; align-items: center; gap: 12px; padding: 12px 14px; position: relative; }
+  .f + .f::before { content: ''; position: absolute; top: 0; left: 66px; right: 0; height: 1px; background: var(--hilo); }
+  .f .t { flex: 1; min-width: 0; }
+  .f .t b { display: block; font: 500 16px/1.25 Inter; }
+  .f .t span { display: block; font-size: 13px; color: var(--tenue); margin-top: 2px; line-height: 1.3; }
+  .f .v { font-size: 15px; color: var(--tenue); white-space: nowrap; }
+  .f .v b { color: var(--tinta); font-weight: 600; }
+  .f .ch { color: var(--tenue); font-size: 18px; margin-left: 2px; }
+  .reinicio { margin: 16px 0 0; height: 46px; border-radius: 23px; background: rgba(17,18,20,.05); display: grid; place-items: center; font-size: 14.5px; color: var(--suave); }
+
+  /* Detalles */
+  .cabd { display: flex; align-items: center; justify-content: center; position: relative; height: 40px; margin-bottom: 10px; }
+  .atras { position: absolute; left: 0; width: 36px; height: 36px; border-radius: 50%; background: rgba(17,18,20,.07); display: grid; place-items: center; font-size: 18px; color: var(--suave); }
+  .cabd b { font: 500 16px Inter; color: var(--suave); }
+  .explica { display: flex; gap: 12px; align-items: flex-start; padding: 2px 2px 14px; }
+  .explica h3 { font: 300 26px/1.1 Jost; }
+  .explica p { font-size: 13.5px; line-height: 1.45; color: var(--suave); margin-top: 6px; }
+  .explica p b { color: var(--tinta); font-weight: 500; }
+  .etiq { display: inline-block; font: 500 11px Inter; padding: 3px 8px; border-radius: 8px; background: rgba(17,18,20,.06); color: var(--suave); margin-top: 4px; }
+  .etiq.azul { background: rgba(47,85,212,.1); color: var(--azul); }
+  .boton { margin-top: 14px; height: 50px; border-radius: 25px; background: var(--tinta); color: #fff; display: grid; place-items: center; font: 500 15px Inter; }
+  .chips { display: flex; gap: 5px; margin-top: 10px; }
+  .chips div { flex: 1; height: 38px; border-radius: 12px; background: rgba(17,18,20,.06); display: grid; place-items: center; font: 500 14px Inter; color: var(--suave); position: relative; }
+  .chips div.si { background: var(--tinta); color: #fff; }
+  .chips div.tuyo::after { content: ''; position: absolute; bottom: 4px; width: 4px; height: 4px; border-radius: 50%; background: var(--suave); }
+  .comp { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+  .comp > div { padding: 12px; border-radius: 16px; background: #fff; border: 1px solid var(--hilo); }
+  .comp .n { font: 300 22px Jost; margin-top: 4px; }
+
+  /* La cadena, en vertical */
+  .cadena { position: relative; margin-top: 6px; padding-left: 4px; }
+  .paso { display: grid; grid-template-columns: 74px 22px 1fr; column-gap: 10px; min-height: 64px; }
+  .paso .cuando { font-size: 12px; color: var(--tenue); text-align: right; padding-top: 3px; line-height: 1.3; }
+  .paso .via { position: relative; display: flex; justify-content: center; }
+  .paso .via::after { content: ''; position: absolute; top: 18px; bottom: -4px; width: 2px; background: rgba(17,18,20,.14); }
+  .paso:last-child .via::after { display: none; }
+  .paso .nodo { width: 12px; height: 12px; border-radius: 50%; border: 2px solid rgba(17,18,20,.45); background: #fff; margin-top: 4px; z-index: 1; }
+  .paso.ya .nodo { background: var(--azul); border-color: var(--azul); box-shadow: 0 0 0 5px rgba(47,85,212,.14); }
+  .paso.fin .nodo { width: 22px; height: 22px; border: 0; margin-top: -1px; background: #fff; display: grid; place-items: center; }
+  .paso .que { padding-bottom: 14px; }
+  .paso .que b { display: block; font: 500 15px/1.3 Inter; }
+  .paso .que span { font-size: 12.5px; color: var(--tenue); }
+
+  .ren { display: flex; align-items: center; gap: 12px; padding: 11px 14px; position: relative; }
+  .ren + .ren::before { content: ''; position: absolute; top: 0; left: 46px; right: 0; height: 1px; background: var(--hilo); }
+  .ren .t { flex: 1; } .ren .t b { display: block; font: 500 15px/1.3 Inter; } .ren .t span { font-size: 12.5px; color: var(--tenue); }
+  .ren .d { font-size: 13px; color: var(--tenue); white-space: nowrap; }
+  svg.ic { width: 18px; height: 18px; fill: none; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+</style>
+</head>
+<body>
+<h1>Progreso inteligente, con el estilo de antes</h1>
+<p class="nota">Vuelve el estilo que te gustaba: la tarjeta gris arriba y las filas agrupadas con su icono, como Ajustes de iPhone. <b>Fuera lo que no aporta:</b> la gráfica tipo trading, la fila de Tema (ya está en Personalizar), «Por semestres» (es lo mismo que la Lista) y «Puedes inscribir» suelto (va dentro de «Tu próximo semestre»). <b>Lo que queda sale de tus marcas:</b> lo aprobado, lo que cursas y lo que falta, con las prelaciones reales. Cada fila dice en su subtítulo lo que vas a encontrar, y cada pantalla de adentro empieza explicando para qué sirve. Datos de tu captura (Sistemas, 8 %, Dic 2039). Los nombres de la cadena son de ejemplo.</p>
+
+<div class="fila">
+
+  <!-- Hoja -->
+  <div class="op">
+    <h2>La hoja</h2>
+    <p class="que">Arriba, lo esencial y una frase calculada. Debajo, tres preguntas («ahora», «después» y «cuándo termino») y las electivas. Nada más.</p>
+    <div class="tel"><div class="hoja">
+      <div class="asa"></div>
+      <div class="cab"><div><div class="rot">TU AVANCE</div><div class="tit">Ingeniería de Sistemas</div></div><div class="x">✕</div></div>
+      <div class="tarjeta heroe">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start">
+          <div><div class="cifra">8<sup>%</sup></div><div style="font-size:15px;color:var(--tenue);margin-top:8px"><b style="color:var(--tinta);font-weight:600">13</b> / 153 UC</div></div>
+          <div style="display:flex;gap:10px;align-items:flex-start">
+            <div style="text-align:right"><div class="rot">TE GRADÚAS</div><div style="font:400 22px Inter;margin-top:4px">Dic 2039</div></div>
+            <div class="pastilla"><svg viewBox="0 0 24 24"><path d="M22 10 12 5 2 10l10 5 10-5z"/><path d="M6 12v5c3 2 9 2 12 0v-5"/></svg></div>
+          </div>
+        </div>
+        <div class="segs"><i style="background:linear-gradient(90deg,var(--tinta) 33%,rgba(17,18,20,.42) 33% 66%,rgba(17,18,20,.1) 66%)"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+        <div class="frase">Si apruebas las <b>2</b> que cursas, llegas al <b>12 %</b> y se te abren <b>3 materias</b>.</div>
+      </div>
+      <div class="tarjeta grupo">
+        <div class="f"><div class="pastilla"><svg viewBox="0 0 24 24"><path d="M2 4h7a3 3 0 0 1 3 3v13a2 2 0 0 0-2-2H2z"/><path d="M22 4h-7a3 3 0 0 0-3 3v13a2 2 0 0 1 2-2h8z"/></svg></div><div class="t"><b>Este semestre</b><span>Lo que cursas y qué te abre</span></div><div class="v"><b>2</b></div><div class="ch">›</div></div>
+        <div class="f"><div class="pastilla azul"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 10h18"/></svg></div><div class="t"><b>Tu próximo semestre</b><span>Ene – Jun 2027 · qué inscribir</span></div><div class="v"><b>6</b></div><div class="ch">›</div></div>
+        <div class="f"><div class="pastilla"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg></div><div class="t"><b>No puedes atrasar</b><span>La cadena que fija tu fecha</span></div><div class="v"><b>7</b></div><div class="ch">›</div></div>
+        <div class="f"><div class="pastilla"><svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M9 2h6"/></svg></div><div class="t"><b>¿Cuándo me gradúo?</b><span>A 2 por semestre · a 6, Dic 2031</span></div><div class="ch">›</div></div>
+      </div>
+      <div class="seccion">ELECTIVAS</div>
+      <div class="tarjeta">
+        <div class="f"><div class="pastilla"><svg viewBox="0 0 24 24"><path d="M2 4h7a3 3 0 0 1 3 3v13a2 2 0 0 0-2-2H2z"/><path d="M22 4h-7a3 3 0 0 0-3 3v13a2 2 0 0 1 2-2h8z"/></svg></div><div class="t"><b>Técnicas</b><span>Desde el semestre 7</span></div><div class="v"><b>0</b> / 15 UC</div><div class="ch">›</div></div>
+        <div class="f"><div class="pastilla"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2 20c0-4 3-6 7-6s7 2 7 6"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 14c2.5.6 4 2.5 4 6"/></svg></div><div class="t"><b>Sociohumanísticas</b><span>Ya puedes cursar 4</span></div><div class="v"><b>0</b> / 6 UC</div><div class="ch">›</div></div>
+      </div>
+      <div class="reinicio">↺ &nbsp;Reiniciar mi avance</div>
+    </div></div>
+  </div>
+
+  <!-- Este semestre -->
+  <div class="op">
+    <h2>Este semestre</h2>
+    <p class="que">Para qué sirve: saber qué te juegas con lo que cursas. Cada materia dice qué te abre al aprobarla, y arriba va la suma.</p>
+    <div class="tel"><div class="hoja">
+      <div class="asa"></div>
+      <div class="cabd"><div class="atras">‹</div></div>
+      <div class="explica"><div class="pastilla"><svg viewBox="0 0 24 24"><path d="M2 4h7a3 3 0 0 1 3 3v13a2 2 0 0 0-2-2H2z"/><path d="M22 4h-7a3 3 0 0 0-3 3v13a2 2 0 0 1 2-2h8z"/></svg></div><div><h3>Este semestre</h3><p>Lo que cursas ahora y lo que se te abre al aprobarlo.</p></div></div>
+      <div class="comp">
+        <div><div class="rot">AL APROBARLAS</div><div class="n">12 %</div><div style="font-size:12px;color:var(--tenue)">+6 UC</div></div>
+        <div><div class="rot" style="color:var(--azul)">SE TE ABREN</div><div class="n" style="color:var(--azul)">3 materias</div><div style="font-size:12px;color:var(--tenue)">para Ene – Jun 2027</div></div>
+      </div>
+      <div class="seccion">CURSAS</div>
+      <div class="tarjeta">
+        <div class="ren"><svg class="ic" viewBox="0 0 24 24" stroke="#b7791f"><path d="M2 4h7a3 3 0 0 1 3 3v13a2 2 0 0 0-2-2H2z"/><path d="M22 4h-7a3 3 0 0 0-3 3v13a2 2 0 0 1 2-2h8z"/></svg><div class="t"><b>Extraacadémica</b><span>No abre otras · 1 UC</span></div></div>
+        <div class="ren"><svg class="ic" viewBox="0 0 24 24" stroke="#b7791f"><path d="M2 4h7a3 3 0 0 1 3 3v13a2 2 0 0 0-2-2H2z"/><path d="M22 4h-7a3 3 0 0 0-3 3v13a2 2 0 0 1 2-2h8z"/></svg><div class="t"><b>Comprensión y Expresión Ling. I</b><span>Abre <b style="font-weight:500;color:var(--tinta);display:inline">Comprensión II</b> y 2 más · 3 UC</span></div></div>
+      </div>
+      <div class="seccion">SI REPRUEBAS UNA</div>
+      <div style="font-size:13.5px;color:var(--suave);line-height:1.5;padding:0 4px">Ninguna de las dos está en tu cadena: si repruebas una, tu fecha <b style="color:var(--tinta);font-weight:500">no cambia</b>. Solo te quita lo que abre.</div>
+    </div></div>
+  </div>
+
+  <!-- Próximo semestre -->
+  <div class="op">
+    <h2>Tu próximo semestre</h2>
+    <p class="que">Para qué sirve: decidir qué inscribir. Arriba, las que te conviene meter a tu ritmo y por qué. Debajo, las otras que también puedes.</p>
+    <div class="tel"><div class="hoja">
+      <div class="asa"></div>
+      <div class="cabd"><div class="atras">‹</div></div>
+      <div class="explica"><div class="pastilla azul"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 10h18"/></svg></div><div><h3>Ene – Jun 2027</h3><p>Lo que te conviene inscribir para graduarte en <b>Dic 2039</b>. Primero lo que no puedes atrasar.</p></div></div>
+      <div class="seccion" style="color:var(--azul)">TE CONVIENE · 6</div>
+      <div class="tarjeta">
+        <div class="ren"><svg class="ic" viewBox="0 0 24 24" stroke="#2f55d4"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 7.5-2"/></svg><div class="t"><b>Matemáticas II</b><span class="etiq azul">en tu cadena</span></div><div class="d">4 UC</div></div>
+        <div class="ren"><svg class="ic" viewBox="0 0 24 24" stroke="#2f55d4"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 7.5-2"/></svg><div class="t"><b>Física I</b><span class="etiq">abre 4</span></div><div class="d">4 UC</div></div>
+        <div class="ren"><svg class="ic" viewBox="0 0 24 24" stroke="#2f55d4"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 7.5-2"/></svg><div class="t"><b>Programación I</b><span class="etiq">abre 4</span></div><div class="d">4 UC</div></div>
+        <div class="ren" style="color:var(--tenue);font-size:14px">y 3 más · 18 UC en total</div>
+      </div>
+      <div class="seccion">TAMBIÉN PUEDES · 5</div>
+      <div class="tarjeta">
+        <div class="ren"><svg class="ic" viewBox="0 0 24 24" stroke="#8b8f96"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 7.5-2"/></svg><div class="t"><b>Dibujo</b><span>no abre otras</span></div><div class="d">2 UC</div></div>
+        <div class="ren" style="color:var(--tenue);font-size:14px">y 4 más</div>
+      </div>
+      <div class="boton">Verlas en el mapa</div>
+      <div class="desvanece"></div>
+    </div></div>
+  </div>
+
+  <!-- No puedes atrasar -->
+  <div class="op">
+    <h2>No puedes atrasar (rediseño)</h2>
+    <p class="que">Antes era una línea de puntos con dos nombres en los extremos. Ahora es una vía vertical, semestre a semestre, con cada materia y lo que abre. Arriba, la consecuencia en una frase.</p>
+    <div class="tel"><div class="hoja">
+      <div class="asa"></div>
+      <div class="cabd"><div class="atras">‹</div></div>
+      <div class="explica"><div class="pastilla"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg></div><div><h3>No puedes atrasar</h3><p>Estas 7 materias van encadenadas: cada una abre la siguiente. Si atrasas <b>una sola</b>, te gradúas en <b>Jun 2040</b>.</p></div></div>
+      <div class="cadena">
+        <div class="paso ya"><div class="cuando" style="color:var(--azul);font-weight:500">Ene – Jun<br>2027</div><div class="via"><div class="nodo"></div></div><div class="que"><b>Matemáticas II</b><span style="color:var(--azul)">Inscríbela ya</span></div></div>
+        <div class="paso"><div class="cuando">Jul – Dic<br>2027</div><div class="via"><div class="nodo"></div></div><div class="que"><b>Matemáticas III</b><span>la abre Matemáticas II</span></div></div>
+        <div class="paso"><div class="cuando">Ene – Jun<br>2028</div><div class="via"><div class="nodo"></div></div><div class="que"><b>Matemáticas IV</b></div></div>
+        <div class="paso"><div class="cuando">Jul – Dic<br>2028</div><div class="via"><div class="nodo"></div></div><div class="que"><b>Métodos Numéricos</b></div></div>
+        <div class="paso"><div class="cuando">Ene – Jun<br>2029</div><div class="via"><div class="nodo"></div></div><div class="que"><b>Investigación de Operaciones</b></div></div>
+        <div class="paso"><div class="cuando">…</div><div class="via"><div class="nodo" style="border-style:dashed"></div></div><div class="que"><span>2 más</span></div></div>
+        <div class="paso fin"><div class="cuando">Jul – Dic<br>2039</div><div class="via"><div class="nodo"><svg class="ic" viewBox="0 0 24 24" stroke="#111214" style="width:20px;height:20px"><path d="M22 10 12 5 2 10l10 5 10-5z"/><path d="M6 12v5c3 2 9 2 12 0v-5"/></svg></div></div><div class="que"><b>Trabajo de Grado</b><span>y te gradúas</span></div></div>
+      </div>
+      <div class="boton" style="margin-top:4px">Ver la cadena en el mapa</div>
+      <div class="desvanece"></div>
+    </div></div>
+  </div>
+
+  <!-- Cuándo me gradúo -->
+  <div class="op">
+    <h2>¿Cuándo me gradúo?</h2>
+    <p class="que">El anillo se queda tal cual. Debajo, el ritmo con tu número marcado y una comparación clara: tu fecha a tu ritmo frente a la elegida, y lo más rápido que permiten las prelaciones.</p>
+    <div class="tel"><div class="hoja">
+      <div class="asa"></div>
+      <div class="cabd"><div class="atras">‹</div></div>
+      <div class="explica"><div class="pastilla"><svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M9 2h6"/></svg></div><div><h3>¿Cuándo me gradúo?</h3><p>Según cuántas materias metas por semestre. Prueba otros ritmos.</p></div></div>
+      <div style="height:200px;display:grid;place-items:center;border-radius:20px;background:rgba(17,18,20,.03);color:var(--tenue);font-size:13px">el anillo que ya tenemos</div>
+      <div class="tarjeta" style="padding:14px;margin-top:12px">
+        <div style="display:flex;justify-content:space-between"><div style="font:600 15px Inter">Tu ritmo</div><div style="font-size:13px;color:var(--tenue)">materias por semestre</div></div>
+        <div class="chips"><div>1</div><div class="tuyo">2</div><div>3</div><div>4</div><div>5</div><div class="si">6</div><div>7</div><div>8</div></div>
+        <div class="comp">
+          <div><div class="rot">A TU RITMO · 2</div><div class="n">Dic 2039</div></div>
+          <div><div class="rot">A 6</div><div class="n">Dic 2031</div><div style="font-size:12px;color:var(--suave)">8 años antes</div></div>
+        </div>
+        <div style="font-size:12.5px;color:var(--tenue);margin-top:10px">Más de 6 no adelanta: te frena la cadena. Lo más rápido posible es Dic 2031.</div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- Electivas -->
+  <div class="op">
+    <h2>Electivas técnicas</h2>
+    <p class="que">El mismo estilo de filas. Arriba, qué son y cuánto falta. Debajo, las casillas del plan y, si ya puedes, las electivas abiertas, con su prelación.</p>
+    <div class="tel"><div class="hoja">
+      <div class="asa"></div>
+      <div class="cabd"><div class="atras">‹</div></div>
+      <div class="explica"><div class="pastilla"><svg viewBox="0 0 24 24"><path d="M2 4h7a3 3 0 0 1 3 3v13a2 2 0 0 0-2-2H2z"/><path d="M22 4h-7a3 3 0 0 0-3 3v13a2 2 0 0 1 2-2h8z"/></svg></div><div><h3>Electivas técnicas</h3><p>Necesitas <b>15 UC</b> para el título: unas 5 electivas de 3 UC. Tú eliges cuáles.</p></div></div>
+      <div style="display:flex;align-items:baseline;gap:8px;padding:0 4px"><div style="font:300 40px/1 Inter">0</div><div style="color:var(--tenue)">de 15 UC</div></div>
+      <div style="height:6px;border-radius:3px;background:rgba(17,18,20,.08);margin:10px 4px 0"></div>
+      <div class="seccion">EN TU PLAN</div>
+      <div class="tarjeta">
+        <div class="f"><div class="pastilla" style="font:600 13px Inter">3</div><div class="t"><b>Electiva Técnica I</b><span>Semestre 7 · aún no se abre</span></div><div class="v">Elegir</div><div class="ch">›</div></div>
+        <div class="f"><div class="pastilla" style="font:600 13px Inter">3</div><div class="t"><b>Electiva Técnica II</b><span>Semestre 8</span></div><div class="v">Elegir</div><div class="ch">›</div></div>
+        <div class="f"><div class="pastilla" style="font:600 13px Inter">3</div><div class="t"><b>Electiva Técnica III</b><span>Semestre 9</span></div><div class="v">Elegir</div><div class="ch">›</div></div>
+        <div class="f" style="color:var(--tenue);font-size:14px;padding-left:66px">y 2 más</div>
+      </div>
+      <div class="desvanece"></div>
+    </div></div>
+  </div>
+
+</div>
+</body>
+</html>

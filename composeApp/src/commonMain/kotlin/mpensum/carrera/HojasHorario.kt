@@ -258,7 +258,7 @@ private fun Editar(horario: EstadoHorario, b: Borrador) {
     BasicText(
         choque?.let { "Choca con ${horario.nombre(it.codigo)}, ${tramoCorto(it.inicio, it.fin)}" }.orEmpty(),
         Modifier.padding(top = Espacio.xs).height(20.dp),
-        style = l.parrafo.copy(color = Paleta.ambar),
+        style = l.parrafo.copy(color = Paleta.rojo),
         maxLines = 1,
         overflow = TextOverflow.Ellipsis,
     )

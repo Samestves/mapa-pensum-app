@@ -51,7 +51,12 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
+import mpensum.componentes.SEPARACION_UNIDAD
+import mpensum.componentes.anchoCifraConUnidad
 import mpensum.componentes.baseJost
+import mpensum.componentes.dibujarCifraConUnidad
+import mpensum.componentes.estiloCifra
+import mpensum.componentes.estiloUnidad
 import mpensum.componentes.IconoTrazo
 import mpensum.componentes.Lucide
 import mpensum.componentes.Silueta
@@ -288,29 +293,25 @@ private fun DrawScope.cristalTarjeta(acento: Color, filo: Float, radio: Dp = 24.
 }
 
 /**
- * El porcentaje grande, fino, con el signo pequeño arriba. Se dibuja en vez
- * de componerse: mientras cuenta cambia en cada cuadro sin recomponer nada.
- * Alineado a la derecha, como el número de una wallet.
+ * El porcentaje grande, fino, con el signo pequeño apoyado en la línea base
+ * (CifraConUnidad). Se dibuja en vez de componerse: mientras cuenta cambia en
+ * cada cuadro sin recomponer nada. Alineado a la derecha, como el número de
+ * una wallet.
  */
 @Composable
 private fun Cifra(porcentaje: Int, tam: TextUnit = 36.sp, cuenta: () -> Float) {
     val medidor = rememberTextMeasurer()
     // Todo escala con el tamaño: a 36 sp son las medidas de siempre
     val k = tam.value / 36f
-    val numero = TextStyle(
-        fontFamily = jost(), fontWeight = FontWeight.ExtraLight, fontSize = tam, letterSpacing = (-0.02).em,
-        color = Paleta.tinta, fontFeatureSettings = "tnum",
-    )
-    val signo = TextStyle(
-        fontFamily = jost(), fontWeight = FontWeight.Light, fontSize = (16f * k).sp, color = Paleta.tenue,
-    )
+    val numero = estiloCifra(tam)
+    val signo = estiloUnidad(tam)
     Canvas(Modifier.size(96.dp * k, 30.dp * k).semantics { contentDescription = "$porcentaje por ciento" }) {
         val cifra = medidor.measure("${(porcentaje * cuenta()).roundToInt()}", numero)
         val por = medidor.measure("%", signo)
-        val x = size.width - por.size.width
-        // Por línea base, como en la web: el signo arriba, a la altura de la cabeza del número
-        drawText(por, topLeft = Offset(x, baseJost((16f * k).dp, (16f * k).sp).toPx() - por.firstBaseline))
-        drawText(cifra, topLeft = Offset(x - 2.dp.toPx() * k - cifra.size.width, baseJost((30f * k).dp, tam).toPx() - cifra.firstBaseline))
+        val sep = SEPARACION_UNIDAD.toPx()
+        // La línea base común, donde apoyaba la cifra: el signo ya no sube
+        val base = baseJost((30f * k).dp, tam).toPx()
+        dibujarCifraConUnidad(cifra, por, size.width - anchoCifraConUnidad(cifra, por, sep), base, sep)
     }
 }
 

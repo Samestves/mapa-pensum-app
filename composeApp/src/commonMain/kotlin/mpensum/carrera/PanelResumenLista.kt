@@ -154,7 +154,7 @@ private fun Grupo(rotulo: String, color: Color, contenido: @Composable () -> Uni
     contenido()
 }
 
-/** El aro del semestre: lo aprobado en verde y, detrás, lo que cursas en ámbar; completo, con su check */
+/** El aro del semestre: lo aprobado en verde y, detrás, lo que cursas en tinta a media opacidad; completo, con su check */
 @Composable
 private fun Aro(s: SeccionLista, hechas: Int, total: Int) {
     Box(Modifier.size(LADO_ARO), contentAlignment = Alignment.Center) {
@@ -166,7 +166,7 @@ private fun Aro(s: SeccionLista, hechas: Int, total: Int) {
             val v = s.aprobado * 360f
             val a = s.cursado * 360f
             if (v > 0.1f) drawArc(Paleta.verde, -90f, v, false, esquina, caja, style = Stroke(g, cap = StrokeCap.Round))
-            if (a > 0.1f) drawArc(Paleta.ambar, -90f + v, a, false, esquina, caja, style = Stroke(g, cap = StrokeCap.Round))
+            if (a > 0.1f) drawArc(Paleta.cursando.copy(alpha = 0.45f), -90f + v, a, false, esquina, caja, style = Stroke(g, cap = StrokeCap.Round))
         }
         if (s.completo) Canvas(Modifier.size(LADO_ARO / 2)) { iconoEstado(Situacion.HECHA, 0f, 0f, size.minDimension, Paleta.lienzo) }
         else BasicText("$hechas/$total", style = estilo(Tipo.l, Paleta.tinta, FontWeight.Medium))

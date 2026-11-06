@@ -148,8 +148,10 @@ object Paleta {
     val azulClaro get() = t.azulClaro
     val verde get() = t.verde
     val verdeClaro get() = t.verdeClaro
-    /** El de cursando: en claro el de su texto en la web (4,6:1), el ámbar vivo no se lee sobre blanco */
+    /** Solo queda en la tabla de tokens: ningún componente lo usa, «cursando» ya no es ámbar */
     val ambar get() = t.ambar
+    /** «Cursando» no tiene color propio: es la tinta, y se distingue por la forma (contorno, peso 500) */
+    val cursando get() = t.tinta
     val rojo get() = t.rojo
     /** La aurora: en claro el azul profundo de la carrera, que tiñe en vez de brillar */
     val aurora get() = t.aurora
@@ -198,6 +200,7 @@ private fun variable(peso: Int) = FontVariation.Settings(FontVariation.weight(pe
 /** Jost: títulos ligeros y nombres, la "voz que nombra" de la web */
 @Composable
 fun jost(): FontFamily = FontFamily(
+    Font(Res.font.jost, FontWeight.Thin, variationSettings = variable(100)),
     Font(Res.font.jost, FontWeight.ExtraLight, variationSettings = variable(200)),
     Font(Res.font.jost, FontWeight.Light, variationSettings = variable(300)),
     // El peso de los nombres en las tarjetas del mapa (--peso-nombre de la web)
@@ -214,6 +217,13 @@ fun inter(): FontFamily = FontFamily(
     Font(Res.font.inter, FontWeight.Normal, variationSettings = variable(400)),
     Font(Res.font.inter, FontWeight.Medium, variationSettings = variable(500)),
     Font(Res.font.inter, FontWeight.SemiBold, variationSettings = variable(600)),
+)
+
+/** Inter «Display» (opsz 32) en 200 y 300: las cifras grandes. Úsese con fontFeatureSettings = "tnum" */
+@Composable
+fun interCifra(): FontFamily = FontFamily(
+    Font(Res.font.inter, FontWeight.ExtraLight, variationSettings = FontVariation.Settings(FontVariation.weight(200), FontVariation.Setting("opsz", 32f))),
+    Font(Res.font.inter, FontWeight.Light, variationSettings = FontVariation.Settings(FontVariation.weight(300), FontVariation.Setting("opsz", 32f))),
 )
 
 /** IBM Plex Mono: solo códigos y UC, como en las tarjetas del mapa */
