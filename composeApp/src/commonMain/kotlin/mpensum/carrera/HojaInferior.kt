@@ -73,6 +73,9 @@ import dev.chrisbanes.haze.hazeEffect
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import mpensum.componentes.SOMBRA_FLOTANTE
+import mpensum.componentes.Vidrio
+import mpensum.componentes.vidrio
 import mpensum.plataforma.ManejarAtras
 import mpensum.tema.Paleta
 import mpensum.tema.Tema
@@ -117,6 +120,14 @@ private const val OCULTA = 1e6f
 val BORDE_PANEL get() = Paleta.borde
 
 /** El cristal de la hoja flotante: casi opaco, para leerse sobre cualquier cosa, y con lo de detrás apenas sugerido */
+/** El vidrio de la hoja sobre el horario: el de la barra, con el filo más cerca del borde y la esquina de 32 dp */
+private val VIDRIO_HOJA = Vidrio(
+    fondoOscuro = Brush.verticalGradient(listOf(Color.White.copy(alpha = 0.05f), Color.Black.copy(alpha = 0.1f))),
+    filoOscuro = Brush.verticalGradient(0f to Color.White.copy(alpha = 0.22f), 0.4f to Color.White.copy(alpha = 0.04f), 1f to Color.White.copy(alpha = 0.07f)),
+    medioFilo = 0.4f,
+    radioFilo = 32.dp,
+)
+
 private val ESTILO_CRISTAL get() = HazeStyle(
     backgroundColor = Paleta.lienzo,
     tint = HazeTint(Paleta.vidrio.copy(alpha = 0.86f)),
@@ -142,27 +153,6 @@ private val ESTILO_FONDO get() = HazeStyle(
  * mitad, que sobre papel un negro fuerte se ve sucio y ya basta para separar.
  */
 private val VELO get() = porTema(Color.Black.copy(alpha = 0.6f), Paleta.sombra.copy(alpha = 0.28f))
-
-/** La sombra de lo que flota: en claro más suave, que sobre papel se nota antes */
-internal val SOMBRA_FLOTANTE get() = Paleta.sombra.copy(alpha = porTema(1f, 0.5f))
-
-/**
- * El relleno de un cristal flotante (la barra, la hoja sobre el horario):
- * arriba más claro que abajo. En claro es blanco lechoso, más denso arriba
- * (el --cristal-fondo de la web).
- */
-internal fun fondoVidrio(): Brush =
-    if (Tema.claro) Brush.verticalGradient(listOf(Color.White.copy(alpha = 0.55f), Color.White.copy(alpha = 0.25f)))
-    else Brush.verticalGradient(listOf(Color.White.copy(alpha = 0.05f), Color.Black.copy(alpha = 0.1f)))
-
-/**
- * El filo de 1 px de un cristal, de arriba abajo, con su punto más flojo en
- * `medio`. En oscuro es luz; en claro, luz blanca arriba que pasa a un hilo de
- * tinta en los lados y abajo: el blanco solo se fundiría con el papel.
- */
-internal fun filoVidrio(medio: Float): Brush =
-    if (Tema.claro) Brush.verticalGradient(0f to Color.White, medio to Paleta.tinta.copy(alpha = 0.07f), 1f to Paleta.tinta.copy(alpha = 0.12f))
-    else Brush.verticalGradient(0f to Color.White.copy(alpha = 0.22f), medio to Color.White.copy(alpha = 0.04f), 1f to Color.White.copy(alpha = 0.07f))
 
 /**
  * El HazeState de la pantalla sobre la que sube la hoja. Cada pantalla lo
@@ -392,20 +382,7 @@ fun BoxScope.HojaInferior(
                 .clip(forma)
                 .then(
                     if (cristal != null) {
-                        Modifier
-                            .hazeEffect(cristal, ESTILO_CRISTAL) { inputScale = HazeInputScale.Auto }
-                            .drawWithCache {
-                                // Arriba más claro que abajo y el filo de luz del canto, como la barra
-                                val relleno = fondoVidrio()
-                                val filo = filoVidrio(0.4f)
-                                val g = 1.dp.toPx()
-                                val r = CornerRadius(32.dp.toPx() - g / 2)
-                                onDrawWithContent {
-                                    drawRect(relleno)
-                                    drawContent()
-                                    drawRoundRect(filo, Offset(g / 2, g / 2), Size(size.width - g, size.height - g), r, style = Stroke(g))
-                                }
-                            }
+                        Modifier.vidrio(cristal, ESTILO_CRISTAL, VIDRIO_HOJA)
                     } else {
                         Modifier
                             .background(Paleta.panel)

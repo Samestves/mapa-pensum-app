@@ -70,6 +70,7 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 import mpensum.componentes.IconoTrazo
 import mpensum.componentes.Lucide
+import mpensum.componentes.SOMBRA_FLOTANTE
 import mpensum.componentes.iconoEstado
 import mpensum.datos.Asignatura
 import mpensum.logica.EstadoMateria
