@@ -118,6 +118,8 @@ private fun nombreArea(area: String?) = when (area) {
     else -> null
 }
 
+private val ANCHO_PANEL_LATERAL = 360.dp
+
 /** Dónde cae la ficha cuando va al lado de la lista (horizontal): sus márgenes desde el interior */
 class PanelLateral(val inicio: Dp, val fin: Dp, val arriba: Dp)
 
@@ -167,10 +169,11 @@ fun FichaMateria(
         val forma = RoundedCornerShape(if (lateral != null) 24.dp else 16.dp)
         val caja = if (lateral != null) Modifier.fillMaxSize().padding(start = lateral.inicio, end = lateral.fin, top = lateral.arriba, bottom = reservaAbajo)
         else Modifier.fillMaxSize().padding(start = 12.dp, end = 12.dp, bottom = reservaAbajo)
-        Box(caja, contentAlignment = if (horizontal && lateral == null) Alignment.BottomEnd else Alignment.BottomCenter) {
+        Box(caja, contentAlignment = if (horizontal) Alignment.BottomEnd else Alignment.BottomCenter) {
             Column(
                 Modifier
-                    .then(if (horizontal && lateral == null) Modifier.widthIn(max = 480.dp) else Modifier)
+                    // Al lado de la lista es una columna fija a la derecha: no se come a la lista ni sus filtros
+                    .then(if (horizontal) Modifier.widthIn(max = if (lateral != null) ANCHO_PANEL_LATERAL else 480.dp) else Modifier)
                     .fillMaxWidth()
                     .then(if (lateral != null) Modifier.fillMaxHeight() else Modifier.heightIn(max = tope))
                     // Cuánto tapa del mapa: el mapa se corre para que la materia quede a la vista encima

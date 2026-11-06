@@ -51,6 +51,7 @@ import mpensum.carrera.versal
 import mpensum.componentes.IconoTrazo
 import mpensum.componentes.Lucide
 import mpensum.componentes.Silueta
+import mpensum.componentes.esApaisado
 import mpensum.componentes.pulsable
 import mpensum.datos.Carrera
 import mpensum.datos.TIPOS
@@ -103,6 +104,8 @@ fun BoxScope.HojaAjustes(
     HojaInferior(
         abierta = pagina != null,
         alCerrar = alCerrar,
+        // Acostado, las dos columnas piden más que los 560 dp de siempre
+        ancho = if (esApaisado()) 840.dp else 560.dp,
         cabecera = {
             // La de la hoja de avance: etiqueta en versales y el título debajo
             Row(Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 4.dp, bottom = 16.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -146,41 +149,77 @@ fun BoxScope.HojaAjustes(
             } else if (p == PaginaAjustes.PERSONALIZAR) {
                 Personalizar(propia?.let { colorDe(it.color) } ?: Paleta.azul)
             } else {
-                Column(Modifier.padding(start = 20.dp, end = 20.dp, top = 4.dp, bottom = 24.dp)) {
-                    FilaCarrera(propia) { actual = PaginaAjustes.CARRERA }
-
-                    Spacer(Modifier.height(8.dp))
-                    FilaCristal({ actual = PaginaAjustes.PERSONALIZAR }) {
-                        MiniVistaTema()
-                        Textos("Personalizar", resumenPersonalizar(), Modifier.padding(start = 16.dp, end = 12.dp).weight(1f))
-                        IconoTrazo(Lucide.siguiente, Paleta.apagada, 16.dp, 1.75f)
-                    }
-
-                    Etiqueta("AYUDA")
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Renglon(Lucide.ayuda, "Ver la guía otra vez", "Cómo funciona, en cuatro pasos") {
-                            alCerrar()
-                            alVerGuia()
+                val tuCarrera = { actual = PaginaAjustes.CARRERA }
+                val personalizar = { actual = PaginaAjustes.PERSONALIZAR }
+                val guia = {
+                    alCerrar()
+                    alVerGuia()
+                }
+                val reporte = { abrir(enlaces, enlaceReporte(propia?.nombre)) }
+                val web = { abrir(enlaces, WEB) }
+                val codigo = { abrir(enlaces, REPO) }
+                if (esApaisado()) {
+                    // Acostado la hoja es baja: lo tuyo a la izquierda y lo de fuera a la derecha, sin tanto scroll
+                    Row(Modifier.padding(start = 20.dp, end = 20.dp, top = 4.dp, bottom = 24.dp), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                        Column(Modifier.weight(1f)) {
+                            FilaCarrera(propia, tuCarrera)
+                            Spacer(Modifier.height(8.dp))
+                            FilaPersonalizar(personalizar)
+                            Version(Modifier.padding(top = 28.dp))
                         }
-                        Renglon(Lucide.bandera, "Reportar un error", "Una materia o prelación mal puesta", fuera = true) { abrir(enlaces, enlaceReporte(propia?.nombre)) }
+                        Column(Modifier.weight(1f)) {
+                            BloqueAyuda(guia, reporte, Modifier.padding(start = 4.dp, bottom = 10.dp))
+                            BloqueProyecto(web, codigo)
+                        }
                     }
-
-                    Etiqueta("EL PROYECTO")
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Renglon(Lucide.mundo, "Abrir la versión web", "mapa-pensum.vercel.app", fuera = true) { abrir(enlaces, WEB) }
-                        Renglon(Lucide.codigo, "Código abierto", "Revísalo en GitHub", fuera = true) { abrir(enlaces, REPO) }
-                    }
-
-                    versionApp()?.let {
-                        BasicText(
-                            "VERSIÓN $it",
-                            Modifier.fillMaxWidth().padding(top = 28.dp),
-                            style = versal(Paleta.apagada).copy(textAlign = TextAlign.Center),
-                        )
+                } else {
+                    Column(Modifier.padding(start = 20.dp, end = 20.dp, top = 4.dp, bottom = 24.dp)) {
+                        FilaCarrera(propia, tuCarrera)
+                        Spacer(Modifier.height(8.dp))
+                        FilaPersonalizar(personalizar)
+                        BloqueAyuda(guia, reporte)
+                        BloqueProyecto(web, codigo)
+                        Version(Modifier.padding(top = 28.dp))
                     }
                 }
             }
         }
+    }
+}
+
+/** La fila que abre Personalizar, con la mini vista del tema y el resumen de lo elegido */
+@Composable
+private fun FilaPersonalizar(alPulsar: () -> Unit) {
+    FilaCristal(alPulsar) {
+        MiniVistaTema()
+        Textos("Personalizar", resumenPersonalizar(), Modifier.padding(start = 16.dp, end = 12.dp).weight(1f))
+        IconoTrazo(Lucide.siguiente, Paleta.apagada, 16.dp, 1.75f)
+    }
+}
+
+@Composable
+private fun BloqueAyuda(alVerGuia: () -> Unit, alReportar: () -> Unit, etiqueta: Modifier = Modifier.padding(start = 4.dp, top = 28.dp, bottom = 10.dp)) {
+    Etiqueta("AYUDA", etiqueta)
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Renglon(Lucide.ayuda, "Ver la guía otra vez", "Cómo funciona, en cuatro pasos", alPulsar = alVerGuia)
+        Renglon(Lucide.bandera, "Reportar un error", "Una materia o prelación mal puesta", fuera = true, alPulsar = alReportar)
+    }
+}
+
+@Composable
+private fun BloqueProyecto(alAbrirWeb: () -> Unit, alAbrirCodigo: () -> Unit) {
+    Etiqueta("EL PROYECTO")
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Renglon(Lucide.mundo, "Abrir la versión web", "mapa-pensum.vercel.app", fuera = true, alPulsar = alAbrirWeb)
+        Renglon(Lucide.codigo, "Código abierto", "Revísalo en GitHub", fuera = true, alPulsar = alAbrirCodigo)
+    }
+}
+
+/** Al pie, para saber qué tienes instalado al reportar */
+@Composable
+private fun Version(modifier: Modifier) {
+    versionApp()?.let {
+        BasicText("VERSIÓN $it", modifier.fillMaxWidth(), style = versal(Paleta.apagada).copy(textAlign = TextAlign.Center))
     }
 }
 

@@ -397,11 +397,11 @@ fun VistaHorario(horario: EstadoHorario, abajo: Dp, modifier: Modifier = Modifie
     val arriba = with(LocalDensity.current) { WindowInsets.statusBars.getTop(this).toDp() }
     val lectura = horario.lectura
     if (lectura != null) {
-        LecturaHorario(horario, lectura, arriba, abajo, modifier)
+        LecturaHorario(horario, lectura, arriba, abajo, modifier, horizontal)
         return
     }
     if (horario.sesiones.isEmpty()) {
-        HorarioVacio(horario, arriba, abajo, modifier)
+        HorarioVacio(horario, arriba, abajo, modifier, horizontal)
         return
     }
     Column(

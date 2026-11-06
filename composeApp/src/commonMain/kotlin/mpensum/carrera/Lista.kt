@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -66,6 +67,7 @@ import dev.chrisbanes.haze.hazeSource
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import mpensum.componentes.esApaisado
 import mpensum.componentes.iconoEstado
 import mpensum.componentes.pulsable
 import mpensum.logica.AccionSemestre
@@ -93,6 +95,9 @@ import mpensum.tema.porTema
 
 /** Lo que mide la franja de las pastillas debajo de la barra de estado: 12 + 44 + 12 */
 private val ALTO_FILTROS = 68.dp
+
+/** En horizontal la lista es una columna de lectura, pegada al riel; el resto del ancho es de la ficha */
+private val ANCHO_LISTA_APAISADA = 440.dp
 
 private val ESTILO_VELO get() = HazeStyle(
     backgroundColor = Paleta.lienzo,
@@ -247,10 +252,13 @@ fun VistaLista(
         if (primera[0]) primera[0] = false else lista.scrollToItem(0)
     }
 
+    // Filtros, cabecera y filas comparten la misma columna: nada se estira a 900 dp
+    val columna = if (esApaisado()) Modifier.widthIn(max = ANCHO_LISTA_APAISADA) else Modifier
+
     Box(modifier.fillMaxSize()) {
         LazyColumn(
             state = lista,
-            modifier = Modifier.fillMaxSize().hazeSource(local),
+            modifier = columna.fillMaxSize().hazeSource(local),
             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = arriba + ALTO_FILTROS, bottom = abajo + 16.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
@@ -279,7 +287,7 @@ fun VistaLista(
         val enCima by remember { derivedStateOf { lista.firstVisibleItemIndex == 0 && lista.firstVisibleItemScrollOffset == 0 } }
         val vidrio = animateFloatAsState(if (enCima) 0f else 1f, tween(350), label = "vidrio")
         Box(
-            Modifier
+            columna
                 .fillMaxWidth()
                 .height(arriba + ALTO_FILTROS)
                 .hazeEffect(local, ESTILO_VELO) {
@@ -293,7 +301,7 @@ fun VistaLista(
                 },
         )
         Row(
-            Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = arriba + 12.dp).semantics { contentDescription = "Filtrar por estado" },
+            columna.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = arriba + 12.dp).semantics { contentDescription = "Filtrar por estado" },
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             val cuentas = modelo.cuentas

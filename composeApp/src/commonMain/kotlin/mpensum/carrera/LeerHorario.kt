@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -63,16 +64,23 @@ import mpensum.tema.Paleta
  * después la foto se encoge a una miniatura y las clases vuelan a su sitio de
  * la semana, como en la pantalla inicial; y una hoja pide revisar antes de
  * guardar. Mientras no se guarda, la semana que se ve es provisional.
+ * En horizontal la foto queda a la izquierda y lo que se dice y se hace, a la
+ * derecha, bajo la misma cabecera.
  */
 
 private val CURVA = androidx.compose.animation.core.CubicBezierEasing(0.32f, 0.72f, 0f, 1f)
 
+/** Cuánto mide la foto cuando comparte el renglón con el texto; el alto sale de su proporción */
+private val ANCHO_FOTO = 320.dp
+private val ANCHO_TEXTO = 340.dp
+private val AIRE_FOTO_TEXTO = 48.dp
+
 @Composable
-internal fun LecturaHorario(horario: EstadoHorario, lectura: Lectura, arriba: Dp, abajo: Dp, modifier: Modifier) {
+internal fun LecturaHorario(horario: EstadoHorario, lectura: Lectura, arriba: Dp, abajo: Dp, modifier: Modifier, horizontal: Boolean) {
     when (lectura.fase) {
-        FaseLectura.ELEGIR -> PasoElegir(horario, lectura, arriba, abajo, modifier)
-        FaseLectura.LEYENDO -> PasoLeyendo(horario, lectura, arriba, abajo, modifier)
-        FaseLectura.VOLANDO, FaseLectura.CONFIRMAR -> PasoSemana(horario, lectura, arriba, abajo, modifier)
+        FaseLectura.ELEGIR -> PasoElegir(horario, lectura, arriba, abajo, modifier, horizontal)
+        FaseLectura.LEYENDO -> PasoLeyendo(horario, lectura, arriba, abajo, modifier, horizontal)
+        FaseLectura.VOLANDO, FaseLectura.CONFIRMAR -> PasoSemana(horario, lectura, arriba, abajo, modifier, horizontal)
     }
 }
 
@@ -110,8 +118,7 @@ private fun TarjetaCaptura(lectura: Lectura, modifier: Modifier, escaneo: (() ->
 }
 
 @Composable
-private fun PasoElegir(horario: EstadoHorario, lectura: Lectura, arriba: Dp, abajo: Dp, modifier: Modifier) {
-    val l = letrasHorario()
+private fun PasoElegir(horario: EstadoHorario, lectura: Lectura, arriba: Dp, abajo: Dp, modifier: Modifier, horizontal: Boolean) {
     val alcance = rememberCoroutineScope()
     val lector = horario.lector
     // Abre la galería; si no se puede abrir la imagen, el motivo se dice en la pantalla y se conserva la anterior
@@ -133,43 +140,71 @@ private fun PasoElegir(horario: EstadoHorario, lectura: Lectura, arriba: Dp, aba
     LaunchedEffect(lectura) {
         if (lectura.foto == null && lectura.fallo == null && !pedirFoto()) horario.cancelarLectura()
     }
+    val elegirOtra: () -> Unit = { alcance.launch { pedirFoto() } }
     Column(modifier.fillMaxSize().padding(top = arriba + 8.dp, bottom = abajo + 12.dp, start = 20.dp, end = 20.dp)) {
         CabeceraLectura("LEER HORARIO", horario::cancelarLectura)
-        TarjetaCaptura(lectura, Modifier.padding(top = 36.dp, start = 11.dp, end = 11.dp).fillMaxWidth().height(286.dp))
-        BasicText("¿Es esta?", Modifier.padding(top = 36.dp, start = 4.dp), style = l.titulo.copy(fontSize = 36.sp, lineHeight = 40.sp))
-        val fallo = lectura.fallo
-        if (fallo == null) {
-            BasicText(
-                "Se ve la semana entera, de lunes a viernes. Así se lee mejor.",
-                Modifier.padding(top = 10.dp, start = 4.dp, end = 4.dp),
-                style = l.parrafo.copy(fontSize = 15.sp, lineHeight = 22.sp),
-            )
-        } else {
-            // Lo que pasó y qué hacer, dentro de la propia pantalla: lo aplazado no es un error y no va en rojo
-            BasicText(fallo.titulo, Modifier.padding(top = 10.dp, start = 4.dp, end = 4.dp), style = l.nombreFila.copy(color = if (fallo.aplazado) Paleta.tinta else Paleta.rojo))
-            BasicText(fallo.consejo, Modifier.padding(top = 4.dp, start = 4.dp, end = 4.dp), style = l.parrafo.copy(fontSize = 15.sp, lineHeight = 22.sp))
-            if (fallo.salida == Salida.A_MANO) {
-                Box(
-                    Modifier.padding(top = 4.dp).height(44.dp).pulsable({
-                        horario.cancelarLectura()
-                        horario.abrirNueva(if (horario.ahora.dia < 5) horario.ahora.dia else 0, 7 * 60)
-                    }, escala = 0.96f).padding(horizontal = 4.dp),
-                    contentAlignment = Alignment.CenterStart,
-                ) { BasicText("Crearlo manualmente", style = l.accion.copy(fontSize = 15.sp)) }
+        if (horizontal) {
+            Row(
+                Modifier.weight(1f).fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(AIRE_FOTO_TEXTO, Alignment.CenterHorizontally),
+            ) {
+                TarjetaCaptura(lectura, Modifier.width(ANCHO_FOTO).aspectRatio(ESC_ANCHO / ESC_ALTO))
+                Column(Modifier.width(ANCHO_TEXTO).fillMaxHeight().padding(vertical = 8.dp)) {
+                    ExplicacionElegir(horario, lectura)
+                    Spacer(Modifier.weight(1f))
+                    AccionesElegir(lectura, elegirOtra)
+                }
             }
+        } else {
+            TarjetaCaptura(lectura, Modifier.padding(top = 36.dp, start = 11.dp, end = 11.dp).fillMaxWidth().height(286.dp))
+            Column(Modifier.padding(top = 36.dp)) { ExplicacionElegir(horario, lectura) }
+            Spacer(Modifier.weight(1f))
+            AccionesElegir(lectura, elegirOtra)
         }
-        Spacer(Modifier.weight(1f))
-        BotonTinta("Leer esta captura", Modifier.padding(horizontal = 4.dp), icono = { trazarEscaneo() }) {
-            if (lectura.foto != null) lectura.fase = FaseLectura.LEYENDO
-        }
-        Box(
-            Modifier.fillMaxWidth().height(48.dp).padding(top = 2.dp).pulsable({
-                alcance.launch { pedirFoto() }
-            }, escala = 0.96f),
-            contentAlignment = Alignment.Center,
-        ) { BasicText("Elegir otra", style = l.accion.copy(fontSize = 15.sp, color = Paleta.suave)) }
-        Box(Modifier.fillMaxWidth().padding(top = 6.dp), contentAlignment = Alignment.Center) { SelloIntradace() }
     }
+}
+
+/** «¿Es esta?» y, debajo, la pista o lo que falló y qué hacer */
+@Composable
+private fun ExplicacionElegir(horario: EstadoHorario, lectura: Lectura) {
+    val l = letrasHorario()
+    BasicText("¿Es esta?", Modifier.padding(start = 4.dp), style = l.titulo.copy(fontSize = 36.sp, lineHeight = 40.sp))
+    val fallo = lectura.fallo
+    if (fallo == null) {
+        BasicText(
+            "Se ve la semana entera, de lunes a viernes. Así se lee mejor.",
+            Modifier.padding(top = 10.dp, start = 4.dp, end = 4.dp),
+            style = l.parrafo.copy(fontSize = 15.sp, lineHeight = 22.sp),
+        )
+    } else {
+        // Lo que pasó y qué hacer, dentro de la propia pantalla: lo aplazado no es un error y no va en rojo
+        BasicText(fallo.titulo, Modifier.padding(top = 10.dp, start = 4.dp, end = 4.dp), style = l.nombreFila.copy(color = if (fallo.aplazado) Paleta.tinta else Paleta.rojo))
+        BasicText(fallo.consejo, Modifier.padding(top = 4.dp, start = 4.dp, end = 4.dp), style = l.parrafo.copy(fontSize = 15.sp, lineHeight = 22.sp))
+        if (fallo.salida == Salida.A_MANO) {
+            Box(
+                Modifier.padding(top = 4.dp).height(44.dp).pulsable({
+                    horario.cancelarLectura()
+                    horario.abrirNueva(if (horario.ahora.dia < 5) horario.ahora.dia else 0, 7 * 60)
+                }, escala = 0.96f).padding(horizontal = 4.dp),
+                contentAlignment = Alignment.CenterStart,
+            ) { BasicText("Crearlo manualmente", style = l.accion.copy(fontSize = 15.sp)) }
+        }
+    }
+}
+
+/** El único botón lleno, «Elegir otra» y el sello */
+@Composable
+private fun AccionesElegir(lectura: Lectura, elegirOtra: () -> Unit) {
+    val l = letrasHorario()
+    BotonTinta("Leer esta captura", Modifier.padding(horizontal = 4.dp), icono = { trazarEscaneo() }) {
+        if (lectura.foto != null) lectura.fase = FaseLectura.LEYENDO
+    }
+    Box(
+        Modifier.fillMaxWidth().height(48.dp).padding(top = 2.dp).pulsable(elegirOtra, escala = 0.96f),
+        contentAlignment = Alignment.Center,
+    ) { BasicText("Elegir otra", style = l.accion.copy(fontSize = 15.sp, color = Paleta.suave)) }
+    Box(Modifier.fillMaxWidth().padding(top = 6.dp), contentAlignment = Alignment.Center) { SelloIntradace() }
 }
 
 /** El icono de escanear: cuatro esquinas y una línea, en la rejilla de 24 */
@@ -187,8 +222,7 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.trazarEscaneo() {
 }
 
 @Composable
-private fun PasoLeyendo(horario: EstadoHorario, lectura: Lectura, arriba: Dp, abajo: Dp, modifier: Modifier) {
-    val l = letrasHorario()
+private fun PasoLeyendo(horario: EstadoHorario, lectura: Lectura, arriba: Dp, abajo: Dp, modifier: Modifier, horizontal: Boolean) {
     val foto = lectura.foto
     // Lee de verdad: cada materia entra a la lista cuando el lector la entrega. Sin nada leído, se vuelve a elegir
     LaunchedEffect(lectura) {
@@ -212,18 +246,37 @@ private fun PasoLeyendo(horario: EstadoHorario, lectura: Lectura, arriba: Dp, ab
         0f, 1f, infiniteRepeatable(tween(1800, easing = LinearEasing), RepeatMode.Reverse), label = "barrido",
     )
     val real by animateFloatAsState(if (lectura.total > 0) (leidas.toFloat() / lectura.total).coerceIn(0f, 1f) else 0f, tween(600, easing = CURVA), label = "linea")
+    val escaneo = { if (lectura.total > 0) real else barrido }
     Column(modifier.fillMaxSize().padding(top = arriba + 8.dp, bottom = abajo + 12.dp, start = 20.dp, end = 20.dp)) {
         CabeceraLectura("LEER HORARIO", horario::cancelarLectura)
-        TarjetaCaptura(lectura, Modifier.padding(top = 24.dp, start = 27.dp, end = 27.dp).fillMaxWidth().height(258.dp)) { if (lectura.total > 0) real else barrido }
-        BasicText("Leyendo tu captura", Modifier.padding(top = 26.dp, start = 4.dp), style = l.tituloHoja.copy(fontSize = 26.sp, lineHeight = 30.sp))
-        BasicText(
-            if (lectura.total > 0) "$leidas de ${lectura.total} materias" else "Mirando la captura",
-            Modifier.padding(top = 4.dp, start = 4.dp),
-            style = l.dato,
-        )
-        Column(Modifier.padding(top = 14.dp).fillMaxWidth().verticalScroll(rememberScrollState())) {
-            for (m in lectura.leidas) key(m.codigo) { FilaLeyendo(horario, m) }
+        if (horizontal) {
+            Row(
+                Modifier.weight(1f).fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(AIRE_FOTO_TEXTO, Alignment.CenterHorizontally),
+            ) {
+                TarjetaCaptura(lectura, Modifier.width(ANCHO_FOTO).aspectRatio(ESC_ANCHO / ESC_ALTO), escaneo)
+                Column(Modifier.width(ANCHO_TEXTO).fillMaxHeight().padding(top = 12.dp)) { ListaLeyendo(horario, lectura) }
+            }
+        } else {
+            TarjetaCaptura(lectura, Modifier.padding(top = 24.dp, start = 27.dp, end = 27.dp).fillMaxWidth().height(258.dp), escaneo)
+            Column(Modifier.padding(top = 26.dp)) { ListaLeyendo(horario, lectura) }
         }
+    }
+}
+
+/** El título, cuántas van y la lista de materias, que crece al ritmo de la lectura */
+@Composable
+private fun ListaLeyendo(horario: EstadoHorario, lectura: Lectura) {
+    val l = letrasHorario()
+    BasicText("Leyendo tu captura", Modifier.padding(start = 4.dp), style = l.tituloHoja.copy(fontSize = 26.sp, lineHeight = 30.sp))
+    BasicText(
+        if (lectura.total > 0) "${lectura.leidas.size} de ${lectura.total} materias" else "Mirando la captura",
+        Modifier.padding(top = 4.dp, start = 4.dp),
+        style = l.dato,
+    )
+    Column(Modifier.padding(top = 14.dp).fillMaxWidth().verticalScroll(rememberScrollState())) {
+        for (m in lectura.leidas) key(m.codigo) { FilaLeyendo(horario, m) }
     }
 }
 
@@ -257,12 +310,12 @@ private fun FilaLeyendo(horario: EstadoHorario, m: mpensum.logica.MateriaLeida) 
 
 /** Los colores de cada clase leída: los de su materia en el mapa */
 @Composable
-private fun PasoSemana(horario: EstadoHorario, lectura: Lectura, arriba: Dp, abajo: Dp, modifier: Modifier) {
+private fun PasoSemana(horario: EstadoHorario, lectura: Lectura, arriba: Dp, abajo: Dp, modifier: Modifier, horizontal: Boolean) {
     val l = letrasHorario()
     val sesiones = remember(lectura.fase) { lectura.sesiones }
     val volando = lectura.fase == FaseLectura.VOLANDO
     Column(
-        modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(start = MARGEN_HORARIO, end = MARGEN_HORARIO, top = arriba + 8.dp, bottom = abajo + 28.dp),
+        modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(start = MARGEN_HORARIO, end = MARGEN_HORARIO, top = arriba + 8.dp, bottom = abajo + if (horizontal) 12.dp else 28.dp),
     ) {
         Box(Modifier.fillMaxWidth().height(44.dp)) {
             Box(Modifier.size(44.dp).pulsable(horario::cancelarLectura, escala = 0.9f), contentAlignment = Alignment.Center) {
@@ -273,6 +326,8 @@ private fun PasoSemana(horario: EstadoHorario, lectura: Lectura, arriba: Dp, aba
                 }
             }
             if (!volando) BasicText("Tu semana", Modifier.align(Alignment.CenterStart).padding(start = 46.dp), style = l.tituloHoja)
+            // En horizontal el resumen cabe en la cabecera, a la derecha, y la rejilla empieza más arriba
+            if (!volando && horizontal) BasicText(resumenSemana(sesiones), Modifier.align(Alignment.CenterEnd), style = l.texto, maxLines = 1)
         }
         Crossfade(volando, animationSpec = tween(300), label = "semana-leida") { vuela ->
             if (vuela) {
@@ -284,11 +339,12 @@ private fun PasoSemana(horario: EstadoHorario, lectura: Lectura, arriba: Dp, aba
                     }
                 }
                 val opciones = remember(lectura.foto) { OpcionesEscena(foto = lectura.foto, miniatura = Rect(262f, -58f, 292f, -32f)) }
-                Box(Modifier.fillMaxWidth().padding(top = 90.dp), contentAlignment = Alignment.TopCenter) {
+                // La miniatura de la foto sube 58 unidades sobre la escena: ese es el aire que necesita arriba
+                Box(Modifier.fillMaxWidth().padding(top = if (horizontal) 52.dp else 90.dp), contentAlignment = Alignment.TopCenter) {
                     EscenaVuelo(plano, opciones, { reloj.value })
                 }
             } else {
-                Column { SemanaRejilla(horario, sesiones, provisional = true) }
+                Column { SemanaRejilla(horario, sesiones, provisional = true, compacto = horizontal) }
             }
         }
     }

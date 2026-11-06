@@ -1,13 +1,8 @@
 package mpensum.bienvenida
 
 import androidx.compose.animation.core.CubicBezierEasing
-import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -154,18 +149,18 @@ private val TOMA = TomaEnBucle(
 )
 
 @Composable
-fun ColumnScope.PasoHorario(alSeguir: () -> Unit) {
+fun PasoHorario(alSeguir: () -> Unit) {
     val reloj = rememberRelojEscena(CICLO, QUIETO)
     val textos = rememberTextos()
     val sesiones = remember { SESIONES.mapIndexed { j, s -> SesionHorario(j, s) } }
     // Sus pinceles llevan los colores del tema: se rehacen si cambia
     val tarjeta = remember(Tema.claro) { TarjetaEnCurso() }
-    // Arriba y abajo se funde menos que en la pantalla 1: aquí hay que leer
-    EscenaEnBucle(reloj, TOMA, arriba = 0.09f, abajo = 0.14f, lados = 0.06f, modifier = Modifier.weight(1f).fillMaxWidth()) { t ->
-        pintar(t, textos, sesiones, tarjeta)
+    PasoConEscena("Una foto al horario,", "tu semana lista.", "Continuar", alSeguir, hueco = 68.dp) { modifier ->
+        // Arriba y abajo se funde menos que en la pantalla 1: aquí hay que leer
+        EscenaEnBucle(reloj, TOMA, arriba = 0.09f, abajo = 0.14f, lados = 0.06f, modifier = modifier) { t ->
+            pintar(t, textos, sesiones, tarjeta)
+        }
     }
-    Spacer(Modifier.height(68.dp))
-    BloqueTexto("Una foto al horario,", "tu semana lista.", "Continuar", alSeguir)
 }
 
 /** Un pincel que solo se rehace cuando cambia lo que lo define: quieto, no reserva nada por cuadro */

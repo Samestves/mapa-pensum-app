@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -16,11 +17,13 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
@@ -40,11 +43,13 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import dev.chrisbanes.haze.HazeState
+import mpensum.componentes.esApaisado
 import mpensum.componentes.pulsable
 import mpensum.logica.ABRE
 import mpensum.logica.CIERRA
 import mpensum.logica.DIAS_CORTOS
 import mpensum.logica.MIN_DURACION
+import mpensum.logica.MateriaLeida
 import mpensum.logica.PASO_HORA
 import mpensum.logica.Sesion
 import mpensum.logica.choqueCon
@@ -78,6 +83,8 @@ fun BoxScope.HojasHorario(horario: EstadoHorario, cristal: HazeState?) {
     horario.hoja?.let { recuerdo[0] = it }
     val hoja = horario.hoja ?: recuerdo[0]
     val l = letrasHorario()
+    val apaisado = esApaisado()
+    val fija = apaisado && hoja == HojaHorario.Confirmar
     // Cerrar la revisión sin guardar descarta la lectura: la semana provisional no se puede dejar a medias
     val cerrar = { if (horario.hoja == HojaHorario.Confirmar) horario.cancelarLectura() else horario.hoja = null }
 
@@ -85,6 +92,9 @@ fun BoxScope.HojasHorario(horario: EstadoHorario, cristal: HazeState?) {
         abierta = horario.hoja != null,
         alCerrar = cerrar,
         cristal = cristal,
+        // Acostado, la revisión es más ancha y es su lista la que desplaza: el botón queda fijo abajo
+        ancho = if (apaisado) 840.dp else 560.dp,
+        desplazable = !fija,
         cabecera = {
             val (etiqueta, titulo, punto) = when (hoja) {
                 is HojaHorario.Detalle -> {
@@ -110,7 +120,7 @@ fun BoxScope.HojasHorario(horario: EstadoHorario, cristal: HazeState?) {
             }
         },
     ) {
-        Column(Modifier.padding(start = 24.dp, end = 24.dp, bottom = 20.dp)) {
+        Column((if (fija) Modifier.weight(1f, fill = false) else Modifier).padding(start = 24.dp, end = 24.dp, bottom = 20.dp)) {
             when (hoja) {
                 is HojaHorario.Detalle -> sesionVista(horario, hoja.id)?.let { Detalle(horario, it) }
                 is HojaHorario.Editar -> Editar(horario, hoja.borrador)
@@ -419,39 +429,54 @@ private fun Borrar(horario: EstadoHorario) {
  */
 @Composable
 private fun Confirmar(horario: EstadoHorario) {
-    val l = letrasHorario()
     val lectura = horario.lectura ?: return
     val todas = lectura.sesiones
     val pisan = remember(todas) { choquesDe(todas) }
+    // En horizontal la hoja es ancha y baja: las materias van de dos en dos para que el botón quede a la vista
+    val apaisado = esApaisado()
+    val columnas = if (apaisado) 2 else 1
     Column(Modifier.fillMaxWidth()) {
-        for ((i, m) in lectura.leidas.withIndex()) key(m.codigo) {
-            val primera = m.sesiones.first()
-            // La clase de esta materia que se mete sobre otra, con lo que pisa
-            val choque = pisan.firstOrNull { (_, b) -> b.codigo == m.codigo }
-            Row(
-                Modifier.fillMaxWidth().heightIn(min = 52.dp).padding(vertical = 8.dp).then(if (i > 0) Modifier.lineaArriba() else Modifier),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                val color = horario.color(m.codigo)
-                Box(Modifier.width(3.dp).height(36.dp).drawBehind { drawRoundRect(color, cornerRadius = CornerRadius(1.5.dp.toPx())) })
-                Column(Modifier.weight(1f).padding(start = 12.dp, end = 12.dp)) {
-                    BasicText(horario.nombre(m.codigo), style = l.nombreFila, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                    if (choque != null) {
-                        val (a, b) = choque
-                        BasicText(
-                            "Choca con ${horario.nombre(a.codigo)}, ${DIAS_CORTOS[b.dia].lowercase()} ${tramoCorto(b.inicio, minOf(a.fin, b.fin)).replace(" – ", "–")}",
-                            Modifier.padding(top = 2.dp),
-                            style = l.dato.copy(color = Paleta.rojo),
-                        )
-                    } else {
-                        val aula = primera.aula.takeIf { it.isNotBlank() }?.let { " · $it" }.orEmpty()
-                        BasicText(cuandoEs(primera, m.sesiones) + aula, Modifier.padding(top = 2.dp), style = l.dato, maxLines = 2, overflow = TextOverflow.Ellipsis)
+        // Acostado la hoja no desplaza: la lista sí, y el botón queda fijo debajo
+        Column(if (apaisado) Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState()) else Modifier) {
+            for ((i, fila) in lectura.leidas.chunked(columnas).withIndex()) {
+                Row(Modifier.fillMaxWidth().then(if (i > 0) Modifier.lineaArriba() else Modifier), horizontalArrangement = Arrangement.spacedBy(24.dp)) {
+                    for (m in fila) key(m.codigo) {
+                        FilaLeida(horario, m, pisan, Modifier.weight(1f))
                     }
+                    // Una fila impar deja su hueco: la última materia no se estira a todo el ancho
+                    repeat(columnas - fila.size) { Spacer(Modifier.weight(1f)) }
                 }
-                BasicText(clases(m.sesiones.size), style = l.dato.copy(color = Paleta.tenue))
             }
         }
         BotonLleno("Guardar ${clases(todas.size)}", todas.isNotEmpty(), Modifier.padding(top = 16.dp), horario::guardarLectura)
+    }
+}
+
+/** Una materia leída: su marca de color, el nombre y, debajo, cuándo y dónde o con qué choca */
+@Composable
+private fun FilaLeida(horario: EstadoHorario, m: MateriaLeida, pisan: List<Pair<Sesion, Sesion>>, modifier: Modifier) {
+    val l = letrasHorario()
+    val primera = m.sesiones.first()
+    // La clase de esta materia que se mete sobre otra, con lo que pisa
+    val choque = pisan.firstOrNull { (_, b) -> b.codigo == m.codigo }
+    Row(modifier.heightIn(min = 52.dp).padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+        val color = horario.color(m.codigo)
+        Box(Modifier.width(3.dp).height(36.dp).drawBehind { drawRoundRect(color, cornerRadius = CornerRadius(1.5.dp.toPx())) })
+        Column(Modifier.weight(1f).padding(start = 12.dp, end = 12.dp)) {
+            BasicText(horario.nombre(m.codigo), style = l.nombreFila, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            if (choque != null) {
+                val (a, b) = choque
+                BasicText(
+                    "Choca con ${horario.nombre(a.codigo)}, ${DIAS_CORTOS[b.dia].lowercase()} ${tramoCorto(b.inicio, minOf(a.fin, b.fin)).replace(" – ", "–")}",
+                    Modifier.padding(top = 2.dp),
+                    style = l.dato.copy(color = Paleta.rojo),
+                )
+            } else {
+                val aula = primera.aula.takeIf { it.isNotBlank() }?.let { " · $it" }.orEmpty()
+                BasicText(cuandoEs(primera, m.sesiones) + aula, Modifier.padding(top = 2.dp), style = l.dato, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            }
+        }
+        BasicText(clases(m.sesiones.size), style = l.dato.copy(color = Paleta.tenue))
     }
 }
 

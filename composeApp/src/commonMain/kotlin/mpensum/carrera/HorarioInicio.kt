@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -67,9 +68,12 @@ private fun rememberColoresEjemplo(horario: EstadoHorario): List<Color> {
     }
 }
 
+/**
+ * En vertical la escena va arriba y la invitación debajo; en horizontal sobra
+ * ancho y falta alto: la escena a la izquierda y el texto con el botón a la derecha.
+ */
 @Composable
-internal fun HorarioVacio(horario: EstadoHorario, arriba: Dp, abajo: Dp, modifier: Modifier) {
-    val l = letrasHorario()
+internal fun HorarioVacio(horario: EstadoHorario, arriba: Dp, abajo: Dp, modifier: Modifier, horizontal: Boolean) {
     val colores = rememberColoresEjemplo(horario)
     val plano = remember(colores) {
         val sesiones = EJEMPLO.mapIndexed { i, (d, a, b, _) -> Sesion("demo$i", "demo", d, a * 60, b * 60) }
@@ -77,27 +81,46 @@ internal fun HorarioVacio(horario: EstadoHorario, arriba: Dp, abajo: Dp, modifie
     }
     val reloj = rememberRelojVuelo(plano.total)
     val opciones = remember { OpcionesEscena(entrada = true, ahoraY = 134.5f) }
-    Column(
-        modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(top = arriba + 76.dp, bottom = abajo + 24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        EscenaVuelo(plano, opciones, { reloj.value })
-        Spacer(Modifier.height(52.dp))
-        Column(Modifier.padding(horizontal = 24.dp).fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-            BasicText("MI HORARIO", style = l.etiqueta)
-            BasicText("Arma tu semana", Modifier.padding(top = 8.dp), style = l.titulo.copy(fontSize = 36.sp, lineHeight = 40.sp, textAlign = TextAlign.Center))
-            BasicText(
-                "Sube la captura de tu horario de Intradace y la pasamos a tu semana, clase por clase.",
-                Modifier.padding(top = 14.dp).widthIn(max = 300.dp),
-                style = l.parrafo.copy(fontSize = 15.sp, lineHeight = 22.sp, textAlign = TextAlign.Center),
-            )
-            BotonTinta("Subir mi horario", Modifier.padding(top = 30.dp), icono = { trazarImagen(Paleta.lienzo) }, alPulsar = horario::subir)
-            Box(
-                Modifier.padding(top = 4.dp).fillMaxWidth().height(48.dp).pulsable({ horario.abrirNueva(if (horario.ahora.dia < 5) horario.ahora.dia else 0, 7 * 60) }, escala = 0.96f),
-                contentAlignment = Alignment.Center,
-            ) { BasicText("Crearlo manualmente", style = l.accion.copy(fontSize = 15.sp, color = Paleta.suave)) }
-            SelloIntradace(Modifier.padding(top = 10.dp))
+    if (horizontal) {
+        Row(
+            modifier.fillMaxSize().padding(top = arriba + 16.dp, bottom = abajo + 16.dp, start = MARGEN_HORARIO, end = MARGEN_HORARIO),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(56.dp, Alignment.CenterHorizontally),
+        ) {
+            EscenaVuelo(plano, opciones, { reloj.value })
+            Invitacion(horario, Modifier.width(340.dp), horizontal = true)
         }
+    } else {
+        Column(
+            modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(top = arriba + 76.dp, bottom = abajo + 24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            EscenaVuelo(plano, opciones, { reloj.value })
+            Spacer(Modifier.height(52.dp))
+            Invitacion(horario, Modifier.padding(horizontal = 24.dp).fillMaxWidth(), horizontal = false)
+        }
+    }
+}
+
+/** El rótulo, el título, el párrafo y los dos accesos: centrados bajo la escena y, al lado de ella, pegados a la izquierda */
+@Composable
+private fun Invitacion(horario: EstadoHorario, modifier: Modifier, horizontal: Boolean) {
+    val l = letrasHorario()
+    val alineado = if (horizontal) TextAlign.Start else TextAlign.Center
+    Column(modifier, horizontalAlignment = if (horizontal) Alignment.Start else Alignment.CenterHorizontally) {
+        BasicText("MI HORARIO", style = l.etiqueta)
+        BasicText("Arma tu semana", Modifier.padding(top = 8.dp), style = l.titulo.copy(fontSize = 36.sp, lineHeight = 40.sp, textAlign = alineado))
+        BasicText(
+            "Sube la captura de tu horario de Intradace y la pasamos a tu semana, clase por clase.",
+            Modifier.padding(top = 14.dp).widthIn(max = 300.dp),
+            style = l.parrafo.copy(fontSize = 15.sp, lineHeight = 22.sp, textAlign = alineado),
+        )
+        BotonTinta("Subir mi horario", Modifier.padding(top = if (horizontal) 24.dp else 30.dp), icono = { trazarImagen(Paleta.lienzo) }, alPulsar = horario::subir)
+        Box(
+            Modifier.padding(top = 4.dp).fillMaxWidth().height(48.dp).pulsable({ horario.abrirNueva(if (horario.ahora.dia < 5) horario.ahora.dia else 0, 7 * 60) }, escala = 0.96f),
+            contentAlignment = Alignment.Center,
+        ) { BasicText("Crearlo manualmente", style = l.accion.copy(fontSize = 15.sp, color = Paleta.suave)) }
+        SelloIntradace(Modifier.padding(top = 10.dp).align(Alignment.CenterHorizontally))
     }
 }
 

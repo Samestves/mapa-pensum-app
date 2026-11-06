@@ -7,8 +7,9 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -61,6 +62,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import mpensum.componentes.Silueta
+import mpensum.componentes.esApaisado
 import mpensum.componentes.pulsable
 import mpensum.datos.Carrera
 import mpensum.datos.TIPOS
@@ -80,6 +82,10 @@ private val ALTO_FILA = 72.dp
 private val PASO_FILA = 80.dp
 private val MARGEN_LISTA = 8.dp
 
+// Acostado la lista pide más que los 1,5 : 1 de los demás pasos: con dos columnas los nombres se cortaban
+private const val PESO_LISTA_APAISADA = 2f
+private const val PESO_TEXTO_APAISADO = 1f
+
 /** El visto de la elegida, en la rejilla de 24 */
 private val VISTO = PathParser().parsePathString("m7 12.5 3.2 3.2L17 9").toPath()
 
@@ -93,7 +99,7 @@ private val VISTO = PathParser().parsePathString("m7 12.5 3.2 3.2L17 9").toPath(
  * no hay carrera por defecto que aceptar sin mirar.
  */
 @Composable
-fun ColumnScope.PasoCarrera(
+fun PasoCarrera(
     carreras: List<Carrera>,
     // Quien repite la guía no empieza nada: el botón solo la cierra. Un parámetro para que las capturas fijen el caso
     repite: Boolean = remember { Preferencias.bienvenidaVista() },
@@ -108,9 +114,24 @@ fun ColumnScope.PasoCarrera(
     val actual = ordenadas.firstOrNull { it.slug == elegida }
     val hay = animateFloatAsState(if (actual != null) 1f else 0f, tween(260, easing = ESTANDAR), label = "hay")
 
-    Titulo()
-    Lista(ordenadas, elegida, hay, Modifier.weight(1f)) { elegida = it.slug }
-    Boton(actual, if (repite) "Listo" else "Empezar") { alElegir(actual) }
+    val boton = if (repite) "Listo" else "Empezar"
+    if (esApaisado()) {
+        // La lista a un lado, en dos columnas para que quepan más carreras sin desplazar; el título y el botón al otro,
+        // bajo la barra de pasos, como en los demás pasos
+        Row(Modifier.fillMaxSize()) {
+            Lista(ordenadas, elegida, hay, Modifier.weight(PESO_LISTA_APAISADA).fillMaxHeight().padding(top = ALTO_BARRA - 16.dp), columnas = 2) { elegida = it.slug }
+            Column(Modifier.weight(PESO_TEXTO_APAISADO).fillMaxHeight().padding(top = ALTO_BARRA), verticalArrangement = Arrangement.Center) {
+                Titulo()
+                Boton(actual, boton) { alElegir(actual) }
+            }
+        }
+    } else {
+        Column(Modifier.fillMaxSize()) {
+            Titulo()
+            Lista(ordenadas, elegida, hay, Modifier.weight(1f)) { elegida = it.slug }
+            Boton(actual, boton) { alElegir(actual) }
+        }
+    }
 }
 
 /** El título arriba, con la misma letra y la misma entrada que el de los otros pasos */
@@ -139,14 +160,16 @@ private fun Titulo() {
 /**
  * Las carreras, que se desplazan bajo el título y se funden arriba y abajo:
  * la séptima asoma detrás del fundido, así se ve que hay más. Detrás de la
- * elegida, la luz suave de su color, como el halo de la portada.
+ * elegida, la luz suave de su color, como el halo de la portada. En horizontal
+ * va en `columnas` columnas.
  */
 @Composable
-private fun Lista(carreras: List<Carrera>, elegida: String?, hay: State<Float>, modifier: Modifier, alTocar: (Carrera) -> Unit) {
+private fun Lista(carreras: List<Carrera>, elegida: String?, hay: State<Float>, modifier: Modifier, columnas: Int = 1, alTocar: (Carrera) -> Unit) {
     val desplazamiento = rememberScrollState()
     val indice = carreras.indexOfFirst { it.slug == elegida }
     val luzColor = animateColorAsState(carreras.getOrNull(indice)?.let { colorDe(it.color) } ?: Paleta.azul, tween(260), label = "luz")
-    val luzFila = animateFloatAsState(indice.coerceAtLeast(0).toFloat(), tween(260, easing = ESTANDAR), label = "fila")
+    val luzFila = animateFloatAsState((indice.coerceAtLeast(0) / columnas).toFloat(), tween(260, easing = ESTANDAR), label = "fila")
+    val luzColumna = animateFloatAsState((indice.coerceAtLeast(0) % columnas).toFloat(), tween(260, easing = ESTANDAR), label = "columna")
     Box(modifier.padding(top = 16.dp).fillMaxWidth()) {
         // La luz no se recorta con la lista: es del fondo y se sale de ella
         Box(
@@ -154,7 +177,7 @@ private fun Lista(carreras: List<Carrera>, elegida: String?, hay: State<Float>, 
                 val alfa = hay.value
                 if (alfa <= 0f) return@drawBehind
                 val y = (MARGEN_LISTA + PASO_FILA * luzFila.value + ALTO_FILA / 2).toPx() - desplazamiento.value
-                val c = Offset(size.width / 2f, y)
+                val c = Offset(size.width * (luzColumna.value + 0.5f) / columnas, y)
                 val rx = 240.dp.toPx()
                 val color = luzColor.value
                 scale(1f, 130f / 240f, c) {
@@ -183,10 +206,14 @@ private fun Lista(carreras: List<Carrera>, elegida: String?, hay: State<Float>, 
                 }
                 .verticalScroll(desplazamiento)
                 // Abajo sobra lo justo para que la última suba por encima del fundido
-                .padding(top = MARGEN_LISTA, bottom = 56.dp),
+                .padding(top = MARGEN_LISTA, bottom = if (columnas > 1) 72.dp else 56.dp),
         ) {
-            carreras.forEachIndexed { i, c ->
-                FilaCarrera(c, i, c.slug == elegida, hay) { alTocar(c) }
+            carreras.chunked(columnas).forEachIndexed { r, grupo ->
+                Row(Modifier.fillMaxWidth()) {
+                    grupo.forEachIndexed { k, c ->
+                        FilaCarrera(c, r * columnas + k, c.slug == elegida, hay, columnas > 1, Modifier.weight(1f)) { alTocar(c) }
+                    }
+                }
             }
         }
     }
@@ -199,14 +226,17 @@ private fun Lista(carreras: List<Carrera>, elegida: String?, hay: State<Float>, 
  * al 55 %. Lo que cambia se lee al dibujar: elegir no recompone la lista.
  */
 @Composable
-private fun FilaCarrera(c: Carrera, i: Int, esElegida: Boolean, hay: State<Float>, alPulsar: () -> Unit) {
+private fun FilaCarrera(c: Carrera, i: Int, esElegida: Boolean, hay: State<Float>, compacta: Boolean, modifier: Modifier, alPulsar: () -> Unit) {
     val color = colorDe(c.color)
+    // En dos columnas los márgenes bajan y el nombre puede ocupar dos renglones antes de cortarse
+    val margen = if (compacta) 8.dp else 16.dp
+    val relleno = if (compacta) 12.dp else 16.dp
     val k = animateFloatAsState(if (esElegida) 1f else 0f, tween(260, easing = ESTANDAR), label = "elegida")
     val entra = remember { Animatable(0f) }
     LaunchedEffect(Unit) { entra.animateTo(1f, tween(480, 150 + 40 * i, SALIDA)) }
     Row(
-        Modifier
-            .padding(start = 16.dp, end = 16.dp, bottom = PASO_FILA - ALTO_FILA)
+        modifier
+            .padding(start = margen, end = margen, bottom = PASO_FILA - ALTO_FILA)
             .graphicsLayer {
                 // El alfa se aplica a cada trazo y no a una capa aparte: nueve capas por cuadro pesan en gama baja
                 compositingStrategy = CompositingStrategy.ModulateAlpha
@@ -217,7 +247,7 @@ private fun FilaCarrera(c: Carrera, i: Int, esElegida: Boolean, hay: State<Float
             .fillMaxWidth()
             .height(ALTO_FILA)
             .drawBehind { cristalFila(color, k.value) }
-            .padding(start = 16.dp, end = 20.dp),
+            .padding(start = relleno, end = relleno + 4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         // La silueta cabe en 56 × 36 como en la web; la que tiene más de siete filas asoma por debajo
@@ -230,12 +260,12 @@ private fun FilaCarrera(c: Carrera, i: Int, esElegida: Boolean, hay: State<Float
                 huecoFila = (36f / 7f - 2.5f).dp,
             )
         }
-        Column(Modifier.padding(start = 16.dp, end = 12.dp).weight(1f)) {
+        Column(Modifier.padding(start = relleno, end = 8.dp).weight(1f)) {
             BasicText(
                 c.nombreCorto,
-                Modifier.renglon(22.dp, 17.sp),
+                if (compacta) Modifier else Modifier.renglon(22.dp, 17.sp),
                 style = TextStyle(fontFamily = jost(), fontSize = 17.sp, lineHeight = 22.sp, fontWeight = FontWeight.Light, letterSpacing = (-0.01).em, color = Paleta.tinta),
-                maxLines = 1,
+                maxLines = if (compacta) 2 else 1,
                 overflow = TextOverflow.Ellipsis,
             )
             BasicText(

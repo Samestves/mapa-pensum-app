@@ -65,12 +65,11 @@ enum class Vista(val etiqueta: String, val icono: IconoDoble) {
 /** Cuánto se separa la barra del borde de abajo */
 private val SOBRE_EL_BORDE = 14.dp
 
-/** En horizontal, el riel va a esto del recorte de cámara y mide 52 dp de ancho */
+/** En horizontal, el riel va a esto del recorte de cámara; su ancho (`ANCHO_RIEL_NAVEGACION`, 52 dp) sale de la barra */
 private val SEPARA_RIEL = 14.dp
-private val ANCHO_RIEL = 52.dp
 
 /** En horizontal, lo que tapa el riel a la izquierda (14 + 52 + 18): el mapa corre por detrás y la cámara lo descuenta */
-private val RESERVA_RIEL = SEPARA_RIEL + ANCHO_RIEL + 18.dp
+private val RESERVA_RIEL = SEPARA_RIEL + ANCHO_RIEL_NAVEGACION + 18.dp
 
 /** El velo tras el riel: los cables se funden hacia el borde en vez de cortarse contra el cristal */
 private val ANCHO_VELO = 150.dp

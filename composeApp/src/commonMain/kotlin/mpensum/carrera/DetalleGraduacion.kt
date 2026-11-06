@@ -22,6 +22,8 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -30,8 +32,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -66,6 +70,7 @@ import mpensum.componentes.IconoRelleno
 import mpensum.componentes.IconoTrazo
 import mpensum.componentes.Lucide
 import mpensum.componentes.Phosphor
+import mpensum.componentes.esApaisado
 import mpensum.logica.EstimacionGraduacion
 import mpensum.logica.Periodo
 import mpensum.logica.estimarGraduacion
@@ -78,7 +83,9 @@ import kotlin.math.roundToInt
  * "¿Cuándo me gradúo?": el detalle de la hoja del progreso. De arriba abajo:
  * la fecha grande con cuánto falta, el anillo con una marca por materia, la
  * cadena de materias que no puedes atrasar, el deslizador de materias por
- * semestre y lo que inscribes el próximo semestre.
+ * semestre y lo que inscribes el próximo semestre. Acostado, el anillo queda
+ * a la izquierda, entero y quieto, y el resto (fecha incluida) en una columna
+ * con su propio scroll a la derecha.
  *
  * Los ocho planes (de 1 a 8 materias por semestre) se calculan una sola vez al
  * abrir y se recalculan solo si cambian las marcas o las casillas. Mover el
@@ -87,6 +94,9 @@ import kotlin.math.roundToInt
  */
 
 private const val MAX_CARGA = 8
+
+/** El ancho del anillo acostado: lo que piden sus anotaciones a los lados */
+private val ANCHO_ANILLO_APAISADO = 340.dp
 
 /** La entrada: el anillo se llena en 600 ms, luego salen los rótulos y al final el resto */
 private const val ENTRADA_MS = 1_100
@@ -110,7 +120,8 @@ internal fun DetalleGraduacion(estado: EstadoCarrera, hoy: Periodo, alVerEnMapa:
     val entrada = remember { Animatable(0f) }
     LaunchedEffect(Unit) { entrada.animateTo(1f, tween(ENTRADA_MS, easing = LinearEasing)) }
 
-    Column(Modifier.padding(start = 20.dp, end = 20.dp, top = 8.dp, bottom = 32.dp)) {
+    // La fecha y cuánto falta
+    val titular: @Composable (Int) -> Unit = { tam ->
         Column(
             Modifier.graphicsLayer {
                 val o = suavizar(entrada.value / 0.25f)
@@ -122,7 +133,7 @@ internal fun DetalleGraduacion(estado: EstadoCarrera, hoy: Periodo, alVerEnMapa:
                 IconoTrazo(Lucide.birrete, Paleta.tinta.copy(alpha = 0.5f), 16.dp, 2f)
                 BasicText(if (g.terminado) "TU CARRERA" else "TE GRADÚAS EN", Modifier.padding(start = 6.dp), style = versal(Paleta.tinta.copy(alpha = 0.5f)).copy(letterSpacing = 0.06.em))
             }
-            BasicText(fecha, Modifier.padding(top = 6.dp), style = estilo(60, Paleta.tinta, FontWeight.Light, 64).copy(letterSpacing = (-0.045).em))
+            BasicText(fecha, Modifier.padding(top = 6.dp), style = estilo(tam, Paleta.tinta, FontWeight.Light, tam + 4).copy(letterSpacing = (-0.045).em))
             if (!g.terminado) {
                 Box(Modifier.padding(top = 12.dp).height(28.dp).clip(RoundedCornerShape(14.dp)).background(Paleta.tinta.copy(alpha = 0.08f)).padding(horizontal = 12.dp), contentAlignment = Alignment.Center) {
                     BasicText(
@@ -135,12 +146,12 @@ internal fun DetalleGraduacion(estado: EstadoCarrera, hoy: Periodo, alVerEnMapa:
                 }
             }
         }
-
-        AnilloGraduacion(
-            anillos[elegida - 1], porcentaje, g.periodoFinal?.anio, hoy.anio, { entrada.value },
-            Modifier.padding(top = 8.dp, start = 0.dp),
-        )
-
+    }
+    val anillo: @Composable (Modifier) -> Unit = { modifier ->
+        AnilloGraduacion(anillos[elegida - 1], porcentaje, g.periodoFinal?.anio, hoy.anio, { entrada.value }, modifier)
+    }
+    // La cadena, el ritmo y lo que inscribes: entran al final
+    val tarjetas: @Composable () -> Unit = {
         Column(
             Modifier.graphicsLayer {
                 val o = suavizar((entrada.value - 0.7f) / 0.3f)
@@ -149,11 +160,9 @@ internal fun DetalleGraduacion(estado: EstadoCarrera, hoy: Periodo, alVerEnMapa:
             },
         ) {
             if (g.cuelloDeBotella.isNotEmpty()) {
-                Spacer(Modifier.height(12.dp))
                 NoPuedesAtrasar(g, hoy, nombre)
+                Spacer(Modifier.height(12.dp))
             }
-
-            Spacer(Modifier.height(12.dp))
             TarjetaRitmo(
                 valor = elegida,
                 ritmo = habitual,
@@ -162,11 +171,28 @@ internal fun DetalleGraduacion(estado: EstadoCarrera, hoy: Periodo, alVerEnMapa:
                 alCambiar = { elegida = it },
                 alSoltar = { estado.elegirCarga(if (it == habitual) null else it) },
             )
-
             if (g.plan.isNotEmpty()) {
                 Spacer(Modifier.height(12.dp))
                 LoQueInscribes(hoy.mas(1), g.plan[0], g.cuelloDeBotella.toSet(), nombre, alVerEnMapa)
             }
+        }
+    }
+
+    if (esApaisado()) {
+        Row(Modifier.fillMaxSize().padding(start = 20.dp, end = 20.dp, bottom = 16.dp), horizontalArrangement = Arrangement.spacedBy(24.dp)) {
+            // El anillo mide 270 dp: centrado en el alto que hay, sin scroll
+            Box(Modifier.width(ANCHO_ANILLO_APAISADO).fillMaxHeight(), contentAlignment = Alignment.Center) { anillo(Modifier) }
+            Column(Modifier.weight(1f).fillMaxHeight().verticalScroll(rememberScrollState())) {
+                titular(52)
+                Spacer(Modifier.height(16.dp))
+                tarjetas()
+            }
+        }
+    } else {
+        Column(Modifier.padding(start = 20.dp, end = 20.dp, top = 8.dp, bottom = 32.dp)) {
+            titular(60)
+            anillo(Modifier.padding(top = 8.dp, start = 0.dp))
+            Column(Modifier.padding(top = 12.dp)) { tarjetas() }
         }
     }
 }

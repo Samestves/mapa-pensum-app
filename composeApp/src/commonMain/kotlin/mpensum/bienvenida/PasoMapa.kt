@@ -1,13 +1,8 @@
 package mpensum.bienvenida
 
 import androidx.compose.animation.core.CubicBezierEasing
-import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -133,17 +128,17 @@ private val TOMA = TomaEnBucle(
 )
 
 @Composable
-fun ColumnScope.PasoMapa(alSeguir: () -> Unit) {
+fun PasoMapa(alSeguir: () -> Unit) {
     val reloj = rememberRelojEscena(CICLO, QUIETO)
     val textos = rememberTextos()
     // Los degradados de los cables llevan los tonos del tema: se rearman si cambia
     val cables = remember(Tema.claro) { CABLES.map { (o, d, j) -> CableDemo(MATERIAS[o], MATERIAS[d], j) } }
-    EscenaEnBucle(reloj, TOMA, arriba = 0.17f, abajo = 0.2f, lados = 0.05f, modifier = Modifier.weight(1f).fillMaxWidth()) { t ->
-        pintar(t, textos, cables)
-    }
     // El hueco del tablero entre la escena y el título: el fundido de abajo respira antes del texto
-    Spacer(Modifier.height(68.dp))
-    BloqueTexto("Marca lo aprobado,", "mira qué se abre.", "Continuar", alSeguir)
+    PasoConEscena("Marca lo aprobado,", "mira qué se abre.", "Continuar", alSeguir, hueco = 68.dp) { modifier ->
+        EscenaEnBucle(reloj, TOMA, arriba = 0.17f, abajo = 0.2f, lados = 0.05f, modifier = modifier) { t ->
+            pintar(t, textos, cables)
+        }
+    }
 }
 
 /** Los textos de la escena, medidos una vez: en cada cuadro solo se pintan */

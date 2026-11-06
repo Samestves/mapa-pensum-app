@@ -10,7 +10,9 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -38,6 +40,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
@@ -47,6 +50,7 @@ import mpensum.componentes.BotonPrincipal
 import mpensum.componentes.IconoTrazo
 import mpensum.componentes.Lucide
 import mpensum.componentes.auroraViva
+import mpensum.componentes.esApaisado
 import mpensum.componentes.grano
 import mpensum.componentes.pulsable
 import mpensum.componentes.rememberRelojAurora
@@ -57,6 +61,14 @@ import mpensum.tema.inter
 import mpensum.tema.jost
 
 const val PASOS = 4
+
+/** En horizontal: lo que ocupa la escena y lo que ocupa el texto (con la barra de pasos y los botones) */
+const val PESO_ESCENA = 1.5f
+const val PESO_TEXTO = 1f
+private const val FRACCION_TEXTO = PESO_TEXTO / (PESO_ESCENA + PESO_TEXTO)
+
+/** Lo que mide la barra de pasos: el texto del lado apaisado baja bajo ella */
+val ALTO_BARRA = 52.dp
 
 /**
  * La guía de la primera vez, en cuatro pasos: marca lo aprobado y mira qué
@@ -69,6 +81,7 @@ fun Bienvenida(carreras: List<Carrera>, pasoInicial: Int = 0, alTerminar: (Carre
     ManejarAtras(paso > 0) { paso -= 1 }
     // La aurora viva de la portada, sin la luz de carrera: aún no hay carrera elegida
     val reloj = rememberRelojAurora(entrar = true, pausada = { false })
+    val apaisado = esApaisado()
     Box(Modifier.fillMaxSize().background(Paleta.lienzo)) {
         Box(Modifier.fillMaxSize().auroraViva(reloj))
         Box(Modifier.fillMaxSize().grano())
@@ -78,8 +91,9 @@ fun Bienvenida(carreras: List<Carrera>, pasoInicial: Int = 0, alTerminar: (Carre
             label = "paso",
         ) { p ->
             Column(Modifier.fillMaxSize().safeDrawingPadding()) {
-                // La escena empieza justo bajo la barra de pasos (6 + 44 + 2)
-                Spacer(Modifier.height(52.dp))
+                // En vertical la escena empieza justo bajo la barra de pasos (6 + 44 + 2); en horizontal la barra
+                // vive sobre el texto y la escena ocupa todo el alto
+                if (!apaisado) Spacer(Modifier.height(ALTO_BARRA))
                 when (p) {
                     0 -> PasoMapa(alSeguir = { paso = 1 })
                     1 -> PasoHorario(alSeguir = { paso = 2 })
@@ -92,22 +106,49 @@ fun Bienvenida(carreras: List<Carrera>, pasoInicial: Int = 0, alTerminar: (Carre
         // La barra de arriba: volver, los pasos y saltar. Cada pieza tiene su sitio fijo: los pasos
         // no cambian de ancho cuando Saltar desaparece en el último
         Box(Modifier.fillMaxWidth().safeDrawingPadding().padding(top = 6.dp).height(44.dp)) {
-            if (paso > 0) {
-                BotonIcono(alPulsar = { paso -= 1 }, modifier = Modifier.padding(start = 10.dp)) { IconoTrazo(Lucide.atras, Paleta.tinta, 22.dp, 2f) }
-            }
-            BarraPasos(
-                paso, PASOS,
-                Modifier.align(Alignment.CenterStart).fillMaxWidth().padding(start = if (paso > 0) 62.dp else 32.dp, end = 86.dp),
-            )
-            // En el último no hay nada que saltar: elegir es el paso
-            if (paso < PASOS - 1) {
-                Box(
-                    Modifier.align(Alignment.CenterEnd).padding(end = 14.dp).height(44.dp).pulsable({ paso = PASOS - 1 }).padding(horizontal = 10.dp),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    BasicText("Saltar", style = TextStyle(fontFamily = inter(), fontSize = 15.sp, fontWeight = FontWeight.Medium, color = Paleta.tenue))
+            // En horizontal la barra se queda sobre el texto, al lado de la escena
+            Box(if (apaisado) Modifier.align(Alignment.CenterEnd).fillMaxWidth(FRACCION_TEXTO).fillMaxHeight() else Modifier.fillMaxSize()) {
+                if (paso > 0) {
+                    BotonIcono(alPulsar = { paso -= 1 }, modifier = Modifier.padding(start = 10.dp)) { IconoTrazo(Lucide.atras, Paleta.tinta, 22.dp, 2f) }
+                }
+                BarraPasos(
+                    paso, PASOS,
+                    Modifier.align(Alignment.CenterStart).fillMaxWidth().padding(start = if (paso > 0) 62.dp else 32.dp, end = 86.dp),
+                )
+                // En el último no hay nada que saltar: elegir es el paso
+                if (paso < PASOS - 1) {
+                    Box(
+                        Modifier.align(Alignment.CenterEnd).padding(end = 14.dp).height(44.dp).pulsable({ paso = PASOS - 1 }).padding(horizontal = 10.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        BasicText("Saltar", style = TextStyle(fontFamily = inter(), fontSize = 15.sp, fontWeight = FontWeight.Medium, color = Paleta.tenue))
+                    }
                 }
             }
+        }
+    }
+}
+
+/**
+ * La disposición de un paso con escena: en vertical la escena arriba y el
+ * texto abajo (con `hueco` entre ambos); en horizontal la escena a un lado
+ * y el texto al otro, con el mismo movimiento. `escena` recibe el modifier
+ * que le da su sitio.
+ */
+@Composable
+fun PasoConEscena(primera: String, segunda: String, boton: String, alSeguir: () -> Unit, hueco: Dp = 0.dp, escena: @Composable (Modifier) -> Unit) {
+    if (esApaisado()) {
+        Row(Modifier.fillMaxSize()) {
+            escena(Modifier.weight(PESO_ESCENA).fillMaxHeight())
+            Box(Modifier.weight(PESO_TEXTO).fillMaxHeight().padding(top = ALTO_BARRA), contentAlignment = Alignment.CenterStart) {
+                BloqueTexto(primera, segunda, boton, alSeguir)
+            }
+        }
+    } else {
+        Column(Modifier.fillMaxSize()) {
+            escena(Modifier.weight(1f).fillMaxWidth())
+            Spacer(Modifier.height(hueco))
+            BloqueTexto(primera, segunda, boton, alSeguir)
         }
     }
 }

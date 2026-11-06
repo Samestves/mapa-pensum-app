@@ -61,6 +61,7 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import dev.chrisbanes.haze.ExperimentalHazeApi
@@ -107,6 +108,8 @@ private const val UMBRAL_FRACCION = 0.25f
 private const val UMBRAL_VELOCIDAD_DP = 1200f
 /** Lo más que se estira hacia arriba, en dp: la goma tiende a este tope sin llegar */
 private const val GOMA_DP = 40f
+/** Lo más ancha que llega una hoja si no pide otra cosa */
+private val ANCHO_HOJA = 560.dp
 /** Posición de la hoja que no ha entrado: fuera de cualquier pantalla */
 private const val OCULTA = 1e6f
 
@@ -290,6 +293,11 @@ private fun goma(x: Float, tope: Float) = tope * (1f - exp(-x / tope))
  * `fondo` es el HazeState de la pantalla de debajo, la que se desenfoca por
  * encima de la hoja; por defecto sale de [LocalFondoHoja]. Sin ninguno, solo
  * hay velo.
+ *
+ * `ancho` es lo más ancha que llega (centrada); en un teléfono acostado una
+ * hoja con dos columnas pide más que los 560 dp de siempre. Con `desplazable`
+ * en falso la hoja no desplaza su contenido: lo estira a su alto y cada
+ * columna del contenido se desplaza por su cuenta.
  */
 @OptIn(ExperimentalHazeApi::class)
 @Composable
@@ -298,6 +306,8 @@ fun BoxScope.HojaInferior(
     alCerrar: () -> Unit,
     cristal: HazeState? = null,
     fondo: HazeState? = cristal ?: LocalFondoHoja.current,
+    ancho: Dp = ANCHO_HOJA,
+    desplazable: Boolean = true,
     cabecera: @Composable () -> Unit,
     contenido: @Composable ColumnScope.() -> Unit,
 ) {
@@ -367,7 +377,7 @@ fun BoxScope.HojaInferior(
         Column(
             Modifier
                 // En horizontal la hoja no se estira a todo el ancho: unos 560 dp, centrada
-                .widthIn(max = 560.dp)
+                .widthIn(max = ancho)
                 .fillMaxWidth()
                 .onSizeChanged { hoja.alto = it.height.toFloat() }
                 .graphicsLayer {
@@ -444,8 +454,7 @@ fun BoxScope.HojaInferior(
                 cabecera()
             }
             Column(
-                Modifier
-                    .verticalScroll(rememberScrollState())
+                (if (desplazable) Modifier.verticalScroll(rememberScrollState()) else Modifier.weight(1f, fill = false))
                     // Pegada abajo, el contenido no queda bajo la barra de gestos; con teclado, sube con él
                     .padding(bottom = if (flotante) 0.dp else WindowInsets.navigationBars.exclude(WindowInsets.ime).asPaddingValues().calculateBottomPadding()),
                 content = contenido,

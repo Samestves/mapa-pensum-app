@@ -76,6 +76,8 @@ private val ALTO_HORA_COMPACTA = 40.dp
 private val ALTO_PLIEGUE = 24.dp
 /** El carril de la izquierda, con las horas */
 private val RIEL = 30.dp
+/** En horizontal las columnas miden unos 155 dp: el carril respira más y la hora no queda pegada a la rejilla */
+private val RIEL_COMPACTO = 44.dp
 /** Cuánto sale la rejilla por cada lado del margen de la vista: cada dp aquí es un dp más de nombre */
 private val DESBORDE = 8.dp
 /** El aire de un bloque: con el borde de su columna y por arriba y abajo */
@@ -108,6 +110,7 @@ private fun cimas(ocupadas: List<Boolean>, compacto: Boolean): List<Dp> {
 @Composable
 internal fun SemanaRejilla(horario: EstadoHorario, sesiones: List<Sesion> = horario.sesiones, provisional: Boolean = false, compacto: Boolean = false) {
     val l = letrasHorario()
+    val riel = if (compacto) RIEL_COMPACTO else RIEL
     val (abre, cierra) = if (provisional) rangoDeClases(sesiones) else horario.rango
     val ahora = horario.ahora
     val porDias = remember(sesiones) { porDia(sesiones) }
@@ -138,11 +141,11 @@ internal fun SemanaRejilla(horario: EstadoHorario, sesiones: List<Sesion> = hora
             .drawBehind {
                 // Hoy se marca con un velo apenas visible de arriba abajo, nombre del día incluido
                 if (ahora.dia < 5) {
-                    val riel = RIEL.toPx()
-                    val col = (size.width - riel) / 5
+                    val rielPx = riel.toPx()
+                    val col = (size.width - rielPx) / 5
                     drawRoundRect(
                         Paleta.tinta.copy(alpha = 0.03f),
-                        Offset(riel + ahora.dia * col + 1.dp.toPx(), 0f),
+                        Offset(rielPx + ahora.dia * col + 1.dp.toPx(), 0f),
                         Size(col - 2.dp.toPx(), size.height),
                         CornerRadius(12.dp.toPx()),
                     )
@@ -151,8 +154,10 @@ internal fun SemanaRejilla(horario: EstadoHorario, sesiones: List<Sesion> = hora
             .padding(bottom = 8.dp),
     ) {
         val numeros = horario.numerosDia
-        Row(Modifier.fillMaxWidth().height(if (numeros != null) 62.dp else 40.dp)) {
-            Spacer(Modifier.width(RIEL))
+        // En horizontal el nombre y el número van en un renglón: la cabecera no le quita alto a las horas
+        val altoCabecera = if (numeros != null && !compacto) 62.dp else 40.dp
+        Row(Modifier.fillMaxWidth().height(altoCabecera)) {
+            Spacer(Modifier.width(riel))
             for (d in 0 until 5) {
                 val hoy = d == ahora.dia && !provisional
                 Column(
@@ -165,18 +170,28 @@ internal fun SemanaRejilla(horario: EstadoHorario, sesiones: List<Sesion> = hora
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center,
                 ) {
-                    // El tracking deja aire a la derecha de la última letra; se compensa a la izquierda para que quede centrado
-                    BasicText(
-                        DIAS_CORTOS[d],
-                        Modifier.padding(start = 2.dp),
-                        style = l.etiqueta.copy(color = if (hoy) Paleta.tinta else Paleta.tenue, fontWeight = if (hoy) FontWeight.SemiBold else FontWeight.Medium),
-                    )
+                    val nombre = @Composable {
+                        // El tracking deja aire a la derecha de la última letra; se compensa a la izquierda para que quede centrado
+                        BasicText(
+                            DIAS_CORTOS[d],
+                            Modifier.padding(start = 2.dp),
+                            style = l.etiqueta.copy(color = if (hoy) Paleta.tinta else Paleta.tenue, fontWeight = if (hoy) FontWeight.SemiBold else FontWeight.Medium),
+                        )
+                    }
                     // El número del día; el de hoy, en un círculo de tinta
-                    if (numeros != null) Box(
-                        Modifier.padding(top = 6.dp).size(26.dp).drawBehind { if (hoy) drawCircle(Paleta.tinta) },
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        BasicText("${numeros[d]}", style = l.cuerpo.copy(color = if (hoy) Paleta.lienzo else Paleta.suave, fontWeight = FontWeight.Medium, textAlign = TextAlign.Center))
+                    val numero = @Composable { n: Int ->
+                        Box(Modifier.size(26.dp).drawBehind { if (hoy) drawCircle(Paleta.tinta) }, contentAlignment = Alignment.Center) {
+                            BasicText("$n", style = l.cuerpo.copy(color = if (hoy) Paleta.lienzo else Paleta.suave, fontWeight = FontWeight.Medium, textAlign = TextAlign.Center))
+                        }
+                    }
+                    if (compacto) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            nombre()
+                            if (numeros != null) numero(numeros[d])
+                        }
+                    } else {
+                        nombre()
+                        if (numeros != null) Box(Modifier.padding(top = 6.dp)) { numero(numeros[d]) }
                     }
                 }
             }
@@ -188,42 +203,42 @@ internal fun SemanaRejilla(horario: EstadoHorario, sesiones: List<Sesion> = hora
                 .fillMaxWidth()
                 .height(cimas[filas])
                 .drawWithContent {
-                    val riel = RIEL.toPx()
-                    val col = (size.width - riel) / 5
+                    val rielPx = riel.toPx()
+                    val col = (size.width - rielPx) / 5
                     val g = 1.dp.toPx()
                     // Una cuadrícula que casi no se ve: solo las horas, sin líneas entre días (los separa el aire)
                     for (i in 0..filas) {
                         val pliegueArriba = i > 0 && !ocupadas[i - 1]
                         val pliegueAbajo = i < filas && !ocupadas[i]
                         if (pliegueArriba && pliegueAbajo) continue
-                        drawRect(Paleta.tinta.copy(alpha = 0.05f), Offset(riel, cimas[i].toPx()), Size(size.width - riel, g))
+                        drawRect(Paleta.tinta.copy(alpha = 0.05f), Offset(rielPx, cimas[i].toPx()), Size(size.width - rielPx, g))
                     }
                     // Dentro de un pliegue, un punteado: ahí se salta una hora
                     for (i in 0 until filas) if (!ocupadas[i]) {
                         val ym = ((cimas[i] + cimas[i + 1]) / 2).toPx()
                         drawLine(
-                            Paleta.tinta.copy(alpha = 0.12f), Offset(riel, ym), Offset(size.width, ym), g,
+                            Paleta.tinta.copy(alpha = 0.12f), Offset(rielPx, ym), Offset(size.width, ym), g,
                             pathEffect = PathEffect.dashPathEffect(floatArrayOf(2.dp.toPx(), 4.dp.toPx())),
                         )
                     }
                     drawContent()
                     // El tramo pisado de cada choque: una raya roja fina en el borde de la columna
                     for ((d, desde, hasta) in pisados) {
-                        val x = riel + (d + 1) * col - 1.dp.toPx()
+                        val x = rielPx + (d + 1) * col - 1.dp.toPx()
                         val y0 = y(desde).toPx()
                         drawRoundRect(Paleta.rojo, Offset(x - g, y0), Size(1.5.dp.toPx(), y(hasta).toPx() - y0), CornerRadius(g))
                     }
                     // La línea de ahora: tenue por la semana y marcada sobre hoy, por encima de las clases
                     if (ahoraSeVe) {
                         val ya = yAhora.toPx()
-                        drawRect(Paleta.rojo.copy(alpha = 0.35f), Offset(riel, ya - g / 2), Size(size.width - riel, g))
-                        val x = riel + ahora.dia * col
+                        drawRect(Paleta.rojo.copy(alpha = 0.35f), Offset(rielPx, ya - g / 2), Size(size.width - rielPx, g))
+                        val x = rielPx + ahora.dia * col
                         drawRect(Paleta.rojo, Offset(x, ya - g), Size(col, 2 * g))
                         drawCircle(Paleta.rojo, 3.dp.toPx(), Offset(x + 1.dp.toPx(), ya))
                     }
                 },
         ) {
-            val colW = (maxWidth - RIEL) / 5
+            val colW = (maxWidth - riel) / 5
             val medidor = rememberTextMeasurer()
             val densidad = LocalDensity.current.density
             // Cada nombre se abrevia una vez por horario y ancho: sin partir palabras, en lo que cabe
@@ -249,15 +264,15 @@ internal fun SemanaRejilla(horario: EstadoHorario, sesiones: List<Sesion> = hora
                 // Entre dos pliegues no hay hora que leer; y la de ahora tapa la que tenga encima
                 if (i in 1 until filas && !ocupadas[i - 1] && !ocupadas[i]) continue
                 if (ahoraSeVe && abs((cimas[i] - yAhora).value) < 14) continue
-                RotuloHora(abre + i * 60, Modifier.offset(y = cimas[i] - 7.dp))
+                RotuloHora(abre + i * 60, riel, Modifier.offset(y = cimas[i] - 7.dp))
             }
             for ((c, lineas, conAula) in bloques) {
-                BloqueClase(horario, c, lineas, conAula, colW, y(c.sesion.inicio), y(c.sesion.fin), provisional)
+                BloqueClase(horario, c, lineas, conAula, riel, colW, y(c.sesion.inicio), y(c.sesion.fin), provisional)
             }
             if (ahoraSeVe) {
                 BasicText(
                     horaDe(ahora.minuto),
-                    Modifier.offset(y = yAhora - 7.dp).width(RIEL - 6.dp).wrapContentWidth(Alignment.End, unbounded = true),
+                    Modifier.offset(y = yAhora - 7.dp).width(riel - 6.dp).wrapContentWidth(Alignment.End, unbounded = true),
                     style = l.pequeno.copy(color = Paleta.rojo, fontWeight = FontWeight.SemiBold),
                     softWrap = false,
                 )
@@ -271,7 +286,7 @@ private fun anchoDe(colW: Dp, c: Colocada): Dp = colW - HUECO_COLUMNA * 2 - METI
 
 /** Una hora del riel, como en la web: el número y el meridiano aparte, pequeño */
 @Composable
-private fun RotuloHora(minuto: Int, modifier: Modifier) {
+private fun RotuloHora(minuto: Int, riel: Dp, modifier: Modifier) {
     val l = letrasHorario()
     val h = ((minuto / 60 + 11) % 12) + 1
     BasicText(
@@ -280,7 +295,7 @@ private fun RotuloHora(minuto: Int, modifier: Modifier) {
             withStyle(SpanStyle(fontSize = 8.sp, letterSpacing = 0.08.em, color = Paleta.apagada)) { append(" ${meridiano(minuto)}") }
         },
         // Pegada a la derecha del carril, con aire antes de la rejilla; si no cabe, sobresale a la izquierda
-        modifier.width(RIEL - 6.dp).wrapContentWidth(Alignment.End, unbounded = true),
+        modifier.width(riel - 6.dp).wrapContentWidth(Alignment.End, unbounded = true),
         style = l.pequeno.copy(fontWeight = FontWeight.Medium),
         softWrap = false,
     )
@@ -292,7 +307,7 @@ private fun RotuloHora(minuto: Int, modifier: Modifier) {
  * tiñe un poco más; las de hoy que ya pasaron se apagan.
  */
 @Composable
-private fun BloqueClase(horario: EstadoHorario, c: Colocada, lineas: List<String>, conAula: Boolean, colW: Dp, desde: Dp, hasta: Dp, provisional: Boolean) {
+private fun BloqueClase(horario: EstadoHorario, c: Colocada, lineas: List<String>, conAula: Boolean, riel: Dp, colW: Dp, desde: Dp, hasta: Dp, provisional: Boolean) {
     val l = letrasHorario()
     val s = c.sesion
     val enCurso = horario.enCurso(s)
@@ -303,7 +318,7 @@ private fun BloqueClase(horario: EstadoHorario, c: Colocada, lineas: List<String
         Modifier
             .offset {
                 IntOffset(
-                    (RIEL + colW * s.dia + HUECO_COLUMNA + METIDA * c.carril).roundToPx(),
+                    (riel + colW * s.dia + HUECO_COLUMNA + METIDA * c.carril).roundToPx(),
                     (desde + HUECO_V).roundToPx(),
                 )
             }

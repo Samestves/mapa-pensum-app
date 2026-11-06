@@ -75,6 +75,9 @@ private val ANCHO_NUCLEO = 60.dp
 val ALTO_BARRA = 58.dp
 private val FORMA = RoundedCornerShape(29.dp)
 private val ICONO = 22.dp
+/** Medidas del riel lateral: cuatro celdas de 44 dp y el núcleo de 52 dp, con holgura */
+internal val ANCHO_RIEL_NAVEGACION = 52.dp
+private val ALTO_RIEL = 240.dp
 /** El del riel lateral */
 private val ICONO_FINO = 19.dp
 /** El icono en reposo: en claro con más tinta, que sobre el cristal blanco el 40 % se lava */
@@ -103,7 +106,7 @@ fun BarraCarrera(
     /** El color de la carrera: el aro del avance lo toma (o el acento elegido); sin él, el verde de lo aprobado */
     color: Color? = null,
     modifier: Modifier = Modifier,
-    /** En horizontal la barra pasa a riel lateral: el disco del avance (52 dp) y, aparte, la columna de cuatro pestañas (52 x 208 dp) */
+    /** En horizontal la barra pasa a riel lateral: una columna de cristal (52 x 240 dp) con el avance en medio de las pestañas */
     vertical: Boolean = false,
 ) {
     val haptica = LocalHapticFeedback.current
@@ -112,7 +115,7 @@ fun BarraCarrera(
         haptica.performHapticFeedback(HapticFeedbackType.SegmentTick)
         alCambiar(v)
     }
-    // El cristal de una pieza: la barra entera en vertical, o cada una de las dos del riel
+    // El cristal de la pieza: la barra de abajo o el riel lateral
     fun cristalDe(forma: Shape, base: Modifier) = base
             .shadow(22.dp, forma, ambientColor = SOMBRA_FLOTANTE, spotColor = SOMBRA_FLOTANTE)
             .clip(forma)
@@ -135,23 +138,18 @@ fun BarraCarrera(
                 }
             }
     if (vertical) {
-        // Riel: el disco del avance aparte y, debajo, la columna de las cuatro pestañas
-        val forma = RoundedCornerShape(26.dp)
+        // Riel: una sola pieza de cristal con el avance en medio de las pestañas, como la barra de abajo
         val celda = DpSize(44.dp, 44.dp)
-        Column(modifier, horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Box(cristalDe(forma, Modifier.size(52.dp)), contentAlignment = Alignment.Center) {
-                Nucleo(progreso, color, DpSize(52.dp, 52.dp), alAvance)
-            }
-            Column(
-                cristalDe(forma, Modifier.size(52.dp, 208.dp)),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.SpaceEvenly,
-            ) {
-                Pestana(Phosphor.inicio, "Inicio", activa = false, tam = celda, lado = ICONO_FINO, alPulsar = alInicio)
-                Pestana(Vista.MAPA.icono, Vista.MAPA.etiqueta, vista == Vista.MAPA, celda, ICONO_FINO) { ir(Vista.MAPA) }
-                Pestana(Vista.LISTA.icono, Vista.LISTA.etiqueta, vista == Vista.LISTA, celda, ICONO_FINO) { ir(Vista.LISTA) }
-                Pestana(Vista.HORARIO.icono, Vista.HORARIO.etiqueta, vista == Vista.HORARIO, celda, ICONO_FINO) { ir(Vista.HORARIO) }
-            }
+        Column(
+            cristalDe(RoundedCornerShape(26.dp), modifier.size(ANCHO_RIEL_NAVEGACION, ALTO_RIEL)),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.SpaceEvenly,
+        ) {
+            Pestana(Phosphor.inicio, "Inicio", activa = false, tam = celda, lado = ICONO_FINO, alPulsar = alInicio)
+            Pestana(Vista.MAPA.icono, Vista.MAPA.etiqueta, vista == Vista.MAPA, celda, ICONO_FINO) { ir(Vista.MAPA) }
+            Nucleo(progreso, color, DpSize(ANCHO_RIEL_NAVEGACION, ANCHO_RIEL_NAVEGACION), alAvance)
+            Pestana(Vista.LISTA.icono, Vista.LISTA.etiqueta, vista == Vista.LISTA, celda, ICONO_FINO) { ir(Vista.LISTA) }
+            Pestana(Vista.HORARIO.icono, Vista.HORARIO.etiqueta, vista == Vista.HORARIO, celda, ICONO_FINO) { ir(Vista.HORARIO) }
         }
     } else {
         val celda = DpSize(ANCHO_PESTANA, 50.dp)

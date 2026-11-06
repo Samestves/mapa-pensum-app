@@ -3,9 +3,7 @@ package mpensum.bienvenida
 import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableFloatStateOf
@@ -142,9 +140,9 @@ private fun avanceDeDemostracion(pensum: Pensum): AvanceDemo {
 fun PasoAvance(alSeguir: () -> Unit) {
     val pensum = rememberPensum(CARRERA)
     val avance = remember(pensum) { pensum?.let(::avanceDeDemostracion) }
-    Column(Modifier.fillMaxSize()) {
+    PasoConEscena("Cuánto llevas,", "cuándo te gradúas.", "Continuar", alSeguir) { modifier ->
         Box(
-            Modifier.weight(1f).fillMaxWidth()
+            modifier
                 .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
                 .drawWithContent {
                     drawContent()
@@ -164,7 +162,6 @@ fun PasoAvance(alSeguir: () -> Unit) {
         ) {
             if (avance != null) Escena(avance)
         }
-        BloqueTexto("Cuánto llevas,", "cuándo te gradúas.", "Continuar", alSeguir)
     }
 }
 

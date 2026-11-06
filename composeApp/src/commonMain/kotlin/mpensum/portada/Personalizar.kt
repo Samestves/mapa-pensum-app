@@ -40,12 +40,14 @@ import androidx.compose.ui.semantics.selectableGroup
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import mpensum.carrera.versal
 import mpensum.componentes.CarruselTemas
 import mpensum.componentes.MiniTema
+import mpensum.componentes.esApaisado
 import mpensum.plataforma.Preferencias
 import mpensum.plataforma.animacionesQuitadas
 import mpensum.tema.Acento
@@ -86,45 +88,76 @@ internal fun MiniVistaTema(modifier: Modifier = Modifier) {
 
 @Composable
 internal fun Personalizar(colorCarrera: Color) {
+    if (esApaisado()) {
+        // Acostado la hoja es baja: lo que se ve (tema, acento, texto) a la izquierda y los interruptores a la derecha
+        Row(Modifier.padding(top = 4.dp, bottom = 24.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(Modifier.weight(1f)) {
+                BloqueTema(arriba = 8.dp)
+                BloqueAcento(colorCarrera)
+                BloqueTexto()
+            }
+            Column(Modifier.weight(1f)) {
+                BloqueMovimiento(arriba = 8.dp)
+            }
+        }
+    } else {
+        Column(Modifier.padding(top = 4.dp, bottom = 24.dp)) {
+            BloqueTema(arriba = 8.dp)
+            BloqueAcento(colorCarrera)
+            BloqueTexto()
+            BloqueMovimiento(arriba = 24.dp)
+        }
+    }
+}
+
+@Composable
+private fun BloqueTema(arriba: Dp) {
+    Etiqueta("TEMA", Modifier.padding(start = 24.dp, top = arriba, bottom = 10.dp))
+    CarruselTemas(relleno = PaddingValues(horizontal = 16.dp))
+}
+
+@Composable
+private fun BloqueAcento(colorCarrera: Color) {
     val acento by Preferencias.acento.collectAsState()
+    Row(Modifier.fillMaxWidth().padding(start = 24.dp, end = 24.dp, top = 24.dp, bottom = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+        BasicText("ACENTO", Modifier.weight(1f), style = versal(Paleta.tenue))
+        BasicText(acento?.nombre ?: "Tu carrera", style = TextStyle(fontFamily = inter(), fontSize = 13.sp, color = Paleta.suave))
+    }
+    Row(Modifier.fillMaxWidth().padding(horizontal = 20.dp).semantics { selectableGroup() }, horizontalArrangement = Arrangement.SpaceBetween) {
+        CirculoAcento(null, acento == null, colorCarrera)
+        Acento.entries.forEach { CirculoAcento(it, acento == it, colorCarrera) }
+    }
+}
+
+@Composable
+private fun BloqueTexto() {
     val grande by Preferencias.textoGrande.collectAsState()
+    Etiqueta("TEXTO", Modifier.padding(start = 24.dp, top = 24.dp, bottom = 10.dp))
+    SegmentadoTexto(grande, Modifier.padding(horizontal = 20.dp))
+}
+
+@Composable
+private fun BloqueMovimiento(arriba: Dp) {
     val luz by Preferencias.luzFondo.collectAsState()
     val reducir by Preferencias.reducirMovimiento.collectAsState()
     val codigos by Preferencias.codigos.collectAsState()
-    Column(Modifier.padding(top = 4.dp, bottom = 24.dp)) {
-        Etiqueta("TEMA", Modifier.padding(start = 24.dp, top = 8.dp, bottom = 10.dp))
-        CarruselTemas(relleno = PaddingValues(horizontal = 16.dp))
-
-        Row(Modifier.fillMaxWidth().padding(start = 24.dp, end = 24.dp, top = 24.dp, bottom = 6.dp), verticalAlignment = Alignment.CenterVertically) {
-            BasicText("ACENTO", Modifier.weight(1f), style = versal(Paleta.tenue))
-            BasicText(acento?.nombre ?: "Tu carrera", style = TextStyle(fontFamily = inter(), fontSize = 13.sp, color = Paleta.suave))
-        }
-        Row(Modifier.fillMaxWidth().padding(horizontal = 20.dp).semantics { selectableGroup() }, horizontalArrangement = Arrangement.SpaceBetween) {
-            CirculoAcento(null, acento == null, colorCarrera)
-            Acento.entries.forEach { CirculoAcento(it, acento == it, colorCarrera) }
-        }
-
-        Etiqueta("TEXTO", Modifier.padding(start = 24.dp, top = 24.dp, bottom = 10.dp))
-        SegmentadoTexto(grande, Modifier.padding(horizontal = 20.dp))
-
-        Etiqueta("MOVIMIENTO Y MAPA", Modifier.padding(start = 24.dp, top = 24.dp, bottom = 10.dp))
-        Column(
-            Modifier
-                .padding(horizontal = 20.dp)
-                .fillMaxWidth()
-                .drawBehind {
-                    val r = 16.dp.toPx()
-                    val g = Tema.grosorBorde.dp.toPx()
-                    drawRoundRect(Paleta.tinta.copy(alpha = 0.035f), cornerRadius = CornerRadius(r))
-                    drawRoundRect(Paleta.tinta.copy(alpha = 0.065f), Offset(g / 2, g / 2), Size(size.width - g, size.height - g), CornerRadius(r - g / 2), style = Stroke(g))
-                },
-        ) {
-            FilaInterruptor("Luz de fondo", "Una luz suave desde arriba en la portada", luz ?: (Tema.juego.aurora > 0f), Preferencias::guardarLuzFondo)
-            Divisor()
-            FilaInterruptor("Reducir movimiento", "Menos animación, más fluida", reducir ?: animacionesQuitadas(), Preferencias::guardarReducirMovimiento)
-            Divisor()
-            FilaInterruptor("Códigos en el mapa", "El código de cada materia", codigos, Preferencias::guardarCodigos)
-        }
+    Etiqueta("MOVIMIENTO Y MAPA", Modifier.padding(start = 24.dp, top = arriba, bottom = 10.dp))
+    Column(
+        Modifier
+            .padding(horizontal = 20.dp)
+            .fillMaxWidth()
+            .drawBehind {
+                val r = 16.dp.toPx()
+                val g = Tema.grosorBorde.dp.toPx()
+                drawRoundRect(Paleta.tinta.copy(alpha = 0.035f), cornerRadius = CornerRadius(r))
+                drawRoundRect(Paleta.tinta.copy(alpha = 0.065f), Offset(g / 2, g / 2), Size(size.width - g, size.height - g), CornerRadius(r - g / 2), style = Stroke(g))
+            },
+    ) {
+        FilaInterruptor("Luz de fondo", "Una luz suave desde arriba en la portada", luz ?: (Tema.juego.aurora > 0f), Preferencias::guardarLuzFondo)
+        Divisor()
+        FilaInterruptor("Reducir movimiento", "Menos animación, más fluida", reducir ?: animacionesQuitadas(), Preferencias::guardarReducirMovimiento)
+        Divisor()
+        FilaInterruptor("Códigos en el mapa", "El código de cada materia", codigos, Preferencias::guardarCodigos)
     }
 }
 

@@ -24,14 +24,17 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -72,6 +75,7 @@ import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import mpensum.componentes.CarruselTemas
 import mpensum.componentes.IconoTrazo
+import mpensum.componentes.esApaisado
 import mpensum.componentes.pulsable
 import mpensum.componentes.Lucide
 import mpensum.datos.Pensum
@@ -101,7 +105,14 @@ import kotlin.math.roundToInt
  * El detalle ("¿Cuándo me gradúo?", DetalleGraduacion.kt) vive dentro de la
  * misma hoja: entra deslizándose desde la derecha y el atrás del sistema
  * vuelve a la hoja. Toda la hoja habla Inter, con las cifras en Light.
+ *
+ * En un teléfono acostado la hoja se ensancha a dos columnas y llena el alto
+ * que hay: la hoja pone la tarjeta héroe a un lado y las filas al otro, y el
+ * detalle, el anillo a un lado y lo demás con su propio scroll al otro.
  */
+
+/** Lo más ancha que llega la hoja del progreso acostada, con sus dos columnas */
+private val ANCHO_APAISADO = 840.dp
 
 /** Los rótulos: mayúsculas semibold de 11 sp con 0,05 em de espaciado */
 @Composable
@@ -144,15 +155,19 @@ fun BoxScope.HojaAvance(abierta: Boolean, estado: EstadoCarrera, alCerrar: () ->
         if (abierta) apertura++
     }
     var detalle by remember(apertura) { mutableStateOf(false) }
+    val apaisado = esApaisado()
     val hoy = remember(apertura) { Periodo.actual() }
 
     HojaInferior(
         abierta = abierta,
         alCerrar = alCerrar,
+        ancho = if (apaisado) ANCHO_APAISADO else 560.dp,
+        desplazable = !apaisado,
         cabecera = {
+            val abajo = if (apaisado) 8.dp else 16.dp
             AnimatedContent(detalle, transitionSpec = { fadeIn(tween(220, 60)) togetherWith fadeOut(tween(120)) }, label = "cabecera") { d ->
-                if (d) CabeceraDetalle { detalle = false }
-                else Row(Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 4.dp, bottom = 16.dp), verticalAlignment = Alignment.Top) {
+                if (d) CabeceraDetalle(abajo) { detalle = false }
+                else Row(Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 4.dp, bottom = abajo), verticalAlignment = Alignment.Top) {
                     Column(Modifier.weight(1f)) {
                         BasicText("TU AVANCE", style = versal(Paleta.tenue))
                         BasicText(estado.pensum.nombre, Modifier.padding(top = 4.dp), style = estilo(24, Paleta.tinta, FontWeight.Light, 30))
@@ -172,6 +187,8 @@ fun BoxScope.HojaAvance(abierta: Boolean, estado: EstadoCarrera, alCerrar: () ->
                 ((slideInHorizontally(tween(340, easing = ENFATICA)) { it / entra } + fadeIn(tween(260))) togetherWith
                     (slideOutHorizontally(tween(340, easing = ENFATICA)) { it / sale } + fadeOut(tween(160)))).using(SizeTransform(clip = true) { _, _ -> snap() })
             },
+            // Acostada la hoja no desplaza: el contenido toma el alto que queda
+            modifier = if (apaisado) Modifier.weight(1f) else Modifier,
             contentAlignment = Alignment.TopStart,
             label = "detalle",
         ) { d ->
@@ -182,8 +199,8 @@ fun BoxScope.HojaAvance(abierta: Boolean, estado: EstadoCarrera, alCerrar: () ->
 }
 
 @Composable
-private fun CabeceraDetalle(alVolver: () -> Unit) {
-    Box(Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 4.dp, bottom = 16.dp), contentAlignment = Alignment.Center) {
+private fun CabeceraDetalle(abajo: Dp, alVolver: () -> Unit) {
+    Box(Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 4.dp, bottom = abajo), contentAlignment = Alignment.Center) {
         Box(
             Modifier.align(Alignment.CenterStart).size(40.dp).clip(RoundedCornerShape(20.dp)).background(Paleta.tinta.copy(alpha = 0.08f)).clickable(role = Role.Button, onClick = alVolver)
                 .semantics { contentDescription = "Volver" },
@@ -198,21 +215,33 @@ private fun CabeceraDetalle(alVolver: () -> Unit) {
 @Composable
 private fun ContenidoHoja(estado: EstadoCarrera, hoy: Periodo, abrirDetalle: () -> Unit) {
     val g = estado.graduacion
-    Column(Modifier.padding(start = 20.dp, end = 20.dp, top = 4.dp, bottom = 24.dp)) {
-        TarjetaHeroe(estado, hoy, abrirDetalle)
+    val cuotas = remember(estado.marcas) { avanceDeGrupos(estado.pensum.grupos, estado.marcas).values.filter { it.meta != null } }
+    // Las filas de la hoja, iguales de pie o acostada; solo cambian los huecos que las separan
+    val filas: @Composable (Dp, Dp, Dp) -> Unit = { huecoProximo, huecoElectivas, huecoTema ->
         if (g.plan.isNotEmpty()) {
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(huecoProximo))
             FilaProximo(g.plan[0].size, hoy.mas(1), abrirDetalle)
         }
-        val cuotas = remember(estado.marcas) { avanceDeGrupos(estado.pensum.grupos, estado.marcas).values.filter { it.meta != null } }
         if (cuotas.isNotEmpty()) {
-            Spacer(Modifier.height(32.dp))
+            Spacer(Modifier.height(huecoElectivas))
             Electivas(cuotas)
         }
-        Spacer(Modifier.height(24.dp))
+        Spacer(Modifier.height(huecoTema))
         FilaTema()
         Spacer(Modifier.height(12.dp))
         BotonReinicio(estado)
+    }
+    if (esApaisado()) {
+        // Tarjeta héroe a un lado, filas al otro, con un solo scroll para las dos
+        Row(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(start = 20.dp, end = 20.dp, top = 4.dp, bottom = 20.dp), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            Box(Modifier.weight(1f)) { TarjetaHeroe(estado, hoy, abrirDetalle) }
+            Column(Modifier.weight(1f)) { filas(0.dp, 20.dp, 20.dp) }
+        }
+    } else {
+        Column(Modifier.padding(start = 20.dp, end = 20.dp, top = 4.dp, bottom = 24.dp)) {
+            TarjetaHeroe(estado, hoy, abrirDetalle)
+            filas(12.dp, 32.dp, 24.dp)
+        }
     }
 }
 
