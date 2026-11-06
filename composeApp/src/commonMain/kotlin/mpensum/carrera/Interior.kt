@@ -77,9 +77,6 @@ private val RESERVA_RIEL = SEPARA_RIEL + ANCHO_RIEL_NAVEGACION + 18.dp
 /** El velo tras el riel: los cables se funden hacia el borde en vez de cortarse contra el cristal */
 private val ANCHO_VELO = 150.dp
 
-/** En horizontal, el ancho de la lista junto a la ficha lateral */
-private val ANCHO_LISTA_LATERAL = 376.dp
-
 /**
  * Dentro de una carrera, como el teléfono de la web: nada arriba, la vista a
  * pantalla completa y, abajo, la barra de cristal con inicio, las tres vistas
@@ -153,6 +150,7 @@ fun Interior(carrera: Carrera, alVolver: () -> Unit) {
         val inicio = if (horizontal) izquierda + RESERVA_RIEL else 0.dp
         val tapa = if (horizontal) abajo + Espacio.m else tapaBarra
         val enLista = horizontal && vista == Vista.LISTA
+        val reparto = if (enLista) repartoLista(maxWidth, inicio, derecha, arriba) else null
         CapaVista(
             vista = vista,
             estado = estado,
@@ -164,7 +162,7 @@ fun Interior(carrera: Carrera, alVolver: () -> Unit) {
             izquierda = izquierda,
             inicio = inicio,
             tapa = tapa,
-            enLista = enLista,
+            reparto = reparto,
             seleccionado = seleccionado,
             hojaAbierta = casillaAbierta != null || avanceAbierto,
             alSeleccionar = { seleccionado = it },
@@ -176,7 +174,7 @@ fun Interior(carrera: Carrera, alVolver: () -> Unit) {
                 codigo = seleccionado.takeIf { vista != Vista.HORARIO },
                 estado = estado,
                 reservaAbajo = if (horizontal) abajo + Espacio.m else abajo + SOBRE_EL_BORDE + ALTO_BARRA + 10.dp,
-                lateral = if (enLista) PanelLateral(inicio + ANCHO_LISTA_LATERAL + Espacio.xs, derecha + Espacio.m, arriba + Espacio.m) else null,
+                lateral = reparto?.panel,
                 horizontal = horizontal,
                 alCerrar = { seleccionado = null },
                 alMarcar = { codigo, marca ->
@@ -258,7 +256,8 @@ private fun CapaVista(
     izquierda: Dp,
     inicio: Dp,
     tapa: Dp,
-    enLista: Boolean,
+    /** Acostada y en la lista: cómo se reparte el ancho entre la lista y su panel */
+    reparto: RepartoLista?,
     seleccionado: String?,
     /** Si hay una hoja abierta encima: el mapa se congela y la lista se da por tapada */
     hojaAbierta: Boolean,
@@ -300,14 +299,29 @@ AnimatedContent(
             },
         )
         // El Box suelta el mínimo que fija AnimatedContent: sin él el ancho de la lista se ignora
-        Vista.LISTA -> Box(Modifier.fillMaxSize().padding(start = inicio)) { VistaLista(
-            estado = estado,
-            abajo = tapa,
-            modifier = if (enLista) Modifier.width(ANCHO_LISTA_LATERAL) else Modifier,
-            tapada = seleccionado != null || hojaAbierta,
-            alAbrirFicha = alSeleccionar,
-            alElegirElectiva = alAbrirCasilla,
-        ) }
+        Vista.LISTA -> {
+            var semestre by remember { mutableStateOf<Int?>(null) }
+            Box(Modifier.fillMaxSize().padding(start = inicio)) {
+                VistaLista(
+                    estado = estado,
+                    abajo = tapa,
+                    modifier = if (reparto != null) Modifier.width(reparto.anchoLista) else Modifier,
+                    tapada = seleccionado != null || hojaAbierta,
+                    alAbrirFicha = alSeleccionar,
+                    alElegirElectiva = alAbrirCasilla,
+                    alCambiarSemestre = { semestre = it },
+                )
+            }
+            // Acostada, la mitad derecha nunca queda vacía: sin ficha, el resumen del semestre
+            if (reparto != null) PanelResumenLista(
+                estado = estado,
+                semestre = semestre,
+                visible = seleccionado == null,
+                panel = reparto.panel,
+                abajo = tapa,
+                alElegir = alSeleccionar,
+            )
+        }
         Vista.HORARIO -> if (horario != null) VistaHorario(horario, abajo = tapa, modifier = Modifier.padding(start = inicio), horizontal = horizontal)
     }
 }

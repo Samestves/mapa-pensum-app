@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
@@ -73,7 +72,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import mpensum.componentes.esApaisado
 import mpensum.componentes.iconoEstado
 import mpensum.componentes.pulsable
 import mpensum.logica.AccionSemestre
@@ -105,8 +103,40 @@ import mpensum.tema.porTema
 /** Lo que mide la franja de las pastillas debajo de la barra de estado: 12 + 44 + 12 */
 private val ALTO_FILTROS = Espacio.s + Alto.toque + Espacio.s
 
-/** En horizontal la lista es una columna de lectura, pegada al riel; el resto del ancho es de la ficha */
-private val ANCHO_LISTA_APAISADA = 440.dp
+/** Separación entre la lista y el panel de su derecha, acostado */
+private val SEPARA_COLUMNAS = Espacio.xs
+
+/** La lista toma esta parte del ancho que queda tras el riel, entre un mínimo y un máximo de lectura */
+private const val PARTE_LISTA = 0.44f
+private val MIN_LISTA = 340.dp
+private val MAX_LISTA = 460.dp
+/** Lo menos que se deja al panel (resumen o ficha) cuando la ventana es estrecha */
+private val MIN_PANEL = 260.dp
+private val MIN_LISTA_ESTRECHA = 300.dp
+
+/**
+ * El reparto de la lista acostada: la columna de la lista y, a su derecha, el
+ * panel que muestra el resumen del semestre o la ficha. Una sola fuente de
+ * verdad para `Lista` e `Interior`. `panel` está medido desde el borde de la
+ * pantalla, igual que la ficha lateral.
+ */
+internal class RepartoLista(val anchoLista: Dp, val panel: PanelLateral)
+
+/**
+ * `ancho` es el de la pantalla; `inicio`, lo que ocupa el riel por la
+ * izquierda; `derecha`, el recorte seguro de ese lado. Con 640 dp la lista se
+ * queda en 300 dp para no ahogar al panel; de 700 dp en adelante rige la
+ * proporción.
+ */
+internal fun repartoLista(ancho: Dp, inicio: Dp, derecha: Dp, arriba: Dp): RepartoLista {
+    val fin = derecha + Espacio.m
+    val disponible = ancho - inicio - fin
+    var lista = (disponible * PARTE_LISTA).coerceIn(MIN_LISTA, MAX_LISTA)
+    if (disponible - lista - SEPARA_COLUMNAS < MIN_PANEL) {
+        lista = (disponible - SEPARA_COLUMNAS - MIN_PANEL).coerceAtLeast(MIN_LISTA_ESTRECHA)
+    }
+    return RepartoLista(lista, PanelLateral(inicio + lista + SEPARA_COLUMNAS, fin, arriba + Espacio.m))
+}
 
 private val ESTILO_VELO get() = HazeStyle(
     backgroundColor = Paleta.lienzo,
@@ -153,6 +183,8 @@ fun VistaLista(
     tapada: Boolean = false,
     alAbrirFicha: (String) -> Unit,
     alElegirElectiva: (casilla: String, aprobar: Boolean) -> Unit,
+    /** Acostada, el panel de al lado resume el semestre que miras: aquí se avisa de cuál es (el primero abierto) */
+    alCambiarSemestre: (Int?) -> Unit = {},
 ) {
     val control = remember(estado) { EstadoVistaLista() }
     val haptica = LocalHapticFeedback.current
@@ -165,16 +197,7 @@ fun VistaLista(
     // Todo lo que se pinta sale de aquí: se recalcula una vez por marca, no por fila
     val modelo by remember(estado) {
         derivedStateOf {
-            modeloLista(
-                nodos = estado.nodos.map { it.asignatura },
-                grupos = estado.pensum.grupos,
-                enCasilla = estado::enCasilla,
-                estados = estado.estados,
-                situaciones = estado.situaciones,
-                nombreDe = { estado.layout.porCodigo[it]?.asignatura?.nombre },
-                filtro = control.filtro,
-                fijadas = control.fijadas,
-            )
+            estado.modeloDeLista(control.filtro, control.fijadas)
         }
     }
     // El semestre que se abre solo es el de cuando entraste: aprobar uno no debe plegarlo bajo el dedo
@@ -183,6 +206,12 @@ fun VistaLista(
     val lista = rememberLazyListState(
         initialFirstVisibleItemIndex = (modelo.secciones.indexOfFirst { it.semestre == actual } - 1).coerceAtLeast(0),
     )
+
+    fun estaAbierta(s: SeccionLista) = if (control.filtro != null) control.abiertosFiltro[s.clave] ?: true
+    else control.abiertos[s.clave] ?: (s.semestre != null && s.semestre == actual)
+    val semestreVisto by remember { derivedStateOf { modelo.secciones.firstOrNull { it.semestre != null && estaAbierta(it) }?.semestre } }
+    val avisarSemestre by rememberUpdatedState(alCambiarSemestre)
+    LaunchedEffect(semestreVisto) { avisarSemestre(semestreVisto) }
 
     // "Deshacer" dura unos segundos; al irse, las filas retenidas por el filtro van a su sitio
     LaunchedEffect(control.deshacer) {
@@ -213,8 +242,8 @@ fun VistaLista(
         if (primera[0]) primera[0] = false else lista.scrollToItem(0)
     }
 
-    // Filtros, cabecera y filas comparten la misma columna: nada se estira a 900 dp
-    val columna = if (esApaisado()) Modifier.widthIn(max = ANCHO_LISTA_APAISADA) else Modifier
+    // Acostada, quien llama fija el ancho de la columna (`repartoLista`); filtros, cabecera y filas la comparten
+    val columna = Modifier
 
     Box(modifier.fillMaxSize()) {
         LazyColumn(
@@ -225,8 +254,7 @@ fun VistaLista(
         ) {
             val m = modelo
             items(m.secciones, key = { it.clave }, contentType = { "seccion" }) { s ->
-                val abierto = if (control.filtro != null) control.abiertosFiltro[s.clave] ?: true
-                else control.abiertos[s.clave] ?: (s.semestre != null && s.semestre == actual)
+                val abierto = estaAbierta(s)
                 val d = control.deshacer
                 SeccionDeLista(
                     seccion = s,
@@ -255,6 +283,18 @@ fun VistaLista(
         )
     }
 }
+
+/** El modelo de la lista de esta carrera; el panel de resumen lo pide sin filtro */
+internal fun EstadoCarrera.modeloDeLista(filtro: FiltroLista? = null, fijadas: Map<String, FiltroLista> = emptyMap()) = modeloLista(
+    nodos = nodos.map { it.asignatura },
+    grupos = pensum.grupos,
+    enCasilla = ::enCasilla,
+    estados = estados,
+    situaciones = situaciones,
+    nombreDe = { layout.porCodigo[it]?.asignatura?.nombre },
+    filtro = filtro,
+    fijadas = fijadas,
+)
 
 /** El nombre de cada estado y su color, el mismo de los iconos */
 private fun nombreFiltro(f: FiltroLista) = when (f) {

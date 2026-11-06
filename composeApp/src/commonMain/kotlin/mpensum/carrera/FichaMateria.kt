@@ -124,7 +124,6 @@ private fun nombreArea(area: String?) = when (area) {
     else -> null
 }
 
-private val ANCHO_PANEL_LATERAL = 360.dp
 /** El texto de los avisos y notas de la ficha (12,5 sp, entre Tipo.xs y Tipo.s) */
 private val TEXTO_AVISO = 12.5.sp
 /** Por debajo de este ancho por marca, el selector pone el icono sobre la etiqueta */
@@ -182,8 +181,8 @@ fun FichaMateria(
         Box(caja, contentAlignment = if (horizontal) Alignment.BottomEnd else Alignment.BottomCenter) {
             Column(
                 Modifier
-                    // Al lado de la lista es una columna fija a la derecha: no se come a la lista ni sus filtros
-                    .then(if (horizontal) Modifier.widthIn(max = if (lateral != null) ANCHO_PANEL_LATERAL else 480.dp) else Modifier)
+                    // Al lado de la lista llena su panel (el reparto lo fija `repartoLista`): ni se come a la lista ni sus filtros
+                    .then(if (horizontal && lateral == null) Modifier.widthIn(max = 480.dp) else Modifier)
                     .fillMaxWidth()
                     .then(if (lateral != null) Modifier.fillMaxHeight() else Modifier.heightIn(max = tope))
                     // Cuánto tapa del mapa: el mapa se corre para que la materia quede a la vista encima
