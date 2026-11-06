@@ -329,10 +329,7 @@ private fun CabeceraDias(horario: EstadoHorario, riel: Dp, diaHoy: Int, provisio
             val hoy = d == diaHoy && !provisional
             Column(
                 Modifier.weight(1f).fillMaxHeight().then(
-                    if (provisional) Modifier else Modifier.pulsable({
-                        horario.dia = d
-                        horario.modo = ModoHorario.DIA
-                    }, escala = 0.94f),
+                    if (provisional) Modifier else Modifier.pulsable({ horario.dia = d }, escala = 0.94f),
                 ),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,

@@ -152,17 +152,12 @@ class CapturaHorarioTest {
     @Test
     fun diaAcabado() = capturar("horario-dia-hoy", horario(minuto = h(13)))
 
+    /** Dos clases que se pisan el miércoles, vistas en el día */
     @Test
-    fun semana() = capturar("horario-semana", horario().apply { modo = ModoHorario.SEMANA })
-
-    /** Dos clases que se pisan el miércoles: se reparten la columna sin tocarse */
-    @Test
-    fun semanaConChoque() = capturar(
-        "horario-semana-choque",
+    fun diaConChoque() = capturar(
+        "horario-dia-choque",
         horario().apply {
             guardar(Borrador(null, "0713463", 2, h(11), h(13), aula = "Aula 8"))
-            dia = 0
-            modo = ModoHorario.SEMANA
         },
     )
 

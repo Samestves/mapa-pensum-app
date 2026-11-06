@@ -31,8 +31,6 @@ import mpensum.plataforma.horaLocal
 import mpensum.plataforma.rememberLectorCaptura
 import mpensum.tema.Paleta
 
-enum class ModoHorario { DIA, SEMANA }
-
 /** La clase que se está creando o editando; sin `codigo` no se puede guardar */
 @Immutable
 data class Borrador(
@@ -77,7 +75,7 @@ class Lectura {
 
 /**
  * El horario de una carrera abierta: sus clases (guardadas por carrera), la
- * hora de ahora y lo que se mira (Día o Semana, qué día, qué hoja). Lo
+ * hora de ahora y lo que se mira (qué día, qué hoja). Lo
  * comparten la vista y sus hojas, que se montan en sitios distintos del
  * interior. `reloj` es el del teléfono; las pruebas inyectan uno fijo.
  */
@@ -93,7 +91,6 @@ class EstadoHorario(val carrera: EstadoCarrera, private val reloj: () -> HoraLoc
     var ahora by mutableStateOf(reloj().let { Ahora(it.dia, it.minuto) })
         private set
 
-    var modo by mutableStateOf(ModoHorario.DIA)
     var dia by mutableStateOf(if (ahora.dia < 5) ahora.dia else 0)
     var hoja by mutableStateOf<HojaHorario?>(null)
 
@@ -141,7 +138,7 @@ class EstadoHorario(val carrera: EstadoCarrera, private val reloj: () -> HoraLoc
         hoja = null
     }
 
-    /** Confirma la lectura: las clases leídas se suman a las que hubiera, con ids propios, y se mira la semana */
+    /** Confirma la lectura: las clases leídas se suman a las que hubiera, con ids propios, y se mira hoy (o el lunes en fin de semana) */
     fun guardarLectura() {
         val l = lectura ?: return
         val usados = sesiones.map { it.id }.toMutableSet()
@@ -149,7 +146,7 @@ class EstadoHorario(val carrera: EstadoCarrera, private val reloj: () -> HoraLoc
         cambiar(sesiones + nuevas)
         lectura = null
         hoja = null
-        modo = ModoHorario.SEMANA
+        dia = if (ahora.dia < 5) ahora.dia else 0
     }
 
     fun abrirNueva(dia: Int, inicio: Int) {
@@ -178,7 +175,6 @@ class EstadoHorario(val carrera: EstadoCarrera, private val reloj: () -> HoraLoc
 
     fun vaciar() {
         cambiar(emptyList())
-        modo = ModoHorario.DIA
         hoja = null
     }
 

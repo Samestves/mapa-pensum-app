@@ -86,8 +86,8 @@ class QaHorarioTest {
         // Sábado de noche, domingo de madrugada, lunes antes de la primera clase, a la hora justa de empezar, de acabar y viernes tras la última
         val momentos = listOf(5 to h(22), 6 to h(3), 0 to h(5) + 59, 0 to h(6), 0 to h(8), 4 to h(19), 4 to h(19) + 1, 4 to h(23) + 59, 2 to h(11) + 30, 6 to 0)
         for ((dia, minuto) in momentos) {
-            for (modo in ModoHorario.entries) {
-                val e = horario(dia, minuto).apply { this.modo = modo }
+            run {
+                val e = horario(dia, minuto)
                 montar(e)
                 // Y un día cualquiera elegido, con la hoja de nueva clase en un hueco
                 e.abrirNueva(e.dia, h(8))

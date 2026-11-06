@@ -24,7 +24,6 @@ import mpensum.carrera.EstadoHorario
 import mpensum.carrera.FaseLectura
 import mpensum.carrera.HojasHorario
 import mpensum.carrera.Lectura
-import mpensum.carrera.ModoHorario
 import mpensum.carrera.VistaHorario
 import mpensum.datos.HorarioGuardado
 import mpensum.datos.leerPensum
@@ -146,8 +145,9 @@ class CapturaHorizontalHorarioTest {
     @Test
     fun inicio() = capturar("inicio", horario(vacio = true), ms = 3800, tambien = mapOf(700L to "leyendo", 1900L to "vuelo"))
 
+    /** La vista Día acostada: lo de ahora y la semanita a la izquierda, el día a la derecha */
     @Test
-    fun semana() = capturar("semana", horario().apply { modo = ModoHorario.SEMANA })
+    fun dia() = capturar("dia", horario())
 
     /** Leer 1: «¿Es esta?» con la foto a la izquierda */
     @Test

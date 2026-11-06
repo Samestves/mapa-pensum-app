@@ -1,6 +1,13 @@
 package mpensum.carrera
 
-import androidx.compose.animation.Crossfade
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.animation.togetherWith
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.LinearEasing
@@ -97,8 +104,9 @@ import mpensum.tema.jost
 import kotlin.math.min
 
 /*
- * El horario de la carrera, en dos formas: Día (qué toca, la semana en
- * miniatura y el día elegido como línea de tiempo) y Semana (la rejilla).
+ * El horario de la carrera, en una sola forma: qué toca, la semana en
+ * miniatura y el día elegido como línea de tiempo. La rejilla de la semana
+ * (HorarioSemana.kt) solo se usa para revisar lo leído de una captura.
  * Las hojas (detalle, nueva clase, más) viven en HojasHorario.kt y se montan
  * fuera de la vista, encima de la barra, como las demás hojas del interior.
  */
@@ -106,7 +114,6 @@ import kotlin.math.min
 /* ---- Medidas y letras ------------------------------------------------------ */
 
 internal val CURVA_HORARIO = CubicBezierEasing(0.32f, 0.72f, 0f, 1f)
-private val CURVA_SEGMENTO = CubicBezierEasing(0.2f, 0f, 0f, 1f)
 private val CURVA_LATIDO = CubicBezierEasing(0.22f, 0.61f, 0.36f, 1f)
 /** El margen de la vista: el px-5 de la web en el teléfono */
 internal val MARGEN_HORARIO = Espacio.l
@@ -114,9 +121,6 @@ internal val MARGEN_HORARIO = Espacio.l
 private val ANCHO_HORA = 72.dp
 /** En pantallas compactas (< 360 dp) el carril de horas cede 8 dp al nombre */
 private val ANCHO_HORA_ESTRECHO = 64.dp
-/** El selector Día | Semana: cada opción mide 66 dp, y 58 en compactas para que quepa junto al rótulo */
-private val ANCHO_OPCION = 66.dp
-private val ANCHO_OPCION_ESTRECHA = 58.dp
 /** El riel y su aire a cada lado: la hora, el riel y el texto comparten estas tres columnas en todos los renglones */
 private val ANCHO_RIEL = 9.dp
 private val AIRE_RIEL = 12.dp
@@ -200,91 +204,63 @@ fun VistaHorario(horario: EstadoHorario, abajo: Dp, modifier: Modifier = Modifie
         HorarioVacio(horario, arriba, abajo, modifier, horizontal)
         return
     }
+    val margen = margenPantalla()
+    if (horizontal) {
+        // Acostado, dos columnas que se desplazan cada una por su lado: lo de
+        // ahora y la semanita a la izquierda, el día elegido a la derecha
+        Row(modifier.fillMaxSize().padding(start = margen, end = margen), horizontalArrangement = Arrangement.spacedBy(Espacio.xxl)) {
+            Column(
+                Modifier.weight(0.42f).fillMaxHeight().verticalScroll(rememberScrollState())
+                    .padding(top = arriba + Espacio.xs, bottom = abajo + Espacio.l),
+            ) {
+                Cabecera(horario)
+                AhoraYDespues(horario)
+                Semanita(horario)
+            }
+            Column(
+                Modifier.weight(0.58f).fillMaxHeight().verticalScroll(rememberScrollState())
+                    .padding(top = arriba + Espacio.xs, bottom = abajo + Espacio.l),
+            ) {
+                DiaElegido(horario, arriba = 0.dp)
+            }
+        }
+        return
+    }
     Column(
         modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(start = margenPantalla(), end = margenPantalla(), top = arriba + Espacio.xs, bottom = abajo + Espacio.xl + Espacio.xxs),
+            .padding(start = margen, end = margen, top = arriba + Espacio.xs, bottom = abajo + Espacio.xl + Espacio.xxs),
     ) {
-        Cabecera(horario, horizontal)
-        Crossfade(horario.modo, animationSpec = tween(220), label = "modo") { modo ->
-            if (modo == ModoHorario.DIA) {
-                Column {
-                    AhoraYDespues(horario)
-                    Semanita(horario)
-                    DiaElegido(horario)
-                }
-            } else {
-                SemanaRejilla(horario, compacto = horizontal)
-            }
-        }
+        Cabecera(horario)
+        AhoraYDespues(horario)
+        Semanita(horario)
+        DiaElegido(horario, arriba = Espacio.xl + Espacio.xxs)
     }
 }
 
 /**
- * El renglón de arriba, como el de la web: el rótulo del momento a la
- * izquierda y, a la derecha y callados, Día · Semana y el «⋯». Sin pastilla
- * de fondo para el selector: solo la opción elegida lleva un velo.
+ * El renglón de arriba: el rótulo del momento a la izquierda y el «⋯» a la
+ * derecha. Debajo, callado, lo que suma la semana.
  */
 @Composable
-private fun Cabecera(horario: EstadoHorario, compacta: Boolean = false) {
+private fun Cabecera(horario: EstadoHorario) {
     val l = letrasHorario()
     Row(Modifier.fillMaxWidth().height(TOQUE), verticalAlignment = Alignment.CenterVertically) {
         Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Espacio.xs)) {
             val momento = horario.momento
-            if (horario.modo == ModoHorario.SEMANA) {
-                BasicText("TU SEMANA", style = l.etiqueta)
-                // En horizontal sobra ancho: el resumen de la semana va en la misma línea
-                if (compacta) BasicText(resumenSemana(horario.sesiones), style = l.texto, maxLines = 1)
-            } else {
-                val enCurso = momento is Momento.EnCurso
-                if (momento is Momento.EnCurso && !Tema.sinBucles) PuntoQueLate(horario.color(momento.clase.codigo))
-                BasicText(
-                    when (momento) {
-                        is Momento.EnCurso -> "EN CURSO"
-                        is Momento.Luego -> "PRÓXIMA CLASE"
-                        else -> "HOY"
-                    },
-                    style = l.etiqueta.copy(color = if (enCurso) Paleta.tinta else Paleta.tenue),
-                )
-            }
+            val enCurso = momento is Momento.EnCurso
+            if (momento is Momento.EnCurso && !Tema.sinBucles) PuntoQueLate(horario.color(momento.clase.codigo))
+            BasicText(
+                when (momento) {
+                    is Momento.EnCurso -> "EN CURSO"
+                    is Momento.Luego -> "PRÓXIMA CLASE"
+                    else -> "HOY"
+                },
+                style = l.etiqueta.copy(color = if (enCurso) Paleta.tinta else Paleta.tenue),
+            )
         }
-        SelectorModo(horario)
         IconoDerecho(18.dp, { horario.hoja = HojaHorario.Menu }) { trazarPuntos(Paleta.suave) }
-    }
-}
-
-@Composable
-private fun SelectorModo(horario: EstadoHorario) {
-    val l = letrasHorario()
-    val posicion = remember { Animatable(horario.modo.ordinal.toFloat()) }
-    LaunchedEffect(horario.modo) { posicion.animateTo(horario.modo.ordinal.toFloat(), tween(320, easing = CURVA_SEGMENTO)) }
-    Row(
-        Modifier
-            .fillMaxHeight()
-            .drawBehind {
-                // El velo de la opción elegida corre por debajo del texto, en el dibujo y no en el layout
-                val alto = 30.dp.toPx()
-                val ancho = size.width / 2
-                drawRoundRect(
-                    Paleta.tinta.copy(alpha = 0.09f),
-                    Offset(posicion.value * ancho, (size.height - alto) / 2),
-                    Size(ancho, alto),
-                    CornerRadius(alto / 2),
-                )
-            },
-    ) {
-        ModoHorario.entries.forEach { modo ->
-            Box(
-                Modifier.width(if (ventana().compacta) ANCHO_OPCION_ESTRECHA else ANCHO_OPCION).fillMaxHeight().pulsable({ horario.modo = modo }, escala = 0.96f),
-                contentAlignment = Alignment.Center,
-            ) {
-                BasicText(
-                    if (modo == ModoHorario.DIA) "Día" else "Semana",
-                    style = l.accion.copy(color = if (horario.modo == modo) Paleta.tinta else Paleta.tenue),
-                )
-            }
-        }
     }
 }
 
@@ -451,7 +427,7 @@ private fun Semanita(horario: EstadoHorario) {
     val (abre, cierra) = horario.rango
     Row(Modifier.padding(top = Espacio.xxl).fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         BasicText("SEMANA", Modifier.weight(1f), style = l.etiqueta)
-        BasicText(tramoCorto(abre, cierra), style = l.dato)
+        BasicText("${clases(horario.sesiones.size)} · ${duracion(horario.sesiones.sumOf { it.duracion })} · ${tramoCorto(abre, cierra)}", style = l.dato, maxLines = 1)
     }
     val lente = remember { Animatable(horario.dia.toFloat()) }
     LaunchedEffect(horario.dia) { lente.animateTo(horario.dia.toFloat(), tween(380, easing = CURVA_HORARIO)) }
@@ -533,12 +509,47 @@ private fun MiniDia(horario: EstadoHorario, d: Int, abre: Int, cierra: Int, modi
  * hora, el riel y lo que es) hacen que el día se lea como una sola línea.
  */
 @Composable
-private fun DiaElegido(horario: EstadoHorario) {
+private fun DiaElegido(horario: EstadoHorario, arriba: Dp) {
+    val umbral = with(LocalDensity.current) { 56.dp.toPx() }
+    // Deslizar a los lados cambia de día: el gesto se suma y se decide al soltar
+    val arrastre = remember { floatArrayOf(0f) }
+    Column(
+        Modifier
+            .padding(top = arriba)
+            .fillMaxWidth()
+            .pointerInput(horario) {
+                detectHorizontalDragGestures(
+                    onDragStart = { arrastre[0] = 0f },
+                    onHorizontalDrag = { _, dx -> arrastre[0] += dx },
+                    onDragEnd = {
+                        val dx = arrastre[0]
+                        if (dx < -umbral && horario.dia < 4) horario.dia++
+                        else if (dx > umbral && horario.dia > 0) horario.dia--
+                    },
+                )
+            },
+    ) {
+        AnimatedContent(
+            targetState = horario.dia,
+            transitionSpec = {
+                val haciaDelante = targetState > initialState
+                val sentido = if (haciaDelante) 1 else -1
+                if (Tema.sinBucles) fadeIn(tween(160)) togetherWith fadeOut(tween(100))
+                else (slideInHorizontally(tween(320, easing = CURVA_HORARIO)) { sentido * it / 5 } + fadeIn(tween(220, 60))) togetherWith
+                    (slideOutHorizontally(tween(260, easing = CURVA_HORARIO)) { -sentido * it / 5 } + fadeOut(tween(140)))
+            },
+            label = "dia",
+        ) { d -> ContenidoDia(horario, d) }
+    }
+}
+
+@Composable
+private fun ContenidoDia(horario: EstadoHorario, d: Int) {
     val l = letrasHorario()
-    val d = horario.dia
     val delDia = horario.dias[d]
     val esHoy = d == horario.ahora.dia
-    Row(Modifier.padding(top = Espacio.xl + Espacio.xxs).fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+    Column(Modifier.fillMaxWidth()) {
+    Row(Modifier.fillMaxWidth().height(TOQUE), verticalAlignment = Alignment.CenterVertically) {
         BasicText(
             buildAnnotatedString {
                 withStyle(SpanStyle(color = Paleta.tinta)) { append(DIAS[d].uppercase()) }
@@ -552,7 +563,7 @@ private fun DiaElegido(horario: EstadoHorario) {
             style = l.dato,
         )
     }
-    Column(Modifier.padding(top = Espacio.l).fillMaxWidth()) {
+    Column(Modifier.padding(top = Espacio.s).fillMaxWidth()) {
         var anterior: Renglon? = null
         for (r in agendaDe(delDia)) {
             when (r) {
@@ -582,6 +593,7 @@ private fun DiaElegido(horario: EstadoHorario) {
             }
             BasicText("Añadir clase", style = l.accion.copy(fontSize = 14.sp, color = Paleta.suave))
         }
+    }
     }
 }
 

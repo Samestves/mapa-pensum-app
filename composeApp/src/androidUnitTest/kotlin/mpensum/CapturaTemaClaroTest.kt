@@ -35,7 +35,6 @@ import mpensum.carrera.FichaMateria
 import mpensum.carrera.HojaAvance
 import mpensum.carrera.HojasHorario
 import mpensum.carrera.LocalFondoHoja
-import mpensum.carrera.ModoHorario
 import mpensum.carrera.Vista
 import mpensum.carrera.VistaHorario
 import mpensum.carrera.VistaLista
@@ -275,9 +274,6 @@ class CapturaTemaClaroTest {
 
     @Test
     fun horarioDia() = capturarHorario("horario-dia", horario())
-
-    @Test
-    fun horarioSemana() = capturarHorario("horario-semana", horario().apply { modo = ModoHorario.SEMANA })
 
     /** La hoja de avance abierta sobre el mapa */
     @Test
