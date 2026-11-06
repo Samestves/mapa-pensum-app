@@ -72,7 +72,7 @@ class QaHorarioTest {
                 val estado = actual
                 if (estado != null) key(estado) {
                     Box(Modifier.fillMaxSize()) {
-                        VistaHorario(estado, abajo = 80.dp)
+                        VistaHorario(estado, abajo = 80.dp, horizontal = false)
                         HojasHorario(estado, HazeState())
                     }
                 }

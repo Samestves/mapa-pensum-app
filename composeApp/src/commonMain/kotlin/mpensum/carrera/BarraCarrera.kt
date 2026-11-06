@@ -114,7 +114,7 @@ fun BarraCarrera(
     color: Color? = null,
     modifier: Modifier = Modifier,
     /** En horizontal la barra pasa a riel lateral: una columna de cristal (52 x 240 dp) con el avance en medio de las pestañas */
-    vertical: Boolean = false,
+    vertical: Boolean,
 ) {
     val haptica = LocalHapticFeedback.current
     fun ir(v: Vista) {

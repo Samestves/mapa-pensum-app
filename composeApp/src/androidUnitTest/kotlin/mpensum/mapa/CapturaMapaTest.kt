@@ -65,8 +65,8 @@ class CapturaMapaTest {
                 Box(Modifier.fillMaxSize().hazeSource(cristal)) {
                     MapaCarrera(estado, camara, efectos, elegida, congelado = false, alTocarMateria = {}, alTocarVacio = {}, alAbrirCasilla = {}, alAlternarSemestre = {})
                 }
-                FichaMateria(elegida, estado, 80.dp, alCerrar = {}, alMarcar = { _, _ -> }, alIrA = {}, alCambiarElectiva = {}, alTapar = {})
-                BarraCarrera(Vista.MAPA, estado.progreso, cristal, alInicio = {}, alCambiar = {}, alAvance = {}, modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 14.dp))
+                FichaMateria(elegida, estado, 80.dp, alCerrar = {}, alMarcar = { _, _ -> }, alIrA = {}, alCambiarElectiva = {}, alTapar = {}, horizontal = false)
+                BarraCarrera(Vista.MAPA, estado.progreso, cristal, alInicio = {}, alCambiar = {}, alAvance = {}, modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 14.dp), vertical = false)
             }
         }
         // La luz de los cables no para nunca: se avanza el reloj a mano en vez de esperar a que se quede quieto

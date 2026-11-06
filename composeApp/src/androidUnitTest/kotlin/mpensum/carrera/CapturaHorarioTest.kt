@@ -130,9 +130,9 @@ class CapturaHorarioTest {
                 },
             ) {
                 Box(Modifier.fillMaxSize().hazeSource(cristal)) {
-                    VistaHorario(horario, abajo = 14.dp + ALTO_BARRA)
+                    VistaHorario(horario, abajo = 14.dp + ALTO_BARRA, horizontal = false)
                 }
-                BarraCarrera(Vista.HORARIO, horario.carrera.progreso, cristal, alInicio = {}, alCambiar = {}, alAvance = {}, modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 14.dp))
+                BarraCarrera(Vista.HORARIO, horario.carrera.progreso, cristal, alInicio = {}, alCambiar = {}, alAvance = {}, modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 14.dp), vertical = false)
                 HojasHorario(horario, cristal)
             }
         }

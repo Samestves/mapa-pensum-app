@@ -176,7 +176,7 @@ private fun IconoDerecho(tamano: Dp, alPulsar: () -> Unit, modifier: Modifier = 
  * van aquí: las monta `HojasHorario` encima de la barra.
  */
 @Composable
-fun VistaHorario(horario: EstadoHorario, abajo: Dp, modifier: Modifier = Modifier, horizontal: Boolean = false) {
+fun VistaHorario(horario: EstadoHorario, abajo: Dp, modifier: Modifier = Modifier, horizontal: Boolean) {
     // El "ahora" cambia una vez por minuto. Se relee cada 15 s como mucho porque
     // el reloj del sistema se para cuando el teléfono duerme y la espera llegaría tarde
     LaunchedEffect(horario) {

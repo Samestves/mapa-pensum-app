@@ -138,7 +138,7 @@ fun FichaMateria(
     /** Al lado de la lista, en horizontal: un panel de alto completo, con las marcas fijas abajo */
     lateral: PanelLateral? = null,
     /** Horizontal sin lista al lado (el mapa): la ficha flota, pero sin estirarse a todo el ancho */
-    horizontal: Boolean = false,
+    horizontal: Boolean,
 ) {
     // La última que se enseñó sigue pintándose mientras baja, el tiempo de su salida
     var mostrado by remember { mutableStateOf<String?>(null) }

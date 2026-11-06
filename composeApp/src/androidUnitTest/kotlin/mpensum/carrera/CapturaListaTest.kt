@@ -77,7 +77,7 @@ class CapturaListaTest {
                 Box(Modifier.fillMaxSize().hazeSource(cristal)) {
                     VistaLista(estado, abajo = 14.dp + ALTO_BARRA, alAbrirFicha = {}, alElegirElectiva = { _, _ -> })
                 }
-                BarraCarrera(Vista.LISTA, estado.progreso, cristal, alInicio = {}, alCambiar = {}, alAvance = {}, modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 14.dp))
+                BarraCarrera(Vista.LISTA, estado.progreso, cristal, alInicio = {}, alCambiar = {}, alAvance = {}, modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 14.dp), vertical = false)
             }
         }
         regla.mainClock.advanceTimeBy(1200)
