@@ -46,6 +46,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
@@ -103,7 +104,6 @@ fun MapaCarrera(
     val abajo = with(densidad) { WindowInsets.navigationBars.getBottom(this).toDp().value }
     val tipos = rememberTiposMapa()
     val medidor = rememberTextMeasurer()
-    val haptica = LocalHapticFeedback.current
 
     // El foco: lo que mira la ficha abierta o la ruta fijada; lo demás se aparta
     val mirada = seleccionado ?: efectos.ruta
@@ -183,64 +183,90 @@ fun MapaCarrera(
             Cables(estado, cadena = { cadenaVisible }, foco = { foco.value }, trazado = { trazado.value }, descarga = { efectos.descarga?.codigo to descarga.value })
             if (!Tema.movimiento) LuzDeFrontera(estado, congelada = { camara.enGesto || congelado }, cadena = { cadenaVisible }, foco = { foco.value })
 
-            val sit = estado.situaciones
-            val cuentas = marcasDeSemestres(layout.nodos.map { it.asignatura }, estado::enCasilla, estado.estados)
-            layout.columnas.forEach { columna ->
-                val delSemestre = layout.nodos.filter { it.semestre == columna.semestre }
-                val materias = delSemestre.map { estado.materiaDe(it) }
-                val situaciones = materias.map { m -> m?.let { sit[it.codigo] } ?: Situacion.LEJANA }
-                CabeceraSemestre(
-                    DatosCabecera(
-                        semestre = columna.semestre,
-                        x = columna.x.toFloat(),
-                        uc = materias.sumOf { it?.uc ?: 0 },
-                        total = delSemestre.size,
-                        hechas = situaciones.count { it == Situacion.HECHA },
-                        cursando = situaciones.count { it == Situacion.CURSANDO },
-                        inscribibles = situaciones.count { it == Situacion.INSCRIBIBLE },
-                        casilla = cuentas[columna.semestre],
-                    ),
-                    tipos, medidor,
-                    compacta = layout.altoEncabezado < ALTO_ENCABEZADO,
-                    alAlternar = { alAlternarSemestre(columna.semestre) },
-                )
-            }
+            CabecerasSemestres(estado, tipos, medidor, alAlternarSemestre)
             estado.franja?.let { RotulosFranja(it, estado, tipos) }
 
-            val descargado = efectos.descarga
-            estado.nodos.forEach { nodo ->
-                val materia = estado.materiaDe(nodo)
-                val codigo = materia?.codigo
-                val situacion = codigo?.let { sit[it] }
-                TarjetaMapa(
-                    nodo = nodo,
-                    materia = materia,
-                    lineas = codigo?.let { layout.porCodigo[it]?.lineasNombre } ?: nodo.lineasNombre,
-                    situacion = situacion,
-                    acento = materia?.let(estado.colores::de) ?: Paleta.suave,
-                    seleccionada = codigo != null && codigo == seleccionado,
-                    resaltada = codigo != null && cadena?.contains(codigo) == true,
-                    opacidad = opacidadDe(codigo),
-                    animaciones = AnimacionesTarjeta(
-                        toque = efectos.toque?.takeIf { it.codigo == codigo }?.n,
-                        destello = descargado?.takeIf { situacion == Situacion.INSCRIBIBLE && materia?.prerrequisitos?.contains(it.codigo) == true }?.n,
-                        carga = efectos.carga?.takeIf { it.codigo == codigo },
-                    ),
-                    escala = { camara.escala },
-                    tipos = tipos,
-                    camara = camara,
-                    alTocar = { if (codigo != null) alTocarMateria(codigo) else alAbrirCasilla(nodo.codigo) },
-                    alEmpezarCarga = { if (codigo != null) efectos.empezarCarga(codigo) },
-                    alSoltarCarga = { efectos.soltarCarga() },
-                    alFijar = {
-                        if (codigo != null) {
-                            efectos.fijarRuta(codigo)
-                            haptica.performHapticFeedback(HapticFeedbackType.LongPress)
-                        }
-                    },
-                )
-            }
+            TarjetasMapa(estado, camara, efectos, tipos, cadena, seleccionado, opacidadDe, alTocarMateria, alAbrirCasilla)
         }
+    }
+}
+
+/** La cabecera de cada semestre: su número, lo que cuenta y el aro que lo aprueba entero */
+@Composable
+private fun CabecerasSemestres(estado: EstadoCarrera, tipos: TiposMapa, medidor: TextMeasurer, alAlternarSemestre: (Int) -> Unit) {
+    val layout = estado.layout
+    val sit = estado.situaciones
+    val cuentas = marcasDeSemestres(layout.nodos.map { it.asignatura }, estado::enCasilla, estado.estados)
+    layout.columnas.forEach { columna ->
+        val delSemestre = layout.nodos.filter { it.semestre == columna.semestre }
+        val materias = delSemestre.map { estado.materiaDe(it) }
+        val situaciones = materias.map { m -> m?.let { sit[it.codigo] } ?: Situacion.LEJANA }
+        CabeceraSemestre(
+            DatosCabecera(
+                semestre = columna.semestre,
+                x = columna.x.toFloat(),
+                uc = materias.sumOf { it?.uc ?: 0 },
+                total = delSemestre.size,
+                hechas = situaciones.count { it == Situacion.HECHA },
+                cursando = situaciones.count { it == Situacion.CURSANDO },
+                inscribibles = situaciones.count { it == Situacion.INSCRIBIBLE },
+                casilla = cuentas[columna.semestre],
+            ),
+            tipos, medidor,
+            compacta = layout.altoEncabezado < ALTO_ENCABEZADO,
+            alAlternar = { alAlternarSemestre(columna.semestre) },
+        )
+    }
+}
+
+/** Las tarjetas de las materias y las casillas, con el foco de la cadena y las animaciones de toque, descarga y carga */
+@Composable
+private fun TarjetasMapa(
+    estado: EstadoCarrera,
+    camara: Camara,
+    efectos: EfectosMapa,
+    tipos: TiposMapa,
+    cadena: Set<String>?,
+    seleccionado: String?,
+    opacidadDe: (String?) -> () -> Float,
+    alTocarMateria: (String) -> Unit,
+    alAbrirCasilla: (String) -> Unit,
+) {
+    val layout = estado.layout
+    val sit = estado.situaciones
+    val haptica = LocalHapticFeedback.current
+    val descargado = efectos.descarga
+    estado.nodos.forEach { nodo ->
+        val materia = estado.materiaDe(nodo)
+        val codigo = materia?.codigo
+        val situacion = codigo?.let { sit[it] }
+        TarjetaMapa(
+            nodo = nodo,
+            materia = materia,
+            lineas = codigo?.let { layout.porCodigo[it]?.lineasNombre } ?: nodo.lineasNombre,
+            situacion = situacion,
+            acento = materia?.let(estado.colores::de) ?: Paleta.suave,
+            seleccionada = codigo != null && codigo == seleccionado,
+            resaltada = codigo != null && cadena?.contains(codigo) == true,
+            opacidad = opacidadDe(codigo),
+            animaciones = AnimacionesTarjeta(
+                toque = efectos.toque?.takeIf { it.codigo == codigo }?.n,
+                destello = descargado?.takeIf { situacion == Situacion.INSCRIBIBLE && materia?.prerrequisitos?.contains(it.codigo) == true }?.n,
+                carga = efectos.carga?.takeIf { it.codigo == codigo },
+            ),
+            escala = { camara.escala },
+            tipos = tipos,
+            camara = camara,
+            alTocar = { if (codigo != null) alTocarMateria(codigo) else alAbrirCasilla(nodo.codigo) },
+            alEmpezarCarga = { if (codigo != null) efectos.empezarCarga(codigo) },
+            alSoltarCarga = { efectos.soltarCarga() },
+            alFijar = {
+                if (codigo != null) {
+                    efectos.fijarRuta(codigo)
+                    haptica.performHapticFeedback(HapticFeedbackType.LongPress)
+                }
+            },
+        )
     }
 }
 

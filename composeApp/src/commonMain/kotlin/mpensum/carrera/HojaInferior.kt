@@ -332,26 +332,7 @@ fun BoxScope.HojaInferior(
     if (!montada) return
 
     val toque = remember { MutableInteractionSource() }
-    // El fondo: la pantalla de debajo, difuminada, que entra y sale con la hoja
-    if (fondo != null) {
-        Box(
-            Modifier
-                .fillMaxSize()
-                .hazeEffect(fondo, ESTILO_FONDO) {
-                    inputScale = HazeInputScale.Auto
-                    alpha = hoja.progreso()
-                }
-                .clickable(toque, indication = null, onClick = alCerrar),
-        )
-    } else {
-        Box(
-            Modifier
-                .fillMaxSize()
-                .graphicsLayer { alpha = hoja.progreso() }
-                .background(VELO)
-                .clickable(toque, indication = null, onClick = alCerrar),
-        )
-    }
+    FondoHoja(fondo, hoja, toque, alCerrar)
 
     val forma = if (flotante) RoundedCornerShape(32.dp) else RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
     // Nunca más alta que la pantalla menos 64 (o la barra de estado y 32): arriba siempre asoma lo que hay detrás
@@ -384,52 +365,13 @@ fun BoxScope.HojaInferior(
                     if (cristal != null) {
                         Modifier.vidrio(cristal, ESTILO_CRISTAL, VIDRIO_HOJA)
                     } else {
-                        Modifier
-                            .background(Paleta.panel)
-                            .drawWithCache {
-                                // El mismo filo de luz que el cristal, solo arriba: se apaga a los 120 dp y deja un hilo en los lados
-                                val g = 1.dp.toPx()
-                                // En claro la hoja es blanca: un filo blanco no se vería, lo dibuja la tinta muy floja
-                                val filo = if (Tema.claro) {
-                                    Brush.verticalGradient(0f to Paleta.tinta.copy(alpha = 0.1f), 1f to Paleta.tinta.copy(alpha = 0.04f), startY = 0f, endY = 120.dp.toPx())
-                                } else {
-                                    Brush.verticalGradient(
-                                        0f to Color.White.copy(alpha = 0.2f),
-                                        1f to Color.White.copy(alpha = 0.04f),
-                                        startY = 0f,
-                                        endY = 120.dp.toPx(),
-                                    )
-                                }
-                                val r = CornerRadius(28.dp.toPx() - g / 2)
-                                // El trazo se alarga por debajo, fuera del recorte: así no hay esquinas abajo
-                                val colgante = 48.dp.toPx()
-                                onDrawWithContent {
-                                    drawContent()
-                                    drawRoundRect(filo, Offset(g / 2, g / 2), Size(size.width - g, size.height - g / 2 + colgante), r, style = Stroke(g))
-                                }
-                            }
+                        Modifier.panelPegado()
                     },
                 )
                 .nestedScroll(hoja.conexion)
                 .clickable(toque, indication = null) {},
         ) {
-            // La zona de la que se tira: el asa y la cabecera, una franja entera y no solo la rayita
-            Column(
-                Modifier
-                    .testTag("hoja-cabecera")
-                    .draggable(
-                        state = rememberDraggableState { hoja.arrastrar(it) },
-                        orientation = Orientation.Vertical,
-                        enabled = abierta,
-                        onDragStarted = { hoja.tomar() },
-                        onDragStopped = { hoja.soltar(it) },
-                    ),
-            ) {
-                Box(Modifier.fillMaxWidth().padding(top = 10.dp, bottom = 5.dp), contentAlignment = Alignment.Center) {
-                    Box(Modifier.size(32.dp, 4.dp).clip(RoundedCornerShape(2.dp)).background(Paleta.tinta.copy(alpha = 0.28f)))
-                }
-                cabecera()
-            }
+            AsaYCabecera(hoja, abierta, cabecera)
             Column(
                 (if (desplazable) Modifier.verticalScroll(rememberScrollState()) else Modifier.weight(1f, fill = false))
                     // Pegada abajo, el contenido no queda bajo la barra de gestos; con teclado, sube con él
@@ -437,5 +379,78 @@ fun BoxScope.HojaInferior(
                 content = contenido,
             )
         }
+    }
+}
+
+/** El fondo: la pantalla de debajo, difuminada, que entra y sale con la hoja; sin pantalla que difuminar, un velo */
+@OptIn(ExperimentalHazeApi::class)
+@Composable
+private fun FondoHoja(fondo: HazeState?, hoja: Hoja, toque: MutableInteractionSource, alCerrar: () -> Unit) {
+    if (fondo != null) {
+        Box(
+            Modifier
+                .fillMaxSize()
+                .hazeEffect(fondo, ESTILO_FONDO) {
+                    inputScale = HazeInputScale.Auto
+                    alpha = hoja.progreso()
+                }
+                .clickable(toque, indication = null, onClick = alCerrar),
+        )
+    } else {
+        Box(
+            Modifier
+                .fillMaxSize()
+                .graphicsLayer { alpha = hoja.progreso() }
+                .background(VELO)
+                .clickable(toque, indication = null, onClick = alCerrar),
+        )
+    }
+}
+
+/** El panel pegado abajo: fondo liso y el filo de luz de arriba, sin desenfoque */
+private fun Modifier.panelPegado(): Modifier =
+    this
+        .background(Paleta.panel)
+        .drawWithCache {
+            // El mismo filo de luz que el cristal, solo arriba: se apaga a los 120 dp y deja un hilo en los lados
+            val g = 1.dp.toPx()
+            // En claro la hoja es blanca: un filo blanco no se vería, lo dibuja la tinta muy floja
+            val filo = if (Tema.claro) {
+                Brush.verticalGradient(0f to Paleta.tinta.copy(alpha = 0.1f), 1f to Paleta.tinta.copy(alpha = 0.04f), startY = 0f, endY = 120.dp.toPx())
+            } else {
+                Brush.verticalGradient(
+                    0f to Color.White.copy(alpha = 0.2f),
+                    1f to Color.White.copy(alpha = 0.04f),
+                    startY = 0f,
+                    endY = 120.dp.toPx(),
+                )
+            }
+            val r = CornerRadius(28.dp.toPx() - g / 2)
+            // El trazo se alarga por debajo, fuera del recorte: así no hay esquinas abajo
+            val colgante = 48.dp.toPx()
+            onDrawWithContent {
+                drawContent()
+                drawRoundRect(filo, Offset(g / 2, g / 2), Size(size.width - g, size.height - g / 2 + colgante), r, style = Stroke(g))
+            }
+        }
+
+@Composable
+private fun AsaYCabecera(hoja: Hoja, abierta: Boolean, cabecera: @Composable () -> Unit) {
+    // La zona de la que se tira: el asa y la cabecera, una franja entera y no solo la rayita
+    Column(
+        Modifier
+            .testTag("hoja-cabecera")
+            .draggable(
+                state = rememberDraggableState { hoja.arrastrar(it) },
+                orientation = Orientation.Vertical,
+                enabled = abierta,
+                onDragStarted = { hoja.tomar() },
+                onDragStopped = { hoja.soltar(it) },
+            ),
+    ) {
+        Box(Modifier.fillMaxWidth().padding(top = 10.dp, bottom = 5.dp), contentAlignment = Alignment.Center) {
+            Box(Modifier.size(32.dp, 4.dp).clip(RoundedCornerShape(2.dp)).background(Paleta.tinta.copy(alpha = 0.28f)))
+        }
+        cabecera()
     }
 }

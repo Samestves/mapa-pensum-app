@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
@@ -167,36 +168,7 @@ fun Portada(
                         if (conTarjeta) tarjeta(true)
                     }
                     Spacer(Modifier.width(24.dp))
-                    val desplazo = rememberScrollState()
-                    Column(
-                        Modifier
-                            .weight(1f)
-                            .fillMaxHeight()
-                            .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
-                            .drawWithContent {
-                                drawContent()
-                                // El fundido de 40 dp de abajo solo si hay más por ver (con las 9 carreras): con 8 caben enteras
-                                if (desplazo.canScrollForward) {
-                                    val f = 40.dp.toPx()
-                                    drawRect(
-                                        Brush.verticalGradient(listOf(Color.Transparent, Color.Black), startY = size.height - f, endY = size.height),
-                                        blendMode = BlendMode.DstOut,
-                                    )
-                                }
-                            }
-                            .verticalScroll(desplazo),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        otras.chunked(2).forEachIndexed { r, par ->
-                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                par.forEachIndexed { j, c ->
-                                    FilaCompacta(c, Modifier.weight(1f).sube(minOf(420, 180 + 40 * (2 * r + j)), 12.dp, 480)) { origen -> alAbrir(c, origen) }
-                                }
-                                // Una ficha suelta al final deja su sitio, no se estira
-                                if (par.size == 1) Spacer(Modifier.weight(1f))
-                            }
-                        }
-                    }
+                    OtrasCompactas(otras, alAbrir)
                 }
             } else Column(
                 Modifier
@@ -218,30 +190,7 @@ fun Portada(
         // El vidrio de la cabecera: una sola pieza que tapa la barra de estado y la fila y se forma con el
         // scroll. Desde API 31 desenfoca de verdad; por debajo, un lienzo casi opaco (el desenfoque de
         // RenderScript no pinta nada en esas versiones, así que no se fuerza)
-        val lienzo = Paleta.lienzo
-        val desplazada by remember { derivedStateOf { progreso() > 0f } }
-        if (desplazada) {
-            Box(
-                Modifier
-                    .fillMaxWidth()
-                    .height(barra + 56.dp)
-                    .hazeEffect(cristal, vidrio(lienzo)) {
-                        alpha = progreso()
-                        // A un tercio de resolución el desenfoque cuesta poco
-                        inputScale = HazeInputScale.Auto
-                    },
-            ) {
-                // El filo de luz de abajo: 1 px, más claro en el centro y nada en los bordes
-                Box(
-                    Modifier
-                        .align(Alignment.BottomCenter)
-                        .fillMaxWidth()
-                        .height(1.dp)
-                        .graphicsLayer { alpha = progreso() }
-                        .background(Brush.horizontalGradient(listOf(Color.Transparent, Paleta.tinta.copy(alpha = 0.16f), Color.Transparent))),
-                )
-            }
-        }
+        VidrioCabecera(cristal, barra, ::progreso)
         // En horizontal, el engranaje alinea su círculo (40 dp) con el borde de la rejilla, a 24 del lado
         Cabecera(Modifier.padding(start = izquierda + 16.dp, end = derecha + if (horizontal) 22.dp else 14.dp, top = barra + 4.dp)) { ajustes = PaginaAjustes.MENU }
         // El rótulo comparte fila con la marca y el engranaje, justo sobre la columna de las otras carreras
@@ -431,3 +380,67 @@ internal class Origen {
 
 @Composable
 internal fun rememberOrigen() = remember { Origen() }
+
+/** Horizontal: las otras carreras en fichas de dos en dos, con su propio scroll y un fundido abajo si hay más por ver */
+@Composable
+private fun RowScope.OtrasCompactas(otras: List<Carrera>, alAbrir: (Carrera, TransformOrigin) -> Unit) {
+    val desplazo = rememberScrollState()
+    Column(
+        Modifier
+            .weight(1f)
+            .fillMaxHeight()
+            .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
+            .drawWithContent {
+                drawContent()
+                // El fundido de 40 dp de abajo solo si hay más por ver (con las 9 carreras): con 8 caben enteras
+                if (desplazo.canScrollForward) {
+                    val f = 40.dp.toPx()
+                    drawRect(
+                        Brush.verticalGradient(listOf(Color.Transparent, Color.Black), startY = size.height - f, endY = size.height),
+                        blendMode = BlendMode.DstOut,
+                    )
+                }
+            }
+            .verticalScroll(desplazo),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        otras.chunked(2).forEachIndexed { r, par ->
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                par.forEachIndexed { j, c ->
+                    FilaCompacta(c, Modifier.weight(1f).sube(minOf(420, 180 + 40 * (2 * r + j)), 12.dp, 480)) { origen -> alAbrir(c, origen) }
+                }
+                // Una ficha suelta al final deja su sitio, no se estira
+                if (par.size == 1) Spacer(Modifier.weight(1f))
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalHazeApi::class)
+@Composable
+private fun VidrioCabecera(cristal: HazeState, barra: Dp, progreso: () -> Float) {
+    val lienzo = Paleta.lienzo
+    val desplazada by remember { derivedStateOf { progreso() > 0f } }
+    if (desplazada) {
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .height(barra + 56.dp)
+                .hazeEffect(cristal, vidrio(lienzo)) {
+                    alpha = progreso()
+                    // A un tercio de resolución el desenfoque cuesta poco
+                    inputScale = HazeInputScale.Auto
+                },
+        ) {
+            // El filo de luz de abajo: 1 px, más claro en el centro y nada en los bordes
+            Box(
+                Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+                    .height(1.dp)
+                    .graphicsLayer { alpha = progreso() }
+                    .background(Brush.horizontalGradient(listOf(Color.Transparent, Paleta.tinta.copy(alpha = 0.16f), Color.Transparent))),
+            )
+        }
+    }
+}
