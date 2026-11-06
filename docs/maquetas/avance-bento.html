@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Avance en bento — dentro de la app</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root { --tinta:#111214; --suave:#55585e; --tenue:#8b8f96; --hilo:rgba(17,18,20,.08); --azul:#2f55d4; --verde:#1f8a4c; --velo:#f3f3f5; --nota:#ff6a00; }
+  * { box-sizing: border-box; margin: 0; }
+  body { background: #dcdde1; font-family: Inter, sans-serif; color: var(--tinta); padding: 40px; }
+  h1 { font: 300 32px Jost; margin-bottom: 6px; }
+  h3 { font: 300 24px Jost; margin: 56px 0 6px; }
+  .nota { color: var(--suave); font-size: 14px; margin-bottom: 28px; max-width: 1100px; line-height: 1.55; }
+  .nota b { color: var(--tinta); font-weight: 500; }
+  .fila { display: flex; gap: 36px; flex-wrap: wrap; align-items: flex-start; }
+  .op { width: 375px; }
+  .op h2 { font: 500 15px Inter; margin-bottom: 4px; }
+  .op p.que { font-size: 13px; color: var(--suave); line-height: 1.5; margin-bottom: 14px; min-height: 58px; }
+
+  /* El teléfono con el mapa detrás y la hoja encima */
+  .tel { width: 375px; height: 812px; position: relative; overflow: hidden; border-radius: 46px; background: #eef0f4; box-shadow: 0 24px 60px rgba(0,0,0,.12); }
+  .tel.acostado { width: 812px; height: 375px; }
+  .mapa { position: absolute; inset: 0; filter: blur(3px); opacity: .7; }
+  .estado { position: absolute; top: 14px; left: 30px; right: 30px; display: flex; justify-content: space-between; font: 600 14px Inter; z-index: 3; }
+  .hoja { position: absolute; left: 0; right: 0; top: 54px; bottom: 0; background: #fff; border-radius: 30px 30px 0 0; padding: 10px 20px 0; overflow: hidden; z-index: 2; box-shadow: 0 -10px 40px rgba(0,0,0,.08); }
+  .acostado .hoja { top: 18px; left: 90px; right: 90px; border-radius: 28px 28px 0 0; padding: 8px 22px 0; }
+  .asa { width: 36px; height: 4px; border-radius: 4px; background: rgba(17,18,20,.16); margin: 0 auto 14px; }
+  .cab { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+  .rot { font: 600 11px Inter; letter-spacing: .05em; color: var(--tenue); }
+  .tit { font: 300 28px/1.1 Jost; margin-top: 4px; }
+  .x { width: 36px; height: 36px; border-radius: 50%; background: rgba(17,18,20,.07); display: grid; place-items: center; font-size: 15px; color: var(--suave); flex: none; }
+  .desvanece { position: absolute; left: 0; right: 0; bottom: 0; height: 70px; background: linear-gradient(transparent, #fff); }
+
+  /* Piezas */
+  .bento { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .p { background: var(--velo); border-radius: 22px; padding: 15px 15px 14px; position: relative; min-height: 104px; }
+  .p.ancha { grid-column: span 2; }
+  .p .mas { position: absolute; top: 13px; right: 13px; width: 22px; height: 22px; border-radius: 50%; background: rgba(17,18,20,.06); display: grid; place-items: center; font-size: 12px; color: var(--suave); }
+  .p .rot { padding-right: 26px; }
+  .num { font: 300 34px/1 Inter; letter-spacing: -.02em; margin-top: 10px; }
+  .num small { font-size: 13px; color: var(--tenue); letter-spacing: 0; margin-left: 3px; }
+  .chico { font-size: 12px; color: var(--tenue); margin-top: 4px; line-height: 1.35; }
+  .cifra { font: 300 60px/.9 Inter; letter-spacing: -.045em; }
+  .cifra sup { font-size: 20px; color: var(--tenue); vertical-align: top; margin-left: 2px; letter-spacing: 0; }
+  .barrita { height: 4px; border-radius: 4px; background: rgba(17,18,20,.08); margin-top: 12px; overflow: hidden; }
+  .barrita i { display: block; height: 100%; background: var(--tinta); border-radius: 4px; }
+  .callado { display: flex; justify-content: space-between; align-items: center; padding: 14px 4px; border-top: 1px solid var(--hilo); font-size: 15px; }
+  .callado span { color: var(--tenue); }
+
+  /* Anotaciones: no son parte de la app */
+  .toca { position: absolute; width: 22px; height: 22px; border-radius: 50%; background: var(--nota); color: #fff; font: 600 12px/22px Inter; text-align: center; box-shadow: 0 0 0 4px rgba(255,106,0,.22); z-index: 5; }
+  .leyenda { font-size: 12.5px; color: var(--suave); margin-top: 12px; line-height: 1.7; }
+  .leyenda i { display: inline-block; width: 17px; height: 17px; border-radius: 50%; background: var(--nota); color: #fff; font: 600 10px/17px Inter; text-align: center; font-style: normal; margin-right: 6px; }
+
+  /* Pantallas internas */
+  .cabd { display: flex; align-items: center; justify-content: center; position: relative; height: 40px; margin-bottom: 14px; }
+  .atras { position: absolute; left: 0; width: 36px; height: 36px; border-radius: 50%; background: rgba(17,18,20,.07); display: grid; place-items: center; font-size: 18px; color: var(--suave); }
+  .cabd b { font: 500 17px Inter; }
+  .seccion { font: 600 11px Inter; letter-spacing: .06em; color: var(--tenue); margin: 22px 2px 10px; }
+  .renglon { display: flex; align-items: center; gap: 12px; padding: 11px 2px; border-bottom: 1px solid var(--hilo); font-size: 15px; }
+  .renglon:last-child { border-bottom: 0; }
+  .renglon .uc { margin-left: auto; font-size: 13px; color: var(--tenue); }
+  .candado { width: 16px; height: 16px; flex: none; }
+  .boton { margin-top: 14px; height: 50px; border-radius: 25px; background: var(--tinta); color: #fff; display: grid; place-items: center; font: 500 15px Inter; }
+  .boton.suave { background: rgba(17,18,20,.07); color: var(--tinta); }
+  .chips { display: flex; gap: 6px; margin-top: 12px; }
+  .chips div { flex: 1; height: 40px; border-radius: 14px; background: rgba(17,18,20,.05); display: grid; place-items: center; font: 500 14px Inter; color: var(--suave); }
+  .chips div.si { background: var(--tinta); color: #fff; }
+  .seg { display: flex; background: rgba(17,18,20,.06); border-radius: 14px; padding: 3px; margin-top: 4px; }
+  .seg div { flex: 1; text-align: center; padding: 8px 0; font: 500 13px Inter; color: var(--suave); border-radius: 11px; }
+  .seg div.si { background: #fff; color: var(--tinta); box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+  .ficha { display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--velo); border-radius: 18px; margin-top: 8px; }
+  .ficha .ucb { width: 40px; height: 40px; border-radius: 12px; background: #fff; display: grid; place-items: center; text-align: center; font: 600 14px/1 Inter; flex: none; }
+  .ficha .ucb small { display: block; font-size: 8px; letter-spacing: .08em; color: var(--tenue); margin-top: 2px; }
+  .ficha .t { flex: 1; font-size: 14.5px; }
+  .ficha .t span { display: block; font-size: 12px; color: var(--tenue); margin-top: 2px; }
+  .ficha .ir { font-size: 13px; color: var(--suave); }
+</style>
+</head>
+<body>
+<h1>Tu avance en bento, dentro de la app</h1>
+<p class="nota">Las tres variantes son la <b>hoja de avance tal cual se abre</b>: desde el anillo de la barra, sobre el mapa, con su asa y su ✕. Los puntos <b style="color:var(--nota)">naranjas</b> son anotaciones (no van en la app) y marcan dónde se pulsa. Cada número lleva a una pantalla de la segunda fila. Todas las piezas se pueden tocar y llevan su «›» en la esquina. El tema y «Reiniciar mi avance» bajan al final como renglones callados, porque no son avance. Datos de Sistemas.</p>
+
+<div class="fila">
+
+  <!-- K1 -->
+  <div class="op">
+    <h2>K1 · Bento sereno</h2>
+    <p class="que">Una pieza ancha arriba con la cifra y una barra partida en diez semestres. Debajo, cuatro piezas iguales. Es la más limpia y la que más se parece a Salud de Apple.</p>
+    <div class="tel">
+      <svg class="mapa" id="m1"></svg>
+      <div class="estado"><span>3:50</span><span>100</span></div>
+      <div class="hoja">
+        <div class="asa"></div>
+        <div class="cab"><div><div class="rot">TU AVANCE</div><div class="tit">Ingeniería de Sistemas</div></div><div class="x">✕</div></div>
+        <div class="bento">
+          <div class="p ancha" style="min-height:150px">
+            <div class="mas">›</div>
+            <div class="rot">LLEVAS</div>
+            <div style="display:flex;align-items:flex-end;gap:14px;margin-top:10px">
+              <div class="cifra">8<sup>%</sup></div>
+              <div class="chico" style="margin-bottom:4px"><b style="color:var(--tinta);font-weight:600">13</b> de 153 UC<br>4 aprobadas · 2 cursando</div>
+            </div>
+            <div style="display:flex;gap:3px;margin-top:16px">
+              <i style="flex:1;height:6px;border-radius:3px;background:linear-gradient(90deg,var(--tinta) 66%,rgba(17,18,20,.1) 66%)"></i>
+              <i style="flex:1;height:6px;border-radius:3px;background:linear-gradient(90deg,rgba(17,18,20,.45) 40%,rgba(17,18,20,.1) 40%)"></i>
+              <i style="flex:1;height:6px;border-radius:3px;background:rgba(17,18,20,.1)"></i><i style="flex:1;height:6px;border-radius:3px;background:rgba(17,18,20,.1)"></i><i style="flex:1;height:6px;border-radius:3px;background:rgba(17,18,20,.1)"></i><i style="flex:1;height:6px;border-radius:3px;background:rgba(17,18,20,.1)"></i><i style="flex:1;height:6px;border-radius:3px;background:rgba(17,18,20,.1)"></i><i style="flex:1;height:6px;border-radius:3px;background:rgba(17,18,20,.1)"></i><i style="flex:1;height:6px;border-radius:3px;background:rgba(17,18,20,.1)"></i><i style="flex:1;height:6px;border-radius:3px;background:rgba(17,18,20,.1)"></i>
+            </div>
+            <div class="chico" style="display:flex;justify-content:space-between;margin-top:6px"><span>Semestre 1</span><span>10</span></div>
+          </div>
+          <div class="p"><div class="mas">›</div><div class="rot">TE GRADÚAS</div><div style="font:300 25px Jost;margin-top:12px">Dic 2039</div><div class="chico">a 2 materias por semestre</div></div>
+          <div class="p"><div class="mas">›</div><div class="rot" style="color:var(--azul)">PUEDES INSCRIBIR</div><div class="num" style="color:var(--azul)">11<small>materias</small></div><div class="chico">Ene – Jun 2027</div></div>
+          <div class="p"><div class="mas">›</div><div class="rot">TÉCNICAS</div><div class="num">0<small>/ 15 UC</small></div><div class="barrita"><i style="width:0"></i></div></div>
+          <div class="p"><div class="mas">›</div><div class="rot">SOCIOHUM.</div><div class="num">0<small>/ 6 UC</small></div><div class="barrita"><i style="width:0"></i></div></div>
+        </div>
+        <div style="margin-top:18px">
+          <div class="callado">Tema<span>Exterior ›</span></div>
+          <div class="callado" style="color:var(--suave)">Reiniciar mi avance<span>↺</span></div>
+        </div>
+      </div>
+      <div class="toca" style="left:330px;top:176px">1</div>
+      <div class="toca" style="left:162px;top:360px">2</div>
+      <div class="toca" style="left:330px;top:360px">3</div>
+      <div class="toca" style="left:162px;top:476px">4</div>
+      <div class="toca" style="left:330px;top:476px">4</div>
+    </div>
+  </div>
+
+  <!-- K2 -->
+  <div class="op">
+    <h2>K2 · Bento con tu mapa</h2>
+    <p class="que">La pieza grande es tu pensum en miniatura: un punto por materia, con lo aprobado lleno y lo inscribible en azul. Así la portada de la hoja es la identidad de la app. Las demás piezas son más bajas.</p>
+    <div class="tel">
+      <svg class="mapa" id="m2"></svg>
+      <div class="estado"><span>3:50</span><span>100</span></div>
+      <div class="hoja">
+        <div class="asa"></div>
+        <div class="cab"><div><div class="rot">TU AVANCE</div><div class="tit">Ingeniería de Sistemas</div></div><div class="x">✕</div></div>
+        <div class="bento">
+          <div class="p ancha" style="padding-bottom:12px">
+            <div class="mas">›</div>
+            <div style="display:flex;justify-content:space-between;align-items:flex-end;padding-right:30px">
+              <div class="cifra" style="font-size:52px">8<sup>%</sup></div>
+              <div class="chico" style="text-align:right"><b style="color:var(--tinta);font-weight:600">13</b> / 153 UC</div>
+            </div>
+            <svg id="mini" width="305" height="118" style="display:block;margin-top:12px"></svg>
+          </div>
+          <div class="p" style="min-height:92px"><div class="mas">›</div><div class="rot">TE GRADÚAS</div><div style="font:300 24px Jost;margin-top:10px">Dic 2039</div></div>
+          <div class="p" style="min-height:92px"><div class="mas">›</div><div class="rot" style="color:var(--azul)">INSCRIBIBLES</div><div class="num" style="color:var(--azul);font-size:30px">11</div></div>
+          <div class="p ancha" style="min-height:0;padding:12px 15px">
+            <div class="mas" style="top:50%;transform:translateY(-50%)">›</div>
+            <div class="rot">ELECTIVAS</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:8px;padding-right:30px">
+              <div><div style="display:flex;justify-content:space-between;font-size:13px"><span>Técnicas</span><span style="color:var(--tenue)">0/15</span></div><div class="barrita" style="margin-top:6px"><i style="width:0"></i></div></div>
+              <div><div style="display:flex;justify-content:space-between;font-size:13px"><span>Sociohum.</span><span style="color:var(--tenue)">0/6</span></div><div class="barrita" style="margin-top:6px"><i style="width:0"></i></div></div>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:14px">
+          <div class="callado">Tema<span>Exterior ›</span></div>
+          <div class="callado" style="color:var(--suave)">Reiniciar mi avance<span>↺</span></div>
+        </div>
+      </div>
+      <div class="toca" style="left:330px;top:176px">1</div>
+      <div class="toca" style="left:162px;top:396px">2</div>
+      <div class="toca" style="left:330px;top:396px">3</div>
+      <div class="toca" style="left:330px;top:500px">4</div>
+    </div>
+  </div>
+
+  <!-- K3 -->
+  <div class="op">
+    <h2>K3 · Bento con la cápsula en vivo</h2>
+    <p class="que">Arriba, la cápsula oscura de «Tu graduación, en camino» (la I), que es lo que más se lee de lejos. Debajo, las piezas en tres columnas: cifras chicas y rápidas. Tiene más contraste y es la más llamativa en la feria.</p>
+    <div class="tel">
+      <svg class="mapa" id="m3"></svg>
+      <div class="estado"><span>3:50</span><span>100</span></div>
+      <div class="hoja">
+        <div class="asa"></div>
+        <div class="cab"><div><div class="rot">TU AVANCE</div><div class="tit">Ingeniería de Sistemas</div></div><div class="x">✕</div></div>
+        <div style="background:#111214;color:#f2f2f3;border-radius:24px;padding:16px 18px 18px;position:relative">
+          <div class="mas" style="position:absolute;top:13px;right:13px;width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.12);display:grid;place-items:center;font-size:12px">›</div>
+          <div style="font:500 12px Inter;color:#a6a9af">Tu graduación · en camino</div>
+          <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:8px;padding-right:4px">
+            <div style="font:300 38px/1 Jost">Dic 2039</div><div style="font:300 26px/1 Inter;color:#a6a9af">8%</div>
+          </div>
+          <div style="position:relative;height:24px;margin-top:16px">
+            <div style="position:absolute;left:0;right:20px;top:10px;height:4px;border-radius:4px;background:rgba(255,255,255,.14)"></div>
+            <div style="position:absolute;left:0;width:8%;top:10px;height:4px;border-radius:4px;background:#f2f2f3"></div>
+            <div style="position:absolute;left:calc(8% - 6px);top:6px;width:12px;height:12px;border-radius:50%;background:#f2f2f3;box-shadow:0 0 0 5px rgba(255,255,255,.14)"></div>
+            <div style="position:absolute;right:0;top:2px;width:20px;height:20px;border-radius:50%;border:1.5px solid rgba(255,255,255,.4)"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:11.5px;color:#8b8f96"><span>Hoy · 13 UC</span><span>153 UC</span></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:10px">
+          <div class="p" style="min-height:88px;padding:13px"><div class="rot">LLEVAS</div><div class="num" style="font-size:28px">4</div><div class="chico">aprobadas</div></div>
+          <div class="p" style="min-height:88px;padding:13px"><div class="rot">CURSAS</div><div class="num" style="font-size:28px">2</div><div class="chico">materias</div></div>
+          <div class="p" style="min-height:88px;padding:13px"><div class="rot" style="color:var(--azul)">PUEDES</div><div class="num" style="font-size:28px;color:var(--azul)">11</div><div class="chico">inscribir ›</div></div>
+        </div>
+        <div class="bento" style="margin-top:8px">
+          <div class="p" style="min-height:0"><div class="mas">›</div><div class="rot">TÉCNICAS</div><div class="num" style="font-size:24px">0<small>/ 15 UC</small></div><div class="barrita"><i style="width:0"></i></div></div>
+          <div class="p" style="min-height:0"><div class="mas">›</div><div class="rot">SOCIOHUM.</div><div class="num" style="font-size:24px">0<small>/ 6 UC</small></div><div class="barrita"><i style="width:0"></i></div></div>
+        </div>
+        <div style="margin-top:14px">
+          <div class="callado">Tema<span>Exterior ›</span></div>
+          <div class="callado" style="color:var(--suave)">Reiniciar mi avance<span>↺</span></div>
+        </div>
+      </div>
+      <div class="toca" style="left:330px;top:176px">2</div>
+      <div class="toca" style="left:330px;top:322px">3</div>
+      <div class="toca" style="left:162px;top:420px">4</div>
+      <div class="toca" style="left:330px;top:420px">4</div>
+    </div>
+  </div>
+</div>
+
+<div class="leyenda" style="max-width:1100px">
+  <i>1</i>Tu carrera por semestres: qué llevas de cada uno (nuevo, abajo a la izquierda). &nbsp;
+  <i>2</i>¿Cuándo me gradúo?: el anillo de siempre, con el ritmo y la cadena rediseñados. &nbsp;
+  <i>3</i>Lo que puedes inscribir (nuevo). &nbsp;
+  <i>4</i>Electivas: el grupo, sus casillas y elegir.
+</div>
+
+<h3>Lo de adentro</h3>
+<p class="nota">Las mismas pantallas sirven para las tres variantes. Todas se abren <b>dentro de la misma hoja</b>, deslizando hacia la izquierda, con el «‹» para volver, como ya hace «¿Cuándo me gradúo?». El anillo no lo toco: aquí va su silueta solo para dar contexto.</p>
+
+<div class="fila">
+
+  <!-- 1 -->
+  <div class="op">
+    <h2>1 · Por semestres</h2>
+    <p class="que">Diez renglones, uno por semestre, con su anillito, lo aprobado y lo que cursas. Tocar uno lleva al mapa en ese semestre. Responde «¿cómo voy en cada semestre?».</p>
+    <div class="tel">
+      <svg class="mapa" id="m4"></svg>
+      <div class="estado"><span>3:50</span><span>100</span></div>
+      <div class="hoja">
+        <div class="asa"></div>
+        <div class="cabd"><div class="atras">‹</div><b>Por semestres</b></div>
+        <div id="sems"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2 -->
+  <div class="op">
+    <h2>2 · ¿Cuándo me gradúo?</h2>
+    <p class="que">El anillo se queda. El ritmo pasa a ser ocho botones que muestran la fecha nueva al instante. Lo que inscribes va como lista con el candado azul, y «No puedes atrasar» queda como una cadena corta y clara.</p>
+    <div class="tel">
+      <svg class="mapa" id="m5"></svg>
+      <div class="estado"><span>3:50</span><span>100</span></div>
+      <div class="hoja">
+        <div class="asa"></div>
+        <div class="cabd"><div class="atras">‹</div><b>¿Cuándo me gradúo?</b></div>
+        <div style="display:flex;justify-content:center;position:relative;height:200px">
+          <svg width="200" height="200" viewBox="0 0 200 200"><circle cx="100" cy="100" r="78" fill="none" stroke="rgba(17,18,20,.08)" stroke-width="14"/><circle cx="100" cy="100" r="78" fill="none" stroke="#111214" stroke-width="14" stroke-linecap="round" stroke-dasharray="490" stroke-dashoffset="451" transform="rotate(-90 100 100)"/><text x="100" y="96" text-anchor="middle" font-family="Jost" font-weight="300" font-size="30">Dic 2039</text><text x="100" y="120" text-anchor="middle" font-family="Inter" font-size="12" fill="#8b8f96">en 13 años</text></svg>
+          <div style="position:absolute;left:4px;top:24px;font-size:10.5px;color:var(--tenue);line-height:1.3">el anillo<br>que ya tenemos</div>
+        </div>
+        <div class="p" style="margin-top:8px;min-height:0">
+          <div style="display:flex;justify-content:space-between;align-items:baseline"><div style="font:500 15px Inter">Tu ritmo</div><div style="font-size:13px;color:var(--suave)">Jun 2034 · <b style="color:var(--tinta)">5,5 años antes</b></div></div>
+          <div class="chico">materias por semestre</div>
+          <div class="chips"><div>1</div><div>2</div><div>3</div><div>4</div><div class="si">5</div><div>6</div><div>7</div><div>8</div></div>
+        </div>
+        <div class="seccion" style="color:var(--azul)">LO QUE INSCRIBES · ENE – JUN 2027</div>
+        <div class="renglon"><svg class="candado" viewBox="0 0 16 16"><rect x="3" y="7" width="10" height="7" rx="2" fill="#2f55d4"/><path d="M5 7V5a3 3 0 0 1 6 0" fill="none" stroke="#2f55d4" stroke-width="1.6" transform="translate(2 0)"/></svg>Matemáticas II<span class="uc">4 UC</span></div>
+        <div class="renglon"><svg class="candado" viewBox="0 0 16 16"><rect x="3" y="7" width="10" height="7" rx="2" fill="#2f55d4"/><path d="M5 7V5a3 3 0 0 1 6 0" fill="none" stroke="#2f55d4" stroke-width="1.6" transform="translate(2 0)"/></svg>Física I<span class="uc">4 UC</span></div>
+        <div class="renglon" style="color:var(--tenue)">y 3 más</div>
+        <div class="boton">Verlas en el mapa</div>
+        <div class="desvanece"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3 -->
+  <div class="op">
+    <h2>3 · Puedes inscribir</h2>
+    <p class="que">Las 11 materias abiertas, primero las que más destraban (las que abren más materias después). Cada una dice cuántas abre. Abajo, un botón para verlas en el mapa.</p>
+    <div class="tel">
+      <svg class="mapa" id="m6"></svg>
+      <div class="estado"><span>3:50</span><span>100</span></div>
+      <div class="hoja">
+        <div class="asa"></div>
+        <div class="cabd"><div class="atras">‹</div><b>Puedes inscribir</b></div>
+        <div style="font:300 44px/1 Inter;color:var(--azul);margin-top:4px">11 <span style="font-size:16px;color:var(--suave)">materias, 34 UC</span></div>
+        <div class="chico" style="font-size:13px">Primero las que destraban más.</div>
+        <div id="insc" style="margin-top:8px"></div>
+        <div class="boton">Verlas en el mapa</div>
+        <div class="desvanece"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4 -->
+  <div class="op">
+    <h2>4 · Electivas técnicas</h2>
+    <p class="que">Arriba, lo que llevas y lo que falta, dicho en materias. Debajo, las casillas del plan: cada una dice en qué semestre va y se elige ahí mismo. Elegir abre el selector rediseñado (siguiente).</p>
+    <div class="tel">
+      <svg class="mapa" id="m7"></svg>
+      <div class="estado"><span>3:50</span><span>100</span></div>
+      <div class="hoja">
+        <div class="asa"></div>
+        <div class="cabd"><div class="atras">‹</div><b>Electivas técnicas</b></div>
+        <div style="display:flex;align-items:flex-end;gap:10px"><div style="font:300 44px/1 Inter">0</div><div style="font-size:16px;color:var(--tenue);margin-bottom:4px">de 15 UC</div></div>
+        <div class="barrita" style="height:6px"><i style="width:0"></i></div>
+        <div class="chico" style="font-size:13px;margin-top:8px">Te faltan unas <b style="color:var(--tinta)">5 electivas</b> de 3 UC. Se abren en el semestre 7.</div>
+        <div class="seccion">EN TU PLAN</div>
+        <div class="ficha"><div class="ucb">3<small>UC</small></div><div class="t">Electiva técnica I<span>Semestre 7</span></div><div class="ir">Elegir ›</div></div>
+        <div class="ficha"><div class="ucb">3<small>UC</small></div><div class="t">Electiva técnica II<span>Semestre 8</span></div><div class="ir">Elegir ›</div></div>
+        <div class="ficha"><div class="ucb">3<small>UC</small></div><div class="t">Electiva técnica III<span>Semestre 9</span></div><div class="ir">Elegir ›</div></div>
+        <div class="ficha"><div class="ucb">3<small>UC</small></div><div class="t">Electiva técnica IV<span>Semestre 10</span></div><div class="ir">Elegir ›</div></div>
+        <div class="desvanece"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4b -->
+  <div class="op">
+    <h2>4b · Elegir la electiva</h2>
+    <p class="que">El selector que ya existe, más claro: un segmentado nativo en vez de pestañas, el buscador arriba y fichas con sus UC y prelaciones. La elegida lleva el check. Es lo mismo de hoy, pero ordenado.</p>
+    <div class="tel">
+      <svg class="mapa" id="m8"></svg>
+      <div class="estado"><span>3:50</span><span>100</span></div>
+      <div class="hoja">
+        <div class="asa"></div>
+        <div class="cabd"><div class="atras">‹</div><b>Electiva técnica I</b></div>
+        <div style="height:42px;border-radius:14px;background:rgba(17,18,20,.06);display:flex;align-items:center;padding:0 14px;color:var(--tenue);font-size:14.5px">⌕&nbsp;&nbsp;Buscar por nombre o código</div>
+        <div class="seg" style="margin-top:10px"><div class="si">Puedes · 0</div><div>Aprobadas · 0</div><div>Aún no · 24</div></div>
+        <div class="ficha" style="margin-top:12px"><div class="ucb">3<small>UC</small></div><div class="t">Inteligencia Artificial<span>Pide Programación III</span></div></div>
+        <div class="ficha"><div class="ucb">3<small>UC</small></div><div class="t">Redes Avanzadas<span>Pide Redes I</span></div></div>
+        <div class="ficha"><div class="ucb">3<small>UC</small></div><div class="t">Desarrollo Web<span>Pide Base de Datos</span></div></div>
+        <div class="ficha"><div class="ucb">3<small>UC</small></div><div class="t">Seguridad Informática<span>Pide Sistemas Operativos</span></div></div>
+        <div class="ficha"><div class="ucb">3<small>UC</small></div><div class="t">Computación Gráfica<span>Pide Matemáticas IV</span></div></div>
+        <div class="desvanece"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<h3>Acostado</h3>
+<p class="nota">La K1 acostada: la hoja centrada, la pieza grande a la izquierda y las cuatro piezas en rejilla a la derecha. Todo cabe sin desplazar. Las pantallas de adentro se parten igual en dos columnas (por ejemplo, el anillo a la izquierda y el ritmo con lo que inscribes a la derecha).</p>
+<div class="tel acostado">
+  <svg class="mapa" id="m9"></svg>
+  <div class="hoja">
+    <div class="asa" style="margin-bottom:8px"></div>
+    <div class="cab" style="margin-bottom:12px"><div><div class="rot">TU AVANCE</div><div class="tit" style="font-size:24px">Ingeniería de Sistemas</div></div><div class="x">✕</div></div>
+    <div style="display:grid;grid-template-columns:1.1fr 1fr 1fr;grid-template-rows:auto auto;gap:10px">
+      <div class="p" style="grid-row:span 2">
+        <div class="mas">›</div><div class="rot">LLEVAS</div>
+        <div class="cifra" style="margin-top:16px">8<sup>%</sup></div>
+        <div class="chico"><b style="color:var(--tinta);font-weight:600">13</b> de 153 UC · 4 aprobadas · 2 cursando</div>
+        <div style="display:flex;gap:3px;margin-top:22px"><i style="flex:1;height:6px;border-radius:3px;background:linear-gradient(90deg,var(--tinta) 66%,rgba(17,18,20,.1) 66%)"></i><i style="flex:1;height:6px;border-radius:3px;background:linear-gradient(90deg,rgba(17,18,20,.45) 40%,rgba(17,18,20,.1) 40%)"></i><i style="flex:1;height:6px;border-radius:3px;background:rgba(17,18,20,.1)"></i><i style="flex:1;height:6px;border-radius:3px;background:rgba(17,18,20,.1)"></i><i style="flex:1;height:6px;border-radius:3px;background:rgba(17,18,20,.1)"></i><i style="flex:1;height:6px;border-radius:3px;background:rgba(17,18,20,.1)"></i><i style="flex:1;height:6px;border-radius:3px;background:rgba(17,18,20,.1)"></i><i style="flex:1;height:6px;border-radius:3px;background:rgba(17,18,20,.1)"></i><i style="flex:1;height:6px;border-radius:3px;background:rgba(17,18,20,.1)"></i><i style="flex:1;height:6px;border-radius:3px;background:rgba(17,18,20,.1)"></i></div>
+      </div>
+      <div class="p" style="min-height:96px"><div class="mas">›</div><div class="rot">TE GRADÚAS</div><div style="font:300 24px Jost;margin-top:10px">Dic 2039</div></div>
+      <div class="p" style="min-height:96px"><div class="mas">›</div><div class="rot" style="color:var(--azul)">PUEDES INSCRIBIR</div><div class="num" style="color:var(--azul);font-size:30px">11</div></div>
+      <div class="p" style="min-height:96px"><div class="mas">›</div><div class="rot">TÉCNICAS</div><div class="num" style="font-size:26px">0<small>/ 15 UC</small></div></div>
+      <div class="p" style="min-height:96px"><div class="mas">›</div><div class="rot">SOCIOHUM.</div><div class="num" style="font-size:26px">0<small>/ 6 UC</small></div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const el = (t, a, p) => { const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, a[k]); p.appendChild(e); return e; };
+  const sems = [
+    ['o','o','c','c','i','i'], ['o','o','i','i','b'], ['i','i','i','b','b'], ['i','i','b','b','b'], ['i','b','b','b','b'],
+    ['b','b','b','b','b'], ['b','b','b','b','b'], ['b','b','b','b','b'], ['b','b','b','b'], ['b','b','b','b'],
+  ];
+  // El mapa borroso detrás de cada hoja
+  document.querySelectorAll('.mapa').forEach((s, n) => {
+    const W = s.parentElement.offsetWidth, H = s.parentElement.offsetHeight; s.setAttribute('width', W); s.setAttribute('height', H);
+    for (let x = 0; x < 6; x++) for (let y = 0; y < 9; y++) {
+      const cx = 30 + x * (W - 60) / 5, cy = 60 + y * (H - 120) / 8;
+      el('rect', { x: cx - 22, y: cy - 14, width: 44, height: 28, rx: 8, fill: 'rgba(17,18,20,.10)' }, s);
+      if (x < 5) el('path', { d: `M${cx + 22} ${cy} C${cx + 40} ${cy} ${cx + 30} ${cy + 30} ${cx + 50} ${cy + 30}`, fill: 'none', stroke: 'rgba(17,18,20,.12)' }, s);
+    }
+  });
+  // K2: la miniatura del pensum
+  { const s = document.getElementById('mini'); const W = 305, H = 118;
+    const pos = sems.map((col, x) => col.map((e, y) => ({ x: 10 + x * (W - 20) / 9, y: 10 + y * (H - 20) / 5, e })));
+    for (let x = 1; x < pos.length; x++) pos[x].forEach((n, y) => { const a = pos[x - 1][(y * 7 + x) % pos[x - 1].length]; const vivo = a.e === 'o' && n.e !== 'b';
+      el('path', { d: `M${a.x} ${a.y} C${(a.x + n.x) / 2} ${a.y} ${(a.x + n.x) / 2} ${n.y} ${n.x} ${n.y}`, fill: 'none', stroke: vivo ? 'rgba(17,18,20,.4)' : 'rgba(17,18,20,.08)', 'stroke-width': 1 }, s); });
+    pos.flat().forEach(n => {
+      if (n.e === 'o') el('circle', { cx: n.x, cy: n.y, r: 4.5, fill: '#111214' }, s);
+      else if (n.e === 'c') el('circle', { cx: n.x, cy: n.y, r: 4, fill: '#fff', stroke: '#111214', 'stroke-width': 1.6 }, s);
+      else if (n.e === 'i') el('circle', { cx: n.x, cy: n.y, r: 3.6, fill: '#2f55d4' }, s);
+      else el('circle', { cx: n.x, cy: n.y, r: 2.6, fill: 'rgba(17,18,20,.16)' }, s);
+    });
+  }
+  // 1: por semestres
+  { const c = document.getElementById('sems');
+    sems.forEach((col, k) => { const o = col.filter(e => e === 'o').length, cu = col.filter(e => e === 'c').length, f = o / col.length;
+      const d = document.createElement('div'); d.className = 'renglon'; d.style.padding = '10px 2px';
+      const L = 2 * Math.PI * 10;
+      d.innerHTML = `<svg width="26" height="26" viewBox="0 0 26 26"><circle cx="13" cy="13" r="10" fill="none" stroke="rgba(17,18,20,.1)" stroke-width="3"/><circle cx="13" cy="13" r="10" fill="none" stroke="#111214" stroke-width="3" stroke-linecap="round" stroke-dasharray="${L}" stroke-dashoffset="${L * (1 - f)}" transform="rotate(-90 13 13)"/></svg>
+        <div><div>Semestre ${k + 1}</div><div class="chico" style="margin-top:1px">${o} de ${col.length} aprobadas${cu ? ` · <span style="color:var(--tinta)">${cu} cursando</span>` : ''}</div></div><span class="uc">›</span>`;
+      c.appendChild(d); });
+  }
+  // 3: inscribibles
+  { const c = document.getElementById('insc');
+    [['Matemáticas II', 4, 5], ['Física I', 4, 4], ['Programación I', 4, 4], ['Comprensión y Expresión Ling. I', 3, 2], ['Dibujo', 2, 1], ['Extraacadémica', 1, 0]].forEach(([n, uc, abre]) => {
+      const d = document.createElement('div'); d.className = 'renglon';
+      d.innerHTML = `<svg class="candado" viewBox="0 0 16 16"><rect x="3" y="7" width="10" height="7" rx="2" fill="#2f55d4"/><path d="M7 7V5a3 3 0 0 1 6 0" fill="none" stroke="#2f55d4" stroke-width="1.6"/></svg><div>${n}<div class="chico" style="margin-top:1px">${abre ? `abre ${abre} ${abre === 1 ? 'materia' : 'materias'}` : 'no abre otras'}</div></div><span class="uc">${uc} UC</span>`;
+      c.appendChild(d); });
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Avance — cinco direcciones más</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root { --tinta:#111214; --suave:#55585e; --tenue:#8b8f96; --hilo:rgba(17,18,20,.08); --azul:#2f55d4; --velo:#f4f4f6; }
+  * { box-sizing: border-box; margin: 0; }
+  body { background: #e9e9ec; font-family: Inter, sans-serif; color: var(--tinta); padding: 40px; }
+  h1 { font: 300 30px Jost; margin-bottom: 6px; }
+  .nota { color: var(--suave); font-size: 14px; margin-bottom: 32px; max-width: 980px; line-height: 1.5; }
+  .fila { display: flex; gap: 40px; flex-wrap: wrap; align-items: flex-start; }
+  .op { width: 375px; }
+  .op h2 { font: 500 15px Inter; margin-bottom: 4px; }
+  .op p.que { font-size: 13px; color: var(--suave); line-height: 1.5; margin-bottom: 14px; min-height: 80px; }
+  .tel { width: 375px; background: #fff; border-radius: 36px; padding: 26px 20px 28px; box-shadow: 0 20px 50px rgba(0,0,0,.08); overflow: hidden; }
+  .rot { font: 600 11px Inter; letter-spacing: .05em; color: var(--tenue); }
+  .tit { font: 300 30px Jost; margin: 4px 0 18px; }
+  .cifra { font: 300 56px Inter; letter-spacing: -.04em; line-height: .9; }
+  .cifra sup { font-size: 20px; color: var(--tenue); vertical-align: top; margin-left: 2px; }
+  .frase { font: 400 15px/1.45 Inter; color: var(--suave); }
+  .frase b { color: var(--tinta); font-weight: 500; }
+  .sig { margin-top: 14px; border-top: 1px solid var(--hilo); padding-top: 14px; display:flex; justify-content: space-between; align-items:center; font-size: 15px; }
+  .sig span { color: var(--tenue); font-size: 13px; display:block; margin-top: 2px; }
+  .sig::after { content: '›'; color: var(--tenue); font-size: 20px; }
+  .chico { font-size: 12px; color: var(--tenue); }
+</style>
+</head>
+<body>
+<h1>Tu avance — cinco direcciones más</h1>
+<p class="nota">Otra tanda, cada una con un lenguaje distinto de lo que ya viste: transporte, actividad en vivo, Wallet, bento y montaña. Los mismos datos de Sistemas: 13 de 153 UC (8 %), semestre 2 de 10, 2 materias cursando, 11 inscribibles, Dic 2039.</p>
+
+<div class="fila">
+
+  <!-- H -->
+  <div class="op">
+    <h2>H · La línea de metro</h2>
+    <p class="que">La carrera como una línea de transporte, al estilo Apple Maps: cada semestre es una estación y la graduación es la terminal. Tú eres el punto que avanza entre estaciones. Encaja con los cables del mapa, y la terminal lleva el birrete.</p>
+    <div class="tel">
+      <div class="rot">TU AVANCE</div>
+      <div class="tit">Ingeniería de Sistemas</div>
+      <div style="display:flex;justify-content:space-between;align-items:flex-end">
+        <div class="cifra">8<sup>%</sup></div>
+        <div style="text-align:right"><div class="rot">LLEGAS</div><div style="font:400 22px Inter;margin-top:2px">Dic 2039</div></div>
+      </div>
+      <svg id="metro" width="335" height="250" style="margin-top:18px;display:block"></svg>
+      <div class="sig"><div>Próxima estación: semestre 3<span>Ene – Jun 2027 · 2 materias</span></div></div>
+    </div>
+  </div>
+
+  <!-- I -->
+  <div class="op">
+    <h2>I · Actividad en vivo</h2>
+    <p class="que">Como el seguimiento de un pedido o de un vuelo: «Tu graduación, en camino». Una cápsula con el trayecto, el birrete al final y el punto donde vas. El mismo componente puede ir como widget o notificación persistente en Android.</p>
+    <div class="tel">
+      <div class="rot">TU AVANCE</div>
+      <div class="tit">Ingeniería de Sistemas</div>
+      <div style="background:#111214;color:#f2f2f3;border-radius:30px;padding:20px 20px 22px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div style="font:500 13px Inter;color:#a6a9af">Tu graduación</div>
+          <div style="font:500 13px Inter;color:#a6a9af">En camino</div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:10px">
+          <div style="font:300 40px/1 Jost">Dic 2039</div>
+          <div style="font:300 28px/1 Inter;color:#a6a9af">8%</div>
+        </div>
+        <div style="position:relative;height:28px;margin-top:22px">
+          <div style="position:absolute;left:0;right:22px;top:12px;height:4px;border-radius:4px;background:rgba(255,255,255,.12)"></div>
+          <div style="position:absolute;left:0;width:8%;top:12px;height:4px;border-radius:4px;background:#f2f2f3"></div>
+          <div style="position:absolute;left:calc(8% - 7px);top:7px;width:14px;height:14px;border-radius:50%;background:#f2f2f3;box-shadow:0 0 0 5px rgba(255,255,255,.15)"></div>
+          <div style="position:absolute;right:0;top:3px;width:22px;height:22px;border-radius:50%;border:1.5px solid rgba(255,255,255,.4);display:grid;place-items:center;font-size:11px">🎓</div>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:12px;color:#8b8f96"><span>Hoy · 13 UC</span><span>153 UC</span></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;margin-top:18px;text-align:center">
+        <div><div style="font:300 28px Inter">4</div><div class="chico">aprobadas</div></div>
+        <div style="border-left:1px solid var(--hilo);border-right:1px solid var(--hilo)"><div style="font:300 28px Inter">2</div><div class="chico">cursando</div></div>
+        <div><div style="font:300 28px Inter;color:var(--azul)">11</div><div class="chico">puedes inscribir</div></div>
+      </div>
+      <div class="sig"><div>Ene – Jun 2027 · 2 materias<span>Tu próximo semestre</span></div></div>
+    </div>
+  </div>
+
+  <!-- L -->
+  <div class="op">
+    <h2>J · Semestres como Wallet</h2>
+    <p class="que">Los semestres apilados como pases de Wallet. Delante va el de ahora, con sus materias; detrás asoma el borde de cada semestre que falta. Cuantos más bordes, más falta. Deslizas para recorrerlos y cada pase muestra su avance.</p>
+    <div class="tel">
+      <div class="rot">TU AVANCE</div>
+      <div class="tit">Ingeniería de Sistemas</div>
+      <div id="wallet" style="position:relative;height:300px"></div>
+      <div class="frase" style="margin-top:12px"><b>8 %</b> de la carrera · te gradúas en <b>Dic 2039</b></div>
+    </div>
+  </div>
+
+  <!-- M -->
+  <div class="op">
+    <h2>K · Bento</h2>
+    <p class="que">Mosaico de piezas como el widget de Apple Salud, el mismo idioma del panel: cada pieza responde una pregunta (¿cuánto llevo?, ¿cuándo termino?, ¿qué puedo inscribir?, ¿y las electivas?). Cada pieza se toca y abre su detalle.</p>
+    <div class="tel">
+      <div class="rot">TU AVANCE</div>
+      <div class="tit">Ingeniería de Sistemas</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div style="grid-column:span 2;background:var(--velo);border-radius:24px;padding:18px;display:flex;justify-content:space-between;align-items:center">
+          <div><div class="cifra">8<sup>%</sup></div><div class="chico" style="margin-top:6px"><b style="color:var(--tinta)">13</b> / 153 UC</div></div>
+          <svg width="96" height="96" viewBox="0 0 96 96"><circle cx="48" cy="48" r="40" fill="none" stroke="rgba(17,18,20,.08)" stroke-width="8"/><circle cx="48" cy="48" r="40" fill="none" stroke="#111214" stroke-width="8" stroke-linecap="round" stroke-dasharray="251" stroke-dashoffset="231" transform="rotate(-90 48 48)"/></svg>
+        </div>
+        <div style="background:var(--velo);border-radius:24px;padding:16px"><div class="rot">TE GRADÚAS</div><div style="font:300 26px Jost;margin-top:8px">Dic 2039</div><div class="chico" style="margin-top:4px">a tu ritmo</div></div>
+        <div style="background:var(--velo);border-radius:24px;padding:16px"><div class="rot" style="color:var(--azul)">INSCRIBIBLES</div><div style="font:300 36px Inter;margin-top:4px;color:var(--azul)">11</div><div class="chico">materias, ya</div></div>
+        <div style="background:var(--velo);border-radius:24px;padding:16px"><div class="rot">TÉCNICAS</div><div style="font:300 22px Inter;margin-top:8px">0<span class="chico"> / 15 UC</span></div><div style="height:3px;border-radius:3px;background:rgba(17,18,20,.08);margin-top:10px"></div></div>
+        <div style="background:var(--velo);border-radius:24px;padding:16px"><div class="rot">SOCIOHUM.</div><div style="font:300 22px Inter;margin-top:8px">0<span class="chico"> / 6 UC</span></div><div style="height:3px;border-radius:3px;background:rgba(17,18,20,.08);margin-top:10px"></div></div>
+      </div>
+      <div class="sig"><div>Ene – Jun 2027 · 2 materias<span>Tu próximo semestre</span></div></div>
+    </div>
+  </div>
+
+  <!-- N -->
+  <div class="op">
+    <h2>L · La montaña</h2>
+    <p class="que">La carrera como una subida, al estilo de un perfil de ruta de Fitness: la cumbre es la graduación y los primeros semestres son la falda. El tramo hecho va en tinta y lo que falta, en línea fina. Se entiende sin leer.</p>
+    <div class="tel">
+      <div class="rot">TU AVANCE</div>
+      <div class="tit">Ingeniería de Sistemas</div>
+      <svg id="montana" width="335" height="210" style="display:block"></svg>
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:8px">
+        <div><div class="cifra">8<sup>%</sup></div><div class="chico" style="margin-top:6px"><b style="color:var(--tinta)">13</b> / 153 UC</div></div>
+        <div style="text-align:right"><div class="rot">CUMBRE</div><div style="font:400 22px Inter;margin-top:2px">Dic 2039</div></div>
+      </div>
+      <div class="sig"><div>Ene – Jun 2027 · 2 materias<span>Tu próximo semestre</span></div></div>
+    </div>
+  </div>
+
+</div>
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const el = (t, a, p) => { const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, a[k]); p.appendChild(e); if (a.texto) e.textContent = a.texto; return e; };
+
+  // H: metro vertical en zigzag suave
+  { const s = document.getElementById('metro'); const x0 = 24, pasos = 11, alto = 230;
+    const y = i => 10 + i * alto / (pasos - 1);
+    el('line', { x1: x0, y1: y(0), x2: x0, y2: y(10), stroke: 'rgba(17,18,20,.12)', 'stroke-width': 6, 'stroke-linecap': 'round' }, s);
+    el('line', { x1: x0, y1: y(0), x2: x0, y2: y(1.25), stroke: '#111214', 'stroke-width': 6, 'stroke-linecap': 'round' }, s);
+    for (let i = 0; i < pasos; i++) {
+      const fin = i === 10, hecho = i < 1;
+      el('circle', { cx: x0, cy: y(i), r: fin ? 9 : 5, fill: '#fff', stroke: hecho ? '#111214' : fin ? '#111214' : 'rgba(17,18,20,.3)', 'stroke-width': fin ? 2.5 : 2 }, s);
+      const t = fin ? 'Graduación · Dic 2039' : `Semestre ${i + 1}`;
+      const peso = i === 1 || fin ? 500 : 400;
+      el('text', { x: x0 + 22, y: y(i) + 4.5, 'font-family': 'Inter', 'font-size': 13.5, 'font-weight': peso, fill: i <= 1 || fin ? '#111214' : '#8b8f96', texto: t }, s);
+      if (i === 0) el('text', { x: 330, y: y(i) + 4.5, 'text-anchor': 'end', 'font-family': 'Inter', 'font-size': 12, fill: '#8b8f96', texto: '2 de 6 ✓' }, s);
+      if (i === 1) el('text', { x: 330, y: y(i) + 4.5, 'text-anchor': 'end', 'font-family': 'Inter', 'font-size': 12, fill: '#8b8f96', texto: 'cursando 2' }, s);
+    }
+    el('circle', { cx: x0, cy: y(1.25), r: 7, fill: '#111214' }, s);
+    el('circle', { cx: x0, cy: y(1.25), r: 12, fill: 'rgba(17,18,20,.12)' }, s);
+  }
+
+  // J: wallet
+  { const w = document.getElementById('wallet'); const tonos = ['#e7e8ec', '#dfe1e6', '#d7d9df', '#cfd2d9', '#c7cad2', '#bfc3cc', '#b7bcc6', '#afb4bf'];
+    // Del más lejano (semestre 10, arriba) al más cercano (semestre 3, justo detrás del pase): cada uno deja ver su borde
+    for (let i = 0; i < 8; i++) {
+      const sem = 10 - i;
+      const d = document.createElement('div');
+      d.style.cssText = `position:absolute;left:${(7 - i) * 3}px;right:${(7 - i) * 3}px;top:${i * 12}px;height:70px;border-radius:18px;background:${tonos[7 - i]};`;
+      d.innerHTML = `<div style="padding:0 16px;font:500 9.5px/12px Inter;color:#55585e;letter-spacing:.06em">SEMESTRE ${sem}</div>`;
+      w.appendChild(d);
+    }
+    // el pase delante, encima de todo
+    const pase = document.createElement('div');
+    pase.style.cssText = 'position:absolute;left:0;right:0;top:98px;bottom:0;border-radius:22px;background:#111214;color:#f2f2f3;padding:18px';
+    pase.innerHTML = `<div style="display:flex;justify-content:space-between"><div style="font:600 11px Inter;letter-spacing:.05em;color:#8b8f96">SEMESTRE 2 · AHORA</div><div style="font:600 11px Inter;letter-spacing:.05em;color:#8b8f96">2 / 5</div></div>
+      <div style="font:300 26px Jost;margin-top:8px">Cursas 2 materias</div>
+      <div style="margin-top:14px;display:grid;gap:9px;font-size:14px">
+        <div style="display:flex;justify-content:space-between"><span>Matemáticas II</span><span style="color:#8b8f96">aprobada</span></div>
+        <div style="display:flex;justify-content:space-between"><span>Física I</span><span style="color:#8b8f96">aprobada</span></div>
+        <div style="display:flex;justify-content:space-between"><span>Programación I</span><span style="color:#a6a9af">cursando</span></div>
+      </div>`;
+    w.appendChild(pase);
+  }
+
+  // L: montaña
+  { const s = document.getElementById('montana'); const W = 335, H = 200;
+    const pts = []; for (let i = 0; i <= 60; i++) { const t = i / 60; const yy = H - 14 - (H - 40) * Math.pow(t, 1.25) - Math.sin(t * 18) * 6 * t; pts.push([t * (W - 20) + 4, yy]); }
+    const d = pts.map((p, i) => (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' ');
+    el('path', { d: d + ` L${W - 16} ${H} L4 ${H} Z`, fill: 'rgba(17,18,20,.04)' }, s);
+    el('path', { d, fill: 'none', stroke: 'rgba(17,18,20,.25)', 'stroke-width': 1.5, 'stroke-dasharray': '3 4' }, s);
+    const corte = Math.round(60 * 0.08); const hecho = pts.slice(0, corte + 1);
+    el('path', { d: hecho.map((p, i) => (i ? 'L' : 'M') + p[0] + ' ' + p[1]).join(' '), fill: 'none', stroke: '#111214', 'stroke-width': 3, 'stroke-linecap': 'round' }, s);
+    const yo = pts[corte]; el('circle', { cx: yo[0], cy: yo[1], r: 11, fill: 'rgba(17,18,20,.1)' }, s); el('circle', { cx: yo[0], cy: yo[1], r: 5.5, fill: '#111214' }, s);
+    el('text', { x: yo[0] + 14, y: yo[1] - 12, 'font-family': 'Inter', 'font-size': 12, fill: '#55585e', texto: 'Tú' }, s);
+    const cima = pts[60]; el('circle', { cx: cima[0], cy: cima[1], r: 6, fill: '#fff', stroke: '#111214', 'stroke-width': 2 }, s);
+    el('line', { x1: cima[0], y1: cima[1] - 6, x2: cima[0], y2: cima[1] - 26, stroke: '#111214', 'stroke-width': 1.5 }, s);
+    el('path', { d: `M${cima[0]} ${cima[1] - 26} l-14 5 l14 5 z`, fill: '#111214' }, s);
+  }
+</script>
+</body>
+</html>

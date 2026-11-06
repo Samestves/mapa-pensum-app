@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Avance — cuatro direcciones más</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root { --tinta:#111214; --suave:#55585e; --tenue:#8b8f96; --hilo:rgba(17,18,20,.08); --azul:#2f55d4; }
+  * { box-sizing: border-box; margin: 0; }
+  body { background: #e9e9ec; font-family: Inter, sans-serif; color: var(--tinta); padding: 40px; }
+  h1 { font: 300 30px Jost; margin-bottom: 6px; }
+  .nota { color: var(--suave); font-size: 14px; margin-bottom: 32px; max-width: 980px; line-height: 1.5; }
+  .fila { display: flex; gap: 40px; flex-wrap: wrap; align-items: flex-start; }
+  .op { width: 375px; }
+  .op h2 { font: 500 15px Inter; margin-bottom: 4px; }
+  .op p.que { font-size: 13px; color: var(--suave); line-height: 1.5; margin-bottom: 14px; min-height: 80px; }
+  .tel { width: 375px; background: #fff; border-radius: 36px; padding: 26px 20px 28px; box-shadow: 0 20px 50px rgba(0,0,0,.08); overflow: hidden; }
+  .tel.oscuro { background: #0c0d0f; color: #f2f2f3; }
+  .rot { font: 600 11px Inter; letter-spacing: .05em; color: var(--tenue); }
+  .tit { font: 300 30px Jost; margin: 4px 0 18px; }
+  .sig { margin-top: 14px; border-top: 1px solid var(--hilo); padding-top: 14px; display:flex; justify-content: space-between; align-items:center; font-size: 15px; }
+  .oscuro .sig { border-color: rgba(255,255,255,.08); }
+  .sig span { color: var(--tenue); font-size: 13px; display:block; margin-top: 2px; }
+  .sig::after { content: '›'; color: var(--tenue); font-size: 20px; }
+  .cifra { font: 300 64px Inter; letter-spacing: -.04em; line-height: .9; }
+  .cifra sup { font-size: 22px; color: var(--tenue); vertical-align: top; margin-left: 2px; }
+  .linea { font-size: 15px; color: var(--tenue); margin-top: 6px; }
+  .linea b { color: var(--tinta); font-weight: 600; }
+  .oscuro .linea b { color: #f2f2f3; }
+  .frase { font: 400 15px/1.45 Inter; color: var(--suave); }
+  .oscuro .frase { color: #a6a9af; }
+  .frase b { color: var(--tinta); font-weight: 500; }
+  .oscuro .frase b { color: #f2f2f3; }
+  .entre { display:flex; justify-content:space-between; align-items:flex-end; }
+</style>
+</head>
+<body>
+<h1>Tu avance — cuatro direcciones más</h1>
+<p class="nota">Las cuatro salen de lo que ya es la app: el mapa de cables, la rosa de la marca, la luz cenital y la tipografía grande y fina. Sin cajas ni gráficos de finanzas: la tarjeta es la página. Datos de Sistemas: 4 materias aprobadas, 2 cursando, 43 por delante (49 en total), 13 de 153 UC, Dic 2039.</p>
+
+<div class="fila">
+
+  <!-- D -->
+  <div class="op">
+    <h2>D · Tu mapa, en miniatura</h2>
+    <p class="que">El pensum entero como constelación: una columna por semestre, un punto por materia y los cables de prelación. Lo aprobado brilla, lo que cursas late y lo inscribible es el único azul. Es la misma idea del mapa, vista de lejos. Al tocarla, abre el mapa.</p>
+    <div class="tel">
+      <div class="rot">TU AVANCE</div>
+      <div class="tit">Ingeniería de Sistemas</div>
+      <div class="entre">
+        <div><div class="cifra">8<sup>%</sup></div><div class="linea"><b>13</b> / 153 UC</div></div>
+        <div style="text-align:right"><div class="rot">TE GRADÚAS</div><div style="font:400 22px Inter;margin-top:2px">Dic 2039</div></div>
+      </div>
+      <svg id="constelacion" width="335" height="190" style="margin-top:22px;display:block"></svg>
+      <div class="frase" style="margin-top:10px">Tienes <b style="color:var(--azul)">11 materias</b> que ya puedes inscribir.</div>
+      <div class="sig"><div>Ene – Jun 2027 · 2 materias<span>Tu próximo semestre</span></div></div>
+    </div>
+  </div>
+
+  <!-- E -->
+  <div class="op">
+    <h2>E · La rosa de semestres</h2>
+    <p class="que">La rosa de la marca como gráfico: diez pétalos, uno por semestre, y cada uno se llena según lo que llevas en ese semestre. Empieza vacía y va floreciendo a lo largo de la carrera. Es propia del proyecto y se puede animar al abrir.</p>
+    <div class="tel">
+      <div class="rot">TU AVANCE</div>
+      <div class="tit">Ingeniería de Sistemas</div>
+      <div style="display:flex;justify-content:center"><svg id="rosa" width="230" height="230"></svg></div>
+      <div style="text-align:center;margin-top:6px"><span class="cifra" style="font-size:48px">8<sup>%</sup></span></div>
+      <div class="frase" style="text-align:center;margin-top:8px"><b>13</b> de 153 UC · te gradúas en <b>Dic 2039</b></div>
+      <div class="sig"><div>Ene – Jun 2027 · 2 materias<span>Tu próximo semestre</span></div></div>
+    </div>
+  </div>
+
+  <!-- F -->
+  <div class="op">
+    <h2>F · Lo que te falta, dicho en grande</h2>
+    <p class="que">Tipografía primero, como una pantalla de Apple: lo que importa es lo que falta, no el porcentaje. Debajo, la silueta de los diez semestres como columnas que se llenan desde abajo, igual que el mapa. Habla como una persona.</p>
+    <div class="tel">
+      <div class="rot">TU AVANCE</div>
+      <div class="tit">Ingeniería de Sistemas</div>
+      <div style="font:300 76px/0.95 Jost;letter-spacing:-.02em">43</div>
+      <div style="font:300 26px/1.15 Jost;margin-top:4px">materias para<br>graduarte</div>
+      <div class="frase" style="margin-top:10px">Llevas <b>4</b> y cursas <b>2</b>. Al ritmo de ahora, <b>Dic 2039</b>.</div>
+      <svg id="columnas" width="335" height="96" style="margin-top:20px;display:block"></svg>
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--tenue);margin-top:6px"><span>Sem 1</span><span>8 % · 13 / 153 UC</span><span>10</span></div>
+      <div class="sig"><div>Ene – Jun 2027 · 2 materias<span>Tu próximo semestre</span></div></div>
+    </div>
+  </div>
+
+  <!-- G -->
+  <div class="op">
+    <h2>G · El amanecer (oscuro)</h2>
+    <p class="que">La luz cenital de la portada, pero con sentido: el horizonte sube con tu avance y, al graduarte, la tarjeta queda iluminada. Va sobre el velo oscuro, al estilo TLOU. La fecha va en grande sobre la línea del horizonte, y las electivas como dos líneas finas debajo.</p>
+    <div class="tel oscuro">
+      <div class="rot">TU AVANCE</div>
+      <div class="tit">Ingeniería de Sistemas</div>
+      <div style="position:relative;height:250px;border-radius:26px;overflow:hidden;background:#141518">
+        <div style="position:absolute;left:0;right:0;bottom:0;height:24%;background:linear-gradient(to top, rgba(160,170,190,.38), rgba(160,170,190,.05))"></div>
+        <div style="position:absolute;left:-10%;right:-10%;bottom:24%;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.85),transparent)"></div>
+        <div style="position:absolute;left:50%;bottom:24%;width:320px;height:160px;transform:translate(-50%,50%);background:radial-gradient(closest-side, rgba(220,226,240,.28), transparent)"></div>
+        <div style="position:absolute;left:22px;top:22px">
+          <div class="cifra" style="color:#f2f2f3">8<sup>%</sup></div>
+          <div class="linea"><b>13</b> / 153 UC</div>
+        </div>
+        <div style="position:absolute;right:22px;top:26px;text-align:right">
+          <div class="rot">TE GRADÚAS</div>
+          <div style="font:400 22px Inter;margin-top:2px">Dic 2039</div>
+        </div>
+      </div>
+      <div style="margin-top:16px;display:grid;gap:12px">
+        <div><div style="display:flex;justify-content:space-between;font-size:13px;color:#a6a9af"><span>Técnicas</span><span>0 / 15 UC</span></div><div style="height:2px;background:rgba(255,255,255,.1);margin-top:6px;border-radius:2px"></div></div>
+        <div><div style="display:flex;justify-content:space-between;font-size:13px;color:#a6a9af"><span>Sociohumanísticas</span><span>0 / 6 UC</span></div><div style="height:2px;background:rgba(255,255,255,.1);margin-top:6px;border-radius:2px"></div></div>
+      </div>
+      <div class="sig"><div>Ene – Jun 2027 · 2 materias<span>Tu próximo semestre</span></div></div>
+    </div>
+  </div>
+
+</div>
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const el = (t, a, p) => { const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, a[k]); p.appendChild(e); return e; };
+  // Materias por semestre y su estado: o aprobada, c cursando, i inscribible, b bloqueada
+  const sems = [
+    ['o','o','c','c','i','i'], ['o','o','i','i','b'], ['i','i','i','b','b'], ['i','i','b','b','b'], ['i','b','b','b','b'],
+    ['b','b','b','b','b'], ['b','b','b','b','b'], ['b','b','b','b','b'], ['b','b','b','b'], ['b','b','b','b'],
+  ];
+
+  // D: constelación
+  { const s = document.getElementById('constelacion'); const W = 335, H = 190;
+    const pos = sems.map((col, x) => col.map((e, y) => ({ x: 12 + x * (W - 24) / 9, y: 14 + y * (H - 28) / 5 + (x % 2) * 8, e })));
+    for (let x = 1; x < pos.length; x++) pos[x].forEach((n, y) => {
+      const a = pos[x - 1][(y * 7 + x) % pos[x - 1].length];
+      const vivo = a.e === 'o' && (n.e === 'i' || n.e === 'c' || n.e === 'o');
+      el('path', { d: `M${a.x} ${a.y} C${(a.x + n.x) / 2} ${a.y} ${(a.x + n.x) / 2} ${n.y} ${n.x} ${n.y}`, fill: 'none', stroke: vivo ? 'rgba(17,18,20,.45)' : 'rgba(17,18,20,.09)', 'stroke-width': vivo ? 1.2 : 1 }, s);
+    });
+    pos.flat().forEach(n => {
+      if (n.e === 'o') el('circle', { cx: n.x, cy: n.y, r: 4.5, fill: '#111214' }, s);
+      else if (n.e === 'c') { el('circle', { cx: n.x, cy: n.y, r: 8, fill: 'rgba(17,18,20,.08)' }, s); el('circle', { cx: n.x, cy: n.y, r: 4, fill: 'none', stroke: '#111214', 'stroke-width': 1.6 }, s); }
+      else if (n.e === 'i') el('circle', { cx: n.x, cy: n.y, r: 3.5, fill: '#2f55d4' }, s);
+      else el('circle', { cx: n.x, cy: n.y, r: 2.6, fill: 'rgba(17,18,20,.16)' }, s);
+    });
+  }
+
+  // E: rosa
+  { const s = document.getElementById('rosa'); const c = 115, R = 100, r0 = 14;
+    sems.forEach((col, k) => {
+      const hecho = col.filter(e => e === 'o').length / col.length, va = col.filter(e => e === 'c').length / col.length;
+      const ang = (k / 10) * Math.PI * 2 - Math.PI / 2, w = Math.PI / 10 * 0.82;
+      const petalo = (rad) => { const p1 = [c + Math.cos(ang - w) * r0, c + Math.sin(ang - w) * r0], p2 = [c + Math.cos(ang + w) * r0, c + Math.sin(ang + w) * r0];
+        const t = [c + Math.cos(ang) * rad, c + Math.sin(ang) * rad];
+        const q1 = [c + Math.cos(ang - w * 1.1) * rad * .78, c + Math.sin(ang - w * 1.1) * rad * .78], q2 = [c + Math.cos(ang + w * 1.1) * rad * .78, c + Math.sin(ang + w * 1.1) * rad * .78];
+        return `M${p1} Q${q1} ${t} Q${q2} ${p2} Z`; };
+      el('path', { d: petalo(R), fill: 'rgba(17,18,20,.05)', stroke: 'rgba(17,18,20,.12)', 'stroke-width': 1 }, s);
+      if (hecho + va > 0) el('path', { d: petalo(r0 + (R - r0) * (hecho + va)), fill: 'none', stroke: '#111214', 'stroke-width': 1.2, 'stroke-dasharray': '2 3' }, s);
+      if (hecho > 0) el('path', { d: petalo(r0 + (R - r0) * hecho), fill: '#111214' }, s);
+    });
+    el('circle', { cx: c, cy: c, r: 5, fill: '#111214' }, s);
+  }
+
+  // F: columnas
+  { const s = document.getElementById('columnas'); const W = 335, H = 96, g = 6, w = (W - g * 9) / 10;
+    sems.forEach((col, k) => { const x = k * (w + g), h = H / 6;
+      col.forEach((e, j) => { const y = H - (j + 1) * h;
+        el('rect', { x, y: y + 1.5, width: w, height: h - 3, rx: 4, fill: e === 'o' ? '#111214' : e === 'c' ? 'rgba(17,18,20,.35)' : 'rgba(17,18,20,.07)' }, s); });
+    });
+  }
+</script>
+</body>
+</html>

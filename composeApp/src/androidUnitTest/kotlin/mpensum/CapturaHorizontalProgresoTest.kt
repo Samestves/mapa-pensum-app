@@ -100,8 +100,9 @@ class CapturaHorizontalProgresoTest {
     @Test
     fun detalle() {
         montar(estado())
-        regla.onNodeWithText("Tu próximo semestre").performClick()
+        regla.onNodeWithText("TE GRADÚAS").performClick()
         regla.mainClock.advanceTimeBy(1400)
         foto("2-detalle")
     }
 }
+

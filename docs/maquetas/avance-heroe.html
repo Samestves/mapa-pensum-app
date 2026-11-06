@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Avance — tres direcciones</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root { --tinta:#111214; --suave:#55585e; --tenue:#8b8f96; --hilo:rgba(17,18,20,.08); --acento:#4b5bd6; --lienzo:#f6f6f7; }
+  * { box-sizing: border-box; margin: 0; }
+  body { background: #e9e9ec; font-family: Inter, sans-serif; color: var(--tinta); padding: 40px; }
+  h1 { font: 300 30px Jost; margin-bottom: 6px; }
+  .nota { color: var(--suave); font-size: 14px; margin-bottom: 32px; max-width: 900px; line-height: 1.5; }
+  .fila { display: flex; gap: 40px; flex-wrap: wrap; align-items: flex-start; }
+  .op { width: 375px; }
+  .op h2 { font: 500 15px Inter; margin-bottom: 4px; }
+  .op p.que { font-size: 13px; color: var(--suave); line-height: 1.5; margin-bottom: 14px; min-height: 60px; }
+  .tel { width: 375px; background: #fff; border-radius: 36px; padding: 26px 20px 28px; box-shadow: 0 20px 50px rgba(0,0,0,.08); }
+  .rot { font: 600 11px Inter; letter-spacing: .05em; color: var(--tenue); }
+  .tit { font: 300 30px Jost; margin: 4px 0 18px; }
+  .tarjeta { background: var(--lienzo); border: 1px solid var(--hilo); border-radius: 28px; padding: 22px 20px; }
+  .fila2 { display:flex; justify-content:space-between; align-items:flex-end; }
+  .grande { font: 300 64px Inter; letter-spacing: -.04em; line-height: .9; }
+  .grande sup { font-size: 22px; color: var(--tenue); vertical-align: top; margin-left: 2px; }
+  .uc { font-size: 15px; color: var(--tenue); margin-top: 6px; }
+  .uc b { color: var(--tinta); font-weight: 600; }
+  .fecha { text-align: right; }
+  .fecha .f { font: 400 24px Inter; margin-top: 2px; }
+  .frase { font: 400 15px/1.45 Inter; color: var(--suave); margin-top: 16px; }
+  .frase b { color: var(--tinta); font-weight: 500; }
+  .sig { margin-top: 12px; border: 1px solid var(--hilo); background: var(--lienzo); border-radius: 22px; padding: 14px 16px; display:flex; justify-content: space-between; align-items:center; font-size: 15px; }
+  .sig span { color: var(--tenue); font-size: 13px; display:block; margin-top: 2px; }
+
+  /* A — El camino */
+  .camino { display: flex; gap: 5px; margin-top: 22px; }
+  .sem { flex: 1; height: 44px; border-radius: 9px; background: rgba(17,18,20,.06); position: relative; overflow: hidden; }
+  .sem i { position:absolute; left:0; bottom:0; right:0; background: var(--tinta); }
+  .sem.ahora { outline: 1.5px solid var(--tinta); outline-offset: 2px; }
+  .ejes { display:flex; justify-content:space-between; margin-top: 8px; font-size: 11px; color: var(--tenue); }
+
+  /* B — Las 153 UC */
+  .puntos { display: grid; grid-template-columns: repeat(17, 1fr); gap: 5px; margin-top: 22px; }
+  .puntos b { aspect-ratio: 1; border-radius: 50%; background: rgba(17,18,20,.09); }
+  .puntos b.ok { background: var(--tinta); }
+  .puntos b.va { background: transparent; box-shadow: inset 0 0 0 1.5px var(--tinta); }
+  .ley { display:flex; gap: 14px; margin-top: 14px; font-size: 12px; color: var(--suave); }
+  .ley i { display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:5px; vertical-align: middle; }
+
+  /* C — Anillos */
+  .anillos { display:flex; align-items:center; gap: 18px; margin-top: 4px; }
+  .anillos svg { flex: none; }
+  .lista-a { flex: 1; display:flex; flex-direction:column; gap: 12px; }
+  .lista-a div { font-size: 13px; color: var(--tenue); }
+  .lista-a div b { display:block; font: 400 18px Inter; color: var(--tinta); }
+  .lista-a em { font-style: normal; display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:6px; }
+</style>
+</head>
+<body>
+<h1>Tu avance — tres direcciones</h1>
+<p class="nota">Datos reales de Sistemas: 13 de 153 UC (8 %), te gradúas en Dic 2039, el próximo semestre con 2 materias.
+Las tres se olvidan del eje de años: la gráfica de líneas se queda solo dentro de «¿Cuándo me gradúo?», y ahí arreglo los años montados.</p>
+
+<div class="fila">
+
+  <!-- A -->
+  <div class="op">
+    <h2>A · El camino</h2>
+    <p class="que">Tu carrera como fila de semestres. Los que ya pasaste están llenos, el de ahora lleva un contorno y lo que falta queda en blanco. Se entiende de un vistazo: «voy por aquí».</p>
+    <div class="tel">
+      <div class="rot">TU AVANCE</div>
+      <div class="tit">Ingeniería de Sistemas</div>
+      <div class="tarjeta">
+        <div class="fila2">
+          <div><div class="grande">8<sup>%</sup></div><div class="uc"><b>13</b> / 153 UC</div></div>
+          <div class="fecha"><div class="rot">TE GRADÚAS</div><div class="f">Dic 2039</div></div>
+        </div>
+        <div class="camino">
+          <div class="sem"><i style="height:66%"></i></div>
+          <div class="sem ahora"><i style="height:20%"></i></div>
+          <div class="sem"></div><div class="sem"></div><div class="sem"></div>
+          <div class="sem"></div><div class="sem"></div><div class="sem"></div>
+          <div class="sem"></div><div class="sem"></div>
+        </div>
+        <div class="ejes"><span>1</span><span>Semestre 2 de 10</span><span>10</span></div>
+        <div class="frase">Te faltan <b>140 UC</b>. A tu ritmo, unos <b>26 semestres</b>.</div>
+      </div>
+      <div class="sig">Ene – Jun 2027 · 2 materias<span>Tu próximo semestre</span></div>
+    </div>
+  </div>
+
+  <!-- B -->
+  <div class="op">
+    <h2>B · Cada UC, un punto</h2>
+    <p class="que">Las 153 UC de la carrera como puntos. Las aprobadas van llenas, las que cursas van en aro y las que faltan, tenues. Es honesto y no se parece a nada: ves la carrera entera y cuánto llevas.</p>
+    <div class="tel">
+      <div class="rot">TU AVANCE</div>
+      <div class="tit">Ingeniería de Sistemas</div>
+      <div class="tarjeta">
+        <div class="fila2">
+          <div><div class="grande">8<sup>%</sup></div><div class="uc"><b>13</b> / 153 UC</div></div>
+          <div class="fecha"><div class="rot">TE GRADÚAS</div><div class="f">Dic 2039</div></div>
+        </div>
+        <div class="puntos" id="puntos"></div>
+        <div class="ley"><span><i style="background:var(--tinta)"></i>13 aprobadas</span><span><i style="box-shadow:inset 0 0 0 1.5px var(--tinta)"></i>6 cursando</span><span><i style="background:rgba(17,18,20,.12)"></i>134 por cursar</span></div>
+      </div>
+      <div class="sig">Ene – Jun 2027 · 2 materias<span>Tu próximo semestre</span></div>
+    </div>
+  </div>
+
+  <!-- C -->
+  <div class="op">
+    <h2>C · Anillos de lo que pide el título</h2>
+    <p class="que">Tres anillos, como los de Actividad: el de afuera son las obligatorias, el del medio las técnicas y el de adentro las sociohumanísticas. Cada uno dice lo que le falta, así las electivas también quedan a la vista.</p>
+    <div class="tel">
+      <div class="rot">TU AVANCE</div>
+      <div class="tit">Ingeniería de Sistemas</div>
+      <div class="tarjeta">
+        <div class="anillos">
+          <svg width="150" height="150" viewBox="0 0 150 150">
+            <g fill="none" stroke-linecap="round" transform="rotate(-90 75 75)">
+              <circle cx="75" cy="75" r="64" stroke="rgba(17,18,20,.08)" stroke-width="12"/>
+              <circle cx="75" cy="75" r="64" stroke="#111214" stroke-width="12" stroke-dasharray="402" stroke-dashoffset="364"/>
+              <circle cx="75" cy="75" r="47" stroke="rgba(17,18,20,.08)" stroke-width="12"/>
+              <circle cx="75" cy="75" r="47" stroke="#4b5563" stroke-width="12" stroke-dasharray="295" stroke-dashoffset="292"/>
+              <circle cx="75" cy="75" r="30" stroke="rgba(17,18,20,.08)" stroke-width="12"/>
+              <circle cx="75" cy="75" r="30" stroke="#9ca3af" stroke-width="12" stroke-dasharray="188" stroke-dashoffset="186"/>
+            </g>
+            <text x="75" y="82" text-anchor="middle" font-family="Inter" font-weight="300" font-size="22">8%</text>
+          </svg>
+          <div class="lista-a">
+            <div><em style="background:#111214"></em>Obligatorias<b>13 / 132 UC</b></div>
+            <div><em style="background:#4b5563"></em>Técnicas<b>0 / 15 UC</b></div>
+            <div><em style="background:#9ca3af"></em>Sociohumanísticas<b>0 / 6 UC</b></div>
+          </div>
+        </div>
+        <div class="frase">Te gradúas en <b>Dic 2039</b>.</div>
+      </div>
+      <div class="sig">Ene – Jun 2027 · 2 materias<span>Tu próximo semestre</span></div>
+    </div>
+  </div>
+
+</div>
+<script>
+  const p = document.getElementById('puntos');
+  for (let i = 0; i < 153; i++) {
+    const b = document.createElement('b');
+    if (i < 13) b.className = 'ok'; else if (i < 19) b.className = 'va';
+    p.appendChild(b);
+  }
+</script>
+</body>
+</html>

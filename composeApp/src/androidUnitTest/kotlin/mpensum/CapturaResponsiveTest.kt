@@ -168,8 +168,32 @@ abstract class BaseResponsive(private val tam: String, private val escalaLetra: 
     fun graduacion() {
         interior()
         pulsarIcono("Tu avance")
-        pulsar("Tu próximo semestre")
+        pulsar("TE GRADÚAS")
         foto("graduacion")
+    }
+
+    @Test
+    fun avanceSemestres() {
+        interior()
+        pulsarIcono("Tu avance")
+        pulsar("LLEVAS")
+        foto("avance-semestres")
+    }
+
+    @Test
+    fun avanceInscribir() {
+        interior()
+        pulsarIcono("Tu avance")
+        pulsar("PUEDES INSCRIBIR")
+        foto("avance-inscribir")
+    }
+
+    @Test
+    fun avanceElectivas() {
+        interior()
+        pulsarIcono("Tu avance")
+        pulsar("TÉCNICAS")
+        foto("avance-electivas")
     }
 
     @Test

@@ -8,6 +8,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.SemanticsNodeInteraction
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.onNodeWithText
@@ -113,9 +114,36 @@ class CapturaAvanceTest {
 
     private fun foto(nombre: String) = regla.onRoot().captureRoboImage("build/capturas/$nombre.png")
 
-    private fun abrirDetalle() {
-        regla.onNodeWithText("Tu próximo semestre").performClick()
+    private fun abrirDetalle(pieza: String = "TE GRADÚAS") {
+        regla.onNodeWithText(pieza).performClick()
         regla.mainClock.advanceTimeBy(1400)
+    }
+
+    /** Por semestres: un renglón por semestre con su anillo */
+    @Test
+    fun detallePorSemestres() {
+        montar(estado())
+        abrirDetalle("LLEVAS")
+        foto("avance-detalle-5-por-semestres")
+    }
+
+    /** Puedes inscribir: las abiertas, primero las que más destraban */
+    @Test
+    fun detalleInscribir() {
+        montar(estado())
+        abrirDetalle("PUEDES INSCRIBIR")
+        foto("avance-detalle-6-inscribir")
+    }
+
+    /** Electivas técnicas: la cuota, las casillas del plan y el selector al tocar una */
+    @Test
+    fun detalleElectivas() {
+        montar(estado())
+        abrirDetalle("TÉCNICAS")
+        foto("avance-detalle-7-electivas")
+        regla.onAllNodesWithText("Elegir ›")[0].performClick()
+        regla.mainClock.advanceTimeBy(1400)
+        foto("avance-detalle-8-selector")
     }
 
     @Test

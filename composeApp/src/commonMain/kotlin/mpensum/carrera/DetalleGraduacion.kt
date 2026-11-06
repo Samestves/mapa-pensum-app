@@ -89,14 +89,14 @@ import mpensum.tema.Radio
 /*
  * "¿Cuándo me gradúo?": el detalle de la hoja del progreso. De arriba abajo:
  * la fecha grande con cuánto falta, el anillo con una marca por materia, la
- * cadena de materias que no puedes atrasar, el deslizador de materias por
+ * cadena de materias que no puedes atrasar, los botones de materias por
  * semestre y lo que inscribes el próximo semestre. Acostado, el anillo queda
  * a la izquierda, entero y quieto, y el resto (fecha incluida) en una columna
  * con su propio scroll a la derecha.
  *
  * Los ocho planes (de 1 a 8 materias por semestre) se calculan una sola vez al
- * abrir y se recalculan solo si cambian las marcas o las casillas. Mover el
- * deslizador solo elige entre ellos: la fecha, el anillo y las notas cambian
+ * abrir y se recalculan solo si cambian las marcas o las casillas. Tocar un
+ * botón solo elige entre ellos: la fecha, el anillo y las notas cambian
  * al instante, y la carga se guarda al soltar.
  */
 
@@ -230,17 +230,21 @@ private fun consecuencia(semestres: Int, ritmo: Int, esMinimo: Boolean): String 
     return (if (d > 0) "+" else "−") + tiempo
 }
 
-/** La nota de una línea bajo el deslizador */
+/** La nota de una línea bajo los botones */
 private fun notaDelRitmo(valor: Int, ritmo: Int, cargaMinima: Int): String = when {
     valor >= cargaMinima && cargaMinima < MAX_CARGA -> "Con ${(cargaMinima + 1..MAX_CARGA).joinToString(" u ")} no adelantas: te frena la cadena."
     valor >= cargaMinima -> "Ya vas lo más rápido que deja la cadena."
-    valor != ritmo -> "El punto azul es tu ritmo actual: $ritmo."
+    valor != ritmo -> "Tu ritmo de siempre es $ritmo."
     else -> "Con $cargaMinima materias por semestre te gradúas antes."
 }
 
 // ───────────────────────────────── Tu ritmo ────────────────────────────────
 
-/** "Tu ritmo": el valor grande con su consecuencia a la derecha, el deslizador de 1 a 8 debajo y una nota */
+/**
+ * "Tu ritmo": a la izquierda el título, a la derecha lo que cambia tu fecha, y
+ * debajo ocho botones iguales (de 1 a 8 materias por semestre). Tocar uno lo
+ * elige y lo guarda al instante; la fecha y el anillo cambian con él.
+ */
 @Composable
 private fun TarjetaRitmo(valor: Int, ritmo: Int, consecuencia: String, nota: String, alCambiar: (Int) -> Unit, alSoltar: (Int) -> Unit) {
     Column(Modifier.fillMaxWidth().tarjeta(Radio.Grande).padding(Espacio.l)) {
@@ -257,98 +261,34 @@ private fun TarjetaRitmo(valor: Int, ritmo: Int, consecuencia: String, nota: Str
                 BasicText("materias por semestre", style = estilo(Tipo.s, Paleta.tinta.copy(alpha = 0.64f), interlinea = 18))
             }
             if (!apilada) consecuenciaChip(Modifier)
-            BasicText(
-                "$valor",
-                Modifier.padding(start = Espacio.s).widthIn(min = 26.dp),
-                style = estilo(44, Paleta.tinta, FontWeight.Light, 44).copy(letterSpacing = (-0.03).em, textAlign = TextAlign.End),
-            )
         }
         if (apilada) consecuenciaChip(Modifier.padding(top = Espacio.xs))
         Spacer(Modifier.height(Espacio.s))
-        Deslizador(valor, ritmo, alCambiar, alSoltar)
+        BotonesDeRitmo(valor, alCambiar, alSoltar)
         BasicText(nota, Modifier.padding(top = Espacio.s), style = estilo(Tipo.s, Paleta.tinta.copy(alpha = 0.64f), interlinea = 18))
     }
 }
 
-/**
- * Riel de 4 dp con el tramo lleno en tinta, pomo blanco de 28 dp, una muesca
- * por número y los números debajo. El pomo sigue al dedo y al soltar se
- * asienta en el número más cercano; su posición solo se lee al dibujar. Un
- * punto azul marca tu ritmo cuando te alejas de él.
- */
+/** Los ocho botones: el elegido relleno de tinta con letra de lienzo, los demás la tinta al 5 % */
 @Composable
-private fun Deslizador(valor: Int, ritmo: Int, alCambiar: (Int) -> Unit, alSoltar: (Int) -> Unit) {
-    // Dónde está el pomo, de 0 a MAX_CARGA - 1 (fraccionario mientras se arrastra)
-    var pos by remember { mutableFloatStateOf((valor - 1).toFloat()) }
-    var arrastrando by remember { mutableStateOf(false) }
-    val asentar = remember { Animatable(0f) }
-    LaunchedEffect(valor, arrastrando) {
-        if (!arrastrando && pos != (valor - 1).toFloat()) {
-            val desde = pos
-            asentar.snapTo(0f)
-            asentar.animateTo(1f, tween(160, easing = ENFATICA)) { pos = desde + ((valor - 1) - desde) * value }
-        }
-    }
-    BoxWithConstraints(Modifier.fillMaxWidth()) {
-        val radio = 14.dp
-        val ancho = maxWidth
-        fun centro(n: Int) = radio + (ancho - radio * 2) * (n / (MAX_CARGA - 1f))
-        Column {
-            Canvas(
+private fun BotonesDeRitmo(valor: Int, alCambiar: (Int) -> Unit, alSoltar: (Int) -> Unit) {
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Espacio.xxs)) {
+        for (n in 1..MAX_CARGA) {
+            val elegido = n == valor
+            Box(
                 Modifier
-                    .fillMaxWidth()
-                    .height(Alto.toque)
-                    .semantics { contentDescription = "Materias por semestre: $valor" }
-                    .pointerInput(Unit) {
-                        awaitEachGesture {
-                            val toque = awaitFirstDown()
-                            arrastrando = true
-                            var ultimo = valor
-                            fun mover(x: Float) {
-                                val r = 14.dp.toPx()
-                                pos = ((x - r) / (size.width - 2 * r) * (MAX_CARGA - 1)).coerceIn(0f, MAX_CARGA - 1f)
-                                val nuevo = pos.roundToInt() + 1
-                                if (nuevo != ultimo) {
-                                    ultimo = nuevo
-                                    alCambiar(nuevo)
-                                }
-                            }
-                            mover(toque.position.x)
-                            drag(toque.id) {
-                                mover(it.position.x)
-                                it.consume()
-                            }
-                            pos = pos.roundToInt().toFloat()
-                            arrastrando = false
-                            alSoltar(ultimo)
-                        }
-                    },
-            ) {
-                val r = 14.dp.toPx()
-                val yRiel = 18.dp.toPx()
-                val grueso = 4.dp.toPx()
-                val util = size.width - 2 * r
-                val x = r + util * pos / (MAX_CARGA - 1)
-                drawRoundRect(Paleta.tinta.copy(alpha = 0.10f), Offset(0f, yRiel - grueso / 2), Size(size.width, grueso), CornerRadius(grueso / 2))
-                drawRoundRect(Paleta.tinta, Offset(0f, yRiel - grueso / 2), Size(x, grueso), CornerRadius(grueso / 2))
-                for (n in 0 until MAX_CARGA) {
-                    val cx = r + util * n / (MAX_CARGA - 1)
-                    drawRect(Paleta.tinta.copy(alpha = 0.28f), Offset(cx - 0.75.dp.toPx(), yRiel + 16.dp.toPx()), Size(1.5.dp.toPx(), 6.dp.toPx()))
-                }
-                // Tu ritmo, un punto azul sobre el riel, mientras no estés en él
-                if (valor != ritmo) drawCircle(Paleta.azul, 3.dp.toPx(), Offset(r + util * (ritmo - 1) / (MAX_CARGA - 1), yRiel - 11.dp.toPx()))
-                // El pomo: blanco, con una sombra suave debajo
-                drawCircle(Color.Black.copy(alpha = 0.10f), r + 3.dp.toPx(), Offset(x, yRiel + 3.dp.toPx()))
-                drawCircle(Color.Black.copy(alpha = 0.16f), r + 1.dp.toPx(), Offset(x, yRiel + 2.dp.toPx()))
-                drawCircle(Color.White, r, Offset(x, yRiel))
-            }
-            Box(Modifier.fillMaxWidth().height(18.dp)) {
-                for (n in 1..MAX_CARGA) {
-                    val elegido = n == valor
-                    Box(Modifier.offset(x = centro(n - 1) - 20.dp).width(40.dp), contentAlignment = Alignment.Center) {
-                        BasicText("$n", style = estilo(Tipo.xs, if (elegido) Paleta.tinta else Paleta.tenue, if (elegido) FontWeight.SemiBold else FontWeight.Normal, 16), maxLines = 1)
+                    .weight(1f)
+                    .height(Alto.icono)
+                    .clip(RoundedCornerShape(Radio.Chip))
+                    .background(if (elegido) Paleta.tinta else Paleta.tinta.copy(alpha = 0.05f))
+                    .clickable(role = Role.RadioButton) {
+                        alCambiar(n)
+                        alSoltar(n)
                     }
-                }
+                    .semantics { contentDescription = "$n materias por semestre" },
+                contentAlignment = Alignment.Center,
+            ) {
+                BasicText("$n", style = estilo(Tipo.l, if (elegido) Paleta.lienzo else Paleta.suave, if (elegido) FontWeight.SemiBold else FontWeight.Medium, 20), maxLines = 1)
             }
         }
     }
