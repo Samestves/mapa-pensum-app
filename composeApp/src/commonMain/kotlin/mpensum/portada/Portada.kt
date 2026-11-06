@@ -95,6 +95,7 @@ import dev.chrisbanes.haze.HazeTint
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
 import kotlinx.coroutines.launch
+import mpensum.componentes.esApaisado
 import mpensum.carrera.LocalFondoHoja
 import mpensum.componentes.IconoTrazo
 import mpensum.componentes.Lucide
@@ -174,7 +175,7 @@ fun Portada(
 
     BoxWithConstraints(Modifier.fillMaxSize().background(Paleta.lienzo)) {
         // Horizontal: la tarjeta a la izquierda y las otras carreras a la derecha, sin riel y sin scroll de página
-        val horizontal = maxWidth > maxHeight && maxHeight < 480.dp
+        val horizontal = esApaisado()
         val seguro = WindowInsets.safeDrawing.asPaddingValues()
         val izquierda = seguro.calculateLeftPadding(LayoutDirection.Ltr)
         val derecha = seguro.calculateRightPadding(LayoutDirection.Ltr)

@@ -33,11 +33,11 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
+import mpensum.componentes.esApaisado
 import mpensum.componentes.IconoDoble
 import mpensum.componentes.Phosphor
 import mpensum.datos.Carrera
@@ -85,10 +85,8 @@ private val ANCHO_VELO = 150.dp
 fun Interior(carrera: Carrera, alVolver: () -> Unit) {
     var vista by rememberSaveable { mutableStateOf(Vista.MAPA) }
     val pensum = rememberPensum(carrera.slug)
-    // Horizontal: más ancho que alto y bajo; se sabe antes de medir porque de ello depende la geometría del mapa
-    val ventana = LocalWindowInfo.current.containerSize
-    val densidad = LocalDensity.current.density
-    val horizontal = ventana.width > ventana.height && ventana.height / densidad < 480f
+    // Se sabe antes de medir porque de ello depende la geometría del mapa
+    val horizontal = esApaisado()
     val estado = remember(pensum, horizontal) { pensum?.let { EstadoCarrera(it, compacto = horizontal) } }
     // El horario vive aquí y no en su vista: sus hojas suben por encima de la barra
     val horario = estado?.let { rememberEstadoHorario(it) }
