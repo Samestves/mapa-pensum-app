@@ -1,6 +1,8 @@
 package mpensum.plataforma
 
+import android.app.ActivityManager
 import android.content.Context
+import android.os.Build
 import android.content.SharedPreferences
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
@@ -26,6 +28,9 @@ actual object Preferencias {
     private val luz = MutableStateFlow<Boolean?>(null)
     private val reducir = MutableStateFlow<Boolean?>(null)
     private val codigosVisibles = MutableStateFlow(true)
+    private val ligero = MutableStateFlow<Boolean?>(null)
+    internal var modesto = false
+        private set
     internal var version: String? = null
         private set
     internal var animaciones: android.content.ContentResolver? = null
@@ -39,6 +44,8 @@ actual object Preferencias {
         luz.value = prefs?.takeIf { it.contains("luzFondo") }?.getBoolean("luzFondo", true)
         reducir.value = prefs?.takeIf { it.contains("movimiento") }?.getBoolean("movimiento", false)
         codigosVisibles.value = prefs?.getBoolean("codigos", true) ?: true
+        ligero.value = prefs?.takeIf { it.contains("ligero") }?.getBoolean("ligero", false)
+        modesto = medirModesto(contexto)
         animaciones = contexto.applicationContext.contentResolver
         version = runCatching { contexto.packageManager.getPackageInfo(contexto.packageName, 0).versionName }.getOrNull()
     }
@@ -92,6 +99,12 @@ actual object Preferencias {
         codigosVisibles.value = visibles
         prefs?.edit()?.putBoolean("codigos", visibles)?.apply()
     }
+
+    actual val modoLigero: StateFlow<Boolean?> = ligero.asStateFlow()
+    actual fun guardarModoLigero(ligero: Boolean?) {
+        this.ligero.value = ligero
+        prefs?.edit()?.apply { if (ligero == null) remove("ligero") else putBoolean("ligero", ligero) }?.apply()
+    }
 }
 
 /** Con las animaciones quitadas (opciones de desarrollador o ahorro de batería) la escala del animador es 0 */
@@ -99,6 +112,37 @@ actual fun animacionesQuitadas(): Boolean {
     val c = Preferencias.animaciones ?: return false
     return runCatching { android.provider.Settings.Global.getFloat(c, android.provider.Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f }.getOrDefault(false)
 }
+
+/** Por debajo, la clase de memoria de la app es la de un teléfono justo: 192 MB o menos */
+private const val MEMORIA_APP_MODESTA = 192
+/** Menos de esto en total es un teléfono de menos de 4 GB: los de 4 anunciados dan unos 3,6 a 3,8 */
+private const val RAM_MODESTA = 3_500L * 1024 * 1024
+/** Con cuatro núcleos o menos, o ninguno por encima de 2 GHz, el dibujo no tiene holgura */
+private const val NUCLEOS_MODESTOS = 4
+private const val KHZ_MODESTOS = 2_000_000
+
+/**
+ * Gama baja, medida una vez al arrancar: basta con una señal. Sin RenderEffect
+ * (API < 31) el cristal tampoco desenfoca, así que el modo ligero no quita nada.
+ */
+private fun medirModesto(contexto: Context): Boolean = runCatching {
+    if (Build.VERSION.SDK_INT < 31) return@runCatching true
+    val am = contexto.getSystemService(Context.ACTIVITY_SERVICE) as? ActivityManager ?: return@runCatching false
+    if (am.isLowRamDevice || am.memoryClass <= MEMORIA_APP_MODESTA) return@runCatching true
+    val memoria = ActivityManager.MemoryInfo().also(am::getMemoryInfo)
+    if (memoria.totalMem in 1 until RAM_MODESTA) return@runCatching true
+    val nucleos = Runtime.getRuntime().availableProcessors()
+    if (nucleos <= NUCLEOS_MODESTOS) return@runCatching true
+    val khz = frecuenciaMaxima(nucleos)
+    khz in 1..KHZ_MODESTOS
+}.getOrDefault(false)
+
+/** La frecuencia más alta de la CPU, en kHz, o 0 si el sistema no la deja leer */
+private fun frecuenciaMaxima(nucleos: Int): Int = (0 until nucleos).maxOfOrNull { i ->
+    runCatching { java.io.File("/sys/devices/system/cpu/cpu$i/cpufreq/cpuinfo_max_freq").readText().trim().toInt() }.getOrDefault(0)
+} ?: 0
+
+actual fun telefonoModesto(): Boolean = Preferencias.modesto
 
 actual fun versionApp(): String? = Preferencias.version
 

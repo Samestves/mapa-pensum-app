@@ -73,6 +73,15 @@ object Tema {
     /** Reducir movimiento: sin bucles ni latidos, y las entradas largas pasan a fundidos cortos */
     var movimiento by mutableStateOf(false)
     var codigos by mutableStateOf(true)
+    /**
+     * Modo ligero: para teléfonos modestos. Sin desenfoque (el cristal pasa a
+     * un tinte liso), sin bucles, sin grano y con el mapa más sencillo de
+     * pintar. Lo decide el teléfono al arrancar, salvo que se elija a mano.
+     */
+    var ligero by mutableStateOf(false)
+
+    /** Sin luces, latidos ni ondas en bucle: con el movimiento reducido o en modo ligero */
+    val sinBucles: Boolean get() = movimiento || ligero
 
     /** Cuánto pesa la aurora de la portada: la del juego, si la luz de fondo está encendida */
     val intensidadAurora: Float get() = juego.aurora * (if (luzFondo) 1f else 0f)

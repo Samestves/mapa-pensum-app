@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -50,6 +51,7 @@ import mpensum.componentes.MiniTema
 import mpensum.componentes.esApaisado
 import mpensum.plataforma.Preferencias
 import mpensum.plataforma.animacionesQuitadas
+import mpensum.plataforma.telefonoModesto
 import mpensum.tema.Acento
 
 import mpensum.tema.Espacio
@@ -69,6 +71,7 @@ import mpensum.tema.jost
  *   - Acento: «tu carrera» (el color de cada una) u otro de cinco.
  *   - Texto: normal o grande (×1,15).
  *   - Movimiento y mapa: luz de fondo, reducir movimiento, códigos.
+ *   - Modo ligero: automático (lo decide el teléfono), sí o no.
  */
 
 /** Lo que dice la fila de Ajustes: «Oscuro · tu carrera · texto normal» */
@@ -102,6 +105,7 @@ internal fun Personalizar(colorCarrera: Color) {
             }
             Column(Modifier.weight(1f)) {
                 BloqueMovimiento(arriba = 8.dp)
+                BloqueLigero()
             }
         }
     } else {
@@ -110,6 +114,7 @@ internal fun Personalizar(colorCarrera: Color) {
             BloqueAcento(colorCarrera)
             BloqueTexto()
             BloqueMovimiento(arriba = 24.dp)
+            BloqueLigero()
         }
     }
 }
@@ -202,9 +207,43 @@ private fun CirculoAcento(acento: Acento?, elegido: Boolean, colorCarrera: Color
     }
 }
 
+/**
+ * Modo ligero: automático, sí o no. En automático lo decide el teléfono al
+ * arrancar (poca memoria, pocos núcleos o sin desenfoque), y se dice qué decidió.
+ */
+@Composable
+private fun BloqueLigero() {
+    val ligero by Preferencias.modoLigero.collectAsState()
+    Etiqueta("MODO LIGERO", Modifier.padding(start = margenPantalla() + Espacio.xxs, top = Espacio.xl, bottom = Espacio.s))
+    Segmentado(Modifier.padding(horizontal = Espacio.l)) {
+        OpcionTexto("Automático", null, ligero == null, Modifier.weight(1.4f)) { Preferencias.guardarModoLigero(null) }
+        OpcionTexto("Sí", null, ligero == true, Modifier.weight(1f)) { Preferencias.guardarModoLigero(true) }
+        OpcionTexto("No", null, ligero == false, Modifier.weight(1f)) { Preferencias.guardarModoLigero(false) }
+    }
+    val explica = when (ligero) {
+        null -> if (telefonoModesto()) "Activo en este teléfono: sin desenfoque ni luces en bucle" else "Apagado en este teléfono: va sobrado"
+        true -> "Sin desenfoque ni luces en bucle: el mapa va más suelto"
+        false -> "Todo el cristal y las luces, aunque el teléfono vaya justo"
+    }
+    BasicText(
+        explica,
+        Modifier.padding(start = margenPantalla() + Espacio.xxs, end = margenPantalla(), top = Espacio.xs),
+        style = TextStyle(fontFamily = inter(), fontSize = Tipo.s, lineHeight = 18.sp, color = Paleta.tenue),
+    )
+}
+
 /** «Aa Normal / Aa Grande»: la cápsula con el elegido sobre el panel */
 @Composable
 private fun SegmentadoTexto(grande: Boolean, modifier: Modifier) {
+    Segmentado(modifier) {
+        OpcionTexto("Normal", 14, !grande, Modifier.weight(1f)) { Preferencias.guardarTextoGrande(false) }
+        OpcionTexto("Grande", 18, grande, Modifier.weight(1f)) { Preferencias.guardarTextoGrande(true) }
+    }
+}
+
+/** La cápsula de un segmentado: las opciones en fila sobre un fondo de tinta muy floja */
+@Composable
+private fun Segmentado(modifier: Modifier, opciones: @Composable RowScope.() -> Unit) {
     Row(
         modifier
             .fillMaxWidth()
@@ -214,14 +253,13 @@ private fun SegmentadoTexto(grande: Boolean, modifier: Modifier) {
             .border(1.dp, Paleta.tinta.copy(alpha = 0.065f), RoundedCornerShape(24.dp))
             .padding(Espacio.xxs)
             .semantics { selectableGroup() },
-    ) {
-        OpcionTexto("Normal", 14, !grande, Modifier.weight(1f)) { Preferencias.guardarTextoGrande(false) }
-        OpcionTexto("Grande", 18, grande, Modifier.weight(1f)) { Preferencias.guardarTextoGrande(true) }
-    }
+        content = opciones,
+    )
 }
 
+/** Una opción del segmentado; con `tamAa`, la muestra «Aa» delante a ese tamaño */
 @Composable
-private fun OpcionTexto(nombre: String, tamAa: Int, elegida: Boolean, modifier: Modifier, alPulsar: () -> Unit) {
+private fun OpcionTexto(nombre: String, tamAa: Int?, elegida: Boolean, modifier: Modifier, alPulsar: () -> Unit) {
     Row(
         modifier
             .fillMaxWidth()
@@ -233,7 +271,7 @@ private fun OpcionTexto(nombre: String, tamAa: Int, elegida: Boolean, modifier: 
         verticalAlignment = Alignment.CenterVertically,
     ) {
         val color = if (elegida) Paleta.tinta else Paleta.tenue
-        BasicText("Aa", Modifier.padding(end = Espacio.xs), style = TextStyle(fontFamily = jost(), fontSize = tamAa.sp, color = color))
+        if (tamAa != null) BasicText("Aa", Modifier.padding(end = Espacio.xs), style = TextStyle(fontFamily = jost(), fontSize = tamAa.sp, color = color))
         BasicText(nombre, style = TextStyle(fontFamily = inter(), fontSize = Tipo.l, fontWeight = if (elegida) FontWeight.Medium else FontWeight.Normal, color = color))
     }
 }

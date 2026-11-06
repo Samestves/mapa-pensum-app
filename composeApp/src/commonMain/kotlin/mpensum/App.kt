@@ -37,6 +37,7 @@ import mpensum.plataforma.BarrasDelSistema
 import mpensum.plataforma.ManejarAtras
 import mpensum.plataforma.Preferencias
 import mpensum.plataforma.animacionesQuitadas
+import mpensum.plataforma.telefonoModesto
 import mpensum.portada.Portada
 import mpensum.tema.Paleta
 import mpensum.tema.Tema
@@ -95,11 +96,13 @@ fun App() {
     val luz by Preferencias.luzFondo.collectAsState()
     val reducir by Preferencias.reducirMovimiento.collectAsState()
     val codigos by Preferencias.codigos.collectAsState()
+    val ligero by Preferencias.modoLigero.collectAsState()
     Tema.acento = acento
     Tema.textoGrande = grande
     Tema.luzFondo = luz ?: (juego.aurora > 0f)
     Tema.movimiento = reducir ?: animacionesQuitadas()
     Tema.codigos = codigos
+    Tema.ligero = ligero ?: telefonoModesto()
     BarrasDelSistema(juego.claro)
     // El texto grande es la escala de letra del sistema por 1,15: se lee en sp, no toca los dp
     val densidad = LocalDensity.current

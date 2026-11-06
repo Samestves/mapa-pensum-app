@@ -70,10 +70,21 @@ expect object Preferencias {
     val reducirMovimiento: StateFlow<Boolean?>
     fun guardarReducirMovimiento(reducir: Boolean)
 
+    /** El modo ligero; null es automático (entonces manda [telefonoModesto]) */
+    val modoLigero: StateFlow<Boolean?>
+    fun guardarModoLigero(ligero: Boolean?)
+
     /** El código de 7 cifras en las tarjetas del mapa */
     val codigos: StateFlow<Boolean>
     fun guardarCodigos(visibles: Boolean)
 }
+
+/**
+ * Si el teléfono es de gama baja: poca memoria, pocos núcleos o lentos, o sin
+ * desenfoque nativo. Se mide una vez al arrancar; con él decide el modo
+ * ligero mientras esté en automático.
+ */
+expect fun telefonoModesto(): Boolean
 
 /** Si el teléfono tiene las animaciones quitadas (en Android, la escala del animador a 0) */
 expect fun animacionesQuitadas(): Boolean
@@ -85,13 +96,14 @@ fun aplicarAlTema(nocheDelSistema: Boolean) {
     ponerPreferenciasEnTema(juego)
 }
 
-/** Todo menos el juego (que App cambia con fundido): acento, texto, luz, movimiento y códigos */
+/** Todo menos el juego (que App cambia con fundido): acento, texto, luz, movimiento, códigos y modo ligero */
 fun ponerPreferenciasEnTema(juego: Juego) {
     Tema.acento = Preferencias.acento.value
     Tema.textoGrande = Preferencias.textoGrande.value
     Tema.luzFondo = Preferencias.luzFondo.value ?: (juego.aurora > 0f)
     Tema.movimiento = Preferencias.reducirMovimiento.value ?: animacionesQuitadas()
     Tema.codigos = Preferencias.codigos.value
+    Tema.ligero = Preferencias.modoLigero.value ?: telefonoModesto()
 }
 
 /** La versión instalada ("0.1"), o null si el sistema no la da */
