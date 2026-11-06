@@ -10,6 +10,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
@@ -58,11 +59,12 @@ fun Silueta(
 ) {
     val (ancho, alto) = tamSilueta(silueta, punto, hueco, huecoFila)
     // El reloj de la onda se lee al dibujar: la silueta no se recompone en cada fotograma
-    val reloj: State<Float>? = if (onda && !Tema.movimiento) {
+    val reloj: State<Float>? = if (onda && !Tema.sinBucles) {
         rememberInfiniteTransition(label = "onda")
             .animateFloat(0f, 1f, infiniteRepeatable(tween(3600, easing = LinearEasing), RepeatMode.Restart), label = "t")
     } else null
-    Canvas(modifier.size(ancho, alto)) {
+    // Con onda, en su propia capa: cada cuadro repinta los puntos y no la tarjeta que la lleva
+    Canvas(modifier.size(ancho, alto).then(if (reloj != null) Modifier.graphicsLayer {} else Modifier)) {
         val p = punto.toPx()
         val h = hueco.toPx()
         val hf = huecoFila.toPx()

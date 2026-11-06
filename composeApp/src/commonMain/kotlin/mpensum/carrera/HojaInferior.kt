@@ -384,11 +384,11 @@ fun BoxScope.HojaInferior(
     }
 }
 
-/** El fondo: la pantalla de debajo, difuminada, que entra y sale con la hoja; sin pantalla que difuminar, un velo */
+/** El fondo: la pantalla de debajo, difuminada, que entra y sale con la hoja; sin pantalla que difuminar (o en modo ligero), un velo */
 @OptIn(ExperimentalHazeApi::class)
 @Composable
 private fun FondoHoja(fondo: HazeState?, hoja: Hoja, toque: MutableInteractionSource, alCerrar: () -> Unit) {
-    if (fondo != null) {
+    if (fondo != null && !Tema.ligero) {
         Box(
             Modifier
                 .fillMaxSize()

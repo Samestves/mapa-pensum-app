@@ -5,6 +5,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.CornerRadius
@@ -13,6 +14,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.isSpecified
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -21,6 +23,7 @@ import dev.chrisbanes.haze.HazeInputScale
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.HazeStyle
 import dev.chrisbanes.haze.hazeEffect
+import dev.chrisbanes.haze.hazeSource
 import mpensum.tema.Paleta
 import mpensum.tema.Tema
 import mpensum.tema.porTema
@@ -61,11 +64,30 @@ internal fun Modifier.cristal(estado: HazeState, forma: Shape, estilo: HazeStyle
         .clip(forma)
         .vidrio(estado, estilo, vidrio)
 
+/**
+ * Lo que recoge el cristal (la vista de debajo). En modo ligero no hay
+ * desenfoque, así que tampoco se graba lo de detrás en cada cuadro.
+ */
+fun Modifier.fuenteCristal(estado: HazeState): Modifier = if (Tema.ligero) this else hazeSource(estado)
+
+/**
+ * El cristal del modo ligero: sin desenfoque, el fondo del estilo con su tinte
+ * encima, liso. Es lo mismo que pinta Haze cuando el teléfono no desenfoca
+ * (API < 31), así que se ve igual de asentado. `alfa` se lee al dibujar.
+ */
+fun Modifier.tinteLiso(estilo: HazeStyle, alfa: () -> Float = { 1f }): Modifier = drawBehind {
+    val a = alfa()
+    if (a <= 0f) return@drawBehind
+    val tinte = estilo.fallbackTint.color.takeIf { it.isSpecified } ?: estilo.tints.firstOrNull()?.color?.takeIf { it.isSpecified }
+    drawRect(estilo.backgroundColor, alpha = a)
+    if (tinte != null) drawRect(tinte, alpha = a)
+}
+
 /** El vidrio sin sombra ni recorte: desenfoque, relleno más claro arriba que abajo y el filo de luz del canto */
 @OptIn(ExperimentalHazeApi::class)
 internal fun Modifier.vidrio(estado: HazeState, estilo: HazeStyle, vidrio: Vidrio): Modifier =
     this
-        .hazeEffect(estado, estilo) { inputScale = HazeInputScale.Auto }
+        .then(if (Tema.ligero) Modifier.tinteLiso(estilo) else Modifier.hazeEffect(estado, estilo) { inputScale = HazeInputScale.Auto })
         .drawWithCache {
             val claro = Tema.claro
             val relleno = if (claro) fondoVidrio() else vidrio.fondoOscuro

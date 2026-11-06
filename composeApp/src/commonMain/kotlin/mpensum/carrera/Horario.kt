@@ -238,7 +238,7 @@ private fun Cabecera(horario: EstadoHorario, compacta: Boolean = false) {
                 if (compacta) BasicText(resumenSemana(horario.sesiones), style = l.texto, maxLines = 1)
             } else {
                 val enCurso = momento is Momento.EnCurso
-                if (momento is Momento.EnCurso && !Tema.movimiento) PuntoQueLate(horario.color(momento.clase.codigo))
+                if (momento is Momento.EnCurso && !Tema.sinBucles) PuntoQueLate(horario.color(momento.clase.codigo))
                 BasicText(
                     when (momento) {
                         is Momento.EnCurso -> "EN CURSO"
@@ -384,7 +384,8 @@ private fun PuntoQueLate(color: Color) {
     val t by rememberInfiniteTransition(label = "latido").animateFloat(
         0f, 1f, infiniteRepeatable(tween(2600, easing = LinearEasing), RepeatMode.Restart), label = "latido",
     )
-    Canvas(Modifier.size(7.dp)) {
+    // En su propia capa: el latido repinta el punto y no la cabecera
+    Canvas(Modifier.size(7.dp).graphicsLayer {}) {
         val r = size.minDimension / 2
         // El 70 % del ciclo crece y se apaga; el resto descansa
         val f = CURVA_LATIDO.transform((t / 0.7f).coerceAtMost(1f))

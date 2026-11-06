@@ -67,7 +67,8 @@ import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.HazeStyle
 import dev.chrisbanes.haze.HazeTint
 import dev.chrisbanes.haze.hazeEffect
-import dev.chrisbanes.haze.hazeSource
+import mpensum.componentes.fuenteCristal
+import mpensum.componentes.tinteLiso
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -87,6 +88,7 @@ import mpensum.plataforma.ManejarAtras
 import mpensum.tema.Alto
 import mpensum.tema.Espacio
 import mpensum.tema.Paleta
+import mpensum.tema.Tema
 import mpensum.tema.Tipo
 import mpensum.tema.inter
 import mpensum.tema.jost
@@ -217,7 +219,7 @@ fun VistaLista(
     Box(modifier.fillMaxSize()) {
         LazyColumn(
             state = lista,
-            modifier = columna.fillMaxSize().hazeSource(local),
+            modifier = columna.fillMaxSize().fuenteCristal(local),
             contentPadding = PaddingValues(start = Espacio.m, end = Espacio.m, top = arriba + ALTO_FILTROS, bottom = abajo + Espacio.m),
             verticalArrangement = Arrangement.spacedBy(Espacio.s),
         ) {
@@ -446,11 +448,14 @@ private fun BoxScope.CabeceraLista(
         columna
             .fillMaxWidth()
             .height(arriba + ALTO_FILTROS)
-            .hazeEffect(fondo, ESTILO_VELO) {
-                alpha = vidrio.value
-                blurEnabled = vidrio.value > 0f
-                inputScale = HazeInputScale.Auto
-            }
+            .then(
+                if (Tema.ligero) Modifier.tinteLiso(ESTILO_VELO) { vidrio.value }
+                else Modifier.hazeEffect(fondo, ESTILO_VELO) {
+                    alpha = vidrio.value
+                    blurEnabled = vidrio.value > 0f
+                    inputScale = HazeInputScale.Auto
+                },
+            )
             .drawBehind {
                 val g = 1.dp.toPx()
                 drawRect(Paleta.tinta.copy(alpha = 0.06f * vidrio.value), Offset(0f, size.height - g), Size(size.width, g))

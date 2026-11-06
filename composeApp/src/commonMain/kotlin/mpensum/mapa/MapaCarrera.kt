@@ -33,6 +33,7 @@ import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.PathMeasure
@@ -178,10 +179,12 @@ fun MapaCarrera(
                     scaleX = camara.escala
                     scaleY = camara.escala
                     alpha = llegada.value
+                    // En modo ligero la entrada no pinta el plano entero aparte para fundirlo: cada trazo baja su alfa
+                    if (Tema.ligero) compositingStrategy = CompositingStrategy.ModulateAlpha
                 },
         ) {
             Cables(estado, cadena = { cadenaVisible }, foco = { foco.value }, trazado = { trazado.value }, descarga = { efectos.descarga?.codigo to descarga.value })
-            if (!Tema.movimiento) LuzDeFrontera(estado, congelada = { camara.enGesto || congelado }, cadena = { cadenaVisible }, foco = { foco.value })
+            if (!Tema.sinBucles) LuzDeFrontera(estado, congelada = { camara.enGesto || congelado }, cadena = { cadenaVisible }, foco = { foco.value })
 
             CabecerasSemestres(estado, tipos, medidor, alAlternarSemestre)
             estado.franja?.let { RotulosFranja(it, estado, tipos) }
@@ -382,7 +385,8 @@ private fun degradado(c: CableDibujo, vivo: Boolean): Brush {
  * Los cables: la base de cada uno con la fuerza de lo que dice, la cadena
  * de la materia que se mira dibujándose de origen a destino, y la descarga
  * verde de la que se acaba de aprobar. Las rutas se arman una vez; en cada
- * cuadro solo cambian opacidades y trozos.
+ * cuadro solo cambian opacidades y trozos. En modo ligero la frontera va del
+ * color de su origen, sin degradado: un shader por cable menos que pintar.
  */
 @Composable
 private fun Cables(
@@ -401,6 +405,7 @@ private fun Cables(
                     val enFoco = cadena()
                     val f = foco()
                     val (aprobada, tiempo) = descarga()
+                    val conDegradado = !Tema.ligero
                     for (c in cables) {
                         val a = c.arista
                         val tramo = tramoDe(sit[a.origen] ?: Situacion.LEJANA, sit[a.destino] ?: Situacion.LEJANA)
@@ -410,12 +415,12 @@ private fun Cables(
                         // Dentro del foco la base baja a 0,2 y la cadena se dibuja encima, en su color
                         val alfa = if (enCadena) opacidad(tramo) + (0.2f - opacidad(tramo)) * f else opacidad(tramo) * apartado
                         val estilo = Stroke(grosor(tramo), cap = StrokeCap.Round)
-                        if (frontera) drawPath(c.ruta, degradado(c, false), alpha = alfa, style = estilo)
+                        if (frontera && conDegradado) drawPath(c.ruta, degradado(c, false), alpha = alfa, style = estilo)
                         else drawPath(c.ruta, c.desde.copy(alpha = alfa), style = estilo)
                         if (enCadena && f > 0f) {
                             val trozo = c.hasta(trazado())
                             val linea = Stroke(2.25f, cap = StrokeCap.Round)
-                            if (frontera) drawPath(trozo, degradado(c, false), alpha = 0.95f * f, style = linea)
+                            if (frontera && conDegradado) drawPath(trozo, degradado(c, false), alpha = 0.95f * f, style = linea)
                             else drawPath(trozo, c.desde.copy(alpha = 0.95f * f), style = linea)
                         }
                         // El punto de llegada: el de la frontera siempre, el de la cadena con el foco puesto

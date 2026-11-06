@@ -23,6 +23,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.PathMeasure
@@ -163,7 +164,11 @@ fun TarjetaMapa(
     val base = Modifier
         .offset(nodo.x.toFloat().dp, nodo.y.toFloat().dp)
         .size(Nodo.ANCHO.toFloat().dp, Nodo.ALTO.toFloat().dp)
-        .graphicsLayer { alpha = opacidad() }
+        .graphicsLayer {
+            alpha = opacidad()
+            // En modo ligero, apagada por el foco no se pinta aparte para fundirla: cada trazo baja su alfa
+            if (Tema.ligero) compositingStrategy = CompositingStrategy.ModulateAlpha
+        }
         .toqueYMantener(nodo.codigo, camara, alEmpezarCarga, alSoltarCarga, alTocar, alFijar)
         .drawWithContent {
             drawContent()
@@ -197,7 +202,8 @@ fun TarjetaMapa(
                     CornerRadius((Nodo.RADIO.toFloat() + 4) * u), style = Stroke(2 * u),
                 )
             }
-            if (a.sombra.alpha > 0f) drawRoundRect(a.sombra, Offset(0f, 2 * u), size, radio)
+            // La sombra de papel de los temas claros; en modo ligero la tarjeta se separa solo con su borde
+            if (a.sombra.alpha > 0f && !Tema.ligero) drawRoundRect(a.sombra, Offset(0f, 2 * u), size, radio)
             drawRoundRect(a.fondo, cornerRadius = radio)
             val grosor = (if (seleccionada) a.grosor + 0.75f else a.grosor) * u
             drawRoundRect(

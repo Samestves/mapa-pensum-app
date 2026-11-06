@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
@@ -190,7 +191,7 @@ internal fun AnilloGraduacion(a: Anillo, porcentaje: Int, anioMeta: Int?, anioHo
     val grande = estilo(34, Color.Unspecified, FontWeight.Light, 36).copy(letterSpacing = (-0.03).em)
     val porciento = estilo(20, Color.Unspecified, FontWeight.Light, 24)
     val pie = estilo(10, Color.Unspecified, FontWeight.SemiBold, 14).copy(letterSpacing = 0.06.em)
-    val latido = if (latidoActivo && !Tema.movimiento) {
+    val latido = if (latidoActivo && !Tema.sinBucles) {
         rememberInfiniteTransition(label = "latidoAnillo").animateFloat(0f, 1f, infiniteRepeatable(tween(LATIDO_ANILLO_MS, easing = LinearEasing), RepeatMode.Restart), label = "latidoAnillo")
     } else null
 
@@ -198,6 +199,8 @@ internal fun AnilloGraduacion(a: Anillo, porcentaje: Int, anioMeta: Int?, anioHo
         modifier
             .fillMaxWidth()
             .height(270.dp)
+            // Con latido, en su propia capa: cada cuadro repinta el anillo y no la hoja entera
+            .then(if (latido != null) Modifier.graphicsLayer {} else Modifier)
             .semantics { contentDescription = "${a.aprobadas} materias aprobadas y ${a.porAprobar} por aprobar, el $porcentaje % del título" },
     ) {
         val u = 1.dp.toPx()

@@ -77,7 +77,8 @@ import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.HazeStyle
 import dev.chrisbanes.haze.HazeTint
 import dev.chrisbanes.haze.hazeEffect
-import dev.chrisbanes.haze.hazeSource
+import mpensum.componentes.fuenteCristal
+import mpensum.componentes.tinteLiso
 import kotlinx.coroutines.launch
 import mpensum.componentes.esApaisado
 import mpensum.carrera.LocalFondoHoja
@@ -163,7 +164,7 @@ fun Portada(
         }
         val rotulo = if (suya != null) "OTRAS CARRERAS" else "CARRERAS"
         // La luz va fuera del scroll: es del fondo, no sube ni baja con la lista
-        Box(Modifier.fillMaxSize().luzCenital().hazeSource(cristal)) {
+        Box(Modifier.fillMaxSize().luzCenital().fuenteCristal(cristal)) {
             if (horizontal) {
                 // Las dos columnas nacen y acaban a la misma altura: bajo la cabecera de 48 dp y a 32 del borde
                 Row(Modifier.fillMaxSize().padding(start = izquierda + Espacio.xl, end = derecha + Espacio.xl, top = barra + 60.dp, bottom = Espacio.xxl)) {
@@ -429,11 +430,15 @@ private fun VidrioCabecera(cristal: HazeState, barra: Dp, progreso: () -> Float)
             Modifier
                 .fillMaxWidth()
                 .height(barra + 56.dp)
-                .hazeEffect(cristal, vidrio(lienzo)) {
-                    alpha = progreso()
-                    // A un tercio de resolución el desenfoque cuesta poco
-                    inputScale = HazeInputScale.Auto
-                },
+                .then(
+                    // En modo ligero, el mismo lienzo casi opaco que sin API 31
+                    if (Tema.ligero) Modifier.tinteLiso(vidrio(lienzo), progreso)
+                    else Modifier.hazeEffect(cristal, vidrio(lienzo)) {
+                        alpha = progreso()
+                        // A un tercio de resolución el desenfoque cuesta poco
+                        inputScale = HazeInputScale.Auto
+                    },
+                ),
         ) {
             // El filo de luz de abajo: 1 px, más claro en el centro y nada en los bordes
             Box(

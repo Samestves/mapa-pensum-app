@@ -16,6 +16,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
@@ -235,7 +236,7 @@ internal fun GraficaAvance(
     }
     val entrada = remember { Animatable(0f) }
     LaunchedEffect(Unit) { entrada.animateTo(1f, tween(ENTRADA_MS, easing = ENFATICA)) }
-    val latido = if (latidoActivo && !Tema.movimiento) rememberInfiniteTransition(label = "latido").animateFloat(0f, 1f, infiniteRepeatable(tween(LATIDO_MS, easing = LinearEasing), RepeatMode.Restart), label = "latido") else null
+    val latido = if (latidoActivo && !Tema.sinBucles) rememberInfiniteTransition(label = "latido").animateFloat(0f, 1f, infiniteRepeatable(tween(LATIDO_MS, easing = LinearEasing), RepeatMode.Restart), label = "latido") else null
 
     val medidor = rememberTextMeasurer(cacheSize = 24)
     val i = inter()
@@ -248,6 +249,8 @@ internal fun GraficaAvance(
         modifier
             .fillMaxWidth()
             .height(alto)
+            // Con latido, en su propia capa: cada cuadro repinta la curva y no la hoja entera
+            .then(if (latido != null) Modifier.graphicsLayer {} else Modifier)
             .semantics { contentDescription = "Tu curva de avance: $porcentaje por ciento hoy, te gradúas en $fecha" },
     ) {
         val e = mezcla(desde, hacia, cambio.value)

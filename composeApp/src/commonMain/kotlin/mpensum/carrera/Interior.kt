@@ -38,7 +38,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.hazeSource
+import mpensum.componentes.fuenteCristal
 import mpensum.componentes.esApaisado
 import mpensum.componentes.IconoDoble
 import mpensum.componentes.Phosphor
@@ -267,7 +267,7 @@ private fun CapaVista(
 ) {
 AnimatedContent(
     targetState = vista,
-    modifier = Modifier.fillMaxSize().hazeSource(cristal),
+    modifier = Modifier.fillMaxSize().fuenteCristal(cristal),
     transitionSpec = { fadeIn(tween(260, 80)) togetherWith fadeOut(tween(160)) },
     label = "vista",
 ) { v ->

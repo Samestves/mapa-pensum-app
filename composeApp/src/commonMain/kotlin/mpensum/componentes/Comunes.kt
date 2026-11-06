@@ -158,9 +158,9 @@ class RelojAurora internal constructor(segundos: Float, entrando: Boolean) {
 fun rememberRelojAurora(entrar: Boolean, pausada: () -> Boolean): RelojAurora {
     val reloj = remember { RelojAurora(ultimoSegundo, entrar) }
     val pausa by rememberUpdatedState(pausada)
-    LaunchedEffect(reloj, Tema.movimiento) {
-        // Con el movimiento reducido o las animaciones quitadas, la luz se queda quieta y encendida
-        if (Tema.movimiento || (coroutineContext[MotionDurationScale]?.scaleFactor ?: 1f) == 0f) {
+    LaunchedEffect(reloj, Tema.sinBucles) {
+        // Con el movimiento reducido, en modo ligero o con las animaciones quitadas, la luz se queda quieta y encendida
+        if (Tema.sinBucles || (coroutineContext[MotionDurationScale]?.scaleFactor ?: 1f) == 0f) {
             reloj.ms = RelojAurora.ENTRADA_HECHA
             return@LaunchedEffect
         }
@@ -267,9 +267,10 @@ fun Modifier.luzCenital(): Modifier = drawBehind {
  * aspecto de degradado de ordenador. Es ruido fijo, pintado una vez en un
  * mosaico de 128 y repetido; su capa no se vuelve a dibujar. En claro el
  * punto blanco no se ve sobre el papel: se tiñe de tinta y a menos de la
- * mitad, que en claro el grano se nota mucho antes.
+ * mitad, que en claro el grano se nota mucho antes. En modo ligero no va:
+ * un mosaico más que componer en cada cuadro de la luz.
  */
-fun Modifier.grano(intensidad: Float = 0.06f): Modifier = graphicsLayer {}.drawBehind {
+fun Modifier.grano(intensidad: Float = 0.06f): Modifier = if (Tema.ligero) this else graphicsLayer {}.drawBehind {
     val imagen = GRANO
     val lado = 128.dp.roundToPx()
     val tinte = if (Tema.claro) ColorFilter.tint(Paleta.tinta, BlendMode.SrcIn) else null
