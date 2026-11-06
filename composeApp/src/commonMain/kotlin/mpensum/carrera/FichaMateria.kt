@@ -430,7 +430,7 @@ private fun SelectorMarca(marca: Marca?, alMarcar: (Marca?) -> Unit) {
     val i = inter()
     val pista = RoundedCornerShape(16.dp)
     BoxWithConstraints(
-        Modifier.fillMaxWidth().heightIn(min = Alto.grande).clip(pista)
+        Modifier.fillMaxWidth().height(Alto.grande).clip(pista)
             .background(Paleta.tinta.copy(alpha = porTema(0.035f, 0.03f)))
             .border(1.dp, Paleta.borde, pista)
             .padding(Espacio.xxs),
