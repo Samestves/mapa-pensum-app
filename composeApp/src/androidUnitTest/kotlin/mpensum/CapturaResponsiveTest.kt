@@ -30,6 +30,7 @@ import mpensum.portada.HojaAjustes
 import mpensum.portada.PaginaAjustes
 import mpensum.portada.Portada
 import mpensum.tema.Paleta
+import mpensum.tema.Tema
 import org.junit.Rule
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -60,6 +61,8 @@ abstract class BaseResponsive(private val tam: String, private val escalaLetra: 
         System.setProperty("roborazzi.test.record", "true")
         Preferencias.iniciar(RuntimeEnvironment.getApplication())
         Preferencias.marcarBienvenidaVista()
+        // El Tema es global: lo que dejara otra prueba (o la detección de gama baja) no cuela en la captura
+        Tema.ligero = false
         val pensum = leerPensum(File("src/commonMain/composeResources/files/carreras/ingenieria-de-sistemas.json").readText())
         Guardado.guardarMarcas(
             sistemas.slug,
@@ -125,6 +128,18 @@ abstract class BaseResponsive(private val tam: String, private val escalaLetra: 
     fun mapa() {
         interior()
         foto("mapa")
+    }
+
+    /** El mapa en modo ligero: cristal liso, cables sin degradado y sin la luz que corre */
+    @Test
+    fun mapaLigero() {
+        Tema.ligero = true
+        try {
+            interior()
+            foto("mapa-ligero")
+        } finally {
+            Tema.ligero = false
+        }
     }
 
     @Test

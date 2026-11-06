@@ -23,6 +23,8 @@ import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -143,12 +145,13 @@ fun MapaCarrera(
         if (camara.colocada) llegada.animateTo(1f, tween(620, easing = LLEGADA))
     }
 
-    val opacidadDe = { codigo: String? ->
+    // Recordada: cada tarjeta guarda la suya y no recompone cuando el mapa sí
+    val opacidadDe = remember { { codigo: String? ->
         {
             val visible = cadenaVisible
             if (visible == null || (codigo != null && codigo in visible)) 1f else 1f - (1f - OPACIDAD_FOCO) * foco.value
         }
-    }
+    } }
 
     Box(
         modifier
@@ -239,10 +242,14 @@ private fun TarjetasMapa(
     val sit = estado.situaciones
     val haptica = LocalHapticFeedback.current
     val descargado = efectos.descarga
-    estado.nodos.forEach { nodo ->
+    // Los toques llegan por estados: así las lambdas de cada tarjeta no cambian al cambiar la elegida, y la tarjeta se salta
+    val tocarMateria by rememberUpdatedState(alTocarMateria)
+    val abrirCasilla by rememberUpdatedState(alAbrirCasilla)
+    estado.nodos.forEach { nodo -> key(nodo.codigo) {
         val materia = estado.materiaDe(nodo)
         val codigo = materia?.codigo
         val situacion = codigo?.let { sit[it] }
+        val opacidad = remember(codigo, opacidadDe) { opacidadDe(codigo) }
         TarjetaMapa(
             nodo = nodo,
             materia = materia,
@@ -251,7 +258,7 @@ private fun TarjetasMapa(
             acento = materia?.let(estado.colores::de) ?: Paleta.suave,
             seleccionada = codigo != null && codigo == seleccionado,
             resaltada = codigo != null && cadena?.contains(codigo) == true,
-            opacidad = opacidadDe(codigo),
+            opacidad = opacidad,
             animaciones = AnimacionesTarjeta(
                 toque = efectos.toque?.takeIf { it.codigo == codigo }?.n,
                 destello = descargado?.takeIf { situacion == Situacion.INSCRIBIBLE && materia?.prerrequisitos?.contains(it.codigo) == true }?.n,
@@ -260,7 +267,7 @@ private fun TarjetasMapa(
             escala = { camara.escala },
             tipos = tipos,
             camara = camara,
-            alTocar = { if (codigo != null) alTocarMateria(codigo) else alAbrirCasilla(nodo.codigo) },
+            alTocar = { if (codigo != null) tocarMateria(codigo) else abrirCasilla(nodo.codigo) },
             alEmpezarCarga = { if (codigo != null) efectos.empezarCarga(codigo) },
             alSoltarCarga = { efectos.soltarCarga() },
             alFijar = {
@@ -270,7 +277,7 @@ private fun TarjetasMapa(
                 }
             },
         )
-    }
+    } }
 }
 
 /** El semestre por el que vas: lo que puedes inscribir o cursas; si no, lo primero pendiente (layout/camara.js) */
@@ -397,8 +404,13 @@ private fun Cables(
     descarga: () -> Pair<String?, Float>,
 ) {
     Spacer(
-        Modifier.fillMaxSize().drawWithCache {
+        // En su propia capa: la luz de la frontera, las cabeceras o el foco no la repintan, y moverla no la toca
+        Modifier.fillMaxSize().graphicsLayer {}.drawWithCache {
             val cables = cablesDe(estado)
+            // Degradados y trazos se arman una vez: en cada cuadro solo se eligen
+            val degradados = cables.map { degradado(it, false) }
+            val trazos = Tramo.entries.associateWith { Stroke(grosor(it), cap = StrokeCap.Round) }
+            val linea = Stroke(2.25f, cap = StrokeCap.Round)
             onDrawBehind {
                 scale(density, Offset.Zero) {
                     val sit = estado.situaciones
@@ -406,7 +418,7 @@ private fun Cables(
                     val f = foco()
                     val (aprobada, tiempo) = descarga()
                     val conDegradado = !Tema.ligero
-                    for (c in cables) {
+                    for ((i, c) in cables.withIndex()) {
                         val a = c.arista
                         val tramo = tramoDe(sit[a.origen] ?: Situacion.LEJANA, sit[a.destino] ?: Situacion.LEJANA)
                         val frontera = tramo == Tramo.FRONTERA
@@ -414,13 +426,12 @@ private fun Cables(
                         val apartado = if (enFoco != null && !enCadena) 1f - (1f - OPACIDAD_FOCO) * f else 1f
                         // Dentro del foco la base baja a 0,2 y la cadena se dibuja encima, en su color
                         val alfa = if (enCadena) opacidad(tramo) + (0.2f - opacidad(tramo)) * f else opacidad(tramo) * apartado
-                        val estilo = Stroke(grosor(tramo), cap = StrokeCap.Round)
-                        if (frontera && conDegradado) drawPath(c.ruta, degradado(c, false), alpha = alfa, style = estilo)
+                        val estilo = trazos.getValue(tramo)
+                        if (frontera && conDegradado) drawPath(c.ruta, degradados[i], alpha = alfa, style = estilo)
                         else drawPath(c.ruta, c.desde.copy(alpha = alfa), style = estilo)
                         if (enCadena && f > 0f) {
                             val trozo = c.hasta(trazado())
-                            val linea = Stroke(2.25f, cap = StrokeCap.Round)
-                            if (frontera && conDegradado) drawPath(trozo, degradado(c, false), alpha = 0.95f * f, style = linea)
+                            if (frontera && conDegradado) drawPath(trozo, degradados[i], alpha = 0.95f * f, style = linea)
                             else drawPath(trozo, c.desde.copy(alpha = 0.95f * f), style = linea)
                         }
                         // El punto de llegada: el de la frontera siempre, el de la cadena con el foco puesto
@@ -465,20 +476,24 @@ private fun LuzDeFrontera(estado: EstadoCarrera, congelada: () -> Boolean, caden
     )
     val congeladaEn = remember { floatArrayOf(0f) }
     Spacer(
-        Modifier.fillMaxSize().drawWithCache {
+        // En su propia capa: cada cuadro de la luz repinta solo la luz, no los cables ni las cabeceras de debajo
+        Modifier.fillMaxSize().graphicsLayer {}.drawWithCache {
             val cables = cablesDe(estado)
+            // Las fronteras y su degradado cambian al marcar, no en cada cuadro
+            val sit = estado.situaciones
+            val fronteras = cables.withIndex().filter { (_, c) ->
+                tramoDe(sit[c.arista.origen] ?: Situacion.LEJANA, sit[c.arista.destino] ?: Situacion.LEJANA) == Tramo.FRONTERA
+            }
+            val vivos = fronteras.map { (_, c) -> degradado(c, true) }
             onDrawBehind {
-                val sit = estado.situaciones
                 val enFoco = cadena()
                 val f = foco()
-                val fronteras = cables.withIndex().filter { (_, c) ->
-                    tramoDe(sit[c.arista.origen] ?: Situacion.LEJANA, sit[c.arista.destino] ?: Situacion.LEJANA) == Tramo.FRONTERA
-                }
                 if (fronteras.isEmpty()) return@onDrawBehind
                 // Congelada, sin leer el reloj: la capa no se invalida y la luz se queda donde estaba
                 val segundos = if (congelada()) congeladaEn[0] else reloj.also { congeladaEn[0] = it }
                 scale(density, Offset.Zero) {
-                    for ((i, c) in fronteras) {
+                    for ((k, ic) in fronteras.withIndex()) {
+                        val (i, c) = ic
                         val enCadena = enFoco != null && c.arista.origen in enFoco && c.arista.destino in enFoco
                         val apagado = if (enFoco != null && !enCadena) 1f - f else 1f
                         if (apagado <= 0f) continue
@@ -495,7 +510,7 @@ private fun LuzDeFrontera(estado: EstadoCarrera, congelada: () -> Boolean, caden
                         // El guion entra por el origen y sale por el destino (dashoffset de 100 a 0)
                         val fase = (c.largo * (1f - p)) % c.largo
                         drawPath(
-                            c.ruta, degradado(c, true), alpha = alfa.coerceIn(0f, 1f),
+                            c.ruta, vivos[k], alpha = alfa.coerceIn(0f, 1f),
                             style = Stroke(2.25f, cap = StrokeCap.Round, pathEffect = PathEffect.dashPathEffect(floatArrayOf(guion, c.largo - guion), fase)),
                         )
                     }

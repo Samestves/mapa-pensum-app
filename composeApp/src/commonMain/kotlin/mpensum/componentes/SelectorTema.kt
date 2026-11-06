@@ -111,7 +111,7 @@ fun CarruselTemas(modifier: Modifier = Modifier, relleno: PaddingValues = Paddin
         contentPadding = relleno,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        items(TEMAS) { a -> CeldaTema(a, a == actual) { Preferencias.guardarTema(a) } }
+        items(TEMAS, key = { it.name }) { a -> CeldaTema(a, a == actual) { Preferencias.guardarTema(a) } }
     }
 }
 
