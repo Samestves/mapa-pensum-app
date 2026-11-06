@@ -79,6 +79,7 @@ import mpensum.plataforma.mesLocal
 import mpensum.tema.Paleta
 import kotlin.math.abs
 import kotlin.math.roundToInt
+import mpensum.tema.Radio
 
 /*
  * "¿Cuándo me gradúo?": el detalle de la hoja del progreso. De arriba abajo:
@@ -240,7 +241,7 @@ private fun TarjetaRitmo(valor: Int, ritmo: Int, consecuencia: String, nota: Str
                 BasicText("Tu ritmo", style = estilo(17, Paleta.tinta, FontWeight.SemiBold, 22))
                 BasicText("materias por semestre", style = estilo(13, Paleta.tinta.copy(alpha = 0.64f), interlinea = 18))
             }
-            Box(Modifier.height(24.dp).clip(RoundedCornerShape(12.dp)).background(Paleta.tinta.copy(alpha = 0.09f)).padding(horizontal = 10.dp), contentAlignment = Alignment.Center) {
+            Box(Modifier.height(24.dp).clip(RoundedCornerShape(Radio.Chip)).background(Paleta.tinta.copy(alpha = 0.09f)).padding(horizontal = 10.dp), contentAlignment = Alignment.Center) {
                 BasicText(consecuencia, style = estilo(12, Paleta.tinta, FontWeight.SemiBold, 16), maxLines = 1)
             }
             BasicText(
@@ -443,7 +444,7 @@ private fun NoPuedesAtrasar(g: EstimacionGraduacion, hoy: Periodo, nombre: (Stri
                             .fillMaxWidth()
                             .heightIn(min = 52.dp)
                             .then(
-                                if (primera) Modifier.clip(RoundedCornerShape(18.dp)).background(Paleta.azul.copy(alpha = 0.08f)).border(1.dp, Paleta.azul.copy(alpha = 0.45f), RoundedCornerShape(18.dp))
+                                if (primera) Modifier.clip(RoundedCornerShape(Radio.Tarjeta)).background(Paleta.azul.copy(alpha = 0.08f)).border(1.dp, Paleta.azul.copy(alpha = 0.45f), RoundedCornerShape(Radio.Tarjeta))
                                 else Modifier,
                             )
                             .padding(horizontal = 16.dp, vertical = 8.dp),

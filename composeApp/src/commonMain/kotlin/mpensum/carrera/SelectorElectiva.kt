@@ -41,6 +41,7 @@ import mpensum.datos.Asignatura
 import mpensum.logica.EstadoMateria
 import mpensum.mapa.tituloGrupo
 import mpensum.tema.Paleta
+import mpensum.tema.Radio
 import mpensum.tema.jost
 
 /*
@@ -145,7 +146,7 @@ private fun Contenido(
         cuota?.let { CuotaGrupo("UC elegidas de este grupo", ucColocadas, it) }
         puesta?.let { p ->
             Row(
-                Modifier.fillMaxWidth().clip(RoundedCornerShape(18.dp)).background(Paleta.tinta.copy(alpha = 0.04f)).padding(10.dp),
+                Modifier.fillMaxWidth().clip(RoundedCornerShape(Radio.Tarjeta)).background(Paleta.tinta.copy(alpha = 0.04f)).padding(10.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
@@ -217,7 +218,7 @@ private fun FichaUc(materia: Asignatura, estado: EstadoCarrera, apagada: Boolean
     val color = estado.colores.de(materia)
     val j = jost()
     Column(
-        Modifier.size(40.dp).clip(RoundedCornerShape(12.dp)).background(color.copy(alpha = 0.16f * (if (apagada) 0.5f else 1f))),
+        Modifier.size(40.dp).clip(RoundedCornerShape(Radio.Chip)).background(color.copy(alpha = 0.16f * (if (apagada) 0.5f else 1f))),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
@@ -248,9 +249,9 @@ private fun FichaElectiva(
     }
     Column(
         modifier
-            .clip(RoundedCornerShape(18.dp))
+            .clip(RoundedCornerShape(Radio.Tarjeta))
             .background(if (aqui) Paleta.verde.copy(alpha = 0.08f) else Color.Transparent)
-            .border(1.dp, if (aqui) Paleta.verde.copy(alpha = 0.5f) else BORDE_PANEL, RoundedCornerShape(18.dp))
+            .border(1.dp, if (aqui) Paleta.verde.copy(alpha = 0.5f) else BORDE_PANEL, RoundedCornerShape(Radio.Tarjeta))
             .clickable(role = Role.Button, onClick = alElegir)
             .padding(12.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),

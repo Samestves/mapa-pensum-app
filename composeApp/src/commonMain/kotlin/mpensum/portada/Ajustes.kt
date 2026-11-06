@@ -57,6 +57,7 @@ import mpensum.datos.Carrera
 import mpensum.datos.TIPOS
 import mpensum.plataforma.versionApp
 import mpensum.tema.Paleta
+import mpensum.tema.Radio
 import mpensum.tema.Tema
 import mpensum.tema.colorDe
 import mpensum.tema.inter
@@ -112,7 +113,7 @@ fun BoxScope.HojaAjustes(
                 // La flecha de volver solo si se llegó desde el menú; abierta directo en la lista, se cierra y ya
                 val conVolver = actual != PaginaAjustes.MENU && ultima == PaginaAjustes.MENU
                 if (conVolver) {
-                    Box(Modifier.padding(end = 8.dp).size(36.dp).clip(RoundedCornerShape(18.dp)).pulsable({ actual = PaginaAjustes.MENU }), contentAlignment = Alignment.Center) {
+                    Box(Modifier.padding(end = 8.dp).size(36.dp).clip(RoundedCornerShape(Radio.Tarjeta)).pulsable({ actual = PaginaAjustes.MENU }), contentAlignment = Alignment.Center) {
                         IconoTrazo(Lucide.atras, Paleta.tinta, 20.dp, 2f)
                     }
                 }
@@ -275,7 +276,7 @@ internal fun Textos(titulo: String, texto: String, modifier: Modifier) {
 @Composable
 private fun Renglon(icono: List<Path>, titulo: String, texto: String, fuera: Boolean = false, alPulsar: () -> Unit) {
     FilaCristal(alPulsar) {
-        Box(Modifier.size(40.dp).clip(RoundedCornerShape(12.dp)).background(Paleta.tinta.copy(alpha = 0.06f)), contentAlignment = Alignment.Center) {
+        Box(Modifier.size(40.dp).clip(RoundedCornerShape(Radio.Chip)).background(Paleta.tinta.copy(alpha = 0.06f)), contentAlignment = Alignment.Center) {
             IconoTrazo(icono, Paleta.suave, 20.dp, 1.75f)
         }
         Textos(titulo, texto, Modifier.padding(start = 16.dp, end = 12.dp).weight(1f))
@@ -302,7 +303,7 @@ private fun FilaCarrera(propia: Carrera?, alPulsar: () -> Unit) {
             }
         } else {
             Box(Modifier.size(56.dp, 40.dp), contentAlignment = Alignment.CenterStart) {
-                Box(Modifier.size(40.dp).clip(RoundedCornerShape(12.dp)).background(Paleta.tinta.copy(alpha = 0.06f)), contentAlignment = Alignment.Center) {
+                Box(Modifier.size(40.dp).clip(RoundedCornerShape(Radio.Chip)).background(Paleta.tinta.copy(alpha = 0.06f)), contentAlignment = Alignment.Center) {
                     IconoTrazo(Lucide.birrete, Paleta.suave, 20.dp, 1.75f)
                 }
             }

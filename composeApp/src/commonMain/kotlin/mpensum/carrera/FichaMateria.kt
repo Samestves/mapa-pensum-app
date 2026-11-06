@@ -77,6 +77,7 @@ import mpensum.logica.Marca
 import mpensum.logica.Situacion
 import mpensum.tema.PESO_NOMBRE
 import mpensum.tema.Paleta
+import mpensum.tema.Radio
 import mpensum.tema.Tema
 import mpensum.tema.inter
 import mpensum.tema.jost
@@ -442,7 +443,7 @@ private fun SelectorMarca(marca: Marca?, alMarcar: (Marca?) -> Unit) {
             MARCAS.forEach { (m, texto, c) ->
                 val activa = m == marca
                 Row(
-                    Modifier.weight(1f).fillMaxSize().clip(RoundedCornerShape(12.dp)).clickable(role = Role.Button) {
+                    Modifier.weight(1f).fillMaxSize().clip(RoundedCornerShape(Radio.Chip)).clickable(role = Role.Button) {
                         haptica.performHapticFeedback(HapticFeedbackType.SegmentTick)
                         alMarcar(m)
                     },
