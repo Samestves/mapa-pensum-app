@@ -80,7 +80,6 @@ import mpensum.logica.accionDeSemestre
 import mpensum.logica.modeloLista
 import mpensum.plataforma.ManejarAtras
 import mpensum.tema.Paleta
-import mpensum.tema.Tema
 import mpensum.tema.inter
 import mpensum.tema.jost
 import mpensum.tema.porTema

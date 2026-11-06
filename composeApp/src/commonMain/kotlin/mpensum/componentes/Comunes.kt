@@ -6,6 +6,7 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
@@ -403,3 +404,7 @@ fun BarraPasos(paso: Int, total: Int, modifier: Modifier = Modifier) {
         }
     }
 }
+
+/** El fondo de las tarjetas de la hoja: la tinta al 6 % con un filo de 1 dp al 10 % */
+internal fun Modifier.tarjeta(radio: Dp) =
+    this.clip(RoundedCornerShape(radio)).background(Paleta.tinta.copy(alpha = 0.06f)).border(1.dp, Paleta.tinta.copy(alpha = 0.10f), RoundedCornerShape(radio))

@@ -71,6 +71,7 @@ import mpensum.componentes.IconoTrazo
 import mpensum.componentes.Lucide
 import mpensum.componentes.Phosphor
 import mpensum.componentes.esApaisado
+import mpensum.componentes.tarjeta
 import mpensum.logica.EstimacionGraduacion
 import mpensum.logica.Periodo
 import mpensum.logica.estimarGraduacion

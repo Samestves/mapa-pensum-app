@@ -1,32 +1,12 @@
 package mpensum.componentes
 
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.text.BasicText
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.lerp
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.em
-import androidx.compose.ui.unit.sp
 import mpensum.logica.Situacion
 import mpensum.tema.Paleta
 import mpensum.tema.Tema
 import mpensum.tema.porTema
-import mpensum.tema.jost
-import mpensum.tema.plex
 
 /**
  * Cómo se ve una tarjeta en cada situación, la tabla ASPECTO de la web.
@@ -71,75 +51,3 @@ fun aspecto(e: Situacion): Aspecto {
 
 /** La sombra de papel de los temas claros: una tinta casi transparente, sin desenfoque */
 private fun sombraPapel(): Color = if (Tema.claro) Paleta.tinta.copy(alpha = 0.07f) else Color.Transparent
-
-/**
- * La tarjeta de una materia del mapa web (224x96 a escala 0,8): código,
- * nombre, punto del área, UC y el icono de estado arriba a la derecha.
- *
- * Puede pasar de un estado a otro: `cambio()` va de 0 (estado `de`) a 1
- * (estado `a`). `giro()` abre el candado cuando la tarjeta se desbloquea.
- * Las lambdas se leen al dibujar, así la animación no recompone nada.
- */
-@Composable
-fun TarjetaMateria(
-    codigo: String,
-    nombre: String,
-    uc: Int,
-    area: Color,
-    de: Situacion,
-    a: Situacion = de,
-    x: Float = 0f,
-    y: Float = 0f,
-    modifier: Modifier = Modifier,
-    cambio: () -> Float = { 0f },
-    giro: (() -> Float)? = null,
-) {
-    val asDe = aspecto(de)
-    val asA = aspecto(a)
-    Box(
-        modifier
-            .offset(x.dp, y.dp)
-            .size(179.dp, 77.dp)
-            .drawBehind {
-                val f = cambio()
-                val radio = CornerRadius(5.6.dp.toPx())
-                val sombra = lerp(asDe.sombra, asA.sombra, f)
-                if (sombra.alpha > 0f) drawRoundRect(sombra, Offset(0f, 2.dp.toPx()), size, radio)
-                drawRoundRect(lerp(asDe.fondo, asA.fondo, f), cornerRadius = radio)
-                val g = (asDe.grosor + (asA.grosor - asDe.grosor) * f).dp.toPx()
-                drawRoundRect(
-                    lerp(asDe.borde, asA.borde, f),
-                    topLeft = Offset(g / 2, g / 2),
-                    size = Size(size.width - g, size.height - g),
-                    cornerRadius = radio,
-                    style = Stroke(g),
-                )
-            },
-    ) {
-        val mono = TextStyle(fontFamily = plex(), fontSize = 8.sp, letterSpacing = 0.04.em, color = Paleta.tenue)
-        BasicText(codigo, Modifier.offset(14.dp, 11.dp), style = mono)
-        Box(Modifier.offset(14.dp, 24.dp).size(152.dp, 40.dp), contentAlignment = Alignment.CenterStart) {
-            BasicText(
-                nombre,
-                style = TextStyle(fontFamily = jost(), fontSize = 11.2.sp, lineHeight = 13.2.sp, fontWeight = FontWeight.Normal),
-                maxLines = 3,
-                overflow = TextOverflow.Ellipsis,
-                color = { lerp(asDe.nombre, asA.nombre, cambio()) },
-            )
-        }
-        Canvas(Modifier.offset(14.4.dp, 61.8.dp).size(4.8.dp)) { drawCircle(area) }
-        BasicText("$uc UC", Modifier.offset(24.dp, 58.5.dp), style = mono)
-        Canvas(Modifier.offset(152.dp, 8.4.dp).size(14.dp)) {
-            val f = cambio()
-            val lado = size.width
-            if (giro != null) {
-                // El candado que se abre: color de rojo a azul y el arco girando sobre su pata
-                val color = lerp(Paleta.rojo, Paleta.azul, f)
-                iconoEstado(Situacion.LEJANA, 0f, 0f, lado, lerp(asDe.fondo, asA.fondo, f), color, giro())
-            } else {
-                if (f < 1f) iconoEstado(de, 0f, 0f, lado, asDe.fondo, colorEstado(de).copy(alpha = 1f - f))
-                if (f > 0f) iconoEstado(a, 0f, 0f, lado, asA.fondo, colorEstado(a).copy(alpha = f))
-            }
-        }
-    }
-}

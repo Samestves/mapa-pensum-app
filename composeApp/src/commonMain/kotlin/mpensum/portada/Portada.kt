@@ -5,7 +5,6 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.keyframes
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
@@ -76,11 +75,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.layout.AlignmentLine
-import androidx.compose.ui.layout.FirstBaseline
-import androidx.compose.ui.layout.layout
-import androidx.compose.ui.unit.Constraints
-import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.TextUnit
@@ -95,6 +89,7 @@ import dev.chrisbanes.haze.HazeTint
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
 import kotlinx.coroutines.launch
+import mpensum.componentes.baseJost
 import mpensum.componentes.esApaisado
 import mpensum.carrera.LocalFondoHoja
 import mpensum.componentes.IconoTrazo
@@ -103,6 +98,7 @@ import mpensum.componentes.Rosa
 import mpensum.componentes.Silueta
 import mpensum.componentes.luzCenital
 import mpensum.componentes.pulsable
+import mpensum.componentes.renglon
 import mpensum.datos.Carrera
 import mpensum.datos.TIPOS
 import mpensum.datos.rememberResumenes
@@ -774,22 +770,6 @@ private fun FilaCompacta(c: Carrera, modifier: Modifier, alPulsar: (TransformOri
         }
     }
 }
-
-/**
- * Una línea de texto de Jost como la mide la web: `alto` de renglón aunque
- * sea menor que la letra. Android no encoge el renglón por debajo de las
- * métricas de la fuente (Jost sube 1,07 y baja 0,375 em), así que se coloca
- * por su línea base, donde CSS la pondría: a media altura más 0,3475 em.
- */
-private fun Modifier.renglon(alto: Dp, tam: TextUnit): Modifier = layout { medible, limites ->
-    val p = medible.measure(limites.copy(minHeight = 0, maxHeight = Constraints.Infinity))
-    val base = p[FirstBaseline].takeIf { it != AlignmentLine.Unspecified } ?: p.height
-    val h = alto.roundToPx()
-    layout(p.width, h) { p.place(0, baseJost(alto, tam).roundToPx() - base) }
-}
-
-/** Dónde cae la línea base de Jost en un renglón CSS de `alto` */
-private fun Density.baseJost(alto: Dp, tam: TextUnit): Dp = alto / 2 + (tam.toPx() * 0.3475f).toDp()
 
 /** El filo de un pixel por dentro de una caja redondeada */
 private fun DrawScope.borde(color: Color, radio: Dp) {

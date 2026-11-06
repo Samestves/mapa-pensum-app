@@ -22,7 +22,6 @@ import mpensum.carrera.Borrador
 import mpensum.carrera.EstadoCarrera
 import mpensum.carrera.EstadoHorario
 import mpensum.carrera.FaseLectura
-import mpensum.carrera.HojaHorario
 import mpensum.carrera.HojasHorario
 import mpensum.carrera.Lectura
 import mpensum.carrera.ModoHorario

@@ -45,25 +45,19 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.PathParser
-import androidx.compose.ui.layout.AlignmentLine
-import androidx.compose.ui.layout.FirstBaseline
-import androidx.compose.ui.layout.layout
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.unit.Constraints
-import androidx.compose.ui.unit.Density
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import mpensum.componentes.Silueta
 import mpensum.componentes.esApaisado
 import mpensum.componentes.pulsable
+import mpensum.componentes.renglon
 import mpensum.datos.Carrera
 import mpensum.datos.TIPOS
 import mpensum.logica.compararEs
@@ -344,18 +338,3 @@ private fun Boton(actual: Carrera?, texto: String, alPulsar: () -> Unit) {
         )
     }
 }
-
-/**
- * Una línea de Jost como la mide la web: `alto` de renglón aunque sea menor
- * que la letra (Android no encoge el renglón por debajo de las métricas de la
- * fuente), colocada por su línea base donde CSS la pondría. Igual que en la
- * portada.
- */
-private fun Modifier.renglon(alto: Dp, tam: TextUnit): Modifier = layout { medible, limites ->
-    val p = medible.measure(limites.copy(minHeight = 0, maxHeight = Constraints.Infinity))
-    val base = p[FirstBaseline].takeIf { it != AlignmentLine.Unspecified } ?: p.height
-    val h = alto.roundToPx()
-    layout(p.width, h) { p.place(0, baseJost(alto, tam).roundToPx() - base) }
-}
-
-private fun Density.baseJost(alto: Dp, tam: TextUnit): Dp = alto / 2 + (tam.toPx() * 0.3475f).toDp()

@@ -87,11 +87,6 @@ fun DrawScope.iconoEstado(
     }
 }
 
-@Composable
-fun IconoEstado(e: Situacion, sobre: Color, tam: Dp = 16.dp, modifier: Modifier = Modifier) {
-    Canvas(modifier.size(tam)) { iconoEstado(e, 0f, 0f, size.minDimension, sobre) }
-}
-
 /** Iconos de trazo (rejilla de 24, como Lucide) que usa la interfaz */
 object Lucide {
     val flecha = listOf(trazo("M5 12h14"), trazo("m12 5 7 7-7 7"))

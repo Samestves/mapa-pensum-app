@@ -23,7 +23,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -31,7 +30,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.verticalScroll
@@ -48,18 +46,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.vector.PathParser
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.selectableGroup
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
@@ -78,11 +72,11 @@ import mpensum.componentes.IconoTrazo
 import mpensum.componentes.esApaisado
 import mpensum.componentes.pulsable
 import mpensum.componentes.Lucide
+import mpensum.componentes.tarjeta
 import mpensum.datos.Pensum
 import mpensum.logica.AvanceGrupo
 import mpensum.logica.Periodo
 import mpensum.logica.avanceDeGrupos
-import mpensum.plataforma.Apariencia
 import mpensum.plataforma.ManejarAtras
 import mpensum.plataforma.Preferencias
 import mpensum.tema.Paleta
@@ -132,10 +126,6 @@ fun numeroAnimado(destino: Float): Float {
     LaunchedEffect(destino) { valor.animateTo(destino, tween(600, easing = ENFATICA)) }
     return valor.value
 }
-
-/** El fondo de las tarjetas de la hoja: la tinta al 6 % con un filo de 1 dp al 10 % */
-internal fun Modifier.tarjeta(radio: Dp) =
-    this.clip(RoundedCornerShape(radio)).background(Paleta.tinta.copy(alpha = 0.06f)).border(1.dp, Paleta.tinta.copy(alpha = 0.10f), RoundedCornerShape(radio))
 
 /** La pastilla de icono: 32 dp, radio 9, la tinta al 7 % y el icono de 18 dp */
 @Composable
