@@ -63,7 +63,19 @@ val MARGEN_AL_APROBAR = Margenes(arriba = 32f, abajo = 112f, izq = 24f, der = 24
  * 0,8: por encima el nombre de la tarjeta ya es más grande que el texto de la pantalla.
  */
 fun escalaDeLectura(ancho: Float): Float =
-    min(0.8f, (ancho - 24f) / (Nodo.ANCHO.toFloat() * 1.55f + Espaciado.COLUMNA.toFloat()))
+    if (ancho < ANCHO_COMPACTO) {
+        // Teléfono estrecho: tu columna entera con su margen y, tras el hueco, solo
+        // el borde de la siguiente (ASOMO dp) a propósito, para invitar a deslizar
+        min(0.8f, (ancho - MARGEN_IZQ_LECTURA - ASOMO_SIGUIENTE) / (Nodo.ANCHO.toFloat() + Espaciado.COLUMNA.toFloat()))
+    } else {
+        min(0.8f, (ancho - 24f) / (Nodo.ANCHO.toFloat() * 1.55f + Espaciado.COLUMNA.toFloat()))
+    }
+
+/** Mismo corte que `Ventana.compacta` (360 dp); la cámara no depende de la UI */
+private const val ANCHO_COMPACTO = 360f
+private const val MARGEN_IZQ_LECTURA = 16f
+/** Cuánto de la segunda columna se deja ver en compacta: asoma, no se parte a la mitad */
+private const val ASOMO_SIGUIENTE = 40f
 
 /** Tu semestre a escala de lectura, pegado a la izquierda */
 fun vistaDeColumna(xColumna: Float, ancho: Float, arriba: Float): Vista {

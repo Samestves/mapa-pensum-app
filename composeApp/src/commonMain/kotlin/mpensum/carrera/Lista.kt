@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
@@ -83,7 +84,10 @@ import mpensum.logica.Situacion
 import mpensum.logica.accionDeSemestre
 import mpensum.logica.modeloLista
 import mpensum.plataforma.ManejarAtras
+import mpensum.tema.Alto
+import mpensum.tema.Espacio
 import mpensum.tema.Paleta
+import mpensum.tema.Tipo
 import mpensum.tema.inter
 import mpensum.tema.jost
 import mpensum.tema.porTema
@@ -97,7 +101,7 @@ import mpensum.tema.porTema
  */
 
 /** Lo que mide la franja de las pastillas debajo de la barra de estado: 12 + 44 + 12 */
-private val ALTO_FILTROS = 68.dp
+private val ALTO_FILTROS = Espacio.s + Alto.toque + Espacio.s
 
 /** En horizontal la lista es una columna de lectura, pegada al riel; el resto del ancho es de la ficha */
 private val ANCHO_LISTA_APAISADA = 440.dp
@@ -214,8 +218,8 @@ fun VistaLista(
         LazyColumn(
             state = lista,
             modifier = columna.fillMaxSize().hazeSource(local),
-            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = arriba + ALTO_FILTROS, bottom = abajo + 16.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
+            contentPadding = PaddingValues(start = Espacio.m, end = Espacio.m, top = arriba + ALTO_FILTROS, bottom = abajo + Espacio.m),
+            verticalArrangement = Arrangement.spacedBy(Espacio.s),
         ) {
             val m = modelo
             items(m.secciones, key = { it.clave }, contentType = { "seccion" }) { s ->
@@ -284,7 +288,7 @@ private fun Pastilla(filtro: FiltroLista, numero: Int, activa: Boolean, apagada:
     val color = colorFiltro(filtro)
     Row(
         modifier
-            .height(44.dp)
+            .heightIn(min = Alto.toque)
             .semantics {
                 selected = activa
                 contentDescription = "${nombreFiltro(filtro)}: $numero. ${if (activa) "Quitar el filtro" else "Ver solo estas"}"
@@ -325,14 +329,14 @@ private fun Pastilla(filtro: FiltroLista, numero: Int, activa: Boolean, apagada:
                     }
                 }
             },
-        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+        horizontalArrangement = Arrangement.spacedBy(Espacio.xs, Alignment.CenterHorizontally),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         val s = situacionDe(filtro)
         Canvas(Modifier.size(18.dp)) { iconoEstado(s, 0f, 0f, size.minDimension, Paleta.panel) }
         BasicText(
             "$numero",
-            style = TextStyle(fontFamily = jost(), fontWeight = FontWeight.Normal, fontSize = 17.sp, lineHeight = 22.sp, letterSpacing = (-0.01).em, fontFeatureSettings = "tnum"),
+            style = TextStyle(fontFamily = jost(), fontWeight = FontWeight.Normal, fontSize = Tipo.xl, lineHeight = 22.sp, letterSpacing = (-0.01).em, fontFeatureSettings = "tnum"),
             color = { lerp(Paleta.suave, Paleta.tinta, tinte.value) },
             maxLines = 1,
         )
@@ -349,16 +353,16 @@ private fun SinResultados(filtro: FiltroLista?, alVerTodas: () -> Unit) {
         FiltroLista.BLOQUEADAS -> "Nada bloqueado"
         null -> return
     }
-    Column(Modifier.fillMaxWidth().padding(start = 24.dp, end = 24.dp, top = 96.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(Modifier.fillMaxWidth().padding(start = Espacio.xl, end = Espacio.xl, top = 96.dp), horizontalAlignment = Alignment.CenterHorizontally) {
         BasicText(
             texto,
-            style = TextStyle(fontFamily = jost(), fontWeight = FontWeight.Light, fontSize = 24.sp, lineHeight = 28.sp, letterSpacing = (-0.01).em, color = Paleta.suave, textAlign = TextAlign.Center),
+            style = TextStyle(fontFamily = jost(), fontWeight = FontWeight.Light, fontSize = Tipo.titulo, lineHeight = 28.sp, letterSpacing = (-0.01).em, color = Paleta.suave, textAlign = TextAlign.Center),
         )
         Box(
-            Modifier.padding(top = 8.dp).height(44.dp).clickable(interactionSource = null, indication = null, onClick = alVerTodas).padding(horizontal = 16.dp),
+            Modifier.padding(top = Espacio.xs).heightIn(min = Alto.toque).clickable(interactionSource = null, indication = null, onClick = alVerTodas).padding(horizontal = Espacio.m),
             contentAlignment = Alignment.Center,
         ) {
-            BasicText("Ver todas", style = TextStyle(fontFamily = inter(), fontWeight = FontWeight.Medium, fontSize = 13.sp, color = Paleta.tinta))
+            BasicText("Ver todas", style = TextStyle(fontFamily = inter(), fontWeight = FontWeight.Medium, fontSize = Tipo.s, color = Paleta.tinta))
         }
     }
 }
@@ -453,8 +457,8 @@ private fun BoxScope.CabeceraLista(
             },
     )
     Row(
-        columna.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = arriba + 12.dp).semantics { contentDescription = "Filtrar por estado" },
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        columna.fillMaxWidth().padding(start = Espacio.m, end = Espacio.m, top = arriba + Espacio.s).semantics { contentDescription = "Filtrar por estado" },
+        horizontalArrangement = Arrangement.spacedBy(Espacio.xs),
     ) {
         FiltroLista.entries.forEach { f ->
             Pastilla(

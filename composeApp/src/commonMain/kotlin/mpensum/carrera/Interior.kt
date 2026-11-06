@@ -55,6 +55,7 @@ import mpensum.mapa.MapaCarrera
 import mpensum.mapa.Margenes
 import mpensum.plataforma.ManejarAtras
 import mpensum.tema.Paleta
+import mpensum.tema.Espacio
 import mpensum.tema.colorDe
 
 /** Las tres formas de mirar la misma carrera, en el orden de data/vistas.js */
@@ -75,6 +76,9 @@ private val RESERVA_RIEL = SEPARA_RIEL + ANCHO_RIEL_NAVEGACION + 18.dp
 
 /** El velo tras el riel: los cables se funden hacia el borde en vez de cortarse contra el cristal */
 private val ANCHO_VELO = 150.dp
+
+/** En horizontal, el ancho de la lista junto a la ficha lateral */
+private val ANCHO_LISTA_LATERAL = 376.dp
 
 /**
  * Dentro de una carrera, como el teléfono de la web: nada arriba, la vista a
@@ -147,7 +151,7 @@ fun Interior(carrera: Carrera, alVolver: () -> Unit) {
         val derecha = seguro.calculateRightPadding(LayoutDirection.Ltr)
         // En horizontal la lista y el horario empiezan donde la cámara del mapa, tras el riel; el mapa pasa por detrás
         val inicio = if (horizontal) izquierda + RESERVA_RIEL else 0.dp
-        val tapa = if (horizontal) abajo + 16.dp else tapaBarra
+        val tapa = if (horizontal) abajo + Espacio.m else tapaBarra
         val enLista = horizontal && vista == Vista.LISTA
         CapaVista(
             vista = vista,
@@ -171,8 +175,8 @@ fun Interior(carrera: Carrera, alVolver: () -> Unit) {
             FichaMateria(
                 codigo = seleccionado.takeIf { vista != Vista.HORARIO },
                 estado = estado,
-                reservaAbajo = if (horizontal) abajo + 16.dp else abajo + SOBRE_EL_BORDE + ALTO_BARRA + 10.dp,
-                lateral = if (enLista) PanelLateral(inicio + 376.dp + 8.dp, derecha + 16.dp, arriba + 16.dp) else null,
+                reservaAbajo = if (horizontal) abajo + Espacio.m else abajo + SOBRE_EL_BORDE + ALTO_BARRA + 10.dp,
+                lateral = if (enLista) PanelLateral(inicio + ANCHO_LISTA_LATERAL + Espacio.xs, derecha + Espacio.m, arriba + Espacio.m) else null,
                 horizontal = horizontal,
                 alCerrar = { seleccionado = null },
                 alMarcar = { codigo, marca ->
@@ -299,7 +303,7 @@ AnimatedContent(
         Vista.LISTA -> Box(Modifier.fillMaxSize().padding(start = inicio)) { VistaLista(
             estado = estado,
             abajo = tapa,
-            modifier = if (enLista) Modifier.width(376.dp) else Modifier,
+            modifier = if (enLista) Modifier.width(ANCHO_LISTA_LATERAL) else Modifier,
             tapada = seleccionado != null || hojaAbierta,
             alAbrirFicha = alSeleccionar,
             alElegirElectiva = alAbrirCasilla,

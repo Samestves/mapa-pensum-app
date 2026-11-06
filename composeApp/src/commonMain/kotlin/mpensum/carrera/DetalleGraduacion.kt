@@ -76,6 +76,11 @@ import mpensum.logica.EstimacionGraduacion
 import mpensum.logica.Periodo
 import mpensum.logica.estimarGraduacion
 import mpensum.plataforma.mesLocal
+import mpensum.tema.Espacio
+import mpensum.tema.Tipo
+import mpensum.tema.Alto
+import mpensum.componentes.margenPantalla
+import mpensum.componentes.ventana
 import mpensum.tema.Paleta
 import kotlin.math.abs
 import kotlin.math.roundToInt
@@ -96,6 +101,9 @@ import mpensum.tema.Radio
  */
 
 private const val MAX_CARGA = 8
+
+/** El alto mínimo de la pastilla con la consecuencia del ritmo ("Lo más rápido") */
+private val ALTO_CHIP_RITMO = 24.dp
 
 /** El ancho del anillo acostado: lo que piden sus anotaciones a los lados */
 private val ANCHO_ANILLO_APAISADO = 340.dp
@@ -133,17 +141,17 @@ internal fun DetalleGraduacion(estado: EstadoCarrera, hoy: Periodo, alVerEnMapa:
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 IconoTrazo(Lucide.birrete, Paleta.tinta.copy(alpha = 0.5f), 16.dp, 2f)
-                BasicText(if (g.terminado) "TU CARRERA" else "TE GRADÚAS EN", Modifier.padding(start = 6.dp), style = versal(Paleta.tinta.copy(alpha = 0.5f)).copy(letterSpacing = 0.06.em))
+                BasicText(if (g.terminado) "TU CARRERA" else "TE GRADÚAS EN", Modifier.padding(start = Espacio.xxs), style = versal(Paleta.tinta.copy(alpha = 0.5f)).copy(letterSpacing = 0.06.em))
             }
-            BasicText(fecha, Modifier.padding(top = 6.dp), style = estilo(tam, Paleta.tinta, FontWeight.Light, tam + 4).copy(letterSpacing = (-0.045).em))
+            BasicText(fecha, Modifier.padding(top = Espacio.xxs), style = estilo(tam, Paleta.tinta, FontWeight.Light, tam + 4).copy(letterSpacing = (-0.045).em))
             if (!g.terminado) {
-                Box(Modifier.padding(top = 12.dp).height(28.dp).clip(RoundedCornerShape(14.dp)).background(Paleta.tinta.copy(alpha = 0.08f)).padding(horizontal = 12.dp), contentAlignment = Alignment.Center) {
+                Box(Modifier.padding(top = Espacio.s).height(28.dp).clip(RoundedCornerShape(14.dp)).background(Paleta.tinta.copy(alpha = 0.08f)).padding(horizontal = Espacio.s), contentAlignment = Alignment.Center) {
                     BasicText(
                         buildAnnotatedString {
                             withStyle(SpanStyle(fontWeight = FontWeight.SemiBold, color = Paleta.tinta)) { append(cuantoFalta(g)) }
                             append(" · ${g.semestresRestantes} ${if (g.semestresRestantes == 1) "semestre" else "semestres"}")
                         },
-                        style = estilo(13, Paleta.tinta.copy(alpha = 0.62f), interlinea = 18),
+                        style = estilo(Tipo.s, Paleta.tinta.copy(alpha = 0.62f), interlinea = 18),
                     )
                 }
             }
@@ -163,7 +171,7 @@ internal fun DetalleGraduacion(estado: EstadoCarrera, hoy: Periodo, alVerEnMapa:
         ) {
             if (g.cuelloDeBotella.isNotEmpty()) {
                 NoPuedesAtrasar(g, hoy, nombre)
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(Espacio.s))
             }
             TarjetaRitmo(
                 valor = elegida,
@@ -174,27 +182,27 @@ internal fun DetalleGraduacion(estado: EstadoCarrera, hoy: Periodo, alVerEnMapa:
                 alSoltar = { estado.elegirCarga(if (it == habitual) null else it) },
             )
             if (g.plan.isNotEmpty()) {
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(Espacio.s))
                 LoQueInscribes(hoy.mas(1), g.plan[0], g.cuelloDeBotella.toSet(), nombre, alVerEnMapa)
             }
         }
     }
 
     if (esApaisado()) {
-        Row(Modifier.fillMaxSize().padding(start = 20.dp, end = 20.dp, bottom = 16.dp), horizontalArrangement = Arrangement.spacedBy(24.dp)) {
+        Row(Modifier.fillMaxSize().padding(start = margenPantalla(), end = margenPantalla(), bottom = Espacio.m), horizontalArrangement = Arrangement.spacedBy(Espacio.xl)) {
             // El anillo mide 270 dp: centrado en el alto que hay, sin scroll
             Box(Modifier.width(ANCHO_ANILLO_APAISADO).fillMaxHeight(), contentAlignment = Alignment.Center) { anillo(Modifier) }
             Column(Modifier.weight(1f).fillMaxHeight().verticalScroll(rememberScrollState())) {
                 titular(52)
-                Spacer(Modifier.height(16.dp))
+                Spacer(Modifier.height(Espacio.m))
                 tarjetas()
             }
         }
     } else {
-        Column(Modifier.padding(start = 20.dp, end = 20.dp, top = 8.dp, bottom = 32.dp)) {
+        Column(Modifier.padding(start = margenPantalla(), end = margenPantalla(), top = Espacio.xs, bottom = Espacio.xxl)) {
             titular(60)
-            anillo(Modifier.padding(top = 8.dp, start = 0.dp))
-            Column(Modifier.padding(top = 12.dp)) { tarjetas() }
+            anillo(Modifier.padding(top = Espacio.xs, start = 0.dp))
+            Column(Modifier.padding(top = Espacio.s)) { tarjetas() }
         }
     }
 }
@@ -235,24 +243,30 @@ private fun notaDelRitmo(valor: Int, ritmo: Int, cargaMinima: Int): String = whe
 /** "Tu ritmo": el valor grande con su consecuencia a la derecha, el deslizador de 1 a 8 debajo y una nota */
 @Composable
 private fun TarjetaRitmo(valor: Int, ritmo: Int, consecuencia: String, nota: String, alCambiar: (Int) -> Unit, alSoltar: (Int) -> Unit) {
-    Column(Modifier.fillMaxWidth().tarjeta(24.dp).padding(20.dp)) {
+    Column(Modifier.fillMaxWidth().tarjeta(Radio.Grande).padding(Espacio.l)) {
+        // Con letra grande o ventana estrecha, la consecuencia baja a su propia línea para no chocar con el título
+        val apilada = ventana().compacta || ventana().letraGrande
+        val consecuenciaChip: @Composable (Modifier) -> Unit = { m ->
+            Box(m.heightIn(min = ALTO_CHIP_RITMO).clip(RoundedCornerShape(Radio.Chip)).background(Paleta.tinta.copy(alpha = 0.09f)).padding(horizontal = Espacio.s), contentAlignment = Alignment.Center) {
+                BasicText(consecuencia, style = estilo(Tipo.xs, Paleta.tinta, FontWeight.SemiBold, 16), maxLines = if (apilada) 2 else 1)
+            }
+        }
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
-                BasicText("Tu ritmo", style = estilo(17, Paleta.tinta, FontWeight.SemiBold, 22))
-                BasicText("materias por semestre", style = estilo(13, Paleta.tinta.copy(alpha = 0.64f), interlinea = 18))
+                BasicText("Tu ritmo", style = estilo(Tipo.xl, Paleta.tinta, FontWeight.SemiBold, 22))
+                BasicText("materias por semestre", style = estilo(Tipo.s, Paleta.tinta.copy(alpha = 0.64f), interlinea = 18))
             }
-            Box(Modifier.height(24.dp).clip(RoundedCornerShape(Radio.Chip)).background(Paleta.tinta.copy(alpha = 0.09f)).padding(horizontal = 10.dp), contentAlignment = Alignment.Center) {
-                BasicText(consecuencia, style = estilo(12, Paleta.tinta, FontWeight.SemiBold, 16), maxLines = 1)
-            }
+            if (!apilada) consecuenciaChip(Modifier)
             BasicText(
                 "$valor",
-                Modifier.padding(start = 10.dp).widthIn(min = 26.dp),
+                Modifier.padding(start = Espacio.s).widthIn(min = 26.dp),
                 style = estilo(44, Paleta.tinta, FontWeight.Light, 44).copy(letterSpacing = (-0.03).em, textAlign = TextAlign.End),
             )
         }
-        Spacer(Modifier.height(14.dp))
+        if (apilada) consecuenciaChip(Modifier.padding(top = Espacio.xs))
+        Spacer(Modifier.height(Espacio.s))
         Deslizador(valor, ritmo, alCambiar, alSoltar)
-        BasicText(nota, Modifier.padding(top = 14.dp), style = estilo(13, Paleta.tinta.copy(alpha = 0.64f), interlinea = 18))
+        BasicText(nota, Modifier.padding(top = Espacio.s), style = estilo(Tipo.s, Paleta.tinta.copy(alpha = 0.64f), interlinea = 18))
     }
 }
 
@@ -283,7 +297,7 @@ private fun Deslizador(valor: Int, ritmo: Int, alCambiar: (Int) -> Unit, alSolta
             Canvas(
                 Modifier
                     .fillMaxWidth()
-                    .height(44.dp)
+                    .height(Alto.toque)
                     .semantics { contentDescription = "Materias por semestre: $valor" }
                     .pointerInput(Unit) {
                         awaitEachGesture {
@@ -332,7 +346,7 @@ private fun Deslizador(valor: Int, ritmo: Int, alCambiar: (Int) -> Unit, alSolta
                 for (n in 1..MAX_CARGA) {
                     val elegido = n == valor
                     Box(Modifier.offset(x = centro(n - 1) - 20.dp).width(40.dp), contentAlignment = Alignment.Center) {
-                        BasicText("$n", style = estilo(12, if (elegido) Paleta.tinta else Paleta.tenue, if (elegido) FontWeight.SemiBold else FontWeight.Normal, 16), maxLines = 1)
+                        BasicText("$n", style = estilo(Tipo.xs, if (elegido) Paleta.tinta else Paleta.tenue, if (elegido) FontWeight.SemiBold else FontWeight.Normal, 16), maxLines = 1)
                     }
                 }
             }
@@ -345,29 +359,29 @@ private fun Deslizador(valor: Int, ritmo: Int, alCambiar: (Int) -> Unit, alSolta
 /** El próximo semestre: sus materias con el candado abierto en azul y el botón que las lleva al mapa */
 @Composable
 private fun LoQueInscribes(periodo: Periodo, codigos: List<String>, cadena: Set<String>, nombre: (String) -> String, alVerEnMapa: (List<String>) -> Unit) {
-    Column(Modifier.fillMaxWidth().tarjeta(24.dp).padding(20.dp)) {
+    Column(Modifier.fillMaxWidth().tarjeta(Radio.Grande).padding(Espacio.l)) {
         BasicText("LO QUE INSCRIBES", style = versal(Paleta.azul).copy(letterSpacing = 0.06.em))
-        Row(Modifier.fillMaxWidth().padding(top = 4.dp), verticalAlignment = Alignment.Bottom) {
+        Row(Modifier.fillMaxWidth().padding(top = Espacio.xxs), verticalAlignment = Alignment.Bottom) {
             BasicText(periodo.rango(), Modifier.weight(1f), style = estilo(20, Paleta.tinta, FontWeight.SemiBold, 26))
-            BasicText("${codigos.size} ${if (codigos.size == 1) "materia" else "materias"}", style = estilo(15, Paleta.tinta.copy(alpha = 0.64f), interlinea = 22))
+            BasicText("${codigos.size} ${if (codigos.size == 1) "materia" else "materias"}", style = estilo(Tipo.l, Paleta.tinta.copy(alpha = 0.64f), interlinea = 22))
         }
-        Column(Modifier.padding(top = 8.dp)) {
+        Column(Modifier.padding(top = Espacio.xs)) {
             codigos.forEach { c ->
-                Row(Modifier.fillMaxWidth().heightIn(min = 44.dp), verticalAlignment = Alignment.CenterVertically) {
+                Row(Modifier.fillMaxWidth().heightIn(min = Alto.toque), verticalAlignment = Alignment.CenterVertically) {
                     IconoTrazo(IconosHoja.candadoAbierto, Paleta.azul, 20.dp, 1.9f)
-                    BasicText(nombre(c), Modifier.weight(1f).padding(start = 14.dp, top = 6.dp, bottom = 6.dp), style = estilo(15, Paleta.tinta, interlinea = 22))
+                    BasicText(nombre(c), Modifier.weight(1f).padding(start = Espacio.s, top = Espacio.xxs, bottom = Espacio.xxs), style = estilo(Tipo.l, Paleta.tinta, interlinea = 22))
                     if (c in cadena) IconoTrazo(IconosHoja.eslabon, Paleta.tinta.copy(alpha = 0.44f), 16.dp, 1.8f)
                 }
             }
         }
         Box(
-            Modifier.padding(top = 12.dp).fillMaxWidth().height(48.dp).clip(RoundedCornerShape(24.dp)).background(Paleta.tinta)
+            Modifier.padding(top = Espacio.s).fillMaxWidth().heightIn(min = Alto.fila).clip(RoundedCornerShape(Radio.Grande)).background(Paleta.tinta)
                 .clickable(role = Role.Button) { alVerEnMapa(codigos) },
             contentAlignment = Alignment.Center,
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 IconoRelleno(Phosphor.mapa, false, Paleta.lienzo, 18.dp)
-                BasicText("Verlas en el mapa", Modifier.padding(start = 8.dp), style = estilo(15, Paleta.lienzo, FontWeight.SemiBold, 22))
+                BasicText("Verlas en el mapa", Modifier.padding(start = Espacio.xs), style = estilo(Tipo.l, Paleta.lienzo, FontWeight.SemiBold, 22))
             }
         }
     }
@@ -397,9 +411,9 @@ private fun NoPuedesAtrasar(g: EstimacionGraduacion, hoy: Periodo, nombre: (Stri
     }
     var abierta by remember { mutableStateOf(false) }
     val giro by animateFloatAsState(if (abierta) 90f else 0f, tween(220, easing = ENFATICA), label = "giro")
-    Column(Modifier.fillMaxWidth().tarjeta(24.dp).clickable(role = Role.Button) { abierta = !abierta }.padding(20.dp)) {
+    Column(Modifier.fillMaxWidth().tarjeta(Radio.Grande).clickable(role = Role.Button) { abierta = !abierta }.padding(Espacio.l)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            BasicText("No puedes atrasar", Modifier.weight(1f), style = estilo(15, Paleta.tinta, FontWeight.SemiBold, 20))
+            BasicText("No puedes atrasar", Modifier.weight(1f), style = estilo(Tipo.l, Paleta.tinta, FontWeight.SemiBold, 20))
             IconoTrazo(Lucide.siguiente, Paleta.tinta.copy(alpha = 0.44f), 18.dp, 2f, Modifier.graphicsLayer { rotationZ = giro })
         }
         BasicText(
@@ -408,46 +422,46 @@ private fun NoPuedesAtrasar(g: EstimacionGraduacion, hoy: Periodo, nombre: (Stri
                 1 -> "Tienes 1 semestre de margen antes de que se mueva tu fecha."
                 else -> "Tienes $holgura semestres de margen antes de que se mueva tu fecha."
             },
-            Modifier.padding(top = 4.dp),
-            style = estilo(13, Paleta.tinta.copy(alpha = 0.64f), interlinea = 18),
+            Modifier.padding(top = Espacio.xxs),
+            style = estilo(Tipo.s, Paleta.tinta.copy(alpha = 0.64f), interlinea = 18),
         )
         AnimatedVisibility(!abierta, enter = expandVertically(tween(260, easing = ENFATICA)) + fadeIn(tween(200)), exit = shrinkVertically(tween(200)) + fadeOut(tween(120))) {
             Column {
                 CadenaHorizontal(cadena.size)
-                Row(Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Row(Modifier.fillMaxWidth().padding(top = Espacio.xs), horizontalArrangement = Arrangement.spacedBy(Espacio.s)) {
                     Column(Modifier.weight(1f)) {
-                        BasicText(nombre(cadena.first()), style = estilo(13, Paleta.tinta, FontWeight.Medium, 17), maxLines = 2, overflow = TextOverflow.Ellipsis)
-                        BasicText(periodos.first().rango(), style = estilo(13, Paleta.azul, interlinea = 17))
+                        BasicText(nombre(cadena.first()), style = estilo(Tipo.s, Paleta.tinta, FontWeight.Medium, 17), maxLines = 2, overflow = TextOverflow.Ellipsis)
+                        BasicText(periodos.first().rango(), style = estilo(Tipo.s, Paleta.azul, interlinea = 17))
                     }
                     if (cadena.size > 1) {
                         Column(Modifier.weight(1f), horizontalAlignment = Alignment.End) {
-                            BasicText(nombre(cadena.last()), style = estilo(13, Paleta.tinta, FontWeight.Medium, 17).copy(textAlign = TextAlign.End), maxLines = 2, overflow = TextOverflow.Ellipsis)
-                            BasicText(periodos.last().rango(), style = estilo(13, Paleta.tinta.copy(alpha = 0.44f), interlinea = 17))
+                            BasicText(nombre(cadena.last()), style = estilo(Tipo.s, Paleta.tinta, FontWeight.Medium, 17).copy(textAlign = TextAlign.End), maxLines = 2, overflow = TextOverflow.Ellipsis)
+                            BasicText(periodos.last().rango(), style = estilo(Tipo.s, Paleta.tinta.copy(alpha = 0.44f), interlinea = 17))
                         }
                     }
                 }
             }
         }
         AnimatedVisibility(abierta, enter = expandVertically(tween(260, easing = ENFATICA)) + fadeIn(tween(200)), exit = shrinkVertically(tween(200)) + fadeOut(tween(120))) {
-            Column(Modifier.padding(top = 12.dp)) {
+            Column(Modifier.padding(top = Espacio.s)) {
                 cadena.forEachIndexed { k, c ->
                     val primera = k == 0
                     val ultima = k == cadena.lastIndex
                     if (k > 0) {
-                        Row(Modifier.padding(start = 20.dp, top = 6.dp, bottom = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Row(Modifier.padding(start = Espacio.l, top = Espacio.xxs, bottom = Espacio.xxs), verticalAlignment = Alignment.CenterVertically) {
                             IconoTrazo(IconosHoja.flechaAbajo, Paleta.tenue, 14.dp, 1.8f)
-                            BasicText("abre", Modifier.padding(start = 8.dp), style = estilo(13, Paleta.tenue, interlinea = 18))
+                            BasicText("abre", Modifier.padding(start = Espacio.xs), style = estilo(Tipo.s, Paleta.tenue, interlinea = 18))
                         }
                     }
                     Row(
                         Modifier
                             .fillMaxWidth()
-                            .heightIn(min = 52.dp)
+                            .heightIn(min = Alto.boton)
                             .then(
                                 if (primera) Modifier.clip(RoundedCornerShape(Radio.Tarjeta)).background(Paleta.azul.copy(alpha = 0.08f)).border(1.dp, Paleta.azul.copy(alpha = 0.45f), RoundedCornerShape(Radio.Tarjeta))
                                 else Modifier,
                             )
-                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                            .padding(horizontal = Espacio.m, vertical = Espacio.xs),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Box(Modifier.size(20.dp), contentAlignment = Alignment.Center) {
@@ -457,11 +471,11 @@ private fun NoPuedesAtrasar(g: EstimacionGraduacion, hoy: Periodo, nombre: (Stri
                                 else -> IconoTrazo(IconosHoja.candado, Paleta.suave, 20.dp, 1.9f)
                             }
                         }
-                        Column(Modifier.weight(1f).padding(start = 16.dp, end = 8.dp)) {
+                        Column(Modifier.weight(1f).padding(start = Espacio.m, end = Espacio.xs)) {
                             BasicText(nombre(c), style = estilo(16, Paleta.tinta, interlinea = 22))
-                            if (primera) BasicText("Inscríbela en ${periodos[k].rango()}", style = estilo(14, Paleta.azul, interlinea = 20))
+                            if (primera) BasicText("Inscríbela en ${periodos[k].rango()}", style = estilo(Tipo.m, Paleta.azul, interlinea = 20))
                         }
-                        if (!primera) BasicText(periodos[k].rango(), style = estilo(13, Paleta.tenue, interlinea = 18))
+                        if (!primera) BasicText(periodos[k].rango(), style = estilo(Tipo.s, Paleta.tenue, interlinea = 18))
                     }
                 }
             }
@@ -472,7 +486,7 @@ private fun NoPuedesAtrasar(g: EstimacionGraduacion, hoy: Periodo, nombre: (Stri
 /** Los nodos de la cadena unidos por una línea: el primero azul, los de en medio huecos y el último, el birrete */
 @Composable
 private fun CadenaHorizontal(nodos: Int) {
-    Canvas(Modifier.padding(top = 16.dp).fillMaxWidth().height(24.dp)) {
+    Canvas(Modifier.padding(top = Espacio.m).fillMaxWidth().height(24.dp)) {
         val u = 1.dp.toPx()
         val tinta = Paleta.tinta
         val n = nodos.coerceAtLeast(1)

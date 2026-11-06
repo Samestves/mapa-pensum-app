@@ -32,6 +32,7 @@ import mpensum.componentes.Lucide
 import mpensum.logica.EstimacionGraduacion
 import mpensum.logica.Marca
 import mpensum.logica.Periodo
+import mpensum.tema.Tipo
 import mpensum.tema.Paleta
 import mpensum.tema.Tema
 import kotlin.math.abs
@@ -180,12 +181,12 @@ internal fun elegirAnguloNota(
 @Composable
 internal fun AnilloGraduacion(a: Anillo, porcentaje: Int, anioMeta: Int?, anioHoy: Int, entrada: () -> Float, modifier: Modifier = Modifier) {
     val medidor = rememberTextMeasurer(cacheSize = 96)
-    val rotulo = estilo(11, Color.Unspecified, FontWeight.SemiBold).copy(letterSpacing = 0.04.em)
+    val rotulo = estilo(Tipo.xxs, Color.Unspecified, FontWeight.SemiBold).copy(letterSpacing = 0.04.em)
     val meta = estilo(10, Color.Unspecified, FontWeight.SemiBold).copy(letterSpacing = 0.04.em)
     val inicioRotulo = estilo(9, Color.Unspecified, FontWeight.SemiBold).copy(letterSpacing = 0.04.em)
     val anio = estilo(10, Color.Unspecified, FontWeight.SemiBold).copy(letterSpacing = 0.04.em)
-    val numeroNota = estilo(17, Color.Unspecified, FontWeight.SemiBold, 20)
-    val palabraNota = estilo(12, Color.Unspecified, FontWeight.Normal, 16)
+    val numeroNota = estilo(Tipo.xl, Color.Unspecified, FontWeight.SemiBold, 20)
+    val palabraNota = estilo(Tipo.xs, Color.Unspecified, FontWeight.Normal, 16)
     val grande = estilo(34, Color.Unspecified, FontWeight.Light, 36).copy(letterSpacing = (-0.03).em)
     val porciento = estilo(20, Color.Unspecified, FontWeight.Light, 24)
     val pie = estilo(10, Color.Unspecified, FontWeight.SemiBold, 14).copy(letterSpacing = 0.06.em)

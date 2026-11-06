@@ -43,6 +43,7 @@ import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import mpensum.componentes.desbordar
 import mpensum.componentes.pulsable
+import mpensum.componentes.ventana
 import mpensum.logica.Colocada
 import mpensum.logica.DIAS_CORTOS
 import mpensum.logica.Sesion
@@ -57,7 +58,12 @@ import mpensum.logica.horaDe
 import mpensum.logica.horasOcupadas
 import mpensum.logica.materias
 import mpensum.logica.meridiano
+import mpensum.tema.Alto
+import mpensum.tema.Espacio
 import mpensum.tema.Paleta
+import androidx.compose.ui.text.TextMeasurer
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.unit.TextUnit
 import kotlin.math.abs
 
 /*
@@ -96,6 +102,66 @@ private val TEXTO_FIN = 5.dp
 private const val TEXTO_ARRIBA = 7
 private const val RENGLON = 15
 
+/* En pantallas compactas (< 360 dp) la semana cede ancho al nombre: riel angosto, menos aire y letra menor */
+private val RIEL_ESTRECHO = 26.dp
+private val HUECO_COLUMNA_ESTRECHO = 2.dp
+private val METIDA_ESTRECHA = 6.dp
+private val TEXTO_INICIO_ESTRECHO = 6.dp
+private val TEXTO_FIN_ESTRECHO = 2.dp
+/** Los cuerpos de letra del nombre, del mayor al menor: se baja uno solo si el nombre entero no cabe */
+private val CUERPOS_ESTRECHOS = listOf(11.sp, 10.sp, 9.sp)
+private val CUERPO_AULA_ESTRECHO = 9.sp
+/** Palabras que no aportan en un bloque pequeño: no dan inicial */
+private val ENLACES_BLOQUE = setOf("de", "del", "la", "las", "el", "los", "y", "e", "en", "a", "al", "para", "con", "por")
+private val NUMERAL = Regex("""^([IVX]+|\d+)$""")
+
+/** Las medidas de la rejilla que cambian entre una pantalla normal y una compacta */
+private class AjusteSemana(val riel: Dp, val hueco: Dp, val metida: Dp, val textoInicio: Dp, val textoFin: Dp, val estrecha: Boolean)
+
+/** El ancho de un bloque: su parte de la columna, menos el aire con la columna vecina y entre carriles */
+private fun anchoDe(colW: Dp, c: Colocada, a: AjusteSemana): Dp = colW - a.hueco * 2 - a.metida * c.carril
+
+/** Un bloque ya resuelto: sus renglones, su estilo (menor si la pantalla es estrecha) y si lleva aula */
+private class BloqueResuelto(val c: Colocada, val lineas: List<String>, val conAula: Boolean, val estilo: TextStyle, val estiloAula: TextStyle)
+
+/** Parte [palabras] en hasta [renglones] renglones sin abreviar nada; nulo si alguna palabra no cabe sola o sobran renglones */
+private fun envolverEntero(palabras: List<String>, renglones: Int, entra: (String) -> Boolean): List<String>? {
+    val salida = ArrayList<String>()
+    var actual = ""
+    for (p in palabras) {
+        if (!entra(p)) return null
+        val junta = if (actual.isEmpty()) p else "$actual $p"
+        if (entra(junta)) actual = junta else {
+            salida += actual
+            actual = p
+        }
+    }
+    if (actual.isNotEmpty()) salida += actual
+    return if (salida.size <= renglones) salida else null
+}
+
+/**
+ * La regla de abreviar de la semana compacta: la primera palabra completa y,
+ * debajo, las iniciales de las demás con su punto («Inferencia» / «D. E.»).
+ * Los numerales («II») se quedan enteros; nunca se corta una palabra a ciegas.
+ */
+private fun conIniciales(nombre: String, renglones: Int, entra: (String) -> Boolean): List<String> {
+    val palabras = nombre.split(' ').filter { it.isNotBlank() }
+    val primera = palabras.firstOrNull() ?: return emptyList()
+    val cabeza = if (entra(primera)) primera else abreviarNombre(primera, 1, entra).firstOrNull { entra(it) } ?: return emptyList()
+    if (renglones < 2) return listOf(cabeza)
+    val resto = palabras.drop(1).filter { it.lowercase() !in ENLACES_BLOQUE }
+    if (resto.isEmpty()) return listOf(cabeza)
+    val letras = resto.map { if (NUMERAL.matches(it)) it else it.first().uppercaseChar().toString() }
+    val intentos = listOf(
+        letras.joinToString(" ") { if (it.length == 1) "$it." else it },
+        letras.joinToString(" "),
+        letras.joinToString(""),
+    )
+    val iniciales = intentos.firstOrNull(entra) ?: return listOf(cabeza)
+    return listOf(cabeza, iniciales)
+}
+
 /** Dónde empieza cada fila de hora, en dp desde arriba; la última entrada es el alto total */
 private fun cimas(ocupadas: List<Boolean>, compacto: Boolean): List<Dp> {
     val salida = ArrayList<Dp>(ocupadas.size + 1)
@@ -111,7 +177,12 @@ private fun cimas(ocupadas: List<Boolean>, compacto: Boolean): List<Dp> {
 @Composable
 internal fun SemanaRejilla(horario: EstadoHorario, sesiones: List<Sesion> = horario.sesiones, provisional: Boolean = false, compacto: Boolean = false) {
     val l = letrasHorario()
-    val riel = if (compacto) RIEL_COMPACTO else RIEL
+    val estrecha = !compacto && ventana().compacta
+    val aj = remember(compacto, estrecha) {
+        if (estrecha) AjusteSemana(RIEL_ESTRECHO, HUECO_COLUMNA_ESTRECHO, METIDA_ESTRECHA, TEXTO_INICIO_ESTRECHO, TEXTO_FIN_ESTRECHO, true)
+        else AjusteSemana(if (compacto) RIEL_COMPACTO else RIEL, HUECO_COLUMNA, METIDA, TEXTO_INICIO, TEXTO_FIN, false)
+    }
+    val riel = aj.riel
     val (abre, cierra) = if (provisional) rangoDeClases(sesiones) else horario.rango
     val ahora = horario.ahora
     val porDias = remember(sesiones) { porDia(sesiones) }
@@ -132,12 +203,12 @@ internal fun SemanaRejilla(horario: EstadoHorario, sesiones: List<Sesion> = hora
 
     // Lo que se eligió y lo que pesa, en una línea; en horizontal sube a la cabecera, junto a «TU SEMANA»
     if (!compacto) {
-        BasicText(resumenSemana(sesiones), Modifier.padding(top = 4.dp), style = l.texto)
+        BasicText(resumenSemana(sesiones), Modifier.padding(top = Espacio.xxs), style = l.texto)
     }
 
     Column(
         Modifier
-            .padding(top = if (compacto) 8.dp else 20.dp)
+            .padding(top = if (compacto) Espacio.xs else Espacio.l)
             .desbordar(DESBORDE)
             .drawBehind {
                 // Hoy se marca con un velo apenas visible de arriba abajo, nombre del día incluido
@@ -152,13 +223,13 @@ internal fun SemanaRejilla(horario: EstadoHorario, sesiones: List<Sesion> = hora
                     )
                 }
             }
-            .padding(bottom = 8.dp),
+            .padding(bottom = Espacio.xs),
     ) {
         CabeceraDias(horario, riel, ahora.dia, provisional, compacto)
 
         BoxWithConstraints(
             Modifier
-                .padding(top = 4.dp)
+                .padding(top = Espacio.xxs)
                 .fillMaxWidth()
                 .height(cimas[filas])
                 .drawWithContent {
@@ -200,21 +271,26 @@ internal fun SemanaRejilla(horario: EstadoHorario, sesiones: List<Sesion> = hora
             val colW = (maxWidth - riel) / 5
             val medidor = rememberTextMeasurer()
             val densidad = LocalDensity.current.density
-            // Cada nombre se abrevia una vez por horario y ancho: sin partir palabras, en lo que cabe
-            val bloques = remember(porDias, colW, cimas) {
+            // Cada nombre se resuelve una vez por horario y ancho: sin partir palabras, en lo que cabe
+            val bloques = remember(porDias, colW, cimas, aj, l) {
                 (0 until 5).flatMap { d ->
                     enCarriles(porDias[d]).map { c ->
-                        val ancho = anchoDe(colW, c)
+                        val ancho = anchoDe(colW, c, aj)
                         val alto = (y(c.sesion.fin) - y(c.sesion.inicio) - HUECO_V * 2).value.toInt()
-                        val renglones = ((alto - TEXTO_ARRIBA * 2) / RENGLON).coerceIn(1, 3)
-                        val cabe = ((ancho - TEXTO_INICIO - TEXTO_FIN).value * densidad).toInt()
-                        val entra = { t: String -> medidor.measure(t, l.bloque).size.width <= cabe }
-                        // Lo que no cabe entero no se pinta: en un carril estrecho el bloque queda en su color, y tocarlo abre el detalle
-                        val lineas = abreviarNombre(horario.nombre(c.sesion.codigo), renglones, entra).takeWhile(entra)
-                        val conAula = lineas.isNotEmpty() && c.sesion.aula.isNotBlank() &&
-                            medidor.measure(c.sesion.aula, l.pequeno).size.width <= cabe &&
-                            alto >= TEXTO_ARRIBA * 2 + RENGLON * lineas.size + 16
-                        Triple(c, lineas, conAula)
+                        val cabe = ((ancho - aj.textoInicio - aj.textoFin).value * densidad).toInt()
+                        val nombre = horario.nombre(c.sesion.codigo)
+                        if (aj.estrecha) {
+                            resolverEstrecho(c, nombre, alto, cabe, medidor, l)
+                        } else {
+                            val renglones = ((alto - TEXTO_ARRIBA * 2) / RENGLON).coerceIn(1, 3)
+                            val entra = { t: String -> medidor.measure(t, l.bloque).size.width <= cabe }
+                            // Lo que no cabe entero no se pinta: en un carril estrecho el bloque queda en su color, y tocarlo abre el detalle
+                            val lineas = abreviarNombre(nombre, renglones, entra).takeWhile(entra)
+                            val conAula = lineas.isNotEmpty() && c.sesion.aula.isNotBlank() &&
+                                medidor.measure(c.sesion.aula, l.pequeno).size.width <= cabe &&
+                                alto >= TEXTO_ARRIBA * 2 + RENGLON * lineas.size + 16
+                            BloqueResuelto(c, lineas, conAula, l.bloque, l.pequeno.copy(color = Paleta.tinta.copy(alpha = 0.6f)))
+                        }
                     }
                 }
             }
@@ -223,10 +299,10 @@ internal fun SemanaRejilla(horario: EstadoHorario, sesiones: List<Sesion> = hora
                 // Entre dos pliegues no hay hora que leer; y la de ahora tapa la que tenga encima
                 if (i in 1 until filas && !ocupadas[i - 1] && !ocupadas[i]) continue
                 if (ahoraSeVe && abs((cimas[i] - yAhora).value) < 14) continue
-                RotuloHora(abre + i * 60, riel, Modifier.offset(y = cimas[i] - 7.dp))
+                RotuloHora(abre + i * 60, riel, Modifier.offset(y = cimas[i] - 7.dp), aj.estrecha)
             }
-            for ((c, lineas, conAula) in bloques) {
-                BloqueClase(horario, c, lineas, conAula, riel, colW, y(c.sesion.inicio), y(c.sesion.fin), provisional)
+            for (b in bloques) {
+                BloqueClase(horario, b, aj, colW, y(b.c.sesion.inicio), y(b.c.sesion.fin), provisional)
             }
             if (ahoraSeVe) {
                 BasicText(
@@ -246,7 +322,7 @@ private fun CabeceraDias(horario: EstadoHorario, riel: Dp, diaHoy: Int, provisio
     val l = letrasHorario()
     val numeros = horario.numerosDia
     // En horizontal el nombre y el número van en un renglón: la cabecera no le quita alto a las horas
-    val altoCabecera = if (numeros != null && !compacto) 62.dp else 40.dp
+    val altoCabecera = if (numeros != null && !compacto) 62.dp else Alto.icono
     Row(Modifier.fillMaxWidth().height(altoCabecera)) {
         Spacer(Modifier.width(riel))
         for (d in 0 until 5) {
@@ -265,7 +341,7 @@ private fun CabeceraDias(horario: EstadoHorario, riel: Dp, diaHoy: Int, provisio
                     // El tracking deja aire a la derecha de la última letra; se compensa a la izquierda para que quede centrado
                     BasicText(
                         DIAS_CORTOS[d],
-                        Modifier.padding(start = 2.dp),
+                        Modifier.padding(start = Espacio.hilo),
                         style = l.etiqueta.copy(color = if (hoy) Paleta.tinta else Paleta.tenue, fontWeight = if (hoy) FontWeight.SemiBold else FontWeight.Medium),
                     )
                 }
@@ -276,25 +352,22 @@ private fun CabeceraDias(horario: EstadoHorario, riel: Dp, diaHoy: Int, provisio
                     }
                 }
                 if (compacto) {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Espacio.xxs)) {
                         nombre()
                         if (numeros != null) numero(numeros[d])
                     }
                 } else {
                     nombre()
-                    if (numeros != null) Box(Modifier.padding(top = 6.dp)) { numero(numeros[d]) }
+                    if (numeros != null) Box(Modifier.padding(top = Espacio.xxs)) { numero(numeros[d]) }
                 }
             }
         }
     }
 }
 
-/** El ancho de un bloque: su parte de la columna, menos el aire con la columna vecina y entre carriles */
-private fun anchoDe(colW: Dp, c: Colocada): Dp = colW - HUECO_COLUMNA * 2 - METIDA * c.carril
-
 /** Una hora del riel, como en la web: el número y el meridiano aparte, pequeño */
 @Composable
-private fun RotuloHora(minuto: Int, riel: Dp, modifier: Modifier) {
+private fun RotuloHora(minuto: Int, riel: Dp, modifier: Modifier, estrecha: Boolean = false) {
     val l = letrasHorario()
     val h = ((minuto / 60 + 11) % 12) + 1
     BasicText(
@@ -304,7 +377,7 @@ private fun RotuloHora(minuto: Int, riel: Dp, modifier: Modifier) {
         },
         // Pegada a la derecha del carril, con aire antes de la rejilla; si no cabe, sobresale a la izquierda
         modifier.width(riel - 6.dp).wrapContentWidth(Alignment.End, unbounded = true),
-        style = l.pequeno.copy(fontWeight = FontWeight.Medium),
+        style = l.pequeno.copy(fontWeight = FontWeight.Medium, fontSize = if (estrecha) CUERPO_AULA_ESTRECHO else l.pequeno.fontSize),
         softWrap = false,
     )
 }
@@ -315,18 +388,18 @@ private fun RotuloHora(minuto: Int, riel: Dp, modifier: Modifier) {
  * tiñe un poco más; las de hoy que ya pasaron se apagan.
  */
 @Composable
-private fun BloqueClase(horario: EstadoHorario, c: Colocada, lineas: List<String>, conAula: Boolean, riel: Dp, colW: Dp, desde: Dp, hasta: Dp, provisional: Boolean) {
-    val l = letrasHorario()
+private fun BloqueClase(horario: EstadoHorario, b: BloqueResuelto, aj: AjusteSemana, colW: Dp, desde: Dp, hasta: Dp, provisional: Boolean) {
+    val c = b.c
     val s = c.sesion
     val enCurso = horario.enCurso(s)
     val pasada = horario.pasada(s)
     val color = horario.color(s.codigo)
-    val ancho = anchoDe(colW, c)
+    val ancho = anchoDe(colW, c, aj)
     Column(
         Modifier
             .offset {
                 IntOffset(
-                    (riel + colW * s.dia + HUECO_COLUMNA + METIDA * c.carril).roundToPx(),
+                    (aj.riel + colW * s.dia + aj.hueco + aj.metida * c.carril).roundToPx(),
                     (desde + HUECO_V).roundToPx(),
                 )
             }
@@ -348,13 +421,39 @@ private fun BloqueClase(horario: EstadoHorario, c: Colocada, lineas: List<String
                 // El canto va recto y el radio del bloque lo redondea al recortar
                 drawRect(color, size = Size(CANTO.toPx(), size.height))
             }
-            .padding(start = TEXTO_INICIO, end = TEXTO_FIN, top = TEXTO_ARRIBA.dp, bottom = 6.dp),
+            .padding(start = aj.textoInicio, end = aj.textoFin, top = TEXTO_ARRIBA.dp, bottom = 6.dp),
     ) {
-        lineas.forEach { BasicText(it, style = l.bloque, softWrap = false, maxLines = 1) }
-        if (conAula) {
-            BasicText(s.aula, Modifier.padding(top = 3.dp), style = l.pequeno.copy(color = Paleta.tinta.copy(alpha = 0.6f)), softWrap = false, maxLines = 1)
+        b.lineas.forEach { BasicText(it, style = b.estilo, softWrap = false, maxLines = 1) }
+        if (b.conAula) {
+            BasicText(s.aula, Modifier.padding(top = 3.dp), style = b.estiloAula, softWrap = false, maxLines = 1)
         }
     }
+}
+
+/**
+ * El bloque en una pantalla compacta: primero el nombre entero en 1 a 3
+ * renglones, bajando la letra hasta 9 sp; si ni así cabe, la primera palabra
+ * completa con las iniciales del resto.
+ */
+private fun resolverEstrecho(c: Colocada, nombre: String, alto: Int, cabe: Int, medidor: TextMeasurer, l: LetrasHorario): BloqueResuelto {
+    val aula = l.pequeno.copy(fontSize = CUERPO_AULA_ESTRECHO, lineHeight = CUERPO_AULA_ESTRECHO * 1.25f, color = Paleta.tinta.copy(alpha = 0.6f))
+    fun estiloDe(t: TextUnit) = l.bloque.copy(fontSize = t, lineHeight = t * 1.25f)
+    fun renglonesDe(t: TextUnit) = ((alto - TEXTO_ARRIBA * 2) / (t.value * 1.25f)).toInt().coerceIn(1, 3)
+    fun cierre(lineas: List<String>, e: TextStyle): BloqueResuelto {
+        val conAula = lineas.isNotEmpty() && c.sesion.aula.isNotBlank() &&
+            medidor.measure(c.sesion.aula, aula).size.width <= cabe &&
+            alto >= TEXTO_ARRIBA * 2 + e.lineHeight.value * lineas.size + 14
+        return BloqueResuelto(c, lineas, conAula, e, aula)
+    }
+    val palabras = nombre.split(' ').filter { it.isNotBlank() }
+    for (t in CUERPOS_ESTRECHOS) {
+        val e = estiloDe(t)
+        val entra = { x: String -> medidor.measure(x, e).size.width <= cabe }
+        envolverEntero(palabras, renglonesDe(t), entra)?.let { return cierre(it, e) }
+    }
+    val e = estiloDe(CUERPOS_ESTRECHOS.last())
+    val entra = { x: String -> medidor.measure(x, e).size.width <= cabe }
+    return cierre(conIniciales(nombre, renglonesDe(CUERPOS_ESTRECHOS.last()), entra), e)
 }
 
 

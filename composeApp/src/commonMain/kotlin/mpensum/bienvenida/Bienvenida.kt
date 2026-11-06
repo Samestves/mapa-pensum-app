@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.paddingFromBaseline
 import androidx.compose.foundation.layout.safeDrawingPadding
@@ -53,10 +54,14 @@ import mpensum.componentes.auroraViva
 import mpensum.componentes.esApaisado
 import mpensum.componentes.grano
 import mpensum.componentes.pulsable
+import mpensum.componentes.ventana
 import mpensum.componentes.rememberRelojAurora
 import mpensum.datos.Carrera
 import mpensum.plataforma.ManejarAtras
+import mpensum.tema.Alto
+import mpensum.tema.Espacio
 import mpensum.tema.Paleta
+import mpensum.tema.Tipo
 import mpensum.tema.inter
 import mpensum.tema.jost
 
@@ -68,7 +73,20 @@ const val PESO_TEXTO = 1f
 private const val FRACCION_TEXTO = PESO_TEXTO / (PESO_ESCENA + PESO_TEXTO)
 
 /** Lo que mide la barra de pasos: el texto del lado apaisado baja bajo ella */
-val ALTO_BARRA = 52.dp
+val ALTO_BARRA = Alto.boton
+
+/** El título baja hasta aquí antes de partirse: en 320 dp y con letra grande sigue entero */
+private val TITULO_MINIMO = 20.sp
+private val TITULO_MAXIMO = Tipo.gigante
+
+/** Lo que se corre la barra de pasos cuando hay botón de volver */
+private val INICIO_PASOS_CON_ATRAS = 62.dp
+private val INICIO_PASOS = Espacio.xxl
+private val FIN_PASOS = 86.dp
+private val ICONO_ATRAS = 22.dp
+
+/** Hueco entre la escena y el título cuando la ventana es estrecha o la letra grande */
+private const val REDUCCION_HUECO = 2
 
 /**
  * La guía de la primera vez, en cuatro pasos: marca lo aprobado y mira qué
@@ -105,23 +123,23 @@ fun Bienvenida(carreras: List<Carrera>, pasoInicial: Int = 0, alTerminar: (Carre
 
         // La barra de arriba: volver, los pasos y saltar. Cada pieza tiene su sitio fijo: los pasos
         // no cambian de ancho cuando Saltar desaparece en el último
-        Box(Modifier.fillMaxWidth().safeDrawingPadding().padding(top = 6.dp).height(44.dp)) {
+        Box(Modifier.fillMaxWidth().safeDrawingPadding().padding(top = Espacio.xxs + Espacio.hilo).height(Alto.toque)) {
             // En horizontal la barra se queda sobre el texto, al lado de la escena
             Box(if (apaisado) Modifier.align(Alignment.CenterEnd).fillMaxWidth(FRACCION_TEXTO).fillMaxHeight() else Modifier.fillMaxSize()) {
                 if (paso > 0) {
-                    BotonIcono(alPulsar = { paso -= 1 }, modifier = Modifier.padding(start = 10.dp)) { IconoTrazo(Lucide.atras, Paleta.tinta, 22.dp, 2f) }
+                    BotonIcono(alPulsar = { paso -= 1 }, modifier = Modifier.padding(start = Espacio.s - Espacio.hilo)) { IconoTrazo(Lucide.atras, Paleta.tinta, ICONO_ATRAS, 2f) }
                 }
                 BarraPasos(
                     paso, PASOS,
-                    Modifier.align(Alignment.CenterStart).fillMaxWidth().padding(start = if (paso > 0) 62.dp else 32.dp, end = 86.dp),
+                    Modifier.align(Alignment.CenterStart).fillMaxWidth().padding(start = if (paso > 0) INICIO_PASOS_CON_ATRAS else INICIO_PASOS, end = FIN_PASOS),
                 )
                 // En el último no hay nada que saltar: elegir es el paso
                 if (paso < PASOS - 1) {
                     Box(
-                        Modifier.align(Alignment.CenterEnd).padding(end = 14.dp).height(44.dp).pulsable({ paso = PASOS - 1 }).padding(horizontal = 10.dp),
+                        Modifier.align(Alignment.CenterEnd).padding(end = Espacio.s).heightIn(min = Alto.toque).pulsable({ paso = PASOS - 1 }).padding(horizontal = Espacio.s - Espacio.hilo),
                         contentAlignment = Alignment.Center,
                     ) {
-                        BasicText("Saltar", style = TextStyle(fontFamily = inter(), fontSize = 15.sp, fontWeight = FontWeight.Medium, color = Paleta.tenue))
+                        BasicText("Saltar", style = TextStyle(fontFamily = inter(), fontSize = Tipo.l, fontWeight = FontWeight.Medium, color = Paleta.tenue))
                     }
                 }
             }
@@ -147,7 +165,7 @@ fun PasoConEscena(primera: String, segunda: String, boton: String, alSeguir: () 
     } else {
         Column(Modifier.fillMaxSize()) {
             escena(Modifier.weight(1f).fillMaxWidth())
-            Spacer(Modifier.height(hueco))
+            Spacer(Modifier.height(if (ventana().compacta || ventana().letraGrande) hueco / REDUCCION_HUECO else hueco))
             BloqueTexto(primera, segunda, boton, alSeguir)
         }
     }
@@ -163,7 +181,8 @@ fun PasoConEscena(primera: String, segunda: String, boton: String, alSeguir: () 
 fun BloqueTexto(primera: String, segunda: String, boton: String, alPulsar: () -> Unit, retardo: Int = 300) {
     val entrada = remember { Animatable(0f) }
     LaunchedEffect(Unit) { entrada.animateTo(1f, tween(1000, retardo)) }
-    Column(Modifier.fillMaxWidth().padding(start = 24.dp, end = 24.dp, bottom = 24.dp)) {
+    val margen = if (ventana().compacta) Espacio.m else Espacio.xl
+    Column(Modifier.fillMaxWidth().padding(start = margen, end = margen, bottom = Espacio.xl)) {
         BasicText(
             buildAnnotatedString {
                 append(primera)
@@ -171,13 +190,13 @@ fun BloqueTexto(primera: String, segunda: String, boton: String, alPulsar: () ->
                 withStyle(SpanStyle(color = Paleta.azul)) { append(segunda) }
             },
             style = TextStyle(
-                fontFamily = jost(), fontSize = 40.sp, lineHeight = 1.1.em, fontWeight = FontWeight.Light, letterSpacing = (-0.02).em, color = Paleta.tinta,
+                fontFamily = jost(), fontSize = TITULO_MAXIMO, lineHeight = 1.1.em, fontWeight = FontWeight.Light, letterSpacing = (-0.02).em, color = Paleta.tinta,
                 // Como la web: el interlineado se reparte arriba y abajo, así la caja mide 88 y el hueco con el botón es el del tablero
                 lineHeightStyle = LineHeightStyle(LineHeightStyle.Alignment.Center, LineHeightStyle.Trim.None),
             ),
             softWrap = false,
             maxLines = 2,
-            autoSize = TextAutoSize.StepBased(minFontSize = 30.sp, maxFontSize = 40.sp, stepSize = 1.sp),
+            autoSize = TextAutoSize.StepBased(minFontSize = TITULO_MINIMO, maxFontSize = TITULO_MAXIMO, stepSize = 1.sp),
             // La caja de línea de la web (40/44 con interlineado negativo) acaba a 40 dp del botón, es decir, con la
             // última línea base a 48. Android no reparte un interlineado menor que la letra como la web: se fija la base
             modifier = Modifier.paddingFromBaseline(bottom = 48.dp).graphicsLayer {

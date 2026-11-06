@@ -52,6 +52,8 @@ import mpensum.componentes.Vidrio
 import mpensum.componentes.cristal
 import mpensum.componentes.pulsable
 import mpensum.logica.Progreso
+import mpensum.tema.Alto
+import mpensum.tema.Espacio
 import mpensum.tema.Paleta
 import mpensum.tema.acentoDe
 import mpensum.tema.Tema
@@ -126,7 +128,7 @@ fun BarraCarrera(
     fun cristalDe(forma: Shape, base: Modifier) = base.cristal(cristal, forma, ESTILO_BARRA, 22.dp, VIDRIO_BARRA)
     if (vertical) {
         // Riel: una sola pieza de cristal con el avance en medio de las pestañas, como la barra de abajo
-        val celda = DpSize(44.dp, 44.dp)
+        val celda = DpSize(Alto.toque, Alto.toque)
         Column(
             cristalDe(RoundedCornerShape(26.dp), modifier.size(ANCHO_RIEL_NAVEGACION, ALTO_RIEL)),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -140,7 +142,7 @@ fun BarraCarrera(
         }
     } else {
         val celda = DpSize(ANCHO_PESTANA, 50.dp)
-        Row(cristalDe(FORMA, modifier).padding(horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+        Row(cristalDe(FORMA, modifier).padding(horizontal = Espacio.xxs), verticalAlignment = Alignment.CenterVertically) {
             Pestana(Phosphor.inicio, "Inicio", activa = false, tam = celda, lado = ICONO, alPulsar = alInicio)
             Pestana(Vista.MAPA.icono, Vista.MAPA.etiqueta, vista == Vista.MAPA, celda, ICONO) { ir(Vista.MAPA) }
             Nucleo(progreso, color, DpSize(ANCHO_NUCLEO, ALTO_BARRA), alAvance)

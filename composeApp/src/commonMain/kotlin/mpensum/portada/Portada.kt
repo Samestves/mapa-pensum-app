@@ -90,6 +90,9 @@ import mpensum.componentes.renglon
 import mpensum.datos.Carrera
 import mpensum.datos.TIPOS
 import mpensum.datos.rememberResumenes
+
+import mpensum.tema.Espacio
+import mpensum.tema.Tipo
 import mpensum.tema.Paleta
 import mpensum.tema.Tema
 import mpensum.tema.jost
@@ -163,7 +166,7 @@ fun Portada(
         Box(Modifier.fillMaxSize().luzCenital().hazeSource(cristal)) {
             if (horizontal) {
                 // Las dos columnas nacen y acaban a la misma altura: bajo la cabecera de 48 dp y a 32 del borde
-                Row(Modifier.fillMaxSize().padding(start = izquierda + 24.dp, end = derecha + 24.dp, top = barra + 60.dp, bottom = 32.dp)) {
+                Row(Modifier.fillMaxSize().padding(start = izquierda + Espacio.xl, end = derecha + Espacio.xl, top = barra + 60.dp, bottom = Espacio.xxl)) {
                     Box(Modifier.width(360.dp).fillMaxHeight()) {
                         if (conTarjeta) tarjeta(true)
                     }
@@ -174,7 +177,7 @@ fun Portada(
                 Modifier
                     .fillMaxSize()
                     .verticalScroll(desplazamiento)
-                    .padding(start = 16.dp, end = 16.dp, top = barra + 76.dp, bottom = abajo + 60.dp),
+                    .padding(start = Espacio.m, end = Espacio.m, top = barra + 76.dp, bottom = abajo + 60.dp),
             ) {
                 // Sin carrera elegida la tarjeta espera a saber si hay marcas: si las hay, la primera con marcas es la tuya
                 if (conTarjeta) tarjeta(false)
@@ -196,7 +199,7 @@ fun Portada(
         // El rótulo comparte fila con la marca y el engranaje, justo sobre la columna de las otras carreras
         if (horizontal) BasicText(
             rotulo,
-            Modifier.padding(start = izquierda + 24.dp + 360.dp + 24.dp + 4.dp, top = barra + 4.dp + 17.dp).renglon(14.dp, 11.sp).sube(160, 0.dp, 480),
+            Modifier.padding(start = izquierda + Espacio.xl + 360.dp + Espacio.xl + Espacio.xxs, top = barra + Espacio.xxs + 17.dp).renglon(14.dp, 11.sp).sube(160, 0.dp, 480),
             style = etiqueta(Paleta.tenue),
         )
 
@@ -230,7 +233,7 @@ private fun vidrio(lienzo: Color) = HazeStyle(
 /** Las etiquetas: mayúsculas finas y espaciadas, el tamaño mínimo de la escala */
 @Composable
 internal fun etiqueta(color: Color) = TextStyle(
-    fontFamily = jost(), fontWeight = FontWeight.Medium, fontSize = 11.sp, lineHeight = 14.sp, letterSpacing = 0.14.em, color = color,
+    fontFamily = jost(), fontWeight = FontWeight.Medium, fontSize = Tipo.xxs, lineHeight = 14.sp, letterSpacing = 0.14.em, color = color,
 )
 
 /**
@@ -244,7 +247,7 @@ private fun Cabecera(modifier: Modifier, alAjustes: () -> Unit) {
         Marca()
         Box(
             Modifier
-                .padding(start = 12.dp, end = 14.dp)
+                .padding(start = Espacio.s, end = 14.dp)
                 .size(1.dp, 22.dp)
                 .background(Brush.verticalGradient(listOf(Paleta.tinta.copy(alpha = 0f), Paleta.tinta.copy(alpha = 0.3f), Paleta.tinta.copy(alpha = 0f)))),
         )
@@ -254,7 +257,7 @@ private fun Cabecera(modifier: Modifier, alAjustes: () -> Unit) {
                 withStyle(SpanStyle(fontWeight = FontWeight.Medium, color = Paleta.tinta)) { append("PENSUM") }
             },
             Modifier.weight(1f),
-            style = TextStyle(fontFamily = jost(), fontSize = 14.sp, lineHeight = 18.sp, letterSpacing = 0.24.em),
+            style = TextStyle(fontFamily = jost(), fontSize = Tipo.m, lineHeight = 18.sp, letterSpacing = 0.24.em),
             maxLines = 1,
             softWrap = false,
         )
@@ -402,10 +405,10 @@ private fun RowScope.OtrasCompactas(otras: List<Carrera>, alAbrir: (Carrera, Tra
                 }
             }
             .verticalScroll(desplazo),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(Espacio.xs),
     ) {
         otras.chunked(2).forEachIndexed { r, par ->
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Espacio.xs)) {
                 par.forEachIndexed { j, c ->
                     FilaCompacta(c, Modifier.weight(1f).sube(minOf(420, 180 + 40 * (2 * r + j)), 12.dp, 480)) { origen -> alAbrir(c, origen) }
                 }

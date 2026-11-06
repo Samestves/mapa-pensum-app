@@ -51,6 +51,10 @@ import mpensum.componentes.esApaisado
 import mpensum.plataforma.Preferencias
 import mpensum.plataforma.animacionesQuitadas
 import mpensum.tema.Acento
+
+import mpensum.tema.Espacio
+import mpensum.tema.Tipo
+import mpensum.componentes.margenPantalla
 import mpensum.tema.Paleta
 import mpensum.tema.Tema
 import mpensum.tema.inter
@@ -90,7 +94,7 @@ internal fun MiniVistaTema(modifier: Modifier = Modifier) {
 internal fun Personalizar(colorCarrera: Color) {
     if (esApaisado()) {
         // Acostado la hoja es baja: lo que se ve (tema, acento, texto) a la izquierda y los interruptores a la derecha
-        Row(Modifier.padding(top = 4.dp, bottom = 24.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(Modifier.padding(top = Espacio.xxs, bottom = Espacio.xl), horizontalArrangement = Arrangement.spacedBy(Espacio.xs)) {
             Column(Modifier.weight(1f)) {
                 BloqueTema(arriba = 8.dp)
                 BloqueAcento(colorCarrera)
@@ -101,7 +105,7 @@ internal fun Personalizar(colorCarrera: Color) {
             }
         }
     } else {
-        Column(Modifier.padding(top = 4.dp, bottom = 24.dp)) {
+        Column(Modifier.padding(top = Espacio.xxs, bottom = Espacio.xl)) {
             BloqueTema(arriba = 8.dp)
             BloqueAcento(colorCarrera)
             BloqueTexto()
@@ -112,18 +116,18 @@ internal fun Personalizar(colorCarrera: Color) {
 
 @Composable
 private fun BloqueTema(arriba: Dp) {
-    Etiqueta("TEMA", Modifier.padding(start = 24.dp, top = arriba, bottom = 10.dp))
+    Etiqueta("TEMA", Modifier.padding(start = margenPantalla() + Espacio.xxs, top = arriba, bottom = Espacio.s))
     CarruselTemas(relleno = PaddingValues(horizontal = 16.dp))
 }
 
 @Composable
 private fun BloqueAcento(colorCarrera: Color) {
     val acento by Preferencias.acento.collectAsState()
-    Row(Modifier.fillMaxWidth().padding(start = 24.dp, end = 24.dp, top = 24.dp, bottom = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+    Row(Modifier.fillMaxWidth().padding(start = margenPantalla() + Espacio.xxs, end = margenPantalla() + Espacio.xxs, top = Espacio.xl, bottom = 6.dp), verticalAlignment = Alignment.CenterVertically) {
         BasicText("ACENTO", Modifier.weight(1f), style = versal(Paleta.tenue))
-        BasicText(acento?.nombre ?: "Tu carrera", style = TextStyle(fontFamily = inter(), fontSize = 13.sp, color = Paleta.suave))
+        BasicText(acento?.nombre ?: "Tu carrera", style = TextStyle(fontFamily = inter(), fontSize = Tipo.s, color = Paleta.suave))
     }
-    Row(Modifier.fillMaxWidth().padding(horizontal = 20.dp).semantics { selectableGroup() }, horizontalArrangement = Arrangement.SpaceBetween) {
+    Row(Modifier.fillMaxWidth().padding(horizontal = Espacio.l).semantics { selectableGroup() }, horizontalArrangement = Arrangement.SpaceBetween) {
         CirculoAcento(null, acento == null, colorCarrera)
         Acento.entries.forEach { CirculoAcento(it, acento == it, colorCarrera) }
     }
@@ -132,8 +136,8 @@ private fun BloqueAcento(colorCarrera: Color) {
 @Composable
 private fun BloqueTexto() {
     val grande by Preferencias.textoGrande.collectAsState()
-    Etiqueta("TEXTO", Modifier.padding(start = 24.dp, top = 24.dp, bottom = 10.dp))
-    SegmentadoTexto(grande, Modifier.padding(horizontal = 20.dp))
+    Etiqueta("TEXTO", Modifier.padding(start = margenPantalla() + Espacio.xxs, top = Espacio.xl, bottom = Espacio.s))
+    SegmentadoTexto(grande, Modifier.padding(horizontal = Espacio.l))
 }
 
 @Composable
@@ -141,10 +145,10 @@ private fun BloqueMovimiento(arriba: Dp) {
     val luz by Preferencias.luzFondo.collectAsState()
     val reducir by Preferencias.reducirMovimiento.collectAsState()
     val codigos by Preferencias.codigos.collectAsState()
-    Etiqueta("MOVIMIENTO Y MAPA", Modifier.padding(start = 24.dp, top = arriba, bottom = 10.dp))
+    Etiqueta("MOVIMIENTO Y MAPA", Modifier.padding(start = margenPantalla() + Espacio.xxs, top = arriba, bottom = Espacio.s))
     Column(
         Modifier
-            .padding(horizontal = 20.dp)
+            .padding(horizontal = Espacio.l)
             .fillMaxWidth()
             .drawBehind {
                 val r = 16.dp.toPx()
@@ -208,7 +212,7 @@ private fun SegmentadoTexto(grande: Boolean, modifier: Modifier) {
             .clip(RoundedCornerShape(24.dp))
             .background(Paleta.tinta.copy(alpha = 0.05f))
             .border(1.dp, Paleta.tinta.copy(alpha = 0.065f), RoundedCornerShape(24.dp))
-            .padding(4.dp)
+            .padding(Espacio.xxs)
             .semantics { selectableGroup() },
     ) {
         OpcionTexto("Normal", 14, !grande, Modifier.weight(1f)) { Preferencias.guardarTextoGrande(false) }
@@ -229,14 +233,14 @@ private fun OpcionTexto(nombre: String, tamAa: Int, elegida: Boolean, modifier: 
         verticalAlignment = Alignment.CenterVertically,
     ) {
         val color = if (elegida) Paleta.tinta else Paleta.tenue
-        BasicText("Aa", Modifier.padding(end = 8.dp), style = TextStyle(fontFamily = jost(), fontSize = tamAa.sp, color = color))
-        BasicText(nombre, style = TextStyle(fontFamily = inter(), fontSize = 15.sp, fontWeight = if (elegida) FontWeight.Medium else FontWeight.Normal, color = color))
+        BasicText("Aa", Modifier.padding(end = Espacio.xs), style = TextStyle(fontFamily = jost(), fontSize = tamAa.sp, color = color))
+        BasicText(nombre, style = TextStyle(fontFamily = inter(), fontSize = Tipo.l, fontWeight = if (elegida) FontWeight.Medium else FontWeight.Normal, color = color))
     }
 }
 
 @Composable
 private fun Divisor() {
-    Box(Modifier.padding(start = 16.dp).fillMaxWidth().height(1.dp).background(Paleta.borde))
+    Box(Modifier.padding(start = Espacio.m).fillMaxWidth().height(1.dp).background(Paleta.borde))
 }
 
 /** Una fila con su interruptor: el título en Jost, lo que hace debajo y el interruptor a la derecha */
@@ -247,12 +251,12 @@ private fun FilaInterruptor(titulo: String, texto: String, activo: Boolean, alCa
             .fillMaxWidth()
             .heightIn(min = 64.dp)
             .toggleable(activo, role = Role.Switch, onValueChange = alCambiar)
-            .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp),
+            .padding(start = Espacio.m, end = Espacio.m, top = Espacio.xs, bottom = Espacio.xs),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Column(Modifier.weight(1f).padding(end = 12.dp)) {
-            BasicText(titulo, style = TextStyle(fontFamily = jost(), fontWeight = FontWeight.Light, fontSize = 17.sp, lineHeight = 22.sp, letterSpacing = (-0.01).em, color = Paleta.tinta))
-            BasicText(texto, Modifier.padding(top = 2.dp), style = TextStyle(fontFamily = inter(), fontSize = 13.sp, lineHeight = 18.sp, color = Paleta.tenue))
+        Column(Modifier.weight(1f).padding(end = Espacio.s)) {
+            BasicText(titulo, style = TextStyle(fontFamily = jost(), fontWeight = FontWeight.Light, fontSize = Tipo.xl, lineHeight = 22.sp, letterSpacing = (-0.01).em, color = Paleta.tinta))
+            BasicText(texto, Modifier.padding(top = Espacio.hilo), style = TextStyle(fontFamily = inter(), fontSize = Tipo.s, lineHeight = 18.sp, color = Paleta.tenue))
         }
         Interruptor(activo)
     }

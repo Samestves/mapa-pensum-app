@@ -30,6 +30,9 @@ import mpensum.componentes.Silueta
 import mpensum.componentes.pulsable
 import mpensum.componentes.renglon
 import mpensum.datos.Carrera
+
+import mpensum.tema.Espacio
+import mpensum.tema.Tipo
 import mpensum.tema.Paleta
 import mpensum.tema.colorDe
 import mpensum.tema.jost
@@ -55,7 +58,7 @@ internal fun Fila(c: Carrera, modifier: Modifier, alPulsar: (TransformOrigin) ->
                 drawRoundRect(porTema(Paleta.tinta.copy(alpha = 0.035f), Color.White.copy(alpha = 0.62f)), cornerRadius = CornerRadius(16.dp.toPx()))
                 borde(Paleta.tinta.copy(alpha = porTema(0.065f, 0.06f)), 16.dp)
             }
-            .padding(start = 16.dp, end = 20.dp),
+            .padding(start = Espacio.m, end = Espacio.l),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         // La silueta cabe en 56 × 36 como en la web; la que tiene más de siete filas asoma por debajo
@@ -68,15 +71,15 @@ internal fun Fila(c: Carrera, modifier: Modifier, alPulsar: (TransformOrigin) ->
                 huecoFila = (36f / 7f - 2.5f).dp,
             )
         }
-        Column(Modifier.padding(start = 16.dp, end = 12.dp).weight(1f)) {
+        Column(Modifier.padding(start = Espacio.m, end = Espacio.s).weight(1f)) {
             BasicText(
                 c.nombreCorto,
                 Modifier.renglon(22.dp, 17.sp),
-                style = TextStyle(fontFamily = jost(), fontSize = 17.sp, lineHeight = 22.sp, fontWeight = FontWeight.Light, letterSpacing = (-0.01).em, color = Paleta.tinta),
+                style = TextStyle(fontFamily = jost(), fontSize = Tipo.xl, lineHeight = 22.sp, fontWeight = FontWeight.Light, letterSpacing = (-0.01).em, color = Paleta.tinta),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
-            BasicText(c.tipo.uppercase(), Modifier.padding(top = 4.dp).renglon(14.dp, 11.sp), style = etiqueta(Paleta.tenue), maxLines = 1)
+            BasicText(c.tipo.uppercase(), Modifier.padding(top = Espacio.xxs).renglon(14.dp, 11.sp), style = etiqueta(Paleta.tenue), maxLines = 1)
         }
         IconoTrazo(Lucide.siguiente, Paleta.apagada, 16.dp, 1.75f)
     }
@@ -100,7 +103,7 @@ internal fun FilaCompacta(c: Carrera, modifier: Modifier, alPulsar: (TransformOr
                 drawRoundRect(porTema(Paleta.tinta.copy(alpha = 0.035f), Color.White.copy(alpha = 0.62f)), cornerRadius = CornerRadius(16.dp.toPx()))
                 borde(Paleta.tinta.copy(alpha = porTema(0.065f, 0.06f)), 16.dp)
             }
-            .padding(start = 14.dp, end = 12.dp),
+            .padding(start = 14.dp, end = Espacio.s),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(Modifier.size(36.dp, 28.dp)) {
@@ -116,12 +119,12 @@ internal fun FilaCompacta(c: Carrera, modifier: Modifier, alPulsar: (TransformOr
             BasicText(
                 c.nombreCorto,
                 Modifier.renglon(20.dp, 15.sp),
-                style = TextStyle(fontFamily = jost(), fontSize = 15.sp, lineHeight = 20.sp, fontWeight = FontWeight.Light, letterSpacing = (-0.01).em, color = Paleta.tinta),
+                style = TextStyle(fontFamily = jost(), fontSize = Tipo.l, lineHeight = 20.sp, fontWeight = FontWeight.Light, letterSpacing = (-0.01).em, color = Paleta.tinta),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 autoSize = TextAutoSize.StepBased(13.sp, 15.sp, 1.sp),
             )
-            BasicText(c.tipo.uppercase(), Modifier.padding(top = 4.dp).renglon(14.dp, 11.sp), style = etiqueta(Paleta.tenue), maxLines = 1)
+            BasicText(c.tipo.uppercase(), Modifier.padding(top = Espacio.xxs).renglon(14.dp, 11.sp), style = etiqueta(Paleta.tenue), maxLines = 1)
         }
     }
 }

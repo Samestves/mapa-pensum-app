@@ -127,6 +127,9 @@ private val TOMA = TomaEnBucle(
     ),
 )
 
+/** El hueco del tablero entre la escena y el título */
+private val HUECO_TABLERO = 68.dp
+
 @Composable
 fun PasoMapa(alSeguir: () -> Unit) {
     val reloj = rememberRelojEscena(CICLO, QUIETO)
@@ -134,7 +137,7 @@ fun PasoMapa(alSeguir: () -> Unit) {
     // Los degradados de los cables llevan los tonos del tema: se rearman si cambia
     val cables = remember(Tema.claro) { CABLES.map { (o, d, j) -> CableDemo(MATERIAS[o], MATERIAS[d], j) } }
     // El hueco del tablero entre la escena y el título: el fundido de abajo respira antes del texto
-    PasoConEscena("Marca lo aprobado,", "mira qué se abre.", "Continuar", alSeguir, hueco = 68.dp) { modifier ->
+    PasoConEscena("Marca lo aprobado,", "mira qué se abre.", "Continuar", alSeguir, hueco = HUECO_TABLERO) { modifier ->
         EscenaEnBucle(reloj, TOMA, arriba = 0.17f, abajo = 0.2f, lados = 0.05f, modifier = modifier) { t ->
             pintar(t, textos, cables)
         }

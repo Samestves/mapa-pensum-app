@@ -148,6 +148,9 @@ private val TOMA = TomaEnBucle(
     ),
 )
 
+/** El hueco del tablero entre la escena y el título */
+private val HUECO_TABLERO = 68.dp
+
 @Composable
 fun PasoHorario(alSeguir: () -> Unit) {
     val reloj = rememberRelojEscena(CICLO, QUIETO)
@@ -155,7 +158,7 @@ fun PasoHorario(alSeguir: () -> Unit) {
     val sesiones = remember { SESIONES.mapIndexed { j, s -> SesionHorario(j, s) } }
     // Sus pinceles llevan los colores del tema: se rehacen si cambia
     val tarjeta = remember(Tema.claro) { TarjetaEnCurso() }
-    PasoConEscena("Una foto al horario,", "tu semana lista.", "Continuar", alSeguir, hueco = 68.dp) { modifier ->
+    PasoConEscena("Una foto al horario,", "tu semana lista.", "Continuar", alSeguir, hueco = HUECO_TABLERO) { modifier ->
         // Arriba y abajo se funde menos que en la pantalla 1: aquí hay que leer
         EscenaEnBucle(reloj, TOMA, arriba = 0.09f, abajo = 0.14f, lados = 0.06f, modifier = modifier) { t ->
             pintar(t, textos, sesiones, tarjeta)

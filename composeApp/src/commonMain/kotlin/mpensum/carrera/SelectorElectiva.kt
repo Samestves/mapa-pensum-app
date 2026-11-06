@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -40,6 +41,10 @@ import mpensum.componentes.Lucide
 import mpensum.datos.Asignatura
 import mpensum.logica.EstadoMateria
 import mpensum.mapa.tituloGrupo
+import mpensum.tema.Espacio
+import mpensum.tema.Tipo
+import mpensum.tema.Alto
+import mpensum.componentes.margenPantalla
 import mpensum.tema.Paleta
 import mpensum.tema.Radio
 import mpensum.tema.jost
@@ -64,7 +69,7 @@ private enum class Pestana(val titulo: String, val entra: (EstadoMateria?) -> Bo
 private fun sinTildes(texto: String) = texto.lowercase()
     .replace('á', 'a').replace('é', 'e').replace('í', 'i').replace('ó', 'o').replace('ú', 'u').replace('ü', 'u')
 
-private val TITULO get() = TextStyle(fontWeight = FontWeight.SemiBold, fontSize = 11.sp, letterSpacing = 0.14.em, color = Paleta.tenue)
+private val TITULO get() = TextStyle(fontWeight = FontWeight.SemiBold, fontSize = Tipo.xxs, letterSpacing = 0.14.em, color = Paleta.tenue)
 
 @Composable
 fun BoxScope.SelectorElectiva(
@@ -86,10 +91,10 @@ fun BoxScope.SelectorElectiva(
         abierta = casilla != null,
         alCerrar = alCerrar,
         cabecera = {
-            Row(Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 4.dp, bottom = 16.dp), verticalAlignment = Alignment.Top) {
+            Row(Modifier.fillMaxWidth().padding(start = margenPantalla(), end = margenPantalla(), top = Espacio.xxs, bottom = Espacio.m), verticalAlignment = Alignment.Top) {
                 Column(Modifier.weight(1f)) {
                     BasicText((if (nodo.semestre == null) tituloGrupo(grupo) else "Semestre ${nodo.semestre}").uppercase(), style = TITULO.copy(fontFamily = j))
-                    BasicText(nodo.nombre, Modifier.padding(top = 4.dp), style = TextStyle(fontFamily = j, fontWeight = FontWeight.SemiBold, fontSize = 17.sp, color = Paleta.tinta))
+                    BasicText(nodo.nombre, Modifier.padding(top = Espacio.xxs), style = TextStyle(fontFamily = j, fontWeight = FontWeight.SemiBold, fontSize = Tipo.xl, color = Paleta.tinta))
                 }
                 BotonCerrar(alCerrar)
             }
@@ -139,48 +144,48 @@ private fun Contenido(
         if (enFranja && estado.casillaDe(o.codigo) != null && !aqui) alCerrar() else alColocar(casilla, if (aqui) null else o.codigo)
     }
 
-    Column(Modifier.padding(start = 20.dp, end = 20.dp, bottom = 32.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+    Column(Modifier.padding(start = margenPantalla(), end = margenPantalla(), bottom = Espacio.xxl), verticalArrangement = Arrangement.spacedBy(Espacio.m)) {
         if (aprobarAlElegir && puesta == null) {
-            BasicText("✓  Es lo único que le falta a este semestre. La que elijas queda aprobada.", style = TextStyle(fontFamily = j, fontSize = 13.sp, color = Paleta.verde))
+            BasicText("✓  Es lo único que le falta a este semestre. La que elijas queda aprobada.", style = TextStyle(fontFamily = j, fontSize = Tipo.s, color = Paleta.verde))
         }
         cuota?.let { CuotaGrupo("UC elegidas de este grupo", ucColocadas, it) }
         puesta?.let { p ->
             Row(
-                Modifier.fillMaxWidth().clip(RoundedCornerShape(Radio.Tarjeta)).background(Paleta.tinta.copy(alpha = 0.04f)).padding(10.dp),
+                Modifier.fillMaxWidth().clip(RoundedCornerShape(Radio.Tarjeta)).background(Paleta.tinta.copy(alpha = 0.04f)).padding(Espacio.s),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                horizontalArrangement = Arrangement.spacedBy(Espacio.s),
             ) {
                 FichaUc(p, estado, apagada = false)
                 Column(Modifier.weight(1f)) {
-                    BasicText(if (enFranja) "EN TU MAPA" else "EN ESTA CASILLA", style = TextStyle(fontFamily = j, fontWeight = FontWeight.SemiBold, fontSize = 11.sp, letterSpacing = 0.1.em, color = Paleta.verde))
-                    BasicText(p.nombre, style = TextStyle(fontFamily = j, fontWeight = FontWeight.Medium, fontSize = 14.sp, color = Paleta.tinta), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    BasicText(if (enFranja) "EN TU MAPA" else "EN ESTA CASILLA", style = TextStyle(fontFamily = j, fontWeight = FontWeight.SemiBold, fontSize = Tipo.xxs, letterSpacing = 0.1.em, color = Paleta.verde))
+                    BasicText(p.nombre, style = TextStyle(fontFamily = j, fontWeight = FontWeight.Medium, fontSize = Tipo.m, color = Paleta.tinta), maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
                 if (!puestaFija) {
                     Box(
-                        Modifier.height(32.dp).clip(CircleShape).background(Paleta.tinta.copy(alpha = 0.06f)).clickable(role = Role.Button) { alColocar(casilla, null) }.padding(horizontal = 14.dp),
+                        Modifier.height(32.dp).clip(CircleShape).background(Paleta.tinta.copy(alpha = 0.06f)).clickable(role = Role.Button) { alColocar(casilla, null) }.padding(horizontal = Espacio.s),
                         contentAlignment = Alignment.Center,
                     ) { BasicText("Quitar", style = TextStyle(fontFamily = j, fontWeight = FontWeight.Medium, fontSize = 12.5.sp, color = Paleta.suave)) }
                 }
             }
         }
         if (opciones.size > BUSCADOR_DESDE) {
-            Box(Modifier.fillMaxWidth().height(40.dp).clip(CircleShape).background(Paleta.tinta.copy(alpha = 0.05f)).padding(horizontal = 16.dp), contentAlignment = Alignment.CenterStart) {
-                if (busqueda.isEmpty()) BasicText("Buscar por nombre o código", style = TextStyle(fontFamily = j, fontSize = 14.sp, color = Paleta.tenue))
+            Box(Modifier.fillMaxWidth().heightIn(min = Alto.icono).clip(CircleShape).background(Paleta.tinta.copy(alpha = 0.05f)).padding(horizontal = Espacio.m), contentAlignment = Alignment.CenterStart) {
+                if (busqueda.isEmpty()) BasicText("Buscar por nombre o código", style = TextStyle(fontFamily = j, fontSize = Tipo.m, color = Paleta.tenue))
                 BasicTextField(
                     busqueda, { busqueda = it }, Modifier.fillMaxWidth(), singleLine = true,
-                    textStyle = TextStyle(fontFamily = j, fontSize = 14.sp, color = Paleta.tinta), cursorBrush = SolidColor(Paleta.tinta),
+                    textStyle = TextStyle(fontFamily = j, fontSize = Tipo.m, color = Paleta.tinta), cursorBrush = SolidColor(Paleta.tinta),
                 )
             }
         }
         if (q.isEmpty() && pestanas.size > 1) {
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(Espacio.xxs)) {
                 pestanas.forEach { (p, lista) ->
                     val activa = p == pestana?.first
                     Row(
                         Modifier.height(32.dp).clip(CircleShape).background(if (activa) Paleta.tinta else Paleta.tinta.copy(alpha = 0.05f))
-                            .clickable(role = Role.Tab) { elegida = p }.padding(horizontal = 12.dp),
+                            .clickable(role = Role.Tab) { elegida = p }.padding(horizontal = Espacio.s),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        horizontalArrangement = Arrangement.spacedBy(Espacio.xxs),
                     ) {
                         BasicText(p.titulo, style = TextStyle(fontFamily = j, fontSize = 12.5.sp, color = if (activa) Paleta.panel else Paleta.suave))
                         BasicText("${lista.size}", style = TextStyle(fontFamily = j, fontSize = 12.5.sp, color = if (activa) Paleta.panel.copy(alpha = 0.6f) else Paleta.tenue))
@@ -189,9 +194,9 @@ private fun Contenido(
             }
         }
         if (visibles.isNotEmpty()) {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(Espacio.xs)) {
                 visibles.chunked(2).forEach { fila ->
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(Espacio.xs)) {
                         fila.forEach { o ->
                             val donde = estado.casillaDe(o.codigo)
                             FichaElectiva(o, estado, estados[o.codigo], aqui = donde == casilla, enOtra = donde != null && donde != casilla, enFranja = enFranja, modifier = Modifier.weight(1f)) { elegir(o) }
@@ -201,13 +206,13 @@ private fun Contenido(
                 }
             }
         } else if (q.isNotEmpty()) {
-            BasicText("Ninguna coincide con «$busqueda»", Modifier.fillMaxWidth().padding(vertical = 24.dp), style = TextStyle(fontFamily = j, fontSize = 13.sp, color = Paleta.tenue))
+            BasicText("Ninguna coincide con «$busqueda»", Modifier.fillMaxWidth().padding(vertical = Espacio.xl), style = TextStyle(fontFamily = j, fontSize = Tipo.s, color = Paleta.tenue))
         }
         // El semestre de la casilla es la ruta que sugiere la UDO, no un registro de cuándo la cursaste
         BasicText(
             if (enFranja) "La UDO no publica en qué semestre va cada electiva de esta carrera. Añade las que vayas a cursar y quedan en tu mapa, debajo de los semestres."
             else "El semestre es la ruta que sugiere la UDO. Si la cursaste en otro, ponla igual: para el título cuentan las UC, no el semestre.",
-            style = TextStyle(fontFamily = j, fontSize = 12.sp, lineHeight = 16.sp, color = Paleta.tenue),
+            style = TextStyle(fontFamily = j, fontSize = Tipo.xs, lineHeight = 16.sp, color = Paleta.tenue),
         )
     }
 }
@@ -223,7 +228,7 @@ private fun FichaUc(materia: Asignatura, estado: EstadoCarrera, apagada: Boolean
         verticalArrangement = Arrangement.Center,
     ) {
         val tinta = lerp(color, Paleta.tinta, 0.28f).copy(alpha = if (apagada) 0.5f else 1f)
-        BasicText("${materia.uc ?: 0}", style = TextStyle(fontFamily = j, fontWeight = FontWeight.SemiBold, fontSize = 15.sp, lineHeight = 15.sp, color = tinta))
+        BasicText("${materia.uc ?: 0}", style = TextStyle(fontFamily = j, fontWeight = FontWeight.SemiBold, fontSize = Tipo.l, lineHeight = 15.sp, color = tinta))
         BasicText("UC", style = TextStyle(fontFamily = j, fontWeight = FontWeight.SemiBold, fontSize = 8.5.sp, lineHeight = 9.sp, letterSpacing = 0.08.em, color = tinta))
     }
 }
@@ -253,8 +258,8 @@ private fun FichaElectiva(
             .background(if (aqui) Paleta.verde.copy(alpha = 0.08f) else Color.Transparent)
             .border(1.dp, if (aqui) Paleta.verde.copy(alpha = 0.5f) else BORDE_PANEL, RoundedCornerShape(Radio.Tarjeta))
             .clickable(role = Role.Button, onClick = alElegir)
-            .padding(12.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+            .padding(Espacio.s),
+        verticalArrangement = Arrangement.spacedBy(Espacio.s),
     ) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.Top) {
             FichaUc(materia, estado, bloqueada)
@@ -263,14 +268,14 @@ private fun FichaElectiva(
                     .background(if (aqui) Paleta.verde else Color.Transparent)
                     .border(2.dp, if (aqui) Color.Transparent else Paleta.tinta.copy(alpha = 0.15f), CircleShape),
                 contentAlignment = Alignment.Center,
-            ) { if (aqui) BasicText("✓", style = TextStyle(fontWeight = FontWeight.Bold, fontSize = 12.sp, color = Paleta.lienzo)) }
+            ) { if (aqui) BasicText("✓", style = TextStyle(fontWeight = FontWeight.Bold, fontSize = Tipo.xs, color = Paleta.lienzo)) }
         }
         BasicText(
             materia.nombre,
             style = TextStyle(fontFamily = j, fontWeight = FontWeight.Medium, fontSize = 13.5.sp, lineHeight = 17.sp, color = if (bloqueada) Paleta.suave else Paleta.tinta),
             maxLines = 3, overflow = TextOverflow.Ellipsis,
         )
-        Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+        Row(horizontalArrangement = Arrangement.spacedBy(Espacio.xxs), verticalAlignment = Alignment.CenterVertically) {
             BasicText(materia.codigo, style = TextStyle(fontFamily = j, fontSize = 11.5.sp, color = Paleta.tenue))
             nota?.let { (texto, color) -> BasicText(texto, style = TextStyle(fontFamily = j, fontWeight = FontWeight.Medium, fontSize = 11.5.sp, color = color)) }
         }
@@ -291,7 +296,7 @@ fun CuotaGrupo(titulo: String, uc: Int, meta: Int?) {
             )
         }
         if (meta != null) {
-            Box(Modifier.padding(top = 8.dp).fillMaxWidth().height(6.dp).clip(CircleShape).background(Paleta.tinta.copy(alpha = 0.08f))) {
+            Box(Modifier.padding(top = Espacio.xs).fillMaxWidth().height(6.dp).clip(CircleShape).background(Paleta.tinta.copy(alpha = 0.08f))) {
                 Box(Modifier.fillMaxWidth((uc.toFloat() / meta).coerceIn(0f, 1f)).height(6.dp).clip(CircleShape).background(Paleta.verde))
             }
         }

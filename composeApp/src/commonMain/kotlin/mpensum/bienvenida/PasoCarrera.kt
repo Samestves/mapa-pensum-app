@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -58,11 +59,15 @@ import mpensum.componentes.Silueta
 import mpensum.componentes.esApaisado
 import mpensum.componentes.pulsable
 import mpensum.componentes.renglon
+import mpensum.componentes.ventana
 import mpensum.datos.Carrera
 import mpensum.datos.TIPOS
 import mpensum.logica.compararEs
 import mpensum.plataforma.Preferencias
+import mpensum.tema.Alto
+import mpensum.tema.Espacio
 import mpensum.tema.Paleta
+import mpensum.tema.Tipo
 import mpensum.tema.colorDe
 import mpensum.tema.inter
 import mpensum.tema.jost
@@ -74,7 +79,22 @@ private val ESTANDAR = CubicBezierEasing(0.4f, 0f, 0.2f, 1f)
 /** Lo que mide una fila y su paso, como las de la portada */
 private val ALTO_FILA = 72.dp
 private val PASO_FILA = 80.dp
-private val MARGEN_LISTA = 8.dp
+private val MARGEN_LISTA = Espacio.xs
+
+/** El título baja hasta aquí antes de partirse: en 320 dp y con letra grande sigue entero */
+private val TITULO_MINIMO = 20.sp
+
+/** Lo que respira el botón bajo él, y el fundido de la lista sobre él */
+private val BOTON_ABAJO = Espacio.xl + Espacio.hilo
+private val FUNDIDO_ARRIBA = Espacio.m
+private val FUNDIDO_ABAJO = 64.dp
+private val ABAJO_UNA_COLUMNA = 56.dp
+private val ABAJO_DOS_COLUMNAS = 72.dp
+
+/** La silueta de la fila (56 × 36 como en la web), su punto y el visto */
+private val SILUETA_ANCHO = 56.dp
+private val SILUETA_ALTO = Alto.chip
+private val VISTO_TAM = 20.dp
 
 // Acostado la lista pide más que los 1,5 : 1 de los demás pasos: con dos columnas los nombres se cortaban
 private const val PESO_LISTA_APAISADA = 2f
@@ -113,7 +133,7 @@ fun PasoCarrera(
         // La lista a un lado, en dos columnas para que quepan más carreras sin desplazar; el título y el botón al otro,
         // bajo la barra de pasos, como en los demás pasos
         Row(Modifier.fillMaxSize()) {
-            Lista(ordenadas, elegida, hay, Modifier.weight(PESO_LISTA_APAISADA).fillMaxHeight().padding(top = ALTO_BARRA - 16.dp), columnas = 2) { elegida = it.slug }
+            Lista(ordenadas, elegida, hay, Modifier.weight(PESO_LISTA_APAISADA).fillMaxHeight().padding(top = ALTO_BARRA - Espacio.m), columnas = 2) { elegida = it.slug }
             Column(Modifier.weight(PESO_TEXTO_APAISADO).fillMaxHeight().padding(top = ALTO_BARRA), verticalArrangement = Arrangement.Center) {
                 Titulo()
                 Boton(actual, boton) { alElegir(actual) }
@@ -133,17 +153,18 @@ fun PasoCarrera(
 private fun Titulo() {
     val entrada = remember { Animatable(0f) }
     LaunchedEffect(Unit) { entrada.animateTo(1f, tween(1000, 300, ESTANDAR)) }
+    val margen = if (ventana().compacta) Espacio.m else Espacio.xl
     BasicText(
         buildAnnotatedString {
             append("Elige tu carrera,\n")
             withStyle(SpanStyle(color = Paleta.azul)) { append("será tu inicio.") }
         },
-        style = TextStyle(fontFamily = jost(), fontSize = 40.sp, lineHeight = 44.sp, fontWeight = FontWeight.Light, letterSpacing = (-0.02).em, color = Paleta.tinta),
+        style = TextStyle(fontFamily = jost(), fontSize = Tipo.gigante, lineHeight = 44.sp, fontWeight = FontWeight.Light, letterSpacing = (-0.02).em, color = Paleta.tinta),
         softWrap = false,
         maxLines = 2,
         // Como en los otros pasos: en un teléfono estrecho la letra baja antes que partirse
-        autoSize = TextAutoSize.StepBased(minFontSize = 30.sp, maxFontSize = 40.sp, stepSize = 1.sp),
-        modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 24.dp, top = 12.dp).graphicsLayer {
+        autoSize = TextAutoSize.StepBased(minFontSize = TITULO_MINIMO, maxFontSize = Tipo.gigante, stepSize = 1.sp),
+        modifier = Modifier.fillMaxWidth().padding(start = margen, end = margen, top = Espacio.s).graphicsLayer {
             alpha = entrada.value
             translationY = (1f - entrada.value) * 18.dp.toPx()
             renderEffect = desenfoque((12 * (1f - entrada.value)).dp.toPx())
@@ -164,7 +185,7 @@ private fun Lista(carreras: List<Carrera>, elegida: String?, hay: State<Float>, 
     val luzColor = animateColorAsState(carreras.getOrNull(indice)?.let { colorDe(it.color) } ?: Paleta.azul, tween(260), label = "luz")
     val luzFila = animateFloatAsState((indice.coerceAtLeast(0) / columnas).toFloat(), tween(260, easing = ESTANDAR), label = "fila")
     val luzColumna = animateFloatAsState((indice.coerceAtLeast(0) % columnas).toFloat(), tween(260, easing = ESTANDAR), label = "columna")
-    Box(modifier.padding(top = 16.dp).fillMaxWidth()) {
+    Box(modifier.padding(top = Espacio.m).fillMaxWidth()) {
         // La luz no se recorta con la lista: es del fondo y se sale de ella
         Box(
             Modifier.matchParentSize().drawBehind {
@@ -191,8 +212,8 @@ private fun Lista(carreras: List<Carrera>, elegida: String?, hay: State<Float>, 
                 .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
                 .drawWithContent {
                     drawContent()
-                    val arriba = 16.dp.toPx() / size.height
-                    val abajo = 64.dp.toPx() / size.height
+                    val arriba = FUNDIDO_ARRIBA.toPx() / size.height
+                    val abajo = FUNDIDO_ABAJO.toPx() / size.height
                     drawRect(
                         Brush.verticalGradient(0f to Color.Transparent, arriba to Color.Black, 1f - abajo to Color.Black, 1f to Color.Transparent),
                         blendMode = BlendMode.DstIn,
@@ -200,7 +221,7 @@ private fun Lista(carreras: List<Carrera>, elegida: String?, hay: State<Float>, 
                 }
                 .verticalScroll(desplazamiento)
                 // Abajo sobra lo justo para que la última suba por encima del fundido
-                .padding(top = MARGEN_LISTA, bottom = if (columnas > 1) 72.dp else 56.dp),
+                .padding(top = MARGEN_LISTA, bottom = if (columnas > 1) ABAJO_DOS_COLUMNAS else ABAJO_UNA_COLUMNA),
         ) {
             carreras.chunked(columnas).forEachIndexed { r, grupo ->
                 Row(Modifier.fillMaxWidth()) {
@@ -223,8 +244,11 @@ private fun Lista(carreras: List<Carrera>, elegida: String?, hay: State<Float>, 
 private fun FilaCarrera(c: Carrera, i: Int, esElegida: Boolean, hay: State<Float>, compacta: Boolean, modifier: Modifier, alPulsar: () -> Unit) {
     val color = colorDe(c.color)
     // En dos columnas los márgenes bajan y el nombre puede ocupar dos renglones antes de cortarse
-    val margen = if (compacta) 8.dp else 16.dp
-    val relleno = if (compacta) 12.dp else 16.dp
+    // También se aprieta y se parte en dos renglones con la ventana estrecha o la letra grande
+    val ajustada = ventana().compacta || ventana().letraGrande
+    val flexible = compacta || ajustada
+    val margen = if (compacta) Espacio.xs else Espacio.m
+    val relleno = if (compacta) Espacio.s else Espacio.m
     val k = animateFloatAsState(if (esElegida) 1f else 0f, tween(260, easing = ESTANDAR), label = "elegida")
     val entra = remember { Animatable(0f) }
     LaunchedEffect(Unit) { entra.animateTo(1f, tween(480, 150 + 40 * i, SALIDA)) }
@@ -239,13 +263,13 @@ private fun FilaCarrera(c: Carrera, i: Int, esElegida: Boolean, hay: State<Float
             }
             .pulsable(alPulsar, escala = 0.98f)
             .fillMaxWidth()
-            .height(ALTO_FILA)
+            .heightIn(min = ALTO_FILA)
             .drawBehind { cristalFila(color, k.value) }
-            .padding(start = relleno, end = relleno + 4.dp),
+            .padding(start = relleno, end = relleno + Espacio.xxs),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         // La silueta cabe en 56 × 36 como en la web; la que tiene más de siete filas asoma por debajo
-        Box(Modifier.size(56.dp, 36.dp).graphicsLayer { compositingStrategy = CompositingStrategy.ModulateAlpha; alpha = 0.7f + 0.3f * k.value }) {
+        Box(Modifier.size(SILUETA_ANCHO, SILUETA_ALTO).graphicsLayer { compositingStrategy = CompositingStrategy.ModulateAlpha; alpha = 0.7f + 0.3f * k.value }) {
             Silueta(
                 c.silueta, color,
                 hechas = c.silueta,
@@ -254,24 +278,24 @@ private fun FilaCarrera(c: Carrera, i: Int, esElegida: Boolean, hay: State<Float
                 huecoFila = (36f / 7f - 2.5f).dp,
             )
         }
-        Column(Modifier.padding(start = relleno, end = 8.dp).weight(1f)) {
+        Column(Modifier.padding(start = relleno, end = Espacio.xs).weight(1f)) {
             BasicText(
                 c.nombreCorto,
-                if (compacta) Modifier else Modifier.renglon(22.dp, 17.sp),
-                style = TextStyle(fontFamily = jost(), fontSize = 17.sp, lineHeight = 22.sp, fontWeight = FontWeight.Light, letterSpacing = (-0.01).em, color = Paleta.tinta),
-                maxLines = if (compacta) 2 else 1,
+                if (flexible) Modifier else Modifier.renglon(22.dp, Tipo.xl),
+                style = TextStyle(fontFamily = jost(), fontSize = Tipo.xl, lineHeight = 22.sp, fontWeight = FontWeight.Light, letterSpacing = (-0.01).em, color = Paleta.tinta),
+                maxLines = if (flexible) 2 else 1,
                 overflow = TextOverflow.Ellipsis,
             )
             BasicText(
                 c.tipo.uppercase(),
-                Modifier.padding(top = 4.dp).renglon(14.dp, 11.sp),
-                style = TextStyle(fontFamily = jost(), fontWeight = FontWeight.Medium, fontSize = 11.sp, lineHeight = 14.sp, letterSpacing = 0.14.em, color = Paleta.tenue),
+                Modifier.padding(top = Espacio.xxs).let { if (ajustada) it else it.renglon(14.dp, Tipo.xxs) },
+                style = TextStyle(fontFamily = jost(), fontWeight = FontWeight.Medium, fontSize = Tipo.xxs, lineHeight = 14.sp, letterSpacing = 0.14.em, color = Paleta.tenue),
                 maxLines = 1,
             )
         }
         // El visto: un disco en su color con la marca en lienzo; crece un poco al llegar, sin rebote
         Box(
-            Modifier.size(20.dp).graphicsLayer {
+            Modifier.size(VISTO_TAM).graphicsLayer {
                 alpha = k.value
                 val e = 0.8f + 0.2f * SALIDA.transform(k.value)
                 scaleX = e
@@ -316,13 +340,14 @@ private fun DrawScope.cristalFila(color: Color, k: Float) {
 @Composable
 private fun Boton(actual: Carrera?, texto: String, alPulsar: () -> Unit) {
     val b = animateFloatAsState(if (actual != null) 1f else 0f, tween(250, 150, ESTANDAR), label = "boton")
-    val letra = TextStyle(fontFamily = inter(), fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
+    val margen = if (ventana().compacta) Espacio.m else Espacio.xl
+    val letra = TextStyle(fontFamily = inter(), fontSize = Tipo.xl, fontWeight = FontWeight.SemiBold)
     Box(
         Modifier
-            .padding(start = 24.dp, end = 24.dp, top = 16.dp, bottom = 26.dp)
+            .padding(start = margen, end = margen, top = Espacio.m, bottom = BOTON_ABAJO)
             .then(if (actual != null) Modifier.pulsable(alPulsar, atenuar = 0.88f) else Modifier)
             .fillMaxWidth()
-            .height(56.dp)
+            .heightIn(min = Alto.grande)
             .drawBehind { drawRoundRect(Paleta.tinta.copy(alpha = 0.08f + 0.92f * b.value), cornerRadius = CornerRadius(size.height / 2f)) },
         contentAlignment = Alignment.Center,
     ) {

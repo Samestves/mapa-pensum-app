@@ -57,8 +57,12 @@ import mpensum.componentes.Lucide
 import mpensum.componentes.Silueta
 import mpensum.componentes.pulsable
 import mpensum.componentes.renglon
+import mpensum.componentes.ventana
 import mpensum.datos.Carrera
 import mpensum.logica.ResumenPortada
+
+import mpensum.tema.Espacio
+import mpensum.tema.Tipo
 import mpensum.tema.Paleta
 import mpensum.tema.Tema
 import mpensum.tema.Acento
@@ -115,6 +119,8 @@ internal fun TuCarrera(
     }
     fun tramo(desde: Float, dura: Float) = ((tiempo.value - desde) / dura).coerceIn(0f, 1f)
     val origen = rememberOrigen()
+    // En 320 dp el margen interior baja de 20 a 16: el nombre y «Continuar» respiran
+    val pad = if (ventana().compacta) Espacio.m else Espacio.l
 
     Box(
         (if (lleno) modifier.fillMaxSize() else modifier.fillMaxWidth().height(152.dp))
@@ -126,7 +132,7 @@ internal fun TuCarrera(
             if (c != null) {
                 // Los puntos a paso de 16 (de 7 dp): la silueta es la protagonista de la tarjeta
                 Silueta(
-                    c.silueta, acento, Modifier.padding(start = 24.dp, top = 28.dp),
+                    c.silueta, acento, Modifier.padding(start = Espacio.xl, top = 28.dp),
                     hechas = resumen?.hechas ?: emptyList(),
                     punto = 7.dp,
                     hueco = 9.dp,
@@ -135,29 +141,29 @@ internal fun TuCarrera(
                     encendido = { col, fila -> ENFATICA.transform(tramo(380f + col * 70f + fila * 12f, 320f)) },
                 )
                 if (resumen != null || !cargando) {
-                    Column(Modifier.align(Alignment.TopEnd).padding(top = 22.dp, end = 24.dp), horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Column(Modifier.align(Alignment.TopEnd).padding(top = 22.dp, end = Espacio.xl), horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         Cifra(resumen?.porcentaje ?: 0, 56.sp) { if (resumen != null) ENFATICA.transform(tramo(380f, 900f)) else 1f }
                         BasicText(if (resumen != null) "APROBADO" else "SIN MARCAS", Modifier.renglon(14.dp, 11.sp), style = etiqueta(Paleta.suave))
                     }
                 }
             }
             // De abajo hacia arriba: la acción, el filete, y el nombre con su tipo sobre él
-            Column(Modifier.align(Alignment.BottomStart).fillMaxWidth().padding(start = 24.dp, end = 24.dp, bottom = 20.dp)) {
+            Column(Modifier.align(Alignment.BottomStart).fillMaxWidth().padding(start = Espacio.xl, end = Espacio.xl, bottom = Espacio.l)) {
                 BasicText(
                     c?.nombreCorto ?: "Elige tu carrera",
                     Modifier.renglon(38.dp, 32.sp),
-                    style = TextStyle(fontFamily = jost(), fontSize = 32.sp, lineHeight = 38.sp, fontWeight = FontWeight.Light, letterSpacing = (-0.01).em, color = Paleta.tinta),
+                    style = TextStyle(fontFamily = jost(), fontSize = Tipo.cifra, lineHeight = 38.sp, fontWeight = FontWeight.Light, letterSpacing = (-0.01).em, color = Paleta.tinta),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     autoSize = TextAutoSize.StepBased(20.sp, 32.sp, 1.sp),
                 )
-                BasicText(c?.tipo?.uppercase() ?: "TOCA UNA DE LA DERECHA", Modifier.padding(top = 4.dp).renglon(14.dp, 11.sp), style = etiqueta(Paleta.tenue), maxLines = 1)
+                BasicText(c?.tipo?.uppercase() ?: "TOCA UNA DE LA DERECHA", Modifier.padding(top = Espacio.xxs).renglon(14.dp, 11.sp), style = etiqueta(Paleta.tenue), maxLines = 1)
                 if (c != null) {
-                    Box(Modifier.padding(top = 12.dp).fillMaxWidth().height(1.dp).background(Paleta.tinta.copy(alpha = 0.08f)))
+                    Box(Modifier.padding(top = Espacio.s).fillMaxWidth().height(1.dp).background(Paleta.tinta.copy(alpha = 0.08f)))
                     Row(
-                        Modifier.padding(top = 12.dp).fillMaxWidth().height(44.dp),
+                        Modifier.padding(top = Espacio.s).fillMaxWidth().height(44.dp),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        horizontalArrangement = Arrangement.spacedBy(Espacio.s),
                     ) {
                         Dato(c, resumen, cargando, Modifier.weight(1f))
                         Chip(if (resumen == null && !cargando) "Empezar" else "Continuar", acento)
@@ -169,7 +175,7 @@ internal fun TuCarrera(
         if (c != null) {
             // Lo aprobado encendido por columnas, de izquierda a derecha, y dentro de cada una de arriba abajo
             Silueta(
-                c.silueta, acento, Modifier.padding(start = 20.dp, top = 20.dp),
+                c.silueta, acento, Modifier.padding(start = pad, top = pad),
                 hechas = resumen?.hechas ?: emptyList(),
                 punto = 4.dp,
                 hueco = (84f / c.silueta.size - 4f).dp,
@@ -180,7 +186,7 @@ internal fun TuCarrera(
             // Cargando no hay cifra: nada de brillos que finjan un dato
             if (resumen != null || !cargando) {
                 Column(
-                    Modifier.align(Alignment.TopEnd).padding(top = 20.dp, end = 20.dp).height(54.dp),
+                    Modifier.align(Alignment.TopEnd).padding(top = pad, end = pad).height(54.dp),
                     horizontalAlignment = Alignment.End,
                     verticalArrangement = Arrangement.SpaceBetween,
                 ) {
@@ -190,21 +196,21 @@ internal fun TuCarrera(
             }
         }
         Row(
-            Modifier.align(Alignment.BottomStart).fillMaxWidth().padding(20.dp).height(46.dp),
+            Modifier.align(Alignment.BottomStart).fillMaxWidth().padding(pad).height(46.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(Espacio.s),
         ) {
             Column(Modifier.weight(1f)) {
                 BasicText(
                     c?.nombreCorto ?: "Elige tu carrera",
                     Modifier.renglon(28.dp, 24.sp),
-                    style = TextStyle(fontFamily = jost(), fontSize = 24.sp, lineHeight = 28.sp, fontWeight = FontWeight.Light, letterSpacing = (-0.01).em, color = Paleta.tinta),
+                    style = TextStyle(fontFamily = jost(), fontSize = Tipo.titulo, lineHeight = 28.sp, fontWeight = FontWeight.Light, letterSpacing = (-0.01).em, color = Paleta.tinta),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     // Los nombres largos (o la letra del sistema grande) bajan de tamaño antes de cortar con "…"
                     autoSize = TextAutoSize.StepBased(17.sp, 24.sp, 1.sp),
                 )
-                BasicText(c?.tipo?.uppercase() ?: "TOCA UNA DE ABAJO", Modifier.padding(top = 4.dp).renglon(14.dp, 11.sp), style = etiqueta(Paleta.suave), maxLines = 1)
+                BasicText(c?.tipo?.uppercase() ?: "TOCA UNA DE ABAJO", Modifier.padding(top = Espacio.xxs).renglon(14.dp, 11.sp), style = etiqueta(Paleta.suave), maxLines = 1)
             }
             if (c != null) Chip(if (resumen == null && !cargando) "Empezar" else "Continuar", acento)
         }
@@ -218,8 +224,8 @@ internal fun TuCarrera(
  */
 @Composable
 private fun Dato(c: Carrera, resumen: ResumenPortada?, cargando: Boolean, modifier: Modifier) {
-    val estilo = TextStyle(fontFamily = inter(), fontSize = 13.sp, lineHeight = 16.sp, color = Paleta.suave)
-    Row(modifier, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    val estilo = TextStyle(fontFamily = inter(), fontSize = Tipo.s, lineHeight = 16.sp, color = Paleta.suave)
+    Row(modifier, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Espacio.xs)) {
         when {
             resumen != null -> {
                 Box(Modifier.size(6.dp).background(Paleta.azul, CircleShape))
@@ -326,12 +332,12 @@ private fun Chip(texto: String, color: Color) {
                 drawRoundRect(color.copy(alpha = 0.1f), cornerRadius = r)
                 drawRoundRect(color.copy(alpha = 0.35f), Offset(g / 2f, g / 2f), Size(size.width - g, size.height - g), CornerRadius(r.x - g / 2f), style = Stroke(g))
             }
-            .padding(start = 16.dp, end = 14.dp),
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
+            .padding(start = Espacio.m, end = 14.dp),
+        horizontalArrangement = Arrangement.spacedBy(Espacio.xxs),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Crossfade(texto, animationSpec = tween(200), label = "accion") { t ->
-            BasicText(t, style = TextStyle(fontFamily = inter(), fontSize = 13.sp, lineHeight = 16.sp, fontWeight = FontWeight.Medium, color = letra))
+            BasicText(t, style = TextStyle(fontFamily = inter(), fontSize = Tipo.s, lineHeight = 16.sp, fontWeight = FontWeight.Medium, color = letra))
         }
         IconoTrazo(Lucide.flecha, letra, 16.dp, 2f)
     }

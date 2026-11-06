@@ -26,12 +26,14 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -66,6 +68,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
 import mpensum.componentes.CarruselTemas
 import mpensum.componentes.IconoTrazo
@@ -79,6 +82,12 @@ import mpensum.logica.Periodo
 import mpensum.logica.avanceDeGrupos
 import mpensum.plataforma.ManejarAtras
 import mpensum.plataforma.Preferencias
+import mpensum.tema.Espacio
+import mpensum.tema.Radio
+import mpensum.tema.Tipo
+import mpensum.tema.Alto
+import mpensum.componentes.margenPantalla
+import mpensum.componentes.ventana
 import mpensum.tema.Paleta
 import mpensum.tema.Tema
 import mpensum.tema.acentoDe
@@ -110,12 +119,17 @@ private val ANCHO_APAISADO = 840.dp
 
 /** Los rótulos: mayúsculas semibold de 11 sp con 0,05 em de espaciado */
 @Composable
-internal fun versal(color: Color) = TextStyle(fontFamily = inter(), fontWeight = FontWeight.SemiBold, fontSize = 11.sp, lineHeight = 14.sp, letterSpacing = 0.05.em, color = color)
+internal fun versal(color: Color) = TextStyle(fontFamily = inter(), fontWeight = FontWeight.SemiBold, fontSize = Tipo.xxs, lineHeight = 14.sp, letterSpacing = 0.05.em, color = color)
 
 /** Un texto de la hoja: Inter, con el tamaño, el peso y el color que pida */
 @Composable
 internal fun estilo(tam: Int, color: Color, peso: FontWeight = FontWeight.Normal, interlinea: Int = (tam * 1.35f).roundToInt()) =
-    TextStyle(fontFamily = inter(), fontWeight = peso, fontSize = tam.sp, lineHeight = interlinea.sp, color = color, fontFeatureSettings = "tnum")
+    estilo(tam.sp, color, peso, interlinea)
+
+/** Lo mismo con el tamaño de un token de [Tipo]: la interlínea por defecto es 1,35 veces el tamaño */
+@Composable
+internal fun estilo(tam: TextUnit, color: Color, peso: FontWeight = FontWeight.Normal, interlinea: Int = (tam.value * 1.35f).roundToInt()) =
+    TextStyle(fontFamily = inter(), fontWeight = peso, fontSize = tam, lineHeight = interlinea.sp, color = color, fontFeatureSettings = "tnum")
 
 private const val ENTRADA_CIFRA = 700
 
@@ -154,13 +168,15 @@ fun BoxScope.HojaAvance(abierta: Boolean, estado: EstadoCarrera, alCerrar: () ->
         ancho = if (apaisado) ANCHO_APAISADO else 560.dp,
         desplazable = !apaisado,
         cabecera = {
-            val abajo = if (apaisado) 8.dp else 16.dp
+            val abajo = if (apaisado) Espacio.xs else Espacio.m
             AnimatedContent(detalle, transitionSpec = { fadeIn(tween(220, 60)) togetherWith fadeOut(tween(120)) }, label = "cabecera") { d ->
                 if (d) CabeceraDetalle(abajo) { detalle = false }
-                else Row(Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 4.dp, bottom = abajo), verticalAlignment = Alignment.Top) {
+                else Row(Modifier.fillMaxWidth().padding(start = margenPantalla(), end = margenPantalla(), top = Espacio.xxs, bottom = abajo), verticalAlignment = Alignment.Top) {
                     Column(Modifier.weight(1f)) {
                         BasicText("TU AVANCE", style = versal(Paleta.tenue))
-                        BasicText(estado.pensum.nombre, Modifier.padding(top = 4.dp), style = estilo(24, Paleta.tinta, FontWeight.Light, 30))
+                        // En ventana compacta el título se encoge antes que saltar de línea
+                        if (ventana().compacta) BasicText(estado.pensum.nombre, Modifier.padding(top = Espacio.xxs), style = estilo(Tipo.titulo, Paleta.tinta, FontWeight.Light, 30), maxLines = 1, autoSize = TextAutoSize.StepBased(minFontSize = Tipo.l, maxFontSize = Tipo.titulo))
+                        else BasicText(estado.pensum.nombre, Modifier.padding(top = Espacio.xxs), style = estilo(Tipo.titulo, Paleta.tinta, FontWeight.Light, 30))
                     }
                     BotonCerrar(alCerrar)
                 }
@@ -190,13 +206,13 @@ fun BoxScope.HojaAvance(abierta: Boolean, estado: EstadoCarrera, alCerrar: () ->
 
 @Composable
 private fun CabeceraDetalle(abajo: Dp, alVolver: () -> Unit) {
-    Box(Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 4.dp, bottom = abajo), contentAlignment = Alignment.Center) {
+    Box(Modifier.fillMaxWidth().padding(start = margenPantalla(), end = margenPantalla(), top = Espacio.xxs, bottom = abajo), contentAlignment = Alignment.Center) {
         Box(
-            Modifier.align(Alignment.CenterStart).size(40.dp).clip(RoundedCornerShape(20.dp)).background(Paleta.tinta.copy(alpha = 0.08f)).clickable(role = Role.Button, onClick = alVolver)
+            Modifier.align(Alignment.CenterStart).size(Alto.icono).clip(RoundedCornerShape(Radio.Opcion)).background(Paleta.tinta.copy(alpha = 0.08f)).clickable(role = Role.Button, onClick = alVolver)
                 .semantics { contentDescription = "Volver" },
             contentAlignment = Alignment.Center,
         ) { IconoTrazo(Lucide.atras, Paleta.suave, 18.dp, 2.2f) }
-        BasicText("¿Cuándo me gradúo?", style = estilo(17, Paleta.tinta, FontWeight.Medium, 22))
+        BasicText("¿Cuándo me gradúo?", style = estilo(Tipo.xl, Paleta.tinta, FontWeight.Medium, 22))
     }
 }
 
@@ -218,19 +234,19 @@ private fun ContenidoHoja(estado: EstadoCarrera, hoy: Periodo, abrirDetalle: () 
         }
         Spacer(Modifier.height(huecoTema))
         FilaTema()
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(Espacio.s))
         BotonReinicio(estado)
     }
     if (esApaisado()) {
         // Tarjeta héroe a un lado, filas al otro, con un solo scroll para las dos
-        Row(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(start = 20.dp, end = 20.dp, top = 4.dp, bottom = 20.dp), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+        Row(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(start = margenPantalla(), end = margenPantalla(), top = Espacio.xxs, bottom = Espacio.l), horizontalArrangement = Arrangement.spacedBy(Espacio.m)) {
             Box(Modifier.weight(1f)) { TarjetaHeroe(estado, hoy, abrirDetalle) }
-            Column(Modifier.weight(1f)) { filas(0.dp, 20.dp, 20.dp) }
+            Column(Modifier.weight(1f)) { filas(0.dp, Espacio.l, Espacio.l) }
         }
     } else {
-        Column(Modifier.padding(start = 20.dp, end = 20.dp, top = 4.dp, bottom = 24.dp)) {
+        Column(Modifier.padding(start = margenPantalla(), end = margenPantalla(), top = Espacio.xxs, bottom = Espacio.xl)) {
             TarjetaHeroe(estado, hoy, abrirDetalle)
-            filas(12.dp, 32.dp, 24.dp)
+            filas(Espacio.s, Espacio.xxl, Espacio.xl)
         }
     }
 }
@@ -254,34 +270,47 @@ private fun TarjetaHeroe(estado: EstadoCarrera, hoy: Periodo, alTocar: () -> Uni
     Column(
         Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(28.dp))
+            .clip(RoundedCornerShape(Radio.Hoja))
             .drawBehind {
                 drawRect(Paleta.tinta.copy(alpha = 0.06f))
                 drawRect(Brush.radialGradient(0f to color.copy(alpha = 0.22f), 1f to Color.Transparent, center = Offset(size.width / 2f, size.height), radius = size.width * 0.7f))
             }
-            .border(1.dp, Paleta.tinta.copy(alpha = 0.10f), RoundedCornerShape(28.dp))
+            .border(1.dp, Paleta.tinta.copy(alpha = 0.10f), RoundedCornerShape(Radio.Hoja))
             .clickable(role = Role.Button, onClick = alTocar)
-            .padding(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 16.dp),
+            .padding(start = margenPantalla(), end = margenPantalla(), top = Espacio.l, bottom = Espacio.m),
     ) {
-        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
-            Column(Modifier.weight(1f)) {
-                CifraDibujada(porcentaje)
-                BasicText(
-                    buildAnnotatedString {
-                        withStyle(SpanStyle(fontWeight = FontWeight.SemiBold, color = Paleta.tinta)) { append("$llevas") }
-                        append(" / $de ${if (conUc) "UC" else "materias"}")
-                    },
-                    Modifier.padding(top = 2.dp),
-                    style = estilo(15, Paleta.tenue),
-                )
-            }
-            Column(horizontalAlignment = Alignment.End, modifier = Modifier.padding(top = 2.dp)) {
-                BasicText(if (g.terminado) "TU CARRERA" else "TE GRADÚAS", style = versal(Paleta.tenue))
-                BasicText(fecha, Modifier.padding(top = 2.dp), style = estilo(22, Paleta.tinta, FontWeight.Normal, 26))
-            }
-            Pastilla(Lucide.birrete, Modifier.padding(start = 12.dp))
+        val cifraYUc: @Composable () -> Unit = {
+            CifraDibujada(porcentaje)
+            BasicText(
+                buildAnnotatedString {
+                    withStyle(SpanStyle(fontWeight = FontWeight.SemiBold, color = Paleta.tinta)) { append("$llevas") }
+                    append(" / $de ${if (conUc) "UC" else "materias"}")
+                },
+                Modifier.padding(top = Espacio.hilo),
+                style = estilo(Tipo.l, Paleta.tenue),
+            )
         }
-        GraficaAvance(escena, fecha, porcentaje, hoy, color, alto = 150.dp, detalle = false, modifier = Modifier.padding(top = 4.dp))
+        val graduacion: @Composable (Alignment.Horizontal) -> Unit = { lado ->
+            Column(horizontalAlignment = lado, modifier = Modifier.padding(top = Espacio.hilo)) {
+                BasicText(if (g.terminado) "TU CARRERA" else "TE GRADÚAS", style = versal(Paleta.tenue))
+                BasicText(fecha, Modifier.padding(top = Espacio.hilo), style = estilo(Tipo.xxl, Paleta.tinta, FontWeight.Normal, 26))
+            }
+        }
+        if (ventana().compacta || ventana().letraGrande) {
+            // Estrecha o con letra grande no caben cifra y fecha lado a lado: la fecha baja debajo
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
+                Column(Modifier.weight(1f)) { cifraYUc() }
+                Pastilla(Lucide.birrete, Modifier.padding(start = Espacio.s))
+            }
+            Box(Modifier.padding(top = Espacio.xs)) { graduacion(Alignment.Start) }
+        } else {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
+                Column(Modifier.weight(1f)) { cifraYUc() }
+                graduacion(Alignment.End)
+                Pastilla(Lucide.birrete, Modifier.padding(start = Espacio.s))
+            }
+        }
+        GraficaAvance(escena, fecha, porcentaje, hoy, color, alto = 150.dp, detalle = false, modifier = Modifier.padding(top = Espacio.xxs))
     }
 }
 
@@ -308,13 +337,13 @@ private fun CifraDibujada(porcentaje: Int) {
 @Composable
 private fun FilaProximo(materias: Int, periodo: Periodo, alTocar: () -> Unit) {
     Row(
-        Modifier.fillMaxWidth().tarjeta(22.dp).clickable(role = Role.Button, onClick = alTocar).padding(horizontal = 12.dp, vertical = 12.dp),
+        Modifier.fillMaxWidth().tarjeta(Radio.Bloque).clickable(role = Role.Button, onClick = alTocar).padding(horizontal = Espacio.s, vertical = Espacio.s),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Pastilla(Lucide.calendario)
-        Column(Modifier.weight(1f).padding(start = 14.dp)) {
-            BasicText("${periodo.rango()} · $materias ${if (materias == 1) "materia" else "materias"}", style = estilo(17, Paleta.tinta, FontWeight.Medium, 22), maxLines = 1, overflow = TextOverflow.Ellipsis)
-            BasicText("Tu próximo semestre", style = estilo(15, Paleta.tenue, interlinea = 20))
+        Column(Modifier.weight(1f).padding(start = Espacio.s)) {
+            BasicText("${periodo.rango()} · $materias ${if (materias == 1) "materia" else "materias"}", style = estilo(Tipo.xl, Paleta.tinta, FontWeight.Medium, 22), maxLines = 2, overflow = TextOverflow.Ellipsis)
+            BasicText("Tu próximo semestre", style = estilo(Tipo.l, Paleta.tenue, interlinea = 20))
         }
         IconoTrazo(Lucide.siguiente, Paleta.tenue, 16.dp, 2.2f)
     }
@@ -324,14 +353,14 @@ private fun FilaProximo(materias: Int, periodo: Periodo, alTocar: () -> Unit) {
 @Composable
 private fun Electivas(cuotas: List<AvanceGrupo>) {
     BasicText("ELECTIVAS", style = versal(Paleta.tenue))
-    Column(Modifier.padding(top = 12.dp).fillMaxWidth().tarjeta(22.dp)) {
+    Column(Modifier.padding(top = Espacio.s).fillMaxWidth().tarjeta(Radio.Bloque)) {
         cuotas.forEachIndexed { k, g ->
             val meta = g.meta ?: return@forEachIndexed
             if (k > 0) Box(Modifier.padding(start = 58.dp).fillMaxWidth().height(1.dp).background(Paleta.tinta.copy(alpha = 0.08f)))
             val titulo = g.titulo.removePrefix("Electivas ").replaceFirstChar { it.uppercase() }
-            Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+            Row(Modifier.fillMaxWidth().padding(horizontal = Espacio.s, vertical = Espacio.s), verticalAlignment = Alignment.CenterVertically) {
                 Pastilla(if (titulo.startsWith("Socio", ignoreCase = true)) IconosHoja.usuarios else IconosHoja.libroAbierto)
-                BasicText(titulo, Modifier.weight(1f).padding(start = 14.dp, end = 8.dp), style = estilo(17, Paleta.tinta, FontWeight.Medium, 22), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                BasicText(titulo, Modifier.weight(1f).padding(start = Espacio.s, end = Espacio.xs), style = estilo(Tipo.xl, Paleta.tinta, FontWeight.Medium, 22), maxLines = 2, overflow = TextOverflow.Ellipsis)
                 BasicText(
                     buildAnnotatedString {
                         withStyle(SpanStyle(fontWeight = FontWeight.SemiBold, color = Paleta.tinta)) { append("${g.uc}") }
@@ -339,7 +368,7 @@ private fun Electivas(cuotas: List<AvanceGrupo>) {
                     },
                     style = estilo(16, Paleta.tenue),
                 )
-                IconoTrazo(Lucide.siguiente, Paleta.tenue, 16.dp, 2.2f, Modifier.padding(start = 8.dp))
+                IconoTrazo(Lucide.siguiente, Paleta.tenue, 16.dp, 2.2f, Modifier.padding(start = Espacio.xs))
             }
         }
     }
@@ -355,21 +384,21 @@ private fun FilaTema() {
     val actual by Preferencias.tema.collectAsState()
     var abierto by remember { mutableStateOf(false) }
     val giro by animateFloatAsState(if (abierto) 90f else 0f, tween(if (Tema.movimiento) 0 else 240, easing = ENFATICA), label = "giro")
-    Column(Modifier.fillMaxWidth().tarjeta(22.dp)) {
+    Column(Modifier.fillMaxWidth().tarjeta(Radio.Bloque)) {
         Row(
             Modifier
                 .fillMaxWidth()
                 .pulsable({ abierto = !abierto }, escala = 0.99f)
-                .padding(horizontal = 12.dp, vertical = 10.dp),
+                .padding(horizontal = Espacio.s, vertical = Espacio.s),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Pastilla(if (Tema.claro) IconosHoja.sol else IconosHoja.luna)
-            BasicText("Tema", Modifier.weight(1f).padding(start = 14.dp), style = estilo(17, Paleta.tinta, FontWeight.Medium, 22))
-            BasicText(actual.nombre, style = estilo(15, Paleta.tenue))
-            IconoTrazo(Lucide.siguiente, Paleta.tenue, 16.dp, 2.2f, Modifier.padding(start = 8.dp).graphicsLayer { rotationZ = giro })
+            BasicText("Tema", Modifier.weight(1f).padding(start = Espacio.s), style = estilo(Tipo.xl, Paleta.tinta, FontWeight.Medium, 22))
+            BasicText(actual.nombre, style = estilo(Tipo.l, Paleta.tenue))
+            IconoTrazo(Lucide.siguiente, Paleta.tenue, 16.dp, 2.2f, Modifier.padding(start = Espacio.xs).graphicsLayer { rotationZ = giro })
         }
         AnimatedVisibility(abierto) {
-            CarruselTemas(Modifier.padding(bottom = 12.dp), PaddingValues(horizontal = 12.dp))
+            CarruselTemas(Modifier.padding(bottom = Espacio.s), PaddingValues(horizontal = Espacio.s))
         }
     }
 }
@@ -428,38 +457,38 @@ private fun BotonReinicio(estado: EstadoCarrera) {
     if (!confirmando || !hay) {
         val color = Paleta.tenue.copy(alpha = if (hay) 1f else 0.5f)
         Row(
-            Modifier.fillMaxWidth().height(44.dp).clip(RoundedCornerShape(22.dp)).background(Paleta.tinta.copy(alpha = 0.04f))
+            Modifier.fillMaxWidth().heightIn(min = Alto.toque).clip(RoundedCornerShape(Radio.Bloque)).background(Paleta.tinta.copy(alpha = 0.04f))
                 .clickable(enabled = hay, role = Role.Button) { confirmando = true },
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            if (hay) IconoTrazo(IconosHoja.reiniciar, color, 15.dp, 2f, Modifier.padding(end = 8.dp))
+            if (hay) IconoTrazo(IconosHoja.reiniciar, color, 15.dp, 2f, Modifier.padding(end = Espacio.xs))
             BasicText(
                 if (hay) "Reiniciar mi avance" else "Nada que reiniciar todavía",
-                style = TextStyle(fontFamily = i, fontWeight = FontWeight.Medium, fontSize = 13.sp, color = color),
+                style = TextStyle(fontFamily = i, fontWeight = FontWeight.Medium, fontSize = Tipo.s, color = color),
             )
         }
         return
     }
     Column {
-        BasicText("¿Empezar de cero?", style = TextStyle(fontFamily = i, fontWeight = FontWeight.SemiBold, fontSize = 14.sp, lineHeight = 20.sp, color = Paleta.tinta))
+        BasicText("¿Empezar de cero?", style = TextStyle(fontFamily = i, fontWeight = FontWeight.SemiBold, fontSize = Tipo.m, lineHeight = 20.sp, color = Paleta.tinta))
         BasicText(
             "Se borra${loQueSeBorra(estado)} en esta carrera. Vuelves al 0 % y no se puede deshacer.",
-            Modifier.padding(top = 4.dp),
-            style = TextStyle(fontFamily = i, fontSize = 13.sp, lineHeight = 18.sp, color = Paleta.suave),
+            Modifier.padding(top = Espacio.xxs),
+            style = TextStyle(fontFamily = i, fontSize = Tipo.s, lineHeight = 18.sp, color = Paleta.suave),
         )
-        Row(Modifier.padding(top = 16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(Modifier.padding(top = Espacio.m), horizontalArrangement = Arrangement.spacedBy(Espacio.xs)) {
             Box(
-                Modifier.weight(1f).height(44.dp).clip(RoundedCornerShape(22.dp)).background(Paleta.tinta.copy(alpha = 0.08f)).clickable(role = Role.Button) { confirmando = false },
+                Modifier.weight(1f).heightIn(min = Alto.toque).clip(RoundedCornerShape(Radio.Bloque)).background(Paleta.tinta.copy(alpha = 0.08f)).clickable(role = Role.Button) { confirmando = false },
                 contentAlignment = Alignment.Center,
-            ) { BasicText("Cancelar", style = TextStyle(fontFamily = i, fontWeight = FontWeight.SemiBold, fontSize = 13.sp, color = Paleta.tinta)) }
+            ) { BasicText("Cancelar", style = TextStyle(fontFamily = i, fontWeight = FontWeight.SemiBold, fontSize = Tipo.s, color = Paleta.tinta)) }
             Box(
-                Modifier.weight(1f).height(44.dp).clip(RoundedCornerShape(22.dp)).background(Paleta.rojo.copy(alpha = 0.16f)).clickable(role = Role.Button) {
+                Modifier.weight(1f).heightIn(min = Alto.toque).clip(RoundedCornerShape(Radio.Bloque)).background(Paleta.rojo.copy(alpha = 0.16f)).clickable(role = Role.Button) {
                     estado.reiniciar()
                     confirmando = false
                 },
                 contentAlignment = Alignment.Center,
-            ) { BasicText("Borrar todo", style = TextStyle(fontFamily = i, fontWeight = FontWeight.SemiBold, fontSize = 13.sp, color = ROJO_LETRA)) }
+            ) { BasicText("Borrar todo", style = TextStyle(fontFamily = i, fontWeight = FontWeight.SemiBold, fontSize = Tipo.s, color = ROJO_LETRA)) }
         }
     }
 }

@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -56,6 +57,10 @@ import mpensum.componentes.pulsable
 import mpensum.datos.Carrera
 import mpensum.datos.TIPOS
 import mpensum.plataforma.versionApp
+
+import mpensum.tema.Espacio
+import mpensum.tema.Tipo
+import mpensum.componentes.margenPantalla
 import mpensum.tema.Paleta
 import mpensum.tema.Radio
 import mpensum.tema.Tema
@@ -81,6 +86,9 @@ import mpensum.tema.jost
 
 private const val REPO = "https://github.com/Samestves/mapa-pensum"
 private const val WEB = "https://mapa-pensum.vercel.app"
+
+/** El alto de una fila de cristal: crece si el subtítulo baja a dos líneas */
+private val ALTO_FILA = 72.dp
 
 /** Lo que enseña la hoja: el menú, o la lista para elegir tu carrera */
 enum class PaginaAjustes { MENU, CARRERA, PERSONALIZAR }
@@ -109,11 +117,11 @@ fun BoxScope.HojaAjustes(
         ancho = if (esApaisado()) 840.dp else 560.dp,
         cabecera = {
             // La de la hoja de avance: etiqueta en versales y el título debajo
-            Row(Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 4.dp, bottom = 16.dp), verticalAlignment = Alignment.CenterVertically) {
+            Row(Modifier.fillMaxWidth().padding(start = margenPantalla(), end = margenPantalla(), top = Espacio.xxs, bottom = Espacio.m), verticalAlignment = Alignment.CenterVertically) {
                 // La flecha de volver solo si se llegó desde el menú; abierta directo en la lista, se cierra y ya
                 val conVolver = actual != PaginaAjustes.MENU && ultima == PaginaAjustes.MENU
                 if (conVolver) {
-                    Box(Modifier.padding(end = 8.dp).size(36.dp).clip(RoundedCornerShape(Radio.Tarjeta)).pulsable({ actual = PaginaAjustes.MENU }), contentAlignment = Alignment.Center) {
+                    Box(Modifier.padding(end = Espacio.xs).size(36.dp).clip(RoundedCornerShape(Radio.Tarjeta)).pulsable({ actual = PaginaAjustes.MENU }), contentAlignment = Alignment.Center) {
                         IconoTrazo(Lucide.atras, Paleta.tinta, 20.dp, 2f)
                     }
                 }
@@ -125,8 +133,8 @@ fun BoxScope.HojaAjustes(
                             PaginaAjustes.PERSONALIZAR -> "Personalizar"
                             PaginaAjustes.MENU -> "Ajustes y ayuda"
                         },
-                        Modifier.padding(top = 4.dp),
-                        style = TextStyle(fontFamily = jost(), fontWeight = FontWeight.Medium, fontSize = 17.sp, lineHeight = 22.sp, color = Paleta.tinta),
+                        Modifier.padding(top = Espacio.xxs),
+                        style = TextStyle(fontFamily = jost(), fontWeight = FontWeight.Medium, fontSize = Tipo.xl, lineHeight = 22.sp, color = Paleta.tinta),
                     )
                 }
                 BotonCerrar(alCerrar)
@@ -161,22 +169,22 @@ fun BoxScope.HojaAjustes(
                 val codigo = { abrir(enlaces, REPO) }
                 if (esApaisado()) {
                     // Acostado la hoja es baja: lo tuyo a la izquierda y lo de fuera a la derecha, sin tanto scroll
-                    Row(Modifier.padding(start = 20.dp, end = 20.dp, top = 4.dp, bottom = 24.dp), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                    Row(Modifier.padding(start = margenPantalla(), end = margenPantalla(), top = Espacio.xxs, bottom = Espacio.xl), horizontalArrangement = Arrangement.spacedBy(Espacio.m)) {
                         Column(Modifier.weight(1f)) {
                             FilaCarrera(propia, tuCarrera)
-                            Spacer(Modifier.height(8.dp))
+                            Spacer(Modifier.height(Espacio.xs))
                             FilaPersonalizar(personalizar)
                             Version(Modifier.padding(top = 28.dp))
                         }
                         Column(Modifier.weight(1f)) {
-                            BloqueAyuda(guia, reporte, Modifier.padding(start = 4.dp, bottom = 10.dp))
+                            BloqueAyuda(guia, reporte, Modifier.padding(start = Espacio.xxs, bottom = Espacio.s))
                             BloqueProyecto(web, codigo)
                         }
                     }
                 } else {
-                    Column(Modifier.padding(start = 20.dp, end = 20.dp, top = 4.dp, bottom = 24.dp)) {
+                    Column(Modifier.padding(start = margenPantalla(), end = margenPantalla(), top = Espacio.xxs, bottom = Espacio.xl)) {
                         FilaCarrera(propia, tuCarrera)
-                        Spacer(Modifier.height(8.dp))
+                        Spacer(Modifier.height(Espacio.xs))
                         FilaPersonalizar(personalizar)
                         BloqueAyuda(guia, reporte)
                         BloqueProyecto(web, codigo)
@@ -193,15 +201,15 @@ fun BoxScope.HojaAjustes(
 private fun FilaPersonalizar(alPulsar: () -> Unit) {
     FilaCristal(alPulsar) {
         MiniVistaTema()
-        Textos("Personalizar", resumenPersonalizar(), Modifier.padding(start = 16.dp, end = 12.dp).weight(1f))
+        Textos("Personalizar", resumenPersonalizar(), Modifier.padding(start = Espacio.m, end = Espacio.s).weight(1f))
         IconoTrazo(Lucide.siguiente, Paleta.apagada, 16.dp, 1.75f)
     }
 }
 
 @Composable
-private fun BloqueAyuda(alVerGuia: () -> Unit, alReportar: () -> Unit, etiqueta: Modifier = Modifier.padding(start = 4.dp, top = 28.dp, bottom = 10.dp)) {
+private fun BloqueAyuda(alVerGuia: () -> Unit, alReportar: () -> Unit, etiqueta: Modifier = Modifier.padding(start = Espacio.xxs, top = 28.dp, bottom = Espacio.s)) {
     Etiqueta("AYUDA", etiqueta)
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(Espacio.xs)) {
         Renglon(Lucide.ayuda, "Ver la guía otra vez", "Cómo funciona, en cuatro pasos", alPulsar = alVerGuia)
         Renglon(Lucide.bandera, "Reportar un error", "Una materia o prelación mal puesta", fuera = true, alPulsar = alReportar)
     }
@@ -210,7 +218,7 @@ private fun BloqueAyuda(alVerGuia: () -> Unit, alReportar: () -> Unit, etiqueta:
 @Composable
 private fun BloqueProyecto(alAbrirWeb: () -> Unit, alAbrirCodigo: () -> Unit) {
     Etiqueta("EL PROYECTO")
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(Espacio.xs)) {
         Renglon(Lucide.mundo, "Abrir la versión web", "mapa-pensum.vercel.app", fuera = true, alPulsar = alAbrirWeb)
         Renglon(Lucide.codigo, "Código abierto", "Revísalo en GitHub", fuera = true, alPulsar = alAbrirCodigo)
     }
@@ -231,7 +239,7 @@ private fun abrir(enlaces: UriHandler, uri: String) {
 
 /** La etiqueta de cada bloque, en versales: 28 dp sobre ella, 10 debajo */
 @Composable
-internal fun Etiqueta(texto: String, modifier: Modifier = Modifier.padding(start = 4.dp, top = 28.dp, bottom = 10.dp)) {
+internal fun Etiqueta(texto: String, modifier: Modifier = Modifier.padding(start = Espacio.xxs, top = 28.dp, bottom = Espacio.s)) {
     BasicText(texto, modifier, style = versal(Paleta.tenue))
 }
 
@@ -244,7 +252,7 @@ internal fun FilaCristal(alPulsar: () -> Unit, contenido: @Composable RowScope.(
     Row(
         Modifier
             .fillMaxWidth()
-            .height(72.dp)
+            .heightIn(min = ALTO_FILA)
             .pulsable(alPulsar, escala = 0.98f)
             .drawBehind {
                 val r = 16.dp.toPx()
@@ -252,7 +260,7 @@ internal fun FilaCristal(alPulsar: () -> Unit, contenido: @Composable RowScope.(
                 drawRoundRect(Paleta.tinta.copy(alpha = 0.035f), cornerRadius = CornerRadius(r))
                 drawRoundRect(Paleta.tinta.copy(alpha = 0.065f), Offset(g / 2, g / 2), Size(size.width - g, size.height - g), CornerRadius(r - g / 2), style = Stroke(g))
             }
-            .padding(start = 16.dp, end = 16.dp),
+            .padding(start = Espacio.m, end = Espacio.m),
         verticalAlignment = Alignment.CenterVertically,
         content = contenido,
     )
@@ -264,11 +272,11 @@ internal fun Textos(titulo: String, texto: String, modifier: Modifier) {
     Column(modifier) {
         BasicText(
             titulo,
-            style = TextStyle(fontFamily = jost(), fontWeight = FontWeight.Light, fontSize = 17.sp, lineHeight = 22.sp, letterSpacing = (-0.01).em, color = Paleta.tinta),
+            style = TextStyle(fontFamily = jost(), fontWeight = FontWeight.Light, fontSize = Tipo.xl, lineHeight = 22.sp, letterSpacing = (-0.01).em, color = Paleta.tinta),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
-        BasicText(texto, Modifier.padding(top = 2.dp), style = TextStyle(fontFamily = inter(), fontSize = 13.sp, lineHeight = 18.sp, color = Paleta.tenue), maxLines = 1, overflow = TextOverflow.Ellipsis)
+        BasicText(texto, Modifier.padding(top = Espacio.hilo), style = TextStyle(fontFamily = inter(), fontSize = Tipo.s, lineHeight = 18.sp, color = Paleta.tenue), maxLines = 2, overflow = TextOverflow.Ellipsis)
     }
 }
 
@@ -279,7 +287,7 @@ private fun Renglon(icono: List<Path>, titulo: String, texto: String, fuera: Boo
         Box(Modifier.size(40.dp).clip(RoundedCornerShape(Radio.Chip)).background(Paleta.tinta.copy(alpha = 0.06f)), contentAlignment = Alignment.Center) {
             IconoTrazo(icono, Paleta.suave, 20.dp, 1.75f)
         }
-        Textos(titulo, texto, Modifier.padding(start = 16.dp, end = 12.dp).weight(1f))
+        Textos(titulo, texto, Modifier.padding(start = Espacio.m, end = Espacio.s).weight(1f))
         IconoTrazo(if (fuera) IconosHoja.fuera else Lucide.siguiente, Paleta.apagada, 16.dp, 1.75f)
     }
 }
@@ -309,17 +317,17 @@ private fun FilaCarrera(propia: Carrera?, alPulsar: () -> Unit) {
             }
         }
         // La etiqueta arriba y el valor debajo, como una ficha: "Tu carrera / Sistemas"
-        Column(Modifier.padding(start = 16.dp, end = 12.dp).weight(1f)) {
-            BasicText("Tu carrera", style = TextStyle(fontFamily = inter(), fontSize = 13.sp, lineHeight = 18.sp, color = Paleta.tenue))
+        Column(Modifier.padding(start = Espacio.m, end = Espacio.s).weight(1f)) {
+            BasicText("Tu carrera", style = TextStyle(fontFamily = inter(), fontSize = Tipo.s, lineHeight = 18.sp, color = Paleta.tenue))
             BasicText(
                 propia?.nombreCorto ?: "Elige la tuya",
-                Modifier.padding(top = 2.dp),
-                style = TextStyle(fontFamily = jost(), fontWeight = FontWeight.Light, fontSize = 17.sp, lineHeight = 22.sp, letterSpacing = (-0.01).em, color = Paleta.tinta),
+                Modifier.padding(top = Espacio.hilo),
+                style = TextStyle(fontFamily = jost(), fontWeight = FontWeight.Light, fontSize = Tipo.xl, lineHeight = 22.sp, letterSpacing = (-0.01).em, color = Paleta.tinta),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
         }
-        BasicText(if (propia != null) "Cambiar" else "Elegir", Modifier.padding(end = 4.dp), style = TextStyle(fontFamily = inter(), fontSize = 13.sp, color = Paleta.tenue))
+        BasicText(if (propia != null) "Cambiar" else "Elegir", Modifier.padding(end = Espacio.xxs), style = TextStyle(fontFamily = inter(), fontSize = Tipo.s, color = Paleta.tenue))
         IconoTrazo(Lucide.siguiente, Paleta.apagada, 16.dp, 1.75f)
     }
 }
@@ -327,11 +335,11 @@ private fun FilaCarrera(propia: Carrera?, alPulsar: () -> Unit) {
 /** Elegir tu carrera: cada una en su fila, con su silueta, y la tuya marcada */
 @Composable
 private fun ListaCarreras(carreras: List<Carrera>, propia: Carrera?, alElegir: (Carrera) -> Unit) {
-    Column(Modifier.padding(start = 20.dp, end = 20.dp, top = 4.dp, bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column(Modifier.padding(start = margenPantalla(), end = margenPantalla(), top = Espacio.xxs, bottom = Espacio.xl), verticalArrangement = Arrangement.spacedBy(Espacio.xs)) {
         BasicText(
             "La tuya sale primero en la portada, con tu avance. Las demás las abres cuando quieras.",
-            Modifier.padding(start = 4.dp, end = 4.dp, bottom = 8.dp),
-            style = TextStyle(fontFamily = inter(), fontSize = 13.sp, lineHeight = 18.sp, color = Paleta.tenue),
+            Modifier.padding(start = Espacio.xxs, end = Espacio.xxs, bottom = Espacio.xs),
+            style = TextStyle(fontFamily = inter(), fontSize = Tipo.s, lineHeight = 18.sp, color = Paleta.tenue),
         )
         // En el orden de la portada: ingenierías, licenciaturas y gerencia
         carreras.sortedBy { TIPOS.indexOf(it.tipo) }.forEach { c ->
@@ -346,14 +354,14 @@ private fun ListaCarreras(carreras: List<Carrera>, propia: Carrera?, alElegir: (
                         huecoFila = (36f / 7f - 2.5f).dp,
                     )
                 }
-                Column(Modifier.padding(start = 16.dp, end = 12.dp).weight(1f)) {
+                Column(Modifier.padding(start = Espacio.m, end = Espacio.s).weight(1f)) {
                     BasicText(
                         c.nombreCorto,
-                        style = TextStyle(fontFamily = jost(), fontWeight = FontWeight.Light, fontSize = 17.sp, lineHeight = 22.sp, letterSpacing = (-0.01).em, color = Paleta.tinta),
+                        style = TextStyle(fontFamily = jost(), fontWeight = FontWeight.Light, fontSize = Tipo.xl, lineHeight = 22.sp, letterSpacing = (-0.01).em, color = Paleta.tinta),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
-                    BasicText(c.tipo.uppercase(), Modifier.padding(top = 4.dp), style = versal(Paleta.tenue), maxLines = 1)
+                    BasicText(c.tipo.uppercase(), Modifier.padding(top = Espacio.xxs), style = versal(Paleta.tenue), maxLines = 1)
                 }
                 if (elegida) IconoTrazo(Lucide.listo, Paleta.azul, 20.dp, 2.2f)
             }

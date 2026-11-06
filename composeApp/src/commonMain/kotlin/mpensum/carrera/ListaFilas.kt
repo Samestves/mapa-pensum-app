@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.BasicText
@@ -73,7 +74,11 @@ import mpensum.logica.FilaMateria
 import mpensum.logica.SeccionLista
 import mpensum.logica.Situacion
 import mpensum.logica.Tono
+import mpensum.tema.Alto
+import mpensum.tema.Espacio
 import mpensum.tema.Paleta
+import mpensum.tema.Radio
+import mpensum.tema.Tipo
 import mpensum.tema.Tema
 import mpensum.tema.inter
 import mpensum.tema.jost
@@ -98,8 +103,11 @@ private val SUAVE = CubicBezierEasing(0.25f, 0.1f, 0.25f, 1f)
 
 internal val COLUMNA_ICONO = 52.dp
 private val ALTO_CABECERA = 60.dp
-private val ALTO_FILA = 56.dp
-private val RADIO_GRUPO = 20.dp
+private val ALTO_FILA = Alto.grande
+private val RADIO_GRUPO = Radio.Opcion
+/** Lo que se aparta el nombre por la derecha cuando asoma «Deshacer» */
+private val HUECO_DESHACER_FILA = 100.dp
+private val HUECO_DESHACER_CABECERA = 76.dp
 /** Lo que dura "Deshacer" a la vista, y el rojo de una bloqueada */
 internal const val PLAZO_DESHACER_MS = 4000L
 private const val AVISO_MS = 1400L
@@ -284,10 +292,10 @@ private fun CabeceraSeccion(seccion: SeccionLista, abierto: Boolean, conDeshacer
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 // "Deshacer" ocupa el final de la cabecera sin mover el chevrón: el resumen se recorta antes
-                Column(Modifier.weight(1f).padding(end = if (conDeshacer) 76.dp else 0.dp)) {
+                Column(Modifier.weight(1f).padding(end = if (conDeshacer) HUECO_DESHACER_CABECERA else 0.dp)) {
                     BasicText(
                         seccion.titulo,
-                        style = TextStyle(fontFamily = jost(), fontWeight = porTema(FontWeight.Normal, FontWeight.Light), fontSize = 17.sp, lineHeight = 22.sp, letterSpacing = (-0.005).em, color = Paleta.tinta),
+                        style = TextStyle(fontFamily = jost(), fontWeight = porTema(FontWeight.Normal, FontWeight.Light), fontSize = Tipo.xl, lineHeight = 22.sp, letterSpacing = (-0.005).em, color = Paleta.tinta),
                         maxLines = 1,
                     )
                     BasicText(
@@ -295,13 +303,13 @@ private fun CabeceraSeccion(seccion: SeccionLista, abierto: Boolean, conDeshacer
                             append(seccion.resumen)
                             if (seccion.coletilla.isNotEmpty()) withStyle(SpanStyle(color = Paleta.ambar)) { append(seccion.coletilla) }
                         },
-                        Modifier.padding(top = 1.dp),
-                        style = TextStyle(fontFamily = i, fontSize = 13.sp, lineHeight = 16.sp, fontFeatureSettings = "tnum", color = colorDe(seccion.tonoResumen)),
+                        Modifier.padding(top = Espacio.hilo),
+                        style = TextStyle(fontFamily = i, fontSize = Tipo.s, lineHeight = 16.sp, fontFeatureSettings = "tnum", color = colorDe(seccion.tonoResumen)),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
                 }
-                Canvas(Modifier.size(44.dp, ALTO_CABECERA).graphicsLayer { rotationZ = giro.value }) {
+                Canvas(Modifier.size(Alto.toque, ALTO_CABECERA).graphicsLayer { rotationZ = giro.value }) {
                     val e = size.width / 44f
                     val trazo = Path().apply {
                         moveTo(19.5f * e, 25f * e)
@@ -312,8 +320,8 @@ private fun CabeceraSeccion(seccion: SeccionLista, abierto: Boolean, conDeshacer
                 }
             }
         }
-        AnimatedVisibility(conDeshacer, Modifier.align(Alignment.TopEnd).padding(end = 44.dp, top = 8.dp), enter = fadeIn(tween(200)), exit = fadeOut(tween(200))) {
-            BotonDeshacer(Modifier.height(44.dp).padding(start = 12.dp, end = 8.dp), acciones.deshacer)
+        AnimatedVisibility(conDeshacer, Modifier.align(Alignment.TopEnd).padding(end = Alto.toque, top = Espacio.xs), enter = fadeIn(tween(200)), exit = fadeOut(tween(200))) {
+            BotonDeshacer(Modifier.heightIn(min = Alto.toque).padding(start = Espacio.s, end = Espacio.xs), acciones.deshacer)
         }
     }
 }
@@ -324,7 +332,7 @@ private fun BotonDeshacer(relleno: Modifier, alPulsar: () -> Unit) {
         Modifier.clickable(interactionSource = null, indication = null, role = Role.Button, onClick = alPulsar).then(relleno),
         contentAlignment = Alignment.Center,
     ) {
-        BasicText("Deshacer", style = TextStyle(fontFamily = inter(), fontWeight = FontWeight.Medium, fontSize = 13.sp, color = Paleta.tinta))
+        BasicText("Deshacer", style = TextStyle(fontFamily = inter(), fontWeight = FontWeight.Medium, fontSize = Tipo.s, color = Paleta.tinta))
     }
 }
 
@@ -438,12 +446,12 @@ private fun FilaDeMateria(
     Box(
         Modifier
             .fillMaxWidth()
-            .height(ALTO_FILA)
+            .heightIn(min = ALTO_FILA)
             .drawBehind { fondoFila(brillo.value, ultima) }
             .semantics { contentDescription = "${fila.nombre}, ${fila.nota}" }
             .clickable(interactionSource = null, indication = null, role = Role.Button, onClickLabel = "Ver la ficha") { acciones.tocar(fila) },
     ) {
-        Row(Modifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically) {
+        Row(Modifier.fillMaxWidth().heightIn(min = ALTO_FILA), verticalAlignment = Alignment.CenterVertically) {
             Canvas(
                 Modifier
                     .size(COLUMNA_ICONO, ALTO_FILA)
@@ -456,27 +464,28 @@ private fun FilaDeMateria(
             ) {
                 iconoFila(fila.situacion, 20.dp.toPx())
             }
-            Column(Modifier.weight(1f).padding(end = if (conDeshacer) 100.dp else 16.dp)) {
+            Column(Modifier.weight(1f).padding(vertical = Espacio.xs).padding(end = if (conDeshacer) HUECO_DESHACER_FILA else Espacio.m)) {
                 BasicText(
                     fila.nombre,
-                    style = TextStyle(fontFamily = jost(), fontWeight = porTema(FontWeight.Normal, FontWeight.Light), fontSize = 17.sp, lineHeight = 22.sp, letterSpacing = (-0.01).em),
+                    style = TextStyle(fontFamily = jost(), fontWeight = porTema(FontWeight.Normal, FontWeight.Light), fontSize = Tipo.xl, lineHeight = 22.sp, letterSpacing = (-0.01).em),
                     color = { nombre.value },
-                    maxLines = 1,
+                    // Dos líneas y la fila crece: los nombres largos ya no se cortan con «…»
+                    maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
-                Row(Modifier.padding(top = 2.dp)) {
+                Row(Modifier.padding(top = Espacio.hilo)) {
                     fila.uc?.let {
                         BasicText(
                             "$it UC",
                             Modifier.alignByBaseline(),
-                            style = TextStyle(fontFamily = plex(), fontWeight = FontWeight.Light, fontSize = 11.sp, letterSpacing = 0.02.em, color = Paleta.tenue),
+                            style = TextStyle(fontFamily = plex(), fontWeight = FontWeight.Light, fontSize = Tipo.xxs, letterSpacing = 0.02.em, color = Paleta.tenue),
                             maxLines = 1,
                         )
                     }
                     BasicText(
                         if (fila.uc != null) " · ${fila.nota}" else fila.nota,
                         Modifier.alignByBaseline(),
-                        style = TextStyle(fontFamily = inter(), fontSize = 13.sp, lineHeight = 16.sp),
+                        style = TextStyle(fontFamily = inter(), fontSize = Tipo.s, lineHeight = 16.sp),
                         color = { colorNota.value },
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
@@ -485,7 +494,7 @@ private fun FilaDeMateria(
             }
         }
         AnimatedVisibility(conDeshacer, Modifier.align(Alignment.CenterEnd), enter = fadeIn(tween(200)), exit = fadeOut(tween(200))) {
-            BotonDeshacer(Modifier.height(ALTO_FILA).padding(start = 12.dp, end = 16.dp), acciones.deshacer)
+            BotonDeshacer(Modifier.heightIn(min = ALTO_FILA).padding(start = Espacio.s, end = Espacio.m), acciones.deshacer)
         }
     }
 }
@@ -497,12 +506,12 @@ private fun FilaDeCasilla(fila: FilaCasilla, ultima: Boolean, acciones: Acciones
     Box(
         Modifier
             .fillMaxWidth()
-            .height(ALTO_FILA)
+            .heightIn(min = ALTO_FILA)
             .drawBehind { fondoFila(0f, ultima) }
             .semantics { contentDescription = "${fila.nombre}, por elegir" }
             .clickable(interactionSource = null, indication = null, role = Role.Button) { acciones.elegir(fila.casilla) },
     ) {
-        Row(Modifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically) {
+        Row(Modifier.fillMaxWidth().heightIn(min = ALTO_FILA), verticalAlignment = Alignment.CenterVertically) {
             Canvas(Modifier.size(COLUMNA_ICONO, ALTO_FILA)) {
                 val e = 20.dp.toPx() / 20f
                 drawCircle(
@@ -510,19 +519,19 @@ private fun FilaDeCasilla(fila: FilaCasilla, ultima: Boolean, acciones: Acciones
                     style = Stroke(1.5f * e, pathEffect = PathEffect.dashPathEffect(floatArrayOf(2.6f * e, 2.6f * e))),
                 )
             }
-            Column(Modifier.weight(1f).padding(end = 12.dp)) {
+            Column(Modifier.weight(1f).padding(vertical = Espacio.xs).padding(end = Espacio.s)) {
                 BasicText(
                     fila.nombre,
-                    style = TextStyle(fontFamily = jost(), fontWeight = FontWeight.Light, fontSize = 17.sp, lineHeight = 22.sp, letterSpacing = (-0.01).em, color = Paleta.suave),
-                    maxLines = 1,
+                    style = TextStyle(fontFamily = jost(), fontWeight = FontWeight.Light, fontSize = Tipo.xl, lineHeight = 22.sp, letterSpacing = (-0.01).em, color = Paleta.suave),
+                    maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
-                BasicText(fila.nota, Modifier.padding(top = 2.dp), style = TextStyle(fontFamily = i, fontSize = 13.sp, lineHeight = 16.sp, color = Paleta.tenue), maxLines = 1)
+                BasicText(fila.nota, Modifier.padding(top = Espacio.hilo), style = TextStyle(fontFamily = i, fontSize = Tipo.s, lineHeight = 16.sp, color = Paleta.tenue), maxLines = 1)
             }
             Box(
                 Modifier
-                    .padding(end = 12.dp)
-                    .height(32.dp)
+                    .padding(end = Espacio.s)
+                    .heightIn(min = 32.dp)
                     .drawWithCache {
                         val r = CornerRadius(size.height / 2)
                         val g = 1.dp.toPx()
@@ -531,10 +540,10 @@ private fun FilaDeCasilla(fila: FilaCasilla, ultima: Boolean, acciones: Acciones
                             drawRoundRect(Paleta.tinta.copy(alpha = 0.12f), Offset(g / 2, g / 2), Size(size.width - g, size.height - g), CornerRadius(r.x - g / 2), style = Stroke(g))
                         }
                     }
-                    .padding(horizontal = 14.dp),
+                    .padding(horizontal = 14.dp, vertical = Espacio.xxs),
                 contentAlignment = Alignment.Center,
             ) {
-                BasicText("Elegir", style = TextStyle(fontFamily = i, fontWeight = FontWeight.Medium, fontSize = 13.sp, color = Paleta.tinta))
+                BasicText("Elegir", style = TextStyle(fontFamily = i, fontWeight = FontWeight.Medium, fontSize = Tipo.s, color = Paleta.tinta))
             }
         }
     }

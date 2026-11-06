@@ -69,6 +69,10 @@ import mpensum.componentes.desbordar
 import mpensum.componentes.pulsable
 import mpensum.componentes.trazarCruz
 import mpensum.componentes.trazarPuntos
+import mpensum.componentes.margenPantalla
+import mpensum.componentes.ventana
+import mpensum.tema.Alto
+import mpensum.tema.Espacio
 import mpensum.logica.DIAS
 import mpensum.logica.DIAS_CORTOS
 import mpensum.logica.Momento
@@ -105,15 +109,19 @@ internal val CURVA_HORARIO = CubicBezierEasing(0.32f, 0.72f, 0f, 1f)
 private val CURVA_SEGMENTO = CubicBezierEasing(0.2f, 0f, 0f, 1f)
 private val CURVA_LATIDO = CubicBezierEasing(0.22f, 0.61f, 0.36f, 1f)
 /** El margen de la vista: el px-5 de la web en el teléfono */
-internal val MARGEN_HORARIO = 20.dp
+internal val MARGEN_HORARIO = Espacio.l
 /** Ancho del carril de las horas en la lista del día (--ancho-hora de la web) */
 private val ANCHO_HORA = 72.dp
+/** En pantallas compactas (< 360 dp) el carril de horas cede 8 dp al nombre */
+private val ANCHO_HORA_ESTRECHO = 64.dp
+/** El selector Día | Semana: cada opción mide 66 dp, y 58 en compactas para que quepa junto al rótulo */
+private val ANCHO_OPCION = 66.dp
+private val ANCHO_OPCION_ESTRECHA = 58.dp
 /** El riel y su aire a cada lado: la hora, el riel y el texto comparten estas tres columnas en todos los renglones */
 private val ANCHO_RIEL = 9.dp
 private val AIRE_RIEL = 12.dp
-private val SANGRIA_DIA = ANCHO_HORA + AIRE_RIEL + ANCHO_RIEL + AIRE_RIEL
 /** El hueco de un botón de icono al borde derecho: el toque mide 44 y el icono queda a 8 dp del margen, como el -mr de la web */
-private val TOQUE = 44.dp
+private val TOQUE = Alto.toque
 private val SALIDA_DERECHA = 14.dp
 
 /** Las letras del horario, resueltas una vez: Jost nombra y da la hora, Inter cuenta */
@@ -196,7 +204,7 @@ fun VistaHorario(horario: EstadoHorario, abajo: Dp, modifier: Modifier = Modifie
         modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(start = MARGEN_HORARIO, end = MARGEN_HORARIO, top = arriba + 10.dp, bottom = abajo + 28.dp),
+            .padding(start = margenPantalla(), end = margenPantalla(), top = arriba + Espacio.xs, bottom = abajo + Espacio.xl + Espacio.xxs),
     ) {
         Cabecera(horario, horizontal)
         Crossfade(horario.modo, animationSpec = tween(220), label = "modo") { modo ->
@@ -222,7 +230,7 @@ fun VistaHorario(horario: EstadoHorario, abajo: Dp, modifier: Modifier = Modifie
 private fun Cabecera(horario: EstadoHorario, compacta: Boolean = false) {
     val l = letrasHorario()
     Row(Modifier.fillMaxWidth().height(TOQUE), verticalAlignment = Alignment.CenterVertically) {
-        Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Espacio.xs)) {
             val momento = horario.momento
             if (horario.modo == ModoHorario.SEMANA) {
                 BasicText("TU SEMANA", style = l.etiqueta)
@@ -268,7 +276,7 @@ private fun SelectorModo(horario: EstadoHorario) {
     ) {
         ModoHorario.entries.forEach { modo ->
             Box(
-                Modifier.width(66.dp).fillMaxHeight().pulsable({ horario.modo = modo }, escala = 0.96f),
+                Modifier.width(if (ventana().compacta) ANCHO_OPCION_ESTRECHA else ANCHO_OPCION).fillMaxHeight().pulsable({ horario.modo = modo }, escala = 0.96f),
                 contentAlignment = Alignment.Center,
             ) {
                 BasicText(
@@ -281,6 +289,14 @@ private fun SelectorModo(horario: EstadoHorario) {
 }
 
 /* ---- Día: lo que toca ahora --------------------------------------------- */
+
+/** El carril de las horas del día: más angosto en compactas */
+@Composable
+private fun anchoHora(): Dp = if (ventana().compacta) ANCHO_HORA_ESTRECHO else ANCHO_HORA
+
+/** Lo que se sangra el texto de un renglón del día: la hora, el riel y su aire */
+@Composable
+private fun sangriaDia(): Dp = anchoHora() + AIRE_RIEL + ANCHO_RIEL + AIRE_RIEL
 
 /** El nombre manda: baja un cuerpo si es largo, como el NOMBRE_LARGO de la web */
 private fun LetrasHorario.tituloPara(nombre: String) =
@@ -309,7 +325,7 @@ private fun AhoraYDespues(horario: EstadoHorario) {
             momento is Momento.Libre -> tituloLibre(momento, ahora)
             else -> ""
         }
-        BasicText(titulo, Modifier.padding(top = 4.dp), style = l.tituloPara(titulo))
+        BasicText(titulo, Modifier.padding(top = Espacio.xxs), style = l.tituloPara(titulo))
 
         if (clase != null) {
             val enCurso = momento is Momento.EnCurso
@@ -322,7 +338,7 @@ private fun AhoraYDespues(horario: EstadoHorario) {
                     }
                     if (clase.aula.isNotBlank()) append(" · ${clase.aula}")
                 },
-                Modifier.padding(top = 10.dp),
+                Modifier.padding(top = Espacio.xs),
                 style = l.cuerpo,
             )
             Trayecto(clase, color, if (enCurso) ({ horario.ahora.minuto }) else null)
@@ -330,8 +346,8 @@ private fun AhoraYDespues(horario: EstadoHorario) {
             if (despues != null) {
                 EnUnRenglon(horario, "DESPUÉS", despues)
             } else {
-                BasicText("DESPUÉS", Modifier.padding(top = 24.dp), style = l.etiqueta)
-                BasicText("Es tu última clase de hoy.", Modifier.padding(top = 10.dp), style = l.cuerpo)
+                BasicText("DESPUÉS", Modifier.padding(top = Espacio.xl), style = l.etiqueta)
+                BasicText("Es tu última clase de hoy.", Modifier.padding(top = Espacio.xs), style = l.cuerpo)
             }
         }
         if (proxima != null) EnUnRenglon(horario, cuandoViene(proxima).uppercase(), proxima.sesion)
@@ -347,10 +363,10 @@ private fun AhoraYDespues(horario: EstadoHorario) {
 private fun EnUnRenglon(horario: EstadoHorario, rotulo: String, s: Sesion) {
     val l = letrasHorario()
     val color = horario.color(s.codigo)
-    BasicText(rotulo, Modifier.padding(top = 24.dp), style = l.etiqueta)
-    Row(Modifier.padding(top = 10.dp)) {
-        Box(Modifier.padding(top = 4.dp).size(3.dp, 13.dp).clip(RoundedCornerShape(2.dp)).drawBehind { drawRect(color) })
-        Spacer(Modifier.width(10.dp))
+    BasicText(rotulo, Modifier.padding(top = Espacio.xl), style = l.etiqueta)
+    Row(Modifier.padding(top = Espacio.xs)) {
+        Box(Modifier.padding(top = Espacio.xxs).size(3.dp, 13.dp).clip(RoundedCornerShape(2.dp)).drawBehind { drawRect(color) })
+        Spacer(Modifier.width(Espacio.xs))
         BasicText(
             buildAnnotatedString {
                 withStyle(SpanStyle(fontWeight = FontWeight.Medium, color = Paleta.tinta)) { append(horario.nombre(s.codigo)) }
@@ -383,7 +399,7 @@ private fun Trayecto(clase: Sesion, color: Color, minuto: (() -> Int)?) {
     val l = letrasHorario()
     val estilo = l.dato.copy(color = Paleta.suave)
     Row(
-        Modifier.padding(top = 20.dp).fillMaxWidth(),
+        Modifier.padding(top = Espacio.l).fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(13.dp),
     ) {
@@ -432,7 +448,7 @@ private fun Trayecto(clase: Sesion, color: Color, minuto: (() -> Int)?) {
 private fun Semanita(horario: EstadoHorario) {
     val l = letrasHorario()
     val (abre, cierra) = horario.rango
-    Row(Modifier.padding(top = 32.dp).fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+    Row(Modifier.padding(top = Espacio.xxl).fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         BasicText("SEMANA", Modifier.weight(1f), style = l.etiqueta)
         BasicText(tramoCorto(abre, cierra), style = l.dato)
     }
@@ -440,7 +456,7 @@ private fun Semanita(horario: EstadoHorario) {
     LaunchedEffect(horario.dia) { lente.animateTo(horario.dia.toFloat(), tween(380, easing = CURVA_HORARIO)) }
     Row(
         Modifier
-            .padding(top = 8.dp)
+            .padding(top = Espacio.xs)
             .desbordar(7.dp)
             .drawBehind {
                 val ancho = size.width / 5
@@ -453,7 +469,7 @@ private fun Semanita(horario: EstadoHorario) {
         for (d in 0 until 5) {
             val activo = horario.dia == d
             Column(
-                Modifier.weight(1f).pulsable({ horario.dia = d }, escala = 0.96f).padding(start = 9.dp, end = 9.dp, top = 11.dp, bottom = 9.dp),
+                Modifier.weight(1f).pulsable({ horario.dia = d }, escala = 0.96f).padding(start = if (ventana().compacta) Espacio.xxs else Espacio.xs + Espacio.hilo / 2, end = if (ventana().compacta) Espacio.xxs else Espacio.xs + Espacio.hilo / 2, top = Espacio.s, bottom = Espacio.xs),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 RotuloDiaHorario(DIAS_CORTOS[d], hoy = d == horario.ahora.dia, style = l.etiqueta.copy(color = if (activo) Paleta.tinta else Paleta.tenue))
@@ -521,7 +537,7 @@ private fun DiaElegido(horario: EstadoHorario) {
     val d = horario.dia
     val delDia = horario.dias[d]
     val esHoy = d == horario.ahora.dia
-    Row(Modifier.padding(top = 28.dp).fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+    Row(Modifier.padding(top = Espacio.xl + Espacio.xxs).fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         BasicText(
             buildAnnotatedString {
                 withStyle(SpanStyle(color = Paleta.tinta)) { append(DIAS[d].uppercase()) }
@@ -535,13 +551,13 @@ private fun DiaElegido(horario: EstadoHorario) {
             style = l.dato,
         )
     }
-    Column(Modifier.padding(top = 20.dp).fillMaxWidth()) {
+    Column(Modifier.padding(top = Espacio.l).fillMaxWidth()) {
         var anterior: Renglon? = null
         for (r in agendaDe(delDia)) {
             when (r) {
                 is Renglon.Clase -> {
                     // Dos clases seguidas se separan con aire; un tramo libre ya separa por sí mismo
-                    if (anterior is Renglon.Clase) Spacer(Modifier.height(12.dp))
+                    if (anterior is Renglon.Clase) Spacer(Modifier.height(Espacio.s))
                     FilaClase(horario, r.sesion)
                 }
                 is Renglon.Libre -> FilaLibre(r.fin - r.inicio) { horario.abrirNueva(d, r.inicio) }
@@ -549,17 +565,17 @@ private fun DiaElegido(horario: EstadoHorario) {
             anterior = r
         }
         if (delDia.isEmpty()) {
-            BasicText("Este día no tienes clases.", Modifier.padding(start = SANGRIA_DIA, bottom = 4.dp), style = l.texto)
+            BasicText("Este día no tienes clases.", Modifier.padding(start = sangriaDia(), bottom = Espacio.xxs), style = l.texto)
         }
         Row(
             Modifier
-                .padding(top = 8.dp)
+                .padding(top = Espacio.xs)
                 .fillMaxWidth()
-                .height(48.dp)
+                .heightIn(min = Alto.fila)
                 .pulsable({ horario.abrirNueva(d, inicioParaAnadir(delDia)) }, escala = 0.98f),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Spacer(Modifier.width(ANCHO_HORA))
+            Spacer(Modifier.width(anchoHora()))
             Box(Modifier.width(AIRE_RIEL * 2 + ANCHO_RIEL), contentAlignment = Alignment.Center) {
                 Canvas(Modifier.size(16.dp)) { trazarCruz(Paleta.suave, 1.75f) }
             }
@@ -578,12 +594,15 @@ private fun FilaClase(horario: EstadoHorario, s: Sesion) {
     Row(
         Modifier
             .fillMaxWidth()
-            .heightIn(min = 58.dp)
+            .heightIn(min = Alto.fila + Espacio.xs + Espacio.hilo)
             .height(IntrinsicSize.Min)
             .pulsable({ horario.hoja = HojaHorario.Detalle(s.id) }, escala = 0.985f),
     ) {
-        Column(Modifier.width(ANCHO_HORA).fillMaxHeight(), verticalArrangement = Arrangement.SpaceBetween) {
-            HoraConMeridiano(horaDe(s.inicio), meridiano(s.inicio), l.horaEntrada.copy(color = if (pasada) Paleta.tenue else Paleta.tinta), l)
+        val estrecha = ventana().compacta
+        // En compactas la hora de entrada baja de 21 a 19 sp: "10:00" cabe en el carril sin salirse del margen
+        val entrada = if (estrecha) l.horaEntrada.copy(fontSize = 19.sp, lineHeight = 19.sp) else l.horaEntrada
+        Column(Modifier.width(anchoHora()).fillMaxHeight(), verticalArrangement = Arrangement.SpaceBetween) {
+            HoraConMeridiano(horaDe(s.inicio), meridiano(s.inicio), entrada.copy(color = if (pasada) Paleta.tenue else Paleta.tinta), l)
             // La de salida solo repite el meridiano si cambia: "10:00 AM" arriba, "12:00 PM" abajo; "7:00 AM", "9:00"
             HoraConMeridiano(horaDe(s.fin), if (meridiano(s.fin) != meridiano(s.inicio)) meridiano(s.fin) else "", l.horaSalida, l)
         }
@@ -656,7 +675,7 @@ private fun HoraConMeridiano(hora: String, mer: String, estilo: TextStyle, l: Le
 private fun FilaLibre(minutos: Int, alPulsar: () -> Unit) {
     val l = letrasHorario()
     Row(Modifier.fillMaxWidth().height(40.dp).pulsable(alPulsar, escala = 0.98f), verticalAlignment = Alignment.CenterVertically) {
-        Spacer(Modifier.width(ANCHO_HORA))
+        Spacer(Modifier.width(anchoHora()))
         Canvas(Modifier.padding(horizontal = AIRE_RIEL).width(ANCHO_RIEL).fillMaxHeight().padding(vertical = 4.dp)) {
             val g = 2.dp.toPx()
             drawLine(

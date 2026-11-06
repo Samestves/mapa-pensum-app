@@ -71,13 +71,17 @@ import kotlinx.coroutines.launch
 import mpensum.componentes.IconoTrazo
 import mpensum.componentes.Lucide
 import mpensum.componentes.SOMBRA_FLOTANTE
+import mpensum.componentes.ventana
 import mpensum.componentes.iconoEstado
 import mpensum.datos.Asignatura
 import mpensum.logica.EstadoMateria
 import mpensum.logica.Marca
 import mpensum.logica.Situacion
 import mpensum.tema.PESO_NOMBRE
+import mpensum.tema.Alto
+import mpensum.tema.Espacio
 import mpensum.tema.Paleta
+import mpensum.tema.Tipo
 import mpensum.tema.Radio
 import mpensum.tema.Tema
 import mpensum.tema.inter
@@ -121,6 +125,10 @@ private fun nombreArea(area: String?) = when (area) {
 }
 
 private val ANCHO_PANEL_LATERAL = 360.dp
+/** El texto de los avisos y notas de la ficha (12,5 sp, entre Tipo.xs y Tipo.s) */
+private val TEXTO_AVISO = 12.5.sp
+/** Por debajo de este ancho por marca, el selector pone el icono sobre la etiqueta */
+private val ANCHO_MARCA_HOLGADA = 112.dp
 
 /** Dónde cae la ficha cuando va al lado de la lista (horizontal): sus márgenes desde el interior */
 class PanelLateral(val inicio: Dp, val fin: Dp, val arriba: Dp)
@@ -167,10 +175,10 @@ fun FichaMateria(
     val densidad = LocalDensity.current.density
 
     BoxWithConstraints(Modifier.fillMaxSize()) {
-        val tope = if (horizontal) maxHeight - reservaAbajo - 24.dp else minOf(maxHeight * 0.66f, maxHeight - reservaAbajo - 64.dp)
-        val forma = RoundedCornerShape(if (lateral != null) 24.dp else 16.dp)
+        val tope = if (horizontal) maxHeight - reservaAbajo - Espacio.xl else minOf(maxHeight * 0.66f, maxHeight - reservaAbajo - 64.dp)
+        val forma = RoundedCornerShape(if (lateral != null) Radio.Grande else Radio.Campo)
         val caja = if (lateral != null) Modifier.fillMaxSize().padding(start = lateral.inicio, end = lateral.fin, top = lateral.arriba, bottom = reservaAbajo)
-        else Modifier.fillMaxSize().padding(start = 12.dp, end = 12.dp, bottom = reservaAbajo)
+        else Modifier.fillMaxSize().padding(start = Espacio.s, end = Espacio.s, bottom = reservaAbajo)
         Box(caja, contentAlignment = if (horizontal) Alignment.BottomEnd else Alignment.BottomCenter) {
             Column(
                 Modifier
@@ -220,15 +228,15 @@ fun FichaMateria(
                 }
                 Box(Modifier.fillMaxWidth().height(1.dp).background(BORDE_PANEL))
                 Column(
-                    Modifier.weight(1f, fill = lateral != null).verticalScroll(rememberScrollState()).padding(start = 20.dp, end = 20.dp, top = 14.dp, bottom = 12.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    Modifier.weight(1f, fill = lateral != null).verticalScroll(rememberScrollState()).padding(start = Espacio.l, end = Espacio.l, top = 14.dp, bottom = Espacio.s),
+                    verticalArrangement = Arrangement.spacedBy(Espacio.m),
                 ) {
                     Informacion(materia, estado, alIrA)
                     estado.casillaDe(materia.codigo)?.let { casilla -> BotonCambiarElectiva { alCambiarElectiva(casilla) } }
                 }
                 Box(Modifier.fillMaxWidth().height(1.dp).background(BORDE_PANEL))
                 // Las marcas, al pie: es lo que se viene a hacer, y abajo llega el pulgar sin cambiar de mano
-                Box(Modifier.padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 14.dp)) {
+                Box(Modifier.padding(start = Espacio.m, end = Espacio.m, top = Espacio.s, bottom = 14.dp)) {
                     SelectorMarca(estado.marcas[materia.codigo]) { alMarcar(materia.codigo, it) }
                 }
             }
@@ -247,28 +255,28 @@ private fun CabeceraFicha(materia: Asignatura, estado: EstadoCarrera, alCerrar: 
     Box(Modifier.fillMaxWidth()) {
         // El filo de luz del borde de arriba, en el color de su estado
         Box(
-            Modifier.padding(horizontal = 24.dp).fillMaxWidth().height(1.dp)
+            Modifier.padding(horizontal = Espacio.xl).fillMaxWidth().height(1.dp)
                 .background(Brush.horizontalGradient(listOf(Color.Transparent, color.copy(alpha = 0.8f), Color.Transparent))),
         )
         Column {
-            Box(Modifier.fillMaxWidth().padding(top = 10.dp), contentAlignment = Alignment.Center) {
+            Box(Modifier.fillMaxWidth().padding(top = Espacio.xs), contentAlignment = Alignment.Center) {
                 Box(Modifier.size(40.dp, 5.dp).clip(CircleShape).background(Paleta.tinta.copy(alpha = 0.16f)))
             }
-            Column(Modifier.padding(start = 20.dp, end = 20.dp, top = 10.dp, bottom = 16.dp)) {
-                Row(Modifier.padding(top = 4.dp, end = 56.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(Modifier.padding(start = Espacio.l, end = Espacio.l, top = Espacio.xs, bottom = Espacio.m)) {
+                Row(Modifier.padding(top = Espacio.xxs, end = 56.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Espacio.xs)) {
                     BasicText(materia.semestre?.let { "SEMESTRE ${it.toString().padStart(2, '0')}" } ?: "ELECTIVA", style = TITULO_SECCION.copy(fontFamily = j))
                     Box(Modifier.size(16.dp, 1.dp).background(BORDE_PANEL))
-                    BasicText(materia.codigo, style = TextStyle(fontFamily = p, fontWeight = FontWeight.Light, fontSize = 10.5.sp, letterSpacing = 0.04.em, color = Paleta.tenue))
+                    BasicText(materia.codigo, style = TextStyle(fontFamily = p, fontWeight = FontWeight.Light, fontSize = Tipo.xxs, letterSpacing = 0.04.em, color = Paleta.tenue))
                 }
                 BasicText(
                     materia.nombre,
-                    Modifier.padding(top = 8.dp, end = 48.dp),
-                    style = TextStyle(fontFamily = j, fontWeight = FontWeight.Normal, fontSize = 24.sp, lineHeight = 27.sp, letterSpacing = (-0.01).em, color = Paleta.tinta),
+                    Modifier.padding(top = Espacio.xs, end = 48.dp),
+                    style = TextStyle(fontFamily = j, fontWeight = FontWeight.Normal, fontSize = Tipo.titulo, lineHeight = 27.sp, letterSpacing = (-0.01).em, color = Paleta.tinta),
                 )
-                Row(Modifier.padding(top = 12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(Modifier.padding(top = Espacio.s), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Espacio.xs)) {
                     Box(Modifier.size(6.dp).clip(CircleShape).background(estado.colores.de(materia)))
-                    nombreArea(materia.area)?.let { BasicText(it, style = TextStyle(fontFamily = j, fontSize = 12.sp, color = Paleta.suave), maxLines = 1, overflow = TextOverflow.Ellipsis) }
-                    BasicText("${materia.uc ?: 0} UC", style = TextStyle(fontFamily = p, fontWeight = FontWeight.Light, fontSize = 10.5.sp, color = Paleta.tenue))
+                    nombreArea(materia.area)?.let { BasicText(it, style = TextStyle(fontFamily = j, fontSize = Tipo.xs, color = Paleta.suave), maxLines = 1, overflow = TextOverflow.Ellipsis) }
+                    BasicText("${materia.uc ?: 0} UC", style = TextStyle(fontFamily = p, fontWeight = FontWeight.Light, fontSize = Tipo.xxs, color = Paleta.tenue))
                     Spacer(Modifier.weight(1f))
                     BasicText(palabra, style = TextStyle(fontFamily = j, fontWeight = FontWeight.Medium, fontSize = 9.5.sp, letterSpacing = 0.22.em, color = color))
                 }
@@ -276,7 +284,7 @@ private fun CabeceraFicha(materia: Asignatura, estado: EstadoCarrera, alCerrar: 
         }
         // La X en su esquina, fuera del flujo: la fila de abajo llega hasta el borde
         Box(
-            Modifier.align(Alignment.TopEnd).padding(top = 12.dp, end = 16.dp).size(40.dp).clip(CircleShape)
+            Modifier.align(Alignment.TopEnd).padding(top = Espacio.s, end = Espacio.m).size(Alto.icono).clip(CircleShape)
                 .background(Paleta.tinta.copy(alpha = 0.05f)).border(1.dp, Paleta.tinta.copy(alpha = 0.16f), CircleShape)
                 .clickable(role = Role.Button, onClick = alCerrar),
             contentAlignment = Alignment.Center,
@@ -302,7 +310,7 @@ private fun Informacion(materia: Asignatura, estado: EstadoCarrera, alIrA: (Stri
                 withStyle(SpanStyle(color = Paleta.tinta)) { append(especial) }
                 append(". Es una condición del pensum, no una materia.")
             },
-            style = TextStyle(fontFamily = jost(), fontSize = 12.5.sp, lineHeight = 17.sp, color = Paleta.suave),
+            style = TextStyle(fontFamily = jost(), fontSize = TEXTO_AVISO, lineHeight = 17.sp, color = Paleta.suave),
         )
     }
     ListaPrelaciones("DESBLOQUEA", desbloquea, "Nada: es final de rama.", estado, alIrA)
@@ -318,7 +326,7 @@ private fun nombrar(materias: List<Asignatura>): String {
 private fun AvisoSituacion(materia: Asignatura, requiere: List<Asignatura>, estado: EstadoCarrera) {
     val e = estado.estados[materia.codigo]
     val situacion = estado.situaciones[materia.codigo] ?: Situacion.LEJANA
-    val estilo = TextStyle(fontFamily = jost(), fontSize = 12.5.sp, lineHeight = 17.sp, color = Paleta.suave)
+    val estilo = TextStyle(fontFamily = jost(), fontSize = TEXTO_AVISO, lineHeight = 17.sp, color = Paleta.suave)
     val (icono, texto) = when {
         e == EstadoMateria.DISPONIBLE -> Situacion.INSCRIBIBLE to buildAnnotatedString { append("Puedes inscribirla: tienes aprobadas todas sus prelaciones.") }
         e != EstadoMateria.BLOQUEADA -> return
@@ -343,8 +351,8 @@ private fun AvisoSituacion(materia: Asignatura, requiere: List<Asignatura>, esta
             }
         }
     }
-    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-        Canvas(Modifier.padding(top = 2.dp).size(13.dp)) { iconoEstado(icono, 0f, 0f, size.minDimension, Paleta.panel) }
+    Row(horizontalArrangement = Arrangement.spacedBy(Espacio.s)) {
+        Canvas(Modifier.padding(top = Espacio.hilo).size(13.dp)) { iconoEstado(icono, 0f, 0f, size.minDimension, Paleta.panel) }
         BasicText(texto, style = estilo)
     }
 }
@@ -354,15 +362,15 @@ private fun AvisoSituacion(materia: Asignatura, requiere: List<Asignatura>, esta
 private fun ListaPrelaciones(titulo: String, materias: List<Asignatura>, vacio: String?, estado: EstadoCarrera, alIrA: (String) -> Unit) {
     val j = jost()
     Column {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Espacio.s)) {
             BasicText(titulo, style = TITULO_SECCION.copy(fontFamily = j, letterSpacing = 0.24.em))
             Box(Modifier.weight(1f).height(1.dp).background(BORDE_PANEL))
-            BasicText("${materias.size}", style = TextStyle(fontFamily = plex(), fontWeight = FontWeight.Light, fontSize = 10.sp, color = Paleta.tenue))
+            BasicText("${materias.size}", style = TextStyle(fontFamily = plex(), fontWeight = FontWeight.Light, fontSize = Tipo.xxs, color = Paleta.tenue))
         }
         if (materias.isEmpty()) {
-            vacio?.let { BasicText(it, Modifier.padding(top = 6.dp), style = TextStyle(fontFamily = j, fontSize = 12.5.sp, color = Paleta.tenue)) }
+            vacio?.let { BasicText(it, Modifier.padding(top = Espacio.xxs), style = TextStyle(fontFamily = j, fontSize = TEXTO_AVISO, color = Paleta.tenue)) }
         } else {
-            Column(Modifier.padding(top = 6.dp)) {
+            Column(Modifier.padding(top = Espacio.xxs)) {
                 materias.forEach { m ->
                     val s = estado.situaciones[m.codigo] ?: Situacion.LEJANA
                     val puedeIr = estado.nodoDe(m.codigo) != null
@@ -371,17 +379,18 @@ private fun ListaPrelaciones(titulo: String, materias: List<Asignatura>, vacio: 
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(8.dp))
                             .then(if (puedeIr) Modifier.clickable(role = Role.Button) { alIrA(m.codigo) } else Modifier)
-                            .padding(vertical = 10.dp),
+                            .heightIn(min = Alto.toque)
+                            .padding(vertical = Espacio.xs),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        horizontalArrangement = Arrangement.spacedBy(Espacio.s),
                     ) {
                         Canvas(Modifier.size(15.dp)) { iconoEstado(s, 0f, 0f, size.minDimension, Paleta.panel) }
                         BasicText(
                             m.nombre, Modifier.weight(1f),
-                            style = TextStyle(fontFamily = j, fontWeight = PESO_NOMBRE, fontSize = 14.5.sp, color = if (s == Situacion.HECHA) Paleta.suave else Paleta.tinta),
+                            style = TextStyle(fontFamily = j, fontWeight = PESO_NOMBRE, fontSize = Tipo.m, color = if (s == Situacion.HECHA) Paleta.suave else Paleta.tinta),
                             maxLines = 1, overflow = TextOverflow.Ellipsis,
                         )
-                        BasicText(m.codigo, style = TextStyle(fontFamily = plex(), fontWeight = FontWeight.Light, fontSize = 10.sp, letterSpacing = 0.04.em, color = Paleta.tenue))
+                        BasicText(m.codigo, style = TextStyle(fontFamily = plex(), fontWeight = FontWeight.Light, fontSize = Tipo.xxs, letterSpacing = 0.04.em, color = Paleta.tenue))
                     }
                 }
             }
@@ -393,7 +402,7 @@ private fun ListaPrelaciones(titulo: String, materias: List<Asignatura>, vacio: 
 private fun BotonCambiarElectiva(alPulsar: () -> Unit) {
     Box(
         Modifier.fillMaxWidth().clip(RoundedCornerShape(8.dp)).border(1.dp, BORDE_PANEL, RoundedCornerShape(8.dp))
-            .clickable(role = Role.Button, onClick = alPulsar).padding(vertical = 10.dp),
+            .clickable(role = Role.Button, onClick = alPulsar).heightIn(min = Alto.toque).padding(vertical = Espacio.xs),
         contentAlignment = Alignment.Center,
     ) {
         BasicText("CAMBIAR ESTA ELECTIVA", style = TextStyle(fontFamily = jost(), fontWeight = FontWeight.Medium, fontSize = 9.5.sp, letterSpacing = 0.2.em, color = Paleta.suave))
@@ -420,12 +429,14 @@ private fun SelectorMarca(marca: Marca?, alMarcar: (Marca?) -> Unit) {
     val color = MARCAS[indice].third
     val i = inter()
     val pista = RoundedCornerShape(16.dp)
-    Box(
-        Modifier.fillMaxWidth().height(56.dp).clip(pista)
+    BoxWithConstraints(
+        Modifier.fillMaxWidth().heightIn(min = Alto.grande).clip(pista)
             .background(Paleta.tinta.copy(alpha = porTema(0.035f, 0.03f)))
             .border(1.dp, Paleta.borde, pista)
-            .padding(4.dp),
+            .padding(Espacio.xxs),
     ) {
+        // Con poco ancho por marca, el icono va sobre la etiqueta (más corta) y nada se pisa
+        val apretado = (maxWidth - Espacio.xxs * 2) / MARCAS.size < ANCHO_MARCA_HOLGADA || ventana().letraGrande
         Box(
             Modifier.fillMaxWidth(1f / 3f).height(48.dp)
                 .graphicsLayer { translationX = size.width * posicion }
@@ -443,21 +454,32 @@ private fun SelectorMarca(marca: Marca?, alMarcar: (Marca?) -> Unit) {
         Row(Modifier.fillMaxSize()) {
             MARCAS.forEach { (m, texto, c) ->
                 val activa = m == marca
-                Row(
-                    Modifier.weight(1f).fillMaxSize().clip(RoundedCornerShape(Radio.Chip)).clickable(role = Role.Button) {
-                        haptica.performHapticFeedback(HapticFeedbackType.SegmentTick)
-                        alMarcar(m)
-                    },
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Canvas(Modifier.size(16.dp).graphicsLayer { alpha = if (activa) 1f else 0.85f }) { iconoMarca(m, c) }
-                    Spacer(Modifier.width(6.dp))
+                val alPulsar = {
+                    haptica.performHapticFeedback(HapticFeedbackType.SegmentTick)
+                    alMarcar(m)
+                }
+                val icono = @Composable { Canvas(Modifier.size(16.dp).graphicsLayer { alpha = if (activa) 1f else 0.85f }) { iconoMarca(m, c) } }
+                val etiqueta = @Composable {
                     BasicText(
                         texto,
-                        style = TextStyle(fontFamily = i, fontWeight = if (activa) FontWeight.SemiBold else FontWeight.Medium, fontSize = 13.sp, color = if (activa) c else Paleta.suave),
+                        style = TextStyle(fontFamily = i, fontWeight = if (activa) FontWeight.SemiBold else FontWeight.Medium, fontSize = if (apretado) Tipo.xs else Tipo.s, color = if (activa) c else Paleta.suave),
                         maxLines = 1,
+                        softWrap = false,
                     )
+                }
+                val toque = Modifier.weight(1f).fillMaxSize().clip(RoundedCornerShape(Radio.Chip)).clickable(role = Role.Button, onClick = alPulsar)
+                if (apretado) {
+                    Column(toque, horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+                        icono()
+                        Spacer(Modifier.height(Espacio.hilo))
+                        etiqueta()
+                    }
+                } else {
+                    Row(toque, horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
+                        icono()
+                        Spacer(Modifier.width(6.dp))
+                        etiqueta()
+                    }
                 }
             }
         }

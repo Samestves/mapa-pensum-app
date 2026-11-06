@@ -77,6 +77,8 @@ import mpensum.componentes.SOMBRA_FLOTANTE
 import mpensum.componentes.Vidrio
 import mpensum.componentes.vidrio
 import mpensum.plataforma.ManejarAtras
+import mpensum.tema.Espacio
+import mpensum.tema.Radio
 import mpensum.tema.Paleta
 import mpensum.tema.Tema
 import mpensum.tema.porTema
@@ -334,7 +336,7 @@ fun BoxScope.HojaInferior(
     val toque = remember { MutableInteractionSource() }
     FondoHoja(fondo, hoja, toque, alCerrar)
 
-    val forma = if (flotante) RoundedCornerShape(32.dp) else RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
+    val forma = if (flotante) RoundedCornerShape(32.dp) else RoundedCornerShape(topStart = Radio.Hoja, topEnd = Radio.Hoja)
     // Nunca más alta que la pantalla menos 64 (o la barra de estado y 32): arriba siempre asoma lo que hay detrás
     val tope = maxOf(64.dp, WindowInsets.statusBars.asPaddingValues().calculateTopPadding() + 32.dp)
     Box(
@@ -342,7 +344,7 @@ fun BoxScope.HojaInferior(
             .fillMaxSize()
             .padding(top = tope)
             .windowInsetsPadding(if (flotante) WindowInsets.ime.union(WindowInsets.navigationBars) else WindowInsets.ime)
-            .then(if (flotante) Modifier.padding(start = 8.dp, end = 8.dp, bottom = 8.dp) else Modifier),
+            .then(if (flotante) Modifier.padding(start = Espacio.xs, end = Espacio.xs, bottom = Espacio.xs) else Modifier),
         contentAlignment = Alignment.BottomCenter,
     ) {
         Column(

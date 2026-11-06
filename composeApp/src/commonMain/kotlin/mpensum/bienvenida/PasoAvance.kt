@@ -46,6 +46,7 @@ import mpensum.logica.Marca
 import mpensum.logica.redondear
 import mpensum.logica.resumenParaPortada
 import mpensum.tema.Paleta
+import mpensum.tema.Tipo
 import mpensum.tema.Tema
 import mpensum.tema.inter
 import mpensum.tema.jost
@@ -136,6 +137,16 @@ private fun avanceDeDemostracion(pensum: Pensum): AvanceDemo {
     return AvanceDemo(silueta, ucPorSemestre, resumen.cursando, resumen.porcentaje, resumen.llevas, resumen.de, resumen.unidad)
 }
 
+/** Letra de la escena (dibujo, en unidades del tablero)  */
+private val TAM_CIFRA = 88.sp
+private val TAM_FALTAN = 80.sp
+private val TAM_SIGNO = 26.sp
+
+/** Lo que se funde la escena con el fondo en cada borde */
+private val FUNDIDO_ARRIBA = 37.dp
+private val FUNDIDO_ABAJO = 47.dp
+private val FUNDIDO_LADO = 23.dp
+
 @Composable
 fun PasoAvance(alSeguir: () -> Unit) {
     val pensum = rememberPensum(CARRERA)
@@ -147,9 +158,9 @@ fun PasoAvance(alSeguir: () -> Unit) {
                 .drawWithContent {
                     drawContent()
                     // Sin recuadro: la escena se funde con el fondo hacia los cuatro lados
-                    val arriba = 37.dp.toPx() / size.height
-                    val abajo = 47.dp.toPx() / size.height
-                    val lado = 23.dp.toPx() / size.width
+                    val arriba = FUNDIDO_ARRIBA.toPx() / size.height
+                    val abajo = FUNDIDO_ABAJO.toPx() / size.height
+                    val lado = FUNDIDO_LADO.toPx() / size.width
                     drawRect(
                         Brush.verticalGradient(0f to Color.Transparent, arriba to Color.Black, 1f - abajo to Color.Black, 1f to Color.Transparent),
                         blendMode = BlendMode.DstIn,
@@ -179,22 +190,22 @@ private class TextosAvance(
 )
 
 private fun medirTextos(a: AvanceDemo, medidor: TextMeasurer, jost: FontFamily, inter: FontFamily): TextosAvance {
-    val cifra = TextStyle(fontFamily = jost, fontWeight = FontWeight.ExtraLight, fontSize = 88.sp, letterSpacing = (-0.035).em, color = Paleta.tinta, fontFeatureSettings = "tnum")
-    val versal = TextStyle(fontFamily = jost, fontWeight = FontWeight.Medium, fontSize = 11.sp, letterSpacing = 0.14.em, color = Paleta.suave)
-    val numero = TextStyle(fontFamily = jost, fontWeight = FontWeight.Light, fontSize = 13.sp, color = Paleta.apagada, fontFeatureSettings = "tnum")
-    val uc = TextStyle(fontFamily = inter, fontWeight = FontWeight.SemiBold, fontSize = 13.sp, color = Paleta.tinta, fontFeatureSettings = "tnum")
+    val cifra = TextStyle(fontFamily = jost, fontWeight = FontWeight.ExtraLight, fontSize = TAM_CIFRA, letterSpacing = (-0.035).em, color = Paleta.tinta, fontFeatureSettings = "tnum")
+    val versal = TextStyle(fontFamily = jost, fontWeight = FontWeight.Medium, fontSize = Tipo.xxs, letterSpacing = 0.14.em, color = Paleta.suave)
+    val numero = TextStyle(fontFamily = jost, fontWeight = FontWeight.Light, fontSize = Tipo.s, color = Paleta.apagada, fontFeatureSettings = "tnum")
+    val uc = TextStyle(fontFamily = inter, fontWeight = FontWeight.SemiBold, fontSize = Tipo.s, color = Paleta.tinta, fontFeatureSettings = "tnum")
     return TextosAvance(
         // Una por cada valor que la cuenta puede tocar: contar no mide nada
         cifras = (0..a.porcentaje).map { medidor.measure("$it", cifra) },
-        signo = medidor.measure("%", TextStyle(fontFamily = jost, fontWeight = FontWeight.Light, fontSize = 26.sp, color = Paleta.verde)),
+        signo = medidor.measure("%", TextStyle(fontFamily = jost, fontWeight = FontWeight.Light, fontSize = TAM_SIGNO, color = Paleta.verde)),
         aprobado = medidor.measure("APROBADO", versal),
         ucs = (0..a.llevas).map { medidor.measure("$it", uc) },
         // El color va en el estilo y no en un tramo: el alfa de drawText no apaga los colores de tramo
-        deTotal = medidor.measure(" de ${a.de} ${a.unidad}", TextStyle(fontFamily = inter, fontWeight = FontWeight.Normal, fontSize = 13.sp, color = Paleta.tenue)),
+        deTotal = medidor.measure(" de ${a.de} ${a.unidad}", TextStyle(fontFamily = inter, fontWeight = FontWeight.Normal, fontSize = Tipo.s, color = Paleta.tenue)),
         numeros = a.silueta.indices.map { medidor.measure("${it + 1}", numero) },
         teGraduas = medidor.measure("TE GRADÚAS EN", versal),
-        faltan = medidor.measure("${a.faltan}", TextStyle(fontFamily = jost, fontWeight = FontWeight.ExtraLight, fontSize = 80.sp, letterSpacing = (-0.035).em, color = Paleta.tinta)),
-        semestres = medidor.measure(if (a.faltan == 1) "semestre" else "semestres", TextStyle(fontFamily = jost, fontWeight = FontWeight.Light, fontSize = 22.sp, color = Paleta.azul)),
+        faltan = medidor.measure("${a.faltan}", TextStyle(fontFamily = jost, fontWeight = FontWeight.ExtraLight, fontSize = TAM_FALTAN, letterSpacing = (-0.035).em, color = Paleta.tinta)),
+        semestres = medidor.measure(if (a.faltan == 1) "semestre" else "semestres", TextStyle(fontFamily = jost, fontWeight = FontWeight.Light, fontSize = Tipo.xxl, color = Paleta.azul)),
     )
 }
 
@@ -232,9 +243,11 @@ private fun Escena(a: AvanceDemo) {
         val t = reloj.floatValue
         TOMA.en(t, toma)
         val z = exp(toma[2])
-        val u = density * z
+        // En pantallas menores que el tablero (320 dp) la escena entera se encoge a la par; nunca crece
+        val ajuste = min(1f, min(size.width / density / ESCENA_ANCHO, size.height / density / ESCENA_ALTO))
+        val u = density * z * ajuste
         // La escena se ancla al título, como en el tablero; si sobra alto, sobra arriba
-        val centroY = min(size.height / 2f, size.height - (HUECO_TITULO + ESCENA_ALTO / 2f) * density)
+        val centroY = min(size.height / 2f, size.height - (HUECO_TITULO + ESCENA_ALTO * ajuste / 2f) * density)
         translate(size.width / 2f - toma[0] * u, centroY - toma[1] * u) {
             scale(u, u, Offset.Zero) { pintar(t, a, escena, textos) }
         }

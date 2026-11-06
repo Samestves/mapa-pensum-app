@@ -43,6 +43,7 @@ import mpensum.componentes.Lucide
 import mpensum.logica.EstimacionGraduacion
 import mpensum.logica.Marca
 import mpensum.logica.Periodo
+import mpensum.tema.Tipo
 import mpensum.tema.Paleta
 import mpensum.tema.Tema
 import mpensum.tema.inter
@@ -238,10 +239,10 @@ internal fun GraficaAvance(
 
     val medidor = rememberTextMeasurer(cacheSize = 24)
     val i = inter()
-    val etiqueta = TextStyle(fontFamily = i, fontWeight = FontWeight.SemiBold, fontSize = 11.sp, letterSpacing = 0.05.em, color = Paleta.tenue)
+    val etiqueta = TextStyle(fontFamily = i, fontWeight = FontWeight.SemiBold, fontSize = Tipo.xxs, letterSpacing = 0.05.em, color = Paleta.tenue)
     val etiquetaHoy = etiqueta.copy(color = Paleta.tinta)
-    val textoPastilla = TextStyle(fontFamily = i, fontWeight = FontWeight.Medium, fontSize = 12.sp, letterSpacing = 0.05.em, color = Paleta.tinta)
-    val textoBurbuja = TextStyle(fontFamily = i, fontWeight = FontWeight.Medium, fontSize = 12.sp, color = Paleta.lienzo)
+    val textoPastilla = TextStyle(fontFamily = i, fontWeight = FontWeight.Medium, fontSize = Tipo.xs, letterSpacing = 0.05.em, color = Paleta.tinta)
+    val textoBurbuja = TextStyle(fontFamily = i, fontWeight = FontWeight.Medium, fontSize = Tipo.xs, color = Paleta.lienzo)
 
     Canvas(
         modifier

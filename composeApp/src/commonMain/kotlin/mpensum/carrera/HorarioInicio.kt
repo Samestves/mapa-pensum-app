@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -38,7 +39,11 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
+import mpensum.componentes.margenPantalla
 import mpensum.componentes.pulsable
+import mpensum.componentes.ventana
+import mpensum.tema.Alto
+import mpensum.tema.Espacio
 import mpensum.logica.Sesion
 import mpensum.tema.Paleta
 
@@ -49,6 +54,11 @@ import mpensum.tema.Paleta
  * traza la línea roja de «ahora». Corre una vez. Con el movimiento reducido se
  * ve directamente el final.
  */
+
+/** El aire entre la escena y la invitación en horizontal, y el alto que queda sobre la escena en vertical */
+private val ESPACIO_ESCENA = 56.dp
+private val ARRIBA_ESCENA = 76.dp
+private val ANCHO_INVITACION = 340.dp
 
 /** La semana de ejemplo: día, hora de entrada, de salida y cuál de los cinco colores */
 private val EJEMPLO = listOf(
@@ -83,21 +93,21 @@ internal fun HorarioVacio(horario: EstadoHorario, arriba: Dp, abajo: Dp, modifie
     val opciones = remember { OpcionesEscena(entrada = true, ahoraY = 134.5f) }
     if (horizontal) {
         Row(
-            modifier.fillMaxSize().padding(top = arriba + 16.dp, bottom = abajo + 16.dp, start = MARGEN_HORARIO, end = MARGEN_HORARIO),
+            modifier.fillMaxSize().padding(top = arriba + Espacio.m, bottom = abajo + Espacio.m, start = margenPantalla(), end = margenPantalla()),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(56.dp, Alignment.CenterHorizontally),
+            horizontalArrangement = Arrangement.spacedBy(ESPACIO_ESCENA, Alignment.CenterHorizontally),
         ) {
             EscenaVuelo(plano, opciones, { reloj.value })
-            Invitacion(horario, Modifier.width(340.dp), horizontal = true)
+            Invitacion(horario, Modifier.weight(1f, fill = false).widthIn(max = ANCHO_INVITACION), horizontal = true)
         }
     } else {
         Column(
-            modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(top = arriba + 76.dp, bottom = abajo + 24.dp),
+            modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(top = arriba + ARRIBA_ESCENA, bottom = abajo + Espacio.xl),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             EscenaVuelo(plano, opciones, { reloj.value })
-            Spacer(Modifier.height(52.dp))
-            Invitacion(horario, Modifier.padding(horizontal = 24.dp).fillMaxWidth(), horizontal = false)
+            Spacer(Modifier.height(Alto.boton))
+            Invitacion(horario, Modifier.padding(horizontal = if (ventana().compacta) Espacio.m else Espacio.xl).fillMaxWidth(), horizontal = false)
         }
     }
 }
@@ -109,18 +119,18 @@ private fun Invitacion(horario: EstadoHorario, modifier: Modifier, horizontal: B
     val alineado = if (horizontal) TextAlign.Start else TextAlign.Center
     Column(modifier, horizontalAlignment = if (horizontal) Alignment.Start else Alignment.CenterHorizontally) {
         BasicText("MI HORARIO", style = l.etiqueta)
-        BasicText("Arma tu semana", Modifier.padding(top = 8.dp), style = l.titulo.copy(fontSize = 36.sp, lineHeight = 40.sp, textAlign = alineado))
+        BasicText("Arma tu semana", Modifier.padding(top = Espacio.xs), style = l.titulo.copy(fontSize = 36.sp, lineHeight = 40.sp, textAlign = alineado))
         BasicText(
             "Sube la captura de tu horario de Intradace y la pasamos a tu semana, clase por clase.",
-            Modifier.padding(top = 14.dp).widthIn(max = 300.dp),
+            Modifier.padding(top = Espacio.s + Espacio.hilo).widthIn(max = 300.dp),
             style = l.parrafo.copy(fontSize = 15.sp, lineHeight = 22.sp, textAlign = alineado),
         )
-        BotonTinta("Subir mi horario", Modifier.padding(top = if (horizontal) 24.dp else 30.dp), icono = { trazarImagen(Paleta.lienzo) }, alPulsar = horario::subir)
+        BotonTinta("Subir mi horario", Modifier.padding(top = if (horizontal) Espacio.xl else Espacio.xxl - Espacio.hilo), icono = { trazarImagen(Paleta.lienzo) }, alPulsar = horario::subir)
         Box(
-            Modifier.padding(top = 4.dp).fillMaxWidth().height(48.dp).pulsable({ horario.abrirNueva(if (horario.ahora.dia < 5) horario.ahora.dia else 0, 7 * 60) }, escala = 0.96f),
+            Modifier.padding(top = Espacio.xxs).fillMaxWidth().heightIn(min = Alto.fila).pulsable({ horario.abrirNueva(if (horario.ahora.dia < 5) horario.ahora.dia else 0, 7 * 60) }, escala = 0.96f),
             contentAlignment = Alignment.Center,
         ) { BasicText("Crearlo manualmente", style = l.accion.copy(fontSize = 15.sp, color = Paleta.suave)) }
-        SelloIntradace(Modifier.padding(top = 10.dp).align(Alignment.CenterHorizontally))
+        SelloIntradace(Modifier.padding(top = Espacio.xs + Espacio.hilo).align(Alignment.CenterHorizontally))
     }
 }
 
@@ -145,16 +155,16 @@ internal fun BotonTinta(texto: String, modifier: Modifier = Modifier, icono: (Dr
     Row(
         modifier
             .fillMaxWidth()
-            .height(54.dp)
+            .heightIn(min = Alto.boton + Espacio.hilo)
             .pulsable(alPulsar, atenuar = 0.88f)
-            .clip(RoundedCornerShape(27.dp))
+            .clip(RoundedCornerShape(50))
             .drawBehind { drawRect(Paleta.tinta) },
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center,
     ) {
         if (icono != null) {
             Canvas(Modifier.size(20.dp), onDraw = icono)
-            Spacer(Modifier.size(9.dp))
+            Spacer(Modifier.size(Espacio.xs))
         }
         BasicText(texto, style = l.boton.copy(fontSize = 16.sp))
     }
