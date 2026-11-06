@@ -235,8 +235,8 @@ fun FichaMateria(
                 }
                 Box(Modifier.fillMaxWidth().height(1.dp).background(BORDE_PANEL))
                 // Las marcas, al pie: es lo que se viene a hacer, y abajo llega el pulgar sin cambiar de mano
-                Box(Modifier.padding(start = Espacio.m, end = Espacio.m, top = Espacio.s, bottom = 14.dp)) {
-                    SelectorMarca(estado.marcas[materia.codigo]) { alMarcar(materia.codigo, it) }
+                Box(Modifier.padding(start = Espacio.m, end = Espacio.m, top = Espacio.s, bottom = if (lateral != null) Espacio.s else 14.dp)) {
+                    SelectorMarca(estado.marcas[materia.codigo], compacto = lateral != null) { alMarcar(materia.codigo, it) }
                 }
             }
         }
@@ -421,23 +421,23 @@ private val MARCAS get() = listOf(
  * color; «Sin cursar» no tiene color propio y lleva la tinta.
  */
 @Composable
-private fun SelectorMarca(marca: Marca?, alMarcar: (Marca?) -> Unit) {
+private fun SelectorMarca(marca: Marca?, compacto: Boolean, alMarcar: (Marca?) -> Unit) {
     val haptica = LocalHapticFeedback.current
     val indice = MARCAS.indexOfFirst { it.first == marca }.coerceAtLeast(0)
     val posicion by animateFloatAsState(indice.toFloat(), tween(380, easing = SUBIR), label = "lente")
     val color = MARCAS[indice].third
     val i = inter()
-    val pista = RoundedCornerShape(16.dp)
+    val pista = RoundedCornerShape(if (compacto) Radio.Campo else 16.dp)
     BoxWithConstraints(
-        Modifier.fillMaxWidth().height(Alto.grande).clip(pista)
+        Modifier.fillMaxWidth().height(if (compacto) Alto.toque else Alto.grande).clip(pista)
             .background(Paleta.tinta.copy(alpha = porTema(0.035f, 0.03f)))
             .border(1.dp, Paleta.borde, pista)
             .padding(Espacio.xxs),
     ) {
         // Con poco ancho por marca, el icono va sobre la etiqueta (más corta) y nada se pisa
-        val apretado = (maxWidth - Espacio.xxs * 2) / MARCAS.size < ANCHO_MARCA_HOLGADA || ventana().letraGrande
+        val apretado = !compacto && (maxWidth - Espacio.xxs * 2) / MARCAS.size < ANCHO_MARCA_HOLGADA || ventana().letraGrande
         Box(
-            Modifier.fillMaxWidth(1f / 3f).height(48.dp)
+            Modifier.fillMaxWidth(1f / 3f).then(if (compacto) Modifier.fillMaxHeight() else Modifier.height(48.dp))
                 .graphicsLayer { translationX = size.width * posicion }
                 .drawBehind {
                     val r = CornerRadius(12.dp.toPx())
@@ -461,7 +461,7 @@ private fun SelectorMarca(marca: Marca?, alMarcar: (Marca?) -> Unit) {
                 val etiqueta = @Composable {
                     BasicText(
                         texto,
-                        style = TextStyle(fontFamily = i, fontWeight = if (activa) FontWeight.SemiBold else FontWeight.Medium, fontSize = if (apretado) Tipo.xs else Tipo.s, color = if (activa) c else Paleta.suave),
+                        style = TextStyle(fontFamily = i, fontWeight = if (activa) FontWeight.SemiBold else FontWeight.Medium, fontSize = if (apretado || compacto) Tipo.xs else Tipo.s, color = if (activa) c else Paleta.suave),
                         maxLines = 1,
                         softWrap = false,
                     )

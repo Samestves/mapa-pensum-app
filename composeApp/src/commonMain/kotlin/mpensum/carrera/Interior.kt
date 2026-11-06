@@ -151,6 +151,8 @@ fun Interior(carrera: Carrera, alVolver: () -> Unit) {
         val tapa = if (horizontal) abajo + Espacio.m else tapaBarra
         val enLista = horizontal && vista == Vista.LISTA
         val reparto = if (enLista) repartoLista(maxWidth, inicio, derecha, arriba) else null
+        // Acostado en el mapa, la ficha también es un panel a la derecha, a alto completo
+        val panelDelMapa = if (horizontal && vista == Vista.MAPA) panelMapa(maxWidth, inicio, derecha, arriba) else null
         CapaVista(
             vista = vista,
             estado = estado,
@@ -174,7 +176,7 @@ fun Interior(carrera: Carrera, alVolver: () -> Unit) {
                 codigo = seleccionado.takeIf { vista != Vista.HORARIO },
                 estado = estado,
                 reservaAbajo = if (horizontal) abajo + Espacio.m else abajo + SOBRE_EL_BORDE + ALTO_BARRA + 10.dp,
-                lateral = reparto?.panel,
+                lateral = reparto?.panel ?: panelDelMapa,
                 horizontal = horizontal,
                 alCerrar = { seleccionado = null },
                 alMarcar = { codigo, marca ->
@@ -200,7 +202,14 @@ fun Interior(carrera: Carrera, alVolver: () -> Unit) {
                     val codigo = seleccionado
                     if (vista == Vista.MAPA && codigo != null && codigo != encuadrada) {
                         estado.cajaDe(listOf(codigo))?.let {
-                            camara.mostrar(alcance, it, Margenes(arriba = 24f + arriba.value, abajo = tapa + 16f, izq = 20f, der = 20f))
+                            // Con el panel al lado, la materia queda entre el riel y el panel; si no, encima de la ficha
+                            val margenes = if (panelDelMapa != null) Margenes(
+                                arriba = 24f + arriba.value,
+                                abajo = (abajo + Espacio.m).value + 16f,
+                                izq = inicio.value + 20f,
+                                der = (maxWidth - panelDelMapa.inicio).value + 20f,
+                            ) else Margenes(arriba = 24f + arriba.value, abajo = tapa + 16f, izq = 20f, der = 20f)
+                            camara.mostrar(alcance, it, margenes)
                             encuadrada = codigo
                         }
                     }

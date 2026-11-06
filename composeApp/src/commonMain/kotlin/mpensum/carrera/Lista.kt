@@ -138,6 +138,22 @@ internal fun repartoLista(ancho: Dp, inicio: Dp, derecha: Dp, arriba: Dp): Repar
     return RepartoLista(lista, PanelLateral(inicio + lista + SEPARA_COLUMNAS, fin, arriba + Espacio.m))
 }
 
+/** El panel del mapa acostado: esta parte del ancho tras el riel, entre un mínimo y un máximo de lectura */
+private const val PARTE_PANEL_MAPA = 0.38f
+private val MIN_PANEL_MAPA = 320.dp
+private val MAX_PANEL_MAPA = 400.dp
+
+/**
+ * Dónde cae la ficha sobre el mapa acostado: un panel de alto completo a la
+ * derecha, medido desde el borde de la pantalla como el de la lista. Mismos
+ * parámetros que `repartoLista`; el ancho del panel es `ancho - inicio - fin`.
+ */
+internal fun panelMapa(ancho: Dp, inicio: Dp, derecha: Dp, arriba: Dp): PanelLateral {
+    val fin = derecha + Espacio.m
+    val panel = ((ancho - inicio - fin) * PARTE_PANEL_MAPA).coerceIn(MIN_PANEL_MAPA, MAX_PANEL_MAPA)
+    return PanelLateral(ancho - fin - panel, fin, arriba + Espacio.m)
+}
+
 private val ESTILO_VELO get() = HazeStyle(
     backgroundColor = Paleta.lienzo,
     tint = HazeTint(porTema(Color(0xFF0E0F12).copy(alpha = 0.6f), Paleta.lienzo.copy(alpha = 0.72f))),
