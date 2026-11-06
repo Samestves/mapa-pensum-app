@@ -23,13 +23,13 @@ internal val HOLGURA_TACTIL = 8.dp
 private const val DOBLE_TOQUE_MS = 300L
 private const val DOBLE_TOQUE_DP = 30f
 
-private class Muestra(val t: Long, val x: Float, val y: Float)
+internal class Muestra(val t: Long, val x: Float, val y: Float)
 
 /**
  * La velocidad al soltar, en dp/ms: la de los últimos 80 ms, y ninguna si el
  * dedo se quedó quieto antes de levantarse (velocidadDeLanzamiento).
  */
-private fun velocidadAlSoltar(muestras: List<Muestra>, ahora: Long): Offset? {
+internal fun velocidadAlSoltar(muestras: List<Muestra>, ahora: Long): Offset? {
     if (muestras.size < 2) return null
     val ultima = muestras.last()
     if (ahora - ultima.t > 60) return null
