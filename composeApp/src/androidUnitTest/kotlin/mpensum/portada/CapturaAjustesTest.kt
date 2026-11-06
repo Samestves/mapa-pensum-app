@@ -5,10 +5,14 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.swipe
 import com.github.takahirom.roborazzi.captureRoboImage
 import kotlinx.serialization.json.Json
 import mpensum.datos.Carrera
@@ -68,13 +72,23 @@ class CapturaAjustesTest {
     fun conCarrera() {
         montar(carreras.first { it.slug == "ingenieria-de-sistemas" })
         regla.onRoot().captureRoboImage("build/capturas/ajustes-1-menu.png")
-        // La apariencia de aquí es la misma de la hoja de avance
-        regla.onNodeWithText("Sistema").performClick()
-        regla.mainClock.advanceTimeBy(500)
-        assertEquals(Apariencia.SISTEMA, Preferencias.tema.value)
         regla.onNodeWithText("Tu carrera").performClick()
         regla.mainClock.advanceTimeBy(900)
         regla.onRoot().captureRoboImage("build/capturas/ajustes-3-elegir.png")
+    }
+
+    /** La apariencia se elige en Personalizar y es la misma de la hoja de avance */
+    @Test
+    fun elegirApariencia() {
+        montar(carreras.first { it.slug == "ingenieria-de-sistemas" })
+        regla.onNodeWithText("Personalizar").performClick()
+        regla.mainClock.advanceTimeBy(900)
+        // El carrusel de temas es perezoso: Sistema, la última, aparece al arrastrarlo
+        regla.onNodeWithContentDescription("Oscuro").performTouchInput { swipe(Offset(centerX, centerY), Offset(centerX - 900f, centerY), durationMillis = 300) }
+        regla.mainClock.advanceTimeBy(1500)
+        regla.onNodeWithText("Sistema").performClick()
+        regla.mainClock.advanceTimeBy(500)
+        assertEquals(Apariencia.SISTEMA, Preferencias.tema.value)
     }
 
     @Test

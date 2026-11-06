@@ -255,6 +255,9 @@ class CapturaAvanceTest {
         desplazarA("Reiniciar mi avance")
         regla.mainClock.advanceTimeBy(100)
         foto("avance-hoja-9-pie")
+        // El tema vive en una fila que se despliega y enseña el carrusel
+        regla.onNodeWithText("Tema").performClick()
+        regla.mainClock.advanceTimeBy(500)
         regla.onNodeWithContentDescription("Claro").performClick()
         regla.mainClock.advanceTimeBy(500)
         foto("avance-hoja-10-claro-elegido")
