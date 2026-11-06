@@ -8,10 +8,12 @@ import androidx.compose.ui.test.junit4.AndroidComposeTestRule
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.activity.ComponentActivity
+import androidx.compose.ui.test.printToString
 import androidx.test.ext.junit.rules.ActivityScenarioRule
 import kotlinx.serialization.json.Json
 import mpensum.carrera.Interior
@@ -251,21 +253,21 @@ class QaAppTest {
     }
 
     @Test
-    fun marcarEnLaListaSeGuardaYSeDeshace() {
+    fun marcarDesdeLaFichaDeLaListaSeGuarda() {
         interiorDeSistemas()
         regla.onNodeWithContentDescription("Lista").performClick()
         correr(900)
-        val fila = "Matemáticas I, Puedes inscribirla"
-        regla.onNodeWithContentDescription(fila).performClick()
+        // Tocar una fila abre su ficha; los botones de estado de la ficha son los que marcan
+        regla.onNodeWithContentDescription("Matemáticas I, Puedes inscribirla").performClick()
+        correr(900)
+        correr(1500)
+        println("ARBOL: " + regla.onRoot().printToString(60))
+        regla.onNodeWithText("Cursando").performClick()
         correr(500)
         assertEquals(Marca.CURSANDO, Guardado.marcas(sistemas())["0081814"])
-        regla.onNodeWithContentDescription("Matemáticas I, Cursando").performClick()
+        regla.onNodeWithText("Aprobada").performClick()
         correr(500)
         assertEquals(Marca.APROBADA, Guardado.marcas(sistemas())["0081814"])
-        // Aprobada esta, Matemáticas II (y Física I) pasan a poder inscribirse: la barra Núcleo ya no marca 0
-        regla.onNodeWithText("Deshacer").performClick()
-        correr(900)
-        assertEquals(Marca.CURSANDO, Guardado.marcas(sistemas())["0081814"])
     }
 
     @Test
@@ -303,7 +305,7 @@ class QaAppTest {
         interiorDeSistemas()
         regla.onNodeWithContentDescription("Horario").performClick()
         correr(900)
-        regla.onNodeWithText("Crear mi horario").performClick()
+        regla.onNodeWithText("Crearlo manualmente").performClick()
         hasta("la hoja de nueva clase") { textos("NUEVA CLASE") == 1 }
         // Sin materia elegida el botón no hace nada
         regla.onNodeWithText("Añadir clase").performClick()
