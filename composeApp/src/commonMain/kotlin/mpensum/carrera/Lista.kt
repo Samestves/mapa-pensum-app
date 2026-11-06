@@ -6,6 +6,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -18,6 +19,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.BasicText
@@ -44,6 +46,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.hapticfeedback.HapticFeedback
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -64,6 +67,7 @@ import dev.chrisbanes.haze.HazeStyle
 import dev.chrisbanes.haze.HazeTint
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -185,55 +189,7 @@ fun VistaLista(
     ManejarAtras(control.filtro != null && !tapada) { control.filtro = null }
 
     val acciones = remember(estado) {
-        fun cambiar(cambios: Map<String, Marca?>, fila: String?, seccion: String?) {
-            control.soltar?.cancel()
-            val previas = cambios.keys.associateWith { estado.marcas[it] }
-            control.filtro?.let { f -> control.fijadas = control.fijadas + cambios.keys.associateWith { control.fijadas[it] ?: f } }
-            control.avisoCodigo = null
-            estado.marcarVarias(cambios)
-            control.deshacer = Deshacer(fila, seccion, previas)
-        }
-        AccionesLista(
-            // Cualquier toque abre la ficha, con los botones de estado: ya no se marca desde la fila
-            tocar = { f: FilaMateria ->
-                haptica.performHapticFeedback(HapticFeedbackType.SegmentTick)
-                abrirFicha(f.codigo)
-            },
-            mantener = { codigo: String -> abrirFicha(codigo) },
-            elegir = { casilla: String -> elegirElectiva(casilla, false) },
-            aro = { s: SeccionLista ->
-                val semestre = s.semestre
-                if (semestre != null) {
-                    when (val accion = accionDeSemestre(estado.layout.nodos.map { it.asignatura }, semestre, estado::enCasilla, estado.estados)) {
-                        is AccionSemestre.Aprobar -> {
-                            haptica.performHapticFeedback(HapticFeedbackType.Confirm)
-                            cambiar(accion.codigos.associateWith { Marca.APROBADA }, fila = null, seccion = s.clave)
-                        }
-                        is AccionSemestre.Desmarcar -> {
-                            haptica.performHapticFeedback(HapticFeedbackType.ToggleOff)
-                            cambiar(accion.codigos.associateWith { null }, fila = null, seccion = s.clave)
-                        }
-                        is AccionSemestre.Elegir -> elegirElectiva(accion.casilla, true)
-                        null -> Unit
-                    }
-                }
-            },
-            plegar = { clave: String, abierto: Boolean ->
-                if (control.filtro != null) control.abiertosFiltro = control.abiertosFiltro + (clave to !abierto)
-                else control.abiertos = control.abiertos + (clave to !abierto)
-            },
-            deshacer = {
-                control.deshacer?.let { d ->
-                    estado.marcarVarias(d.previas)
-                    control.deshacer = null
-                    // Un respiro antes de soltar las retenidas: que se vea volver la marca en su sitio
-                    control.soltar = alcance.launch {
-                        delay(600)
-                        control.fijadas = emptyMap()
-                    }
-                }
-            },
-        )
+        accionesDeLista(estado, control, haptica, alcance, { abrirFicha(it) }, { casilla, aprobar -> elegirElectiva(casilla, aprobar) })
     }
 
     fun filtrar(f: FiltroLista?) {
@@ -282,39 +238,15 @@ fun VistaLista(
             }
         }
 
-        // El cristal de arriba: transparente al llegar, esmerilado en cuanto la lista pasa por debajo
-        val enCima by remember { derivedStateOf { lista.firstVisibleItemIndex == 0 && lista.firstVisibleItemScrollOffset == 0 } }
-        val vidrio = animateFloatAsState(if (enCima) 0f else 1f, tween(350), label = "vidrio")
-        Box(
-            columna
-                .fillMaxWidth()
-                .height(arriba + ALTO_FILTROS)
-                .hazeEffect(local, ESTILO_VELO) {
-                    alpha = vidrio.value
-                    blurEnabled = vidrio.value > 0f
-                    inputScale = HazeInputScale.Auto
-                }
-                .drawBehind {
-                    val g = 1.dp.toPx()
-                    drawRect(Paleta.tinta.copy(alpha = 0.06f * vidrio.value), Offset(0f, size.height - g), Size(size.width, g))
-                },
+        CabeceraLista(
+            columna = columna,
+            arriba = arriba,
+            fondo = local,
+            lista = lista,
+            cuentas = modelo.cuentas,
+            filtro = control.filtro,
+            alFiltrar = ::filtrar,
         )
-        Row(
-            columna.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = arriba + 12.dp).semantics { contentDescription = "Filtrar por estado" },
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            val cuentas = modelo.cuentas
-            FiltroLista.entries.forEach { f ->
-                Pastilla(
-                    filtro = f,
-                    numero = cuentas[f] ?: 0,
-                    activa = control.filtro == f,
-                    apagada = control.filtro != null && control.filtro != f,
-                    alPulsar = { filtrar(if (control.filtro == f) null else f) },
-                    modifier = Modifier.weight(1f),
-                )
-            }
-        }
     }
 }
 
@@ -427,6 +359,112 @@ private fun SinResultados(filtro: FiltroLista?, alVerTodas: () -> Unit) {
             contentAlignment = Alignment.Center,
         ) {
             BasicText("Ver todas", style = TextStyle(fontFamily = inter(), fontWeight = FontWeight.Medium, fontSize = 13.sp, color = Paleta.tinta))
+        }
+    }
+}
+
+/** Lo que hace cada toque de la lista: abrir la ficha, el aro del semestre, plegar y deshacer */
+private fun accionesDeLista(
+    estado: EstadoCarrera,
+    control: EstadoVistaLista,
+    haptica: HapticFeedback,
+    alcance: CoroutineScope,
+    abrirFicha: (String) -> Unit,
+    elegirElectiva: (casilla: String, aprobar: Boolean) -> Unit,
+): AccionesLista {
+    fun cambiar(cambios: Map<String, Marca?>, fila: String?, seccion: String?) {
+        control.soltar?.cancel()
+        val previas = cambios.keys.associateWith { estado.marcas[it] }
+        control.filtro?.let { f -> control.fijadas = control.fijadas + cambios.keys.associateWith { control.fijadas[it] ?: f } }
+        control.avisoCodigo = null
+        estado.marcarVarias(cambios)
+        control.deshacer = Deshacer(fila, seccion, previas)
+    }
+    return AccionesLista(
+        // Cualquier toque abre la ficha, con los botones de estado: ya no se marca desde la fila
+        tocar = { f: FilaMateria ->
+            haptica.performHapticFeedback(HapticFeedbackType.SegmentTick)
+            abrirFicha(f.codigo)
+        },
+        mantener = { codigo: String -> abrirFicha(codigo) },
+        elegir = { casilla: String -> elegirElectiva(casilla, false) },
+        aro = { s: SeccionLista ->
+            val semestre = s.semestre
+            if (semestre != null) {
+                when (val accion = accionDeSemestre(estado.layout.nodos.map { it.asignatura }, semestre, estado::enCasilla, estado.estados)) {
+                    is AccionSemestre.Aprobar -> {
+                        haptica.performHapticFeedback(HapticFeedbackType.Confirm)
+                        cambiar(accion.codigos.associateWith { Marca.APROBADA }, fila = null, seccion = s.clave)
+                    }
+                    is AccionSemestre.Desmarcar -> {
+                        haptica.performHapticFeedback(HapticFeedbackType.ToggleOff)
+                        cambiar(accion.codigos.associateWith { null }, fila = null, seccion = s.clave)
+                    }
+                    is AccionSemestre.Elegir -> elegirElectiva(accion.casilla, true)
+                    null -> Unit
+                }
+            }
+        },
+        plegar = { clave: String, abierto: Boolean ->
+            if (control.filtro != null) control.abiertosFiltro = control.abiertosFiltro + (clave to !abierto)
+            else control.abiertos = control.abiertos + (clave to !abierto)
+        },
+        deshacer = {
+            control.deshacer?.let { d ->
+                estado.marcarVarias(d.previas)
+                control.deshacer = null
+                // Un respiro antes de soltar las retenidas: que se vea volver la marca en su sitio
+                control.soltar = alcance.launch {
+                    delay(600)
+                    control.fijadas = emptyMap()
+                }
+            }
+        },
+    )
+}
+
+/** Filtros por estado sobre un cristal que se esmerila en cuanto la lista pasa por debajo */
+@OptIn(ExperimentalHazeApi::class)
+@Composable
+private fun BoxScope.CabeceraLista(
+    columna: Modifier,
+    arriba: Dp,
+    fondo: HazeState,
+    lista: LazyListState,
+    cuentas: Map<FiltroLista, Int>,
+    filtro: FiltroLista?,
+    alFiltrar: (FiltroLista?) -> Unit,
+) {
+    // El cristal de arriba: transparente al llegar, esmerilado en cuanto la lista pasa por debajo
+    val enCima by remember { derivedStateOf { lista.firstVisibleItemIndex == 0 && lista.firstVisibleItemScrollOffset == 0 } }
+    val vidrio = animateFloatAsState(if (enCima) 0f else 1f, tween(350), label = "vidrio")
+    Box(
+        columna
+            .fillMaxWidth()
+            .height(arriba + ALTO_FILTROS)
+            .hazeEffect(fondo, ESTILO_VELO) {
+                alpha = vidrio.value
+                blurEnabled = vidrio.value > 0f
+                inputScale = HazeInputScale.Auto
+            }
+            .drawBehind {
+                val g = 1.dp.toPx()
+                drawRect(Paleta.tinta.copy(alpha = 0.06f * vidrio.value), Offset(0f, size.height - g), Size(size.width, g))
+            },
+    )
+    Row(
+        columna.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = arriba + 12.dp).semantics { contentDescription = "Filtrar por estado" },
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        FiltroLista.entries.forEach { f ->
+            Pastilla(
+                filtro = f,
+                numero = cuentas[f] ?: 0,
+                activa = filtro == f,
+                apagada = filtro != null && filtro != f,
+                alPulsar = { alFiltrar(if (filtro == f) null else f) },
+                modifier = Modifier.weight(1f),
+            )
         }
     }
 }

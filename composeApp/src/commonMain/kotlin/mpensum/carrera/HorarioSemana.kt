@@ -154,49 +154,7 @@ internal fun SemanaRejilla(horario: EstadoHorario, sesiones: List<Sesion> = hora
             }
             .padding(bottom = 8.dp),
     ) {
-        val numeros = horario.numerosDia
-        // En horizontal el nombre y el número van en un renglón: la cabecera no le quita alto a las horas
-        val altoCabecera = if (numeros != null && !compacto) 62.dp else 40.dp
-        Row(Modifier.fillMaxWidth().height(altoCabecera)) {
-            Spacer(Modifier.width(riel))
-            for (d in 0 until 5) {
-                val hoy = d == ahora.dia && !provisional
-                Column(
-                    Modifier.weight(1f).fillMaxHeight().then(
-                        if (provisional) Modifier else Modifier.pulsable({
-                            horario.dia = d
-                            horario.modo = ModoHorario.DIA
-                        }, escala = 0.94f),
-                    ),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center,
-                ) {
-                    val nombre = @Composable {
-                        // El tracking deja aire a la derecha de la última letra; se compensa a la izquierda para que quede centrado
-                        BasicText(
-                            DIAS_CORTOS[d],
-                            Modifier.padding(start = 2.dp),
-                            style = l.etiqueta.copy(color = if (hoy) Paleta.tinta else Paleta.tenue, fontWeight = if (hoy) FontWeight.SemiBold else FontWeight.Medium),
-                        )
-                    }
-                    // El número del día; el de hoy, en un círculo de tinta
-                    val numero = @Composable { n: Int ->
-                        Box(Modifier.size(26.dp).drawBehind { if (hoy) drawCircle(Paleta.tinta) }, contentAlignment = Alignment.Center) {
-                            BasicText("$n", style = l.cuerpo.copy(color = if (hoy) Paleta.lienzo else Paleta.suave, fontWeight = FontWeight.Medium, textAlign = TextAlign.Center))
-                        }
-                    }
-                    if (compacto) {
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            nombre()
-                            if (numeros != null) numero(numeros[d])
-                        }
-                    } else {
-                        nombre()
-                        if (numeros != null) Box(Modifier.padding(top = 6.dp)) { numero(numeros[d]) }
-                    }
-                }
-            }
-        }
+        CabeceraDias(horario, riel, ahora.dia, provisional, compacto)
 
         BoxWithConstraints(
             Modifier
@@ -277,6 +235,55 @@ internal fun SemanaRejilla(horario: EstadoHorario, sesiones: List<Sesion> = hora
                     style = l.pequeno.copy(color = Paleta.rojo, fontWeight = FontWeight.SemiBold),
                     softWrap = false,
                 )
+            }
+        }
+    }
+}
+
+/** Los cinco días sobre la rejilla: el nombre y, en vertical, su número; hoy lleva el número en un círculo y tocar un día lo abre */
+@Composable
+private fun CabeceraDias(horario: EstadoHorario, riel: Dp, diaHoy: Int, provisional: Boolean, compacto: Boolean) {
+    val l = letrasHorario()
+    val numeros = horario.numerosDia
+    // En horizontal el nombre y el número van en un renglón: la cabecera no le quita alto a las horas
+    val altoCabecera = if (numeros != null && !compacto) 62.dp else 40.dp
+    Row(Modifier.fillMaxWidth().height(altoCabecera)) {
+        Spacer(Modifier.width(riel))
+        for (d in 0 until 5) {
+            val hoy = d == diaHoy && !provisional
+            Column(
+                Modifier.weight(1f).fillMaxHeight().then(
+                    if (provisional) Modifier else Modifier.pulsable({
+                        horario.dia = d
+                        horario.modo = ModoHorario.DIA
+                    }, escala = 0.94f),
+                ),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
+            ) {
+                val nombre = @Composable {
+                    // El tracking deja aire a la derecha de la última letra; se compensa a la izquierda para que quede centrado
+                    BasicText(
+                        DIAS_CORTOS[d],
+                        Modifier.padding(start = 2.dp),
+                        style = l.etiqueta.copy(color = if (hoy) Paleta.tinta else Paleta.tenue, fontWeight = if (hoy) FontWeight.SemiBold else FontWeight.Medium),
+                    )
+                }
+                // El número del día; el de hoy, en un círculo de tinta
+                val numero = @Composable { n: Int ->
+                    Box(Modifier.size(26.dp).drawBehind { if (hoy) drawCircle(Paleta.tinta) }, contentAlignment = Alignment.Center) {
+                        BasicText("$n", style = l.cuerpo.copy(color = if (hoy) Paleta.lienzo else Paleta.suave, fontWeight = FontWeight.Medium, textAlign = TextAlign.Center))
+                    }
+                }
+                if (compacto) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        nombre()
+                        if (numeros != null) numero(numeros[d])
+                    }
+                } else {
+                    nombre()
+                    if (numeros != null) Box(Modifier.padding(top = 6.dp)) { numero(numeros[d]) }
+                }
             }
         }
     }

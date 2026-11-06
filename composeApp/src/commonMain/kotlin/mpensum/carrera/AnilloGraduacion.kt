@@ -14,6 +14,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
@@ -117,9 +119,62 @@ internal fun suavizar(v: Float): Float {
     return 1f - c * c * c
 }
 
-private fun distancia(a: Float, b: Float): Float {
+internal fun distancia(a: Float, b: Float): Float {
     val d = abs(a - b) % 360f
     return min(d, 360f - d)
+}
+
+/** Dónde cae cada cosa del anillo: el centro y lo que mide 1 dp en píxeles */
+internal class PlanoAnillo(val cx: Float, val cy: Float, val u: Float) {
+    /** El punto a `r` dp del centro, en `grados` desde arriba y en el sentido del reloj */
+    fun xy(r: Float, grados: Float): Offset {
+        val rad = grados * 0.017453292f
+        return Offset(cx + r * u * sin(rad), cy - r * u * cos(rad))
+    }
+}
+
+/** El ángulo de la marca `k`: el anillo reparte sus casillas y un hueco arriba, para el birrete */
+internal fun anguloDeMarca(k: Float, casillas: Int): Float = (k + HUECO / 2f + 0.5f) * (360f / (casillas + HUECO))
+
+/**
+ * Dónde poner una nota («aprobadas» a la derecha, «por aprobar» a la izquierda): el
+ * ángulo de una marca de esos `tipos` que caiga del lado `lado`, que quepa en la caja
+ * (`margen` de ese lado), no pise HOY ni el birrete ni otra nota, y esté lo más lejos
+ * de los años y lo más cerca de `preferido`. `holgado` rebaja las distancias mínimas
+ * a HOY y al birrete. null si no hay sitio limpio.
+ */
+internal fun elegirAnguloNota(
+    a: Anillo,
+    plano: PlanoAnillo,
+    anchoLienzo: Float,
+    tipos: List<Int>,
+    lado: Int,
+    preferido: Float,
+    holgado: Boolean,
+    margen: Float,
+    gradosHoy: Float,
+    angulosAnio: List<Float>,
+    usados: List<Float>,
+): Float? {
+    val u = plano.u
+    val minHoy = if (holgado) 20f else 34f
+    val minBirrete = if (holgado) 40f else 52f
+    var mejor: Float? = null
+    var puntaje = -Float.MAX_VALUE
+    a.fichas.filter { it.tipo in tipos }.forEach { f ->
+        val g = anguloDeMarca(f.k.toFloat(), a.casillas)
+        val x1 = plano.xy(RO + 13f, g).x
+        val cabe = (lado > 0 && x1 <= anchoLienzo - margen - 8f * u) || (lado < 0 && x1 >= margen + 8f * u)
+        if (cabe && distancia(g, gradosHoy) > minHoy && distancia(g, 0f) > minBirrete && usados.none { distancia(g, it) < 40f }) {
+            val libre = angulosAnio.fold(30f) { acc, ya -> min(acc, distancia(g, ya)) }
+            val p = libre - 0.08f * distancia(g, preferido)
+            if (p > puntaje) {
+                puntaje = p
+                mejor = g
+            }
+        }
+    }
+    return mejor
 }
 
 @Composable
@@ -153,55 +208,18 @@ internal fun AnilloGraduacion(a: Anillo, porcentaje: Int, anioMeta: Int?, anioHo
         val oa = suavizar((t - 0.5f) / 0.25f)
         val tinta = Paleta.tinta
         val paso = 360f / (a.casillas + HUECO)
-        fun ang(k: Float) = (k + HUECO / 2f + 0.5f) * paso
-        fun xy(r: Float, grados: Float): Offset {
-            val rad = grados * 0.017453292f
-            return Offset(cx + r * u * sin(rad), cy - r * u * cos(rad))
-        }
+        fun ang(k: Float) = anguloDeMarca(k, a.casillas)
+        val plano = PlanoAnillo(cx, cy, u)
+        fun xy(r: Float, grados: Float) = plano.xy(r, grados)
 
-        // Las marcas: el pasado se aviva hacia hoy, el futuro se apaga hacia la meta
-        val aprobadas = a.fichas.filter { it.tipo == 0 }
-        val plan = a.fichas.filter { it.tipo == 3 }
-        val visibles = (avance * a.fichas.size).roundToInt()
-        a.fichas.forEachIndexed { n, f ->
-            var color = when (f.tipo) {
-                0 -> Paleta.verde
-                2 -> Paleta.azul
-                else -> tinta
-            }
-            var opacidad = when (f.tipo) {
-                0 -> 0.45f + 0.55f * (f.k - aprobadas.first().k) / max(1, aprobadas.last().k - aprobadas.first().k)
-                3 -> 0.26f - 0.14f * (f.k - plan.first().k) / max(1, plan.last().k - plan.first().k)
-                else -> 1f
-            }
-            if (n >= visibles) {
-                color = tinta
-                opacidad = 0.06f
-            }
-            drawLine(color.copy(alpha = opacidad), xy(RI, ang(f.k.toFloat())), xy(RO, ang(f.k.toFloat())), strokeWidth = 3.5f * u, cap = StrokeCap.Round)
-        }
+        dibujarMarcas(a, plano, avance)
         // La meta: el birrete en el hueco de arriba
         val birrete = xy((RI + RO) / 2f, 0f)
         icono(Lucide.birrete, tinta, birrete.x - 10f * u, birrete.y - 10f * u, 20f * u, 1.9f)
 
-        // Texto curvo por dentro del anillo: cada letra rotada a lo largo del arco, con la línea base en r = 68
-        fun curvo(texto: String, desde: Float, alFinal: Boolean, color: Color, estiloTexto: TextStyle) {
-            val letras = texto.map { medidor.measure(it.toString(), estiloTexto) }
-            val radio = (RI - 14f) * u
-            val grado = 57.29578f / radio
-            val largo = letras.sumOf { it.size.width.toDouble() }.toFloat()
-            var inicio = if (alFinal) desde - largo * grado else desde
-            letras.forEach { l ->
-                val ancho = l.size.width.toFloat()
-                rotate(inicio + ancho / 2f * grado, Offset(cx, cy)) {
-                    drawText(l, color, Offset(cx - ancho / 2f, cy - radio - l.firstBaseline))
-                }
-                inicio += ancho * grado
-            }
-        }
         val abertura = HUECO / 2f * paso
-        curvo(if (anioMeta != null) "META $anioMeta" else "META", -abertura, true, tinta.copy(alpha = oa), meta)
-        curvo("INICIO", abertura, false, tinta.copy(alpha = 0.44f * oa), inicioRotulo)
+        textoCurvo(medidor, plano, if (anioMeta != null) "META $anioMeta" else "META", -abertura, true, tinta.copy(alpha = oa), meta)
+        textoCurvo(medidor, plano, "INICIO", abertura, false, tinta.copy(alpha = 0.44f * oa), inicioRotulo)
 
         // HOY, lo único de fuera con color: punto azul con su halo que late y una rayita en codo hacia el lado libre
         val gradosHoy = ang(a.hoyK)
@@ -231,27 +249,8 @@ internal fun AnilloGraduacion(a: Anillo, porcentaje: Int, anioMeta: Int?, anioHo
             max(MARGEN_NOTA * u, max(medidor.measure(numero, numeroNota).size.width, medidor.measure(palabra, palabraNota).size.width) + 2f * u)
         val margenDer = margenDe("${a.aprobadas}", textoAprobadas)
         val margenIzq = margenDe("${a.porAprobar}", "por aprobar")
-        fun elegir(tipos: List<Int>, lado: Int, preferido: Float, holgado: Boolean = false): Float? {
-            val margen = if (lado > 0) margenDer else margenIzq
-            val minHoy = if (holgado) 20f else 34f
-            val minBirrete = if (holgado) 40f else 52f
-            var mejor: Float? = null
-            var puntaje = -Float.MAX_VALUE
-            a.fichas.filter { it.tipo in tipos }.forEach { f ->
-                val g = ang(f.k.toFloat())
-                val x1 = xy(RO + 13f, g).x
-                val cabe = (lado > 0 && x1 <= w - margen - 8f * u) || (lado < 0 && x1 >= margen + 8f * u)
-                if (cabe && distancia(g, gradosHoy) > minHoy && distancia(g, 0f) > minBirrete && usados.none { distancia(g, it) < 40f }) {
-                    val libre = angulosAnio.fold(30f) { acc, ya -> min(acc, distancia(g, ya)) }
-                    val p = libre - 0.08f * distancia(g, preferido)
-                    if (p > puntaje) {
-                        puntaje = p
-                        mejor = g
-                    }
-                }
-            }
-            return mejor
-        }
+        fun elegir(tipos: List<Int>, lado: Int, preferido: Float, holgado: Boolean = false) =
+            elegirAnguloNota(a, plano, w, tipos, lado, preferido, holgado, if (lado > 0) margenDer else margenIzq, gradosHoy, angulosAnio, usados)
         fun nota(g: Float, lado: Int, numero: String, palabra: String, color: Color) {
             usados.add(g)
             val p0 = xy(RO + 5f, g)
@@ -288,14 +287,59 @@ internal fun AnilloGraduacion(a: Anillo, porcentaje: Int, anioMeta: Int?, anioHo
             drawText(l, tinta.copy(alpha = (if (an.anio == anioHoy) 1f else 0.44f) * oa), caja.topLeft)
         }
 
-        // El centro: el porcentaje y "del título"
-        val cifra = medidor.measure("$porcentaje", grande)
-        val signo = medidor.measure("%", porciento)
-        val inicio = cx - (cifra.size.width + 2f * u + signo.size.width) / 2f
-        val arriba = cy - 26f * u
-        drawText(cifra, tinta.copy(alpha = oa), Offset(inicio, arriba))
-        drawText(signo, tinta.copy(alpha = oa), Offset(inicio + cifra.size.width + 2f * u, arriba + cifra.firstBaseline - signo.firstBaseline))
-        val titulo = medidor.measure("DEL TÍTULO", pie)
-        drawText(titulo, tinta.copy(alpha = 0.5f * oa), Offset(cx - titulo.size.width / 2f, arriba + 38f * u))
+        dibujarCentro(medidor, plano, porcentaje, oa, grande, porciento, pie)
     }
+}
+
+/** Las marcas del anillo: el pasado se aviva hacia hoy, el futuro se apaga hacia la meta, y se van encendiendo con `avance` */
+private fun DrawScope.dibujarMarcas(a: Anillo, plano: PlanoAnillo, avance: Float) {
+    val tinta = Paleta.tinta
+    val aprobadas = a.fichas.filter { it.tipo == 0 }
+    val plan = a.fichas.filter { it.tipo == 3 }
+    val visibles = (avance * a.fichas.size).roundToInt()
+    a.fichas.forEachIndexed { n, f ->
+        var color = when (f.tipo) {
+            0 -> Paleta.verde
+            2 -> Paleta.azul
+            else -> tinta
+        }
+        var opacidad = when (f.tipo) {
+            0 -> 0.45f + 0.55f * (f.k - aprobadas.first().k) / max(1, aprobadas.last().k - aprobadas.first().k)
+            3 -> 0.26f - 0.14f * (f.k - plan.first().k) / max(1, plan.last().k - plan.first().k)
+            else -> 1f
+        }
+        if (n >= visibles) {
+            color = tinta
+            opacidad = 0.06f
+        }
+        drawLine(color.copy(alpha = opacidad), plano.xy(RI, anguloDeMarca(f.k.toFloat(), a.casillas)), plano.xy(RO, anguloDeMarca(f.k.toFloat(), a.casillas)), strokeWidth = 3.5f * plano.u, cap = StrokeCap.Round)
+    }
+}
+
+/** Texto curvo por dentro del anillo: cada letra rotada a lo largo del arco, con la línea base en r = 68 */
+private fun DrawScope.textoCurvo(medidor: TextMeasurer, plano: PlanoAnillo, texto: String, desde: Float, alFinal: Boolean, color: Color, estiloTexto: TextStyle) {
+    val letras = texto.map { medidor.measure(it.toString(), estiloTexto) }
+    val radio = (RI - 14f) * plano.u
+    val grado = 57.29578f / radio
+    val largo = letras.sumOf { it.size.width.toDouble() }.toFloat()
+    var inicio = if (alFinal) desde - largo * grado else desde
+    letras.forEach { l ->
+        val ancho = l.size.width.toFloat()
+        rotate(inicio + ancho / 2f * grado, Offset(plano.cx, plano.cy)) {
+            drawText(l, color, Offset(plano.cx - ancho / 2f, plano.cy - radio - l.firstBaseline))
+        }
+        inicio += ancho * grado
+    }
+}
+
+/** El centro: el porcentaje con su signo y «DEL TÍTULO» debajo */
+private fun DrawScope.dibujarCentro(medidor: TextMeasurer, plano: PlanoAnillo, porcentaje: Int, oa: Float, grande: TextStyle, porciento: TextStyle, pie: TextStyle) {
+    val cifra = medidor.measure("$porcentaje", grande)
+    val signo = medidor.measure("%", porciento)
+    val inicio = plano.cx - (cifra.size.width + 2f * plano.u + signo.size.width) / 2f
+    val arriba = plano.cy - 26f * plano.u
+    drawText(cifra, Paleta.tinta.copy(alpha = oa), Offset(inicio, arriba))
+    drawText(signo, Paleta.tinta.copy(alpha = oa), Offset(inicio + cifra.size.width + 2f * plano.u, arriba + cifra.firstBaseline - signo.firstBaseline))
+    val titulo = medidor.measure("DEL TÍTULO", pie)
+    drawText(titulo, Paleta.tinta.copy(alpha = 0.5f * oa), Offset(plano.cx - titulo.size.width / 2f, arriba + 38f * plano.u))
 }

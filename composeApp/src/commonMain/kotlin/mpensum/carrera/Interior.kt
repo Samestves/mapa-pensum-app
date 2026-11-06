@@ -7,6 +7,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
@@ -33,6 +34,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import dev.chrisbanes.haze.HazeState
@@ -147,52 +149,23 @@ fun Interior(carrera: Carrera, alVolver: () -> Unit) {
         val inicio = if (horizontal) izquierda + RESERVA_RIEL else 0.dp
         val tapa = if (horizontal) abajo + 16.dp else tapaBarra
         val enLista = horizontal && vista == Vista.LISTA
-        AnimatedContent(
-            targetState = vista,
-            modifier = Modifier.fillMaxSize().hazeSource(cristal),
-            transitionSpec = { fadeIn(tween(260, 80)) togetherWith fadeOut(tween(160)) },
-            label = "vista",
-        ) { v ->
-            // Mientras el pensum carga no se pinta nada
-            if (estado == null) return@AnimatedContent
-            when (v) {
-                Vista.MAPA -> MapaCarrera(
-                    estado = estado,
-                    camara = camara,
-                    efectos = efectos,
-                    reservaIzquierda = if (horizontal) (izquierda + RESERVA_RIEL).value else null,
-                    seleccionado = seleccionado,
-                    congelado = casillaAbierta != null || avanceAbierto,
-                    alTocarMateria = { codigo ->
-                        efectos.ruta = null
-                        seleccionado = if (seleccionado == codigo) null else codigo
-                    },
-                    alTocarVacio = {
-                        seleccionado = null
-                        efectos.ruta = null
-                    },
-                    alAbrirCasilla = { abrirCasilla(it, aprobar = false) },
-                    alAlternarSemestre = { s ->
-                        when (val accion = accionDeSemestre(estado.layout.nodos.map { it.asignatura }, s, estado::enCasilla, estado.estados)) {
-                            is AccionSemestre.Aprobar -> estado.marcarVarias(accion.codigos.associateWith { Marca.APROBADA })
-                            is AccionSemestre.Desmarcar -> estado.marcarVarias(accion.codigos.associateWith { null })
-                            is AccionSemestre.Elegir -> abrirCasilla(accion.casilla, aprobar = true)
-                            null -> Unit
-                        }
-                    },
-                )
-                // El Box suelta el mínimo que fija AnimatedContent: sin él el ancho de la lista se ignora
-                Vista.LISTA -> Box(Modifier.fillMaxSize().padding(start = inicio)) { VistaLista(
-                    estado = estado,
-                    abajo = tapa,
-                    modifier = if (enLista) Modifier.width(376.dp) else Modifier,
-                    tapada = seleccionado != null || casillaAbierta != null || avanceAbierto,
-                    alAbrirFicha = { seleccionado = it },
-                    alElegirElectiva = ::abrirCasilla,
-                ) }
-                Vista.HORARIO -> if (horario != null) VistaHorario(horario, abajo = tapa, modifier = Modifier.padding(start = inicio), horizontal = horizontal)
-            }
-        }
+        CapaVista(
+            vista = vista,
+            estado = estado,
+            horario = horario,
+            camara = camara,
+            efectos = efectos,
+            cristal = cristal,
+            horizontal = horizontal,
+            izquierda = izquierda,
+            inicio = inicio,
+            tapa = tapa,
+            enLista = enLista,
+            seleccionado = seleccionado,
+            hojaAbierta = casillaAbierta != null || avanceAbierto,
+            alSeleccionar = { seleccionado = it },
+            alAbrirCasilla = ::abrirCasilla,
+        )
 
         if (estado != null) {
             FichaMateria(
@@ -233,55 +206,175 @@ fun Interior(carrera: Carrera, alVolver: () -> Unit) {
             )
         }
 
-        if (horizontal) Box(
-            Modifier.align(Alignment.CenterStart).fillMaxHeight().width(ANCHO_VELO).background(
-                Brush.horizontalGradient(0.4f to Paleta.lienzo.copy(alpha = 0.92f), 1f to Color.Transparent),
-            ),
-        )
-
-        BarraCarrera(
+        NavegacionCarrera(
+            horizontal = horizontal,
             vista = vista,
-            progreso = estado?.progreso,
+            estado = estado,
             cristal = cristal,
-            alInicio = alVolver,
+            color = color,
+            izquierda = izquierda,
+            abajo = abajo,
+            alVolver = alVolver,
             alCambiar = { vista = it },
             alAvance = { if (estado != null) avanceAbierto = true },
-            color = color,
-            modifier = if (horizontal) Modifier.align(Alignment.CenterStart).padding(start = izquierda + SEPARA_RIEL)
-            else Modifier.align(Alignment.BottomCenter).padding(bottom = abajo + SOBRE_EL_BORDE),
-            vertical = horizontal,
         )
 
-        if (estado != null) {
-            // Las hojas difuminan por encima de ellas lo mismo que recoge la barra: el contenido de la vista
-            CompositionLocalProvider(LocalFondoHoja provides cristal) {
-                SelectorElectiva(
-                    casilla = casillaAbierta,
-                    estado = estado,
-                    aprobarAlElegir = aprobarAlElegir,
-                    alColocar = { casilla, electiva ->
-                        estado.colocar(casilla, electiva)
-                        if (aprobarAlElegir && electiva != null) {
-                            estado.marcar(electiva, Marca.APROBADA)
-                            efectos.descargar(electiva)
-                            efectos.tocar(electiva)
-                        }
-                        casillaAbierta = null
-                    },
-                    alCerrar = { casillaAbierta = null },
-                )
-                HojaAvance(
-                    abierta = avanceAbierto,
-                    estado = estado,
-                    alCerrar = { avanceAbierto = false },
-                    alVerEnMapa = { codigos ->
-                        avanceAbierto = false
-                        vista = Vista.MAPA
-                        porEncuadrar = codigos
-                    },
-                )
-                if (horario != null) HojasHorario(horario, cristal)
-            }
-        }
+        HojasCarrera(
+            estado = estado,
+            horario = horario,
+            cristal = cristal,
+            efectos = efectos,
+            casillaAbierta = casillaAbierta,
+            aprobarAlElegir = aprobarAlElegir,
+            avanceAbierto = avanceAbierto,
+            alCerrarCasilla = { casillaAbierta = null },
+            alCerrarAvance = { avanceAbierto = false },
+            alVerEnMapa = { codigos ->
+                avanceAbierto = false
+                vista = Vista.MAPA
+                porEncuadrar = codigos
+            },
+        )
+    }
+}
+
+/**
+ * La vista que se ve (mapa, lista u horario), con el fundido entre ellas. Es
+ * lo que desenfoca la barra, por eso lleva el `hazeSource`.
+ */
+@Composable
+private fun CapaVista(
+    vista: Vista,
+    estado: EstadoCarrera?,
+    horario: EstadoHorario?,
+    camara: Camara,
+    efectos: EfectosMapa,
+    cristal: HazeState,
+    horizontal: Boolean,
+    izquierda: Dp,
+    inicio: Dp,
+    tapa: Dp,
+    enLista: Boolean,
+    seleccionado: String?,
+    /** Si hay una hoja abierta encima: el mapa se congela y la lista se da por tapada */
+    hojaAbierta: Boolean,
+    alSeleccionar: (String?) -> Unit,
+    alAbrirCasilla: (String, Boolean) -> Unit,
+) {
+AnimatedContent(
+    targetState = vista,
+    modifier = Modifier.fillMaxSize().hazeSource(cristal),
+    transitionSpec = { fadeIn(tween(260, 80)) togetherWith fadeOut(tween(160)) },
+    label = "vista",
+) { v ->
+    // Mientras el pensum carga no se pinta nada
+    if (estado == null) return@AnimatedContent
+    when (v) {
+        Vista.MAPA -> MapaCarrera(
+            estado = estado,
+            camara = camara,
+            efectos = efectos,
+            reservaIzquierda = if (horizontal) (izquierda + RESERVA_RIEL).value else null,
+            seleccionado = seleccionado,
+            congelado = hojaAbierta,
+            alTocarMateria = { codigo ->
+                efectos.ruta = null
+                alSeleccionar(if (seleccionado == codigo) null else codigo)
+            },
+            alTocarVacio = {
+                alSeleccionar(null)
+                efectos.ruta = null
+            },
+            alAbrirCasilla = { alAbrirCasilla(it, false) },
+            alAlternarSemestre = { s ->
+                when (val accion = accionDeSemestre(estado.layout.nodos.map { it.asignatura }, s, estado::enCasilla, estado.estados)) {
+                    is AccionSemestre.Aprobar -> estado.marcarVarias(accion.codigos.associateWith { Marca.APROBADA })
+                    is AccionSemestre.Desmarcar -> estado.marcarVarias(accion.codigos.associateWith { null })
+                    is AccionSemestre.Elegir -> alAbrirCasilla(accion.casilla, true)
+                    null -> Unit
+                }
+            },
+        )
+        // El Box suelta el mínimo que fija AnimatedContent: sin él el ancho de la lista se ignora
+        Vista.LISTA -> Box(Modifier.fillMaxSize().padding(start = inicio)) { VistaLista(
+            estado = estado,
+            abajo = tapa,
+            modifier = if (enLista) Modifier.width(376.dp) else Modifier,
+            tapada = seleccionado != null || hojaAbierta,
+            alAbrirFicha = alSeleccionar,
+            alElegirElectiva = alAbrirCasilla,
+        ) }
+        Vista.HORARIO -> if (horario != null) VistaHorario(horario, abajo = tapa, modifier = Modifier.padding(start = inicio), horizontal = horizontal)
+    }
+}
+}
+
+/** Lo que navega: el riel lateral con su velo en horizontal, o la barra de abajo en vertical */
+@Composable
+private fun BoxScope.NavegacionCarrera(
+    horizontal: Boolean,
+    vista: Vista,
+    estado: EstadoCarrera?,
+    cristal: HazeState,
+    color: Color,
+    izquierda: Dp,
+    abajo: Dp,
+    alVolver: () -> Unit,
+    alCambiar: (Vista) -> Unit,
+    alAvance: () -> Unit,
+) {
+    if (horizontal) Box(
+        Modifier.align(Alignment.CenterStart).fillMaxHeight().width(ANCHO_VELO).background(
+            Brush.horizontalGradient(0.4f to Paleta.lienzo.copy(alpha = 0.92f), 1f to Color.Transparent),
+        ),
+    )
+
+    BarraCarrera(
+        vista = vista,
+        progreso = estado?.progreso,
+        cristal = cristal,
+        alInicio = alVolver,
+        alCambiar = alCambiar,
+        alAvance = alAvance,
+        color = color,
+        modifier = if (horizontal) Modifier.align(Alignment.CenterStart).padding(start = izquierda + SEPARA_RIEL)
+        else Modifier.align(Alignment.BottomCenter).padding(bottom = abajo + SOBRE_EL_BORDE),
+        vertical = horizontal,
+    )
+}
+
+/** Las hojas que suben por encima de todo: electivas, avance y horario. Difuminan lo mismo que recoge la barra: el contenido de la vista */
+@Composable
+private fun BoxScope.HojasCarrera(
+    estado: EstadoCarrera?,
+    horario: EstadoHorario?,
+    cristal: HazeState,
+    efectos: EfectosMapa,
+    casillaAbierta: String?,
+    aprobarAlElegir: Boolean,
+    avanceAbierto: Boolean,
+    alCerrarCasilla: () -> Unit,
+    alCerrarAvance: () -> Unit,
+    alVerEnMapa: (List<String>) -> Unit,
+) {
+    if (estado == null) return
+    CompositionLocalProvider(LocalFondoHoja provides cristal) {
+        SelectorElectiva(
+            casilla = casillaAbierta,
+            estado = estado,
+            aprobarAlElegir = aprobarAlElegir,
+            alColocar = { casilla, electiva ->
+                estado.colocar(casilla, electiva)
+                if (aprobarAlElegir && electiva != null) {
+                    estado.marcar(electiva, Marca.APROBADA)
+                    efectos.descargar(electiva)
+                    efectos.tocar(electiva)
+                }
+                alCerrarCasilla()
+            },
+            alCerrar = alCerrarCasilla,
+        )
+        HojaAvance(abierta = avanceAbierto, estado = estado, alCerrar = alCerrarAvance, alVerEnMapa = alVerEnMapa)
+        if (horario != null) HojasHorario(horario, cristal)
     }
 }
