@@ -1,6 +1,5 @@
 package mpensum.logica
 
-import androidx.compose.ui.graphics.ImageBitmap
 import mpensum.datos.Asignatura
 
 /*
@@ -124,16 +123,6 @@ fun choquesDe(sesiones: List<Sesion>): List<Pair<Sesion, Sesion>> {
 
 /** Una materia leída de la captura, con todas sus clases de la semana */
 data class MateriaLeida(val codigo: String, val sesiones: List<Sesion>)
-
-/**
- * Quien lee la captura de INTRADACE. `elegir` abre la galería y devuelve la
- * foto (null si se cancela); `leer` avisa primero de cuántas materias ve y
- * después de cada una según la va leyendo, para que el contador sea el real.
- */
-interface LectorCaptura {
-    suspend fun elegir(): ImageBitmap?
-    suspend fun leer(foto: ImageBitmap, alTotal: (Int) -> Unit, alLeer: (MateriaLeida) -> Unit)
-}
 
 /** El día del mes (1 a 31) de un día contado desde 1970-01-01, sin depender de la plataforma */
 fun diaDelMes(epoca: Long): Int {

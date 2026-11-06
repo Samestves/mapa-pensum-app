@@ -43,8 +43,10 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import dev.chrisbanes.haze.HazeState
+import mpensum.componentes.desbordar
 import mpensum.componentes.esApaisado
 import mpensum.componentes.pulsable
+import mpensum.componentes.trazarCruz
 import mpensum.logica.ABRE
 import mpensum.logica.CIERRA
 import mpensum.logica.DIAS_CORTOS

@@ -10,7 +10,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Paint
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.delay
-import mpensum.logica.LectorCaptura
+import mpensum.plataforma.LectorCaptura
 import mpensum.logica.MateriaLeida
 import mpensum.logica.Sesion
 import androidx.compose.ui.Modifier

@@ -28,7 +28,7 @@ import mpensum.carrera.ModoHorario
 import mpensum.carrera.VistaHorario
 import mpensum.datos.HorarioGuardado
 import mpensum.datos.leerPensum
-import mpensum.logica.LectorCaptura
+import mpensum.plataforma.LectorCaptura
 import mpensum.logica.Marca
 import mpensum.logica.MateriaLeida
 import mpensum.logica.Sesion

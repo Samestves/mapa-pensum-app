@@ -33,7 +33,7 @@ import mpensum.logica.CALIDAD_JPEG
 import mpensum.logica.DOMINIO
 import mpensum.logica.FalloLectura
 import mpensum.logica.LADO_MAXIMO
-import mpensum.logica.LectorCaptura
+import mpensum.plataforma.LectorCaptura
 import mpensum.logica.MateriaLeida
 import mpensum.logica.PESO_MAXIMO
 import mpensum.logica.URL_LECTURA

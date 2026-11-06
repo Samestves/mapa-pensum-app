@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
+import mpensum.componentes.desbordar
 import mpensum.componentes.pulsable
 import mpensum.logica.Colocada
 import mpensum.logica.DIAS_CORTOS
