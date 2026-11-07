@@ -49,14 +49,14 @@ import mpensum.tema.Espacio
 import mpensum.tema.Paleta
 
 /*
- * La ficha acostada (docs/ficha-y-lista.md §2): una burbuja de 320 dp pegada a
+ * La ficha acostada (docs/ficha-y-lista.md §2): una burbuja de 336 dp pegada a
  * su tarjeta, con una punta que la señala. Se dibuja en la misma capa que el
  * mapa y sigue a la tarjeta leyendo la cámara solo al dibujar, así que no
  * tiembla al arrastrar. No es un `Popup`: una ventana aparte iría un cuadro
  * por detrás. Sin desenfoque ni velo; el mapa sigue vivo debajo.
  */
 
-private const val ANCHO_CUERPO = 320f
+private const val ANCHO_CUERPO = 336f
 private const val LARGO_PUNTA = 12f
 private const val BASE_PUNTA = 22f
 /** La punta queda a 8 dp de la tarjeta (4 más allá del aro de selección) y el cuerpo a 20 */

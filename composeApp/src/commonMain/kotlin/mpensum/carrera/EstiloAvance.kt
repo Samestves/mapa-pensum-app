@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -235,7 +236,14 @@ internal fun BotonTinta(
         verticalArrangement = Arrangement.Center,
     ) {
         val centrado = TextAlign.Center
-        BasicText(texto, Modifier.padding(horizontal = Espacio.xs, vertical = if (nota == null) Espacio.xs else 0.dp), style = estiloFila(if (lleno) Paleta.panel else Paleta.tinta).copy(textAlign = centrado))
+        // Un botón dice su verbo en una línea: si no cabe (la burbuja acostada, 320 dp), la letra baja hasta 13 antes que partirse
+        BasicText(
+            texto,
+            Modifier.padding(horizontal = Espacio.xs, vertical = if (nota == null) Espacio.xs else 0.dp),
+            style = estiloFila(if (lleno) Paleta.panel else Paleta.tinta).copy(textAlign = centrado),
+            maxLines = 1,
+            autoSize = TextAutoSize.StepBased(minFontSize = 13.sp, maxFontSize = 15.sp, stepSize = 0.5.sp),
+        )
         if (nota != null) BasicText(nota, Modifier.padding(horizontal = Espacio.xs), style = estiloNota(colorNota ?: if (lleno) Paleta.panel.copy(alpha = 0.6f) else Paleta.tenue).copy(textAlign = centrado))
     }
 }
