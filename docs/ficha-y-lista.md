@@ -8,7 +8,7 @@ Manda `reglas-diseno.md`; esto solo dice cómo se construye lo recomendado.
 | Pantalla | Opción | Por qué |
 |---|---|---|
 | Ficha de pie | **A · Siguiente paso** | Un verbo lleno dice qué hacer y el botón dice qué pasa («Se te abre 1»), sin repetir el estado. |
-| Ficha acostada | **A · Franja** | La misma hoja, baja y ancha: el mapa sigue arriba con la materia, lo que pide y lo que abre. |
+| Ficha acostada | **Burbuja con Pide · Abre** | Sale de la tarjeta tocada con su punta: se revisan varias materias seguidas sin cerrar nada y sin perder el mapa. |
 | Lista de pie | **A · Se abre en su sitio**, nombres en Inter 15/500 | Se toca la fila como se toca un semestre; marca ahí mismo y nunca abre la hoja del mapa. |
 | Lista acostada | **A · Tabla** | Lo que de pie hay que abrir aquí se ve: Materia · UC · Pide · Abre · Marca, y se marca en un toque. |
 
