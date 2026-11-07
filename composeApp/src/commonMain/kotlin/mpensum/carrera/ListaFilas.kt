@@ -82,7 +82,6 @@ import mpensum.tema.Tipo
 import mpensum.tema.Tema
 import mpensum.tema.inter
 import mpensum.tema.jost
-import mpensum.tema.plex
 import mpensum.tema.porTema
 import kotlin.math.PI
 import kotlin.math.abs
@@ -448,7 +447,7 @@ private fun FilaDeMateria(
             .fillMaxWidth()
             .heightIn(min = ALTO_FILA)
             .drawBehind { fondoFila(brillo.value, ultima) }
-            .semantics { contentDescription = "${fila.nombre}, ${fila.nota}" }
+            .semantics { contentDescription = fila.descripcion }
             .clickable(interactionSource = null, indication = null, role = Role.Button, onClickLabel = "Ver la ficha") { acciones.tocar(fila) },
     ) {
         Row(Modifier.fillMaxWidth().heightIn(min = ALTO_FILA), verticalAlignment = Alignment.CenterVertically) {
@@ -473,19 +472,14 @@ private fun FilaDeMateria(
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
-                Row(Modifier.padding(top = Espacio.hilo)) {
+                if (fila.uc != null || fila.nota.isNotEmpty()) Row(Modifier.padding(top = Espacio.hilo)) {
                     fila.uc?.let {
-                        BasicText(
-                            "$it UC",
-                            Modifier.alignByBaseline(),
-                            style = TextStyle(fontFamily = plex(), fontWeight = FontWeight.Light, fontSize = Tipo.xxs, letterSpacing = 0.02.em, color = Paleta.tenue),
-                            maxLines = 1,
-                        )
+                        BasicText("$it UC", Modifier.alignByBaseline(), style = estiloNota(), maxLines = 1)
                     }
-                    BasicText(
+                    if (fila.nota.isNotEmpty()) BasicText(
                         if (fila.uc != null) " · ${fila.nota}" else fila.nota,
                         Modifier.alignByBaseline(),
-                        style = TextStyle(fontFamily = inter(), fontSize = Tipo.s, lineHeight = 16.sp),
+                        style = estiloNota(),
                         color = { colorNota.value },
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
@@ -526,7 +520,7 @@ private fun FilaDeCasilla(fila: FilaCasilla, ultima: Boolean, acciones: Acciones
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
-                BasicText(fila.nota, Modifier.padding(top = Espacio.hilo), style = TextStyle(fontFamily = i, fontSize = Tipo.s, lineHeight = 16.sp, color = Paleta.tenue), maxLines = 1)
+                BasicText(fila.nota, Modifier.padding(top = Espacio.hilo), style = estiloNota(), maxLines = 1)
             }
             Box(
                 Modifier

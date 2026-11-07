@@ -88,14 +88,9 @@ internal fun PanelResumenLista(
                 .clip(RoundedCornerShape(Radio.Grande))
                 .background(Paleta.tinta.copy(alpha = VELO_PIEZA)),
         ) {
-            Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(start = Espacio.m, end = Espacio.m, top = Espacio.m)) {
+            Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(start = Espacio.m, end = Espacio.m, top = Espacio.m, bottom = Espacio.m)) {
                 if (seccion != null) ResumenSemestre(seccion, visible, alElegir)
             }
-            BasicText(
-                "Toca una materia para ver su ficha",
-                Modifier.fillMaxWidth().padding(horizontal = Espacio.m, vertical = Espacio.s),
-                style = estilo(Tipo.xs, Paleta.tenue).copy(textAlign = TextAlign.Center),
-            )
         }
     }
 }
@@ -173,24 +168,17 @@ private fun Aro(s: SeccionLista, hechas: Int, total: Int) {
     }
 }
 
-/** "Requiere X" y "Se abre al aprobar X" se leen aquí como "pide X" */
-private fun pide(nota: String): String? = when {
-    nota.startsWith("Requiere ") -> "pide " + nota.removePrefix("Requiere ")
-    nota.startsWith("Se abre al aprobar ") -> "pide " + nota.removePrefix("Se abre al aprobar ")
-    else -> null
-}
-
 @Composable
 private fun Renglon(f: FilaMateria, activo: Boolean, alElegir: (String) -> Unit) {
     val libre = f.situacion == Situacion.INSCRIBIBLE
-    val secundario = if (libre) f.uc?.let { "$it UC" } else pide(f.nota)
+    val secundario = if (libre) f.uc?.let { "$it UC" } else f.nota.takeIf { it.startsWith("Pide ") }
     Row(
         Modifier
             .fillMaxWidth()
             .pulsable({ if (activo) alElegir(f.codigo) }, escala = 0.99f)
             .heightIn(min = Alto.toque)
             .padding(vertical = Espacio.xs)
-            .semantics(mergeDescendants = true) { contentDescription = "${f.nombre}, ${f.nota}. Ver la ficha" },
+            .semantics(mergeDescendants = true) { contentDescription = "${f.descripcion}. Ver la ficha" },
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Espacio.xs),
     ) {

@@ -211,7 +211,7 @@ private fun medirTextos(a: AvanceDemo, medidor: TextMeasurer, jost: FontFamily, 
         // El color va en el estilo y no en un tramo: el alfa de drawText no apaga los colores de tramo
         deTotal = medidor.measure(" de ${a.de} ${a.unidad}", TextStyle(fontFamily = inter, fontWeight = FontWeight.Normal, fontSize = Tipo.s, color = Paleta.tenue)),
         numeros = a.silueta.indices.map { medidor.measure("${it + 1}", numero) },
-        teGraduas = medidor.measure("TE GRADÚAS EN", versal),
+        teGraduas = medidor.measure("TE GRADÚAS", versal),
         faltan = medidor.measure("${a.faltan}", TextStyle(fontFamily = jost, fontWeight = FontWeight.ExtraLight, fontSize = TAM_FALTAN, letterSpacing = (-0.035).em, color = Paleta.tinta)),
         semestres = medidor.measure(if (a.faltan == 1) "semestre" else "semestres", TextStyle(fontFamily = jost, fontWeight = FontWeight.Light, fontSize = Tipo.xxl, color = Paleta.azul)),
     )

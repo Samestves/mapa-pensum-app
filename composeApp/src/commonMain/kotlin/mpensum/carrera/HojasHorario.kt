@@ -110,15 +110,20 @@ fun BoxScope.HojasHorario(horario: EstadoHorario, cristal: HazeState?) {
                 )
                 HojaHorario.Menu -> Triple("TU HORARIO", "${clases(horario.sesiones.size)} a la semana", null)
                 HojaHorario.Borrar -> Triple("TU HORARIO", "¿Borrar todo el horario?", null)
-                HojaHorario.Confirmar -> Triple("LEÍDO DE TU CAPTURA", "Antes de guardar", null)
+                // Solo el título: leído de una captura y antes de guardar es lo que ya está pasando
+                HojaHorario.Confirmar -> Triple("", "Revisa y guarda", null)
                 null -> Triple("", "", null)
             }
+            // «Quedan 40 min» es un dato: va en nota, junto al rótulo «EN CURSO»
+            val quedan = (hoja as? HojaHorario.Detalle)?.let { sesionVista(horario, it.id) }?.takeIf { horario.enCurso(it) }
+                ?.let { "Quedan ${duracion(it.fin - horario.ahora.minuto)}" }
             Column(Modifier.fillMaxWidth().padding(start = Espacio.xl, end = Espacio.xl, top = Espacio.xs)) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Espacio.xs)) {
+                if (etiqueta.isNotEmpty()) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Espacio.xs)) {
                     if (punto != null) Box(Modifier.size(6.dp).clip(CircleShape).drawBehind { drawRect(punto) })
                     BasicText(etiqueta, style = l.etiqueta)
+                    if (quedan != null) BasicText(quedan, style = l.texto)
                 }
-                BasicText(titulo, Modifier.padding(top = Espacio.xxs), style = l.tituloHoja)
+                BasicText(titulo, Modifier.padding(top = if (etiqueta.isNotEmpty()) Espacio.xxs else 0.dp), style = l.tituloHoja)
             }
         },
     ) {
@@ -144,7 +149,7 @@ private fun sesionVista(horario: EstadoHorario, id: String): Sesion? {
 }
 
 private fun etiquetaDetalle(horario: EstadoHorario, s: Sesion): String {
-    if (horario.enCurso(s)) return "EN CURSO · QUEDAN ${duracion(s.fin - horario.ahora.minuto).uppercase()}"
+    if (horario.enCurso(s)) return "EN CURSO"
     return listOfNotNull(horario.materia(s.codigo)?.uc?.let { "$it UC" }, s.seccion.ifBlank { null }?.let { "SECCIÓN $it" })
         .joinToString(" · ").ifEmpty { "CLASE" }
 }
@@ -398,7 +403,7 @@ private fun Borrar(horario: EstadoHorario) {
     val l = letrasHorario()
     val cuantas = remember { horario.sesiones.size }
     BasicText(
-        "${if (cuantas == 1) "Se quita la clase" else "Se quitan las $cuantas clases"} de tu semana y vuelves a empezar. No se puede deshacer.",
+        "${if (cuantas == 1) "Se borra tu clase" else "Se borran tus $cuantas clases"}. No se puede deshacer.",
         Modifier.padding(top = Espacio.xs),
         style = l.parrafo,
     )

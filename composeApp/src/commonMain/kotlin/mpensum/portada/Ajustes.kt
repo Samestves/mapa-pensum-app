@@ -48,6 +48,7 @@ import androidx.compose.ui.unit.sp
 import mpensum.carrera.BotonCerrar
 import mpensum.carrera.HojaInferior
 import mpensum.carrera.IconosHoja
+import mpensum.carrera.estiloTitulo
 import mpensum.carrera.versal
 import mpensum.componentes.IconoTrazo
 import mpensum.componentes.Lucide
@@ -115,7 +116,7 @@ fun BoxScope.HojaAjustes(
         alCerrar = alCerrar,
         // Acostado, las dos columnas piden más que los 560 dp de siempre
         cabecera = {
-            // La de la hoja de avance: etiqueta en versales y el título debajo
+            // El título de la hoja; las páginas internas llevan encima «AJUSTES» para saber de dónde se vino
             Row(Modifier.fillMaxWidth().padding(start = margenPantalla(), end = margenPantalla(), top = Espacio.xxs, bottom = if (esApaisado()) Espacio.xs else Espacio.m), verticalAlignment = Alignment.CenterVertically) {
                 // La flecha de volver solo si se llegó desde el menú; abierta directo en la lista, se cierra y ya
                 val conVolver = actual != PaginaAjustes.MENU && ultima == PaginaAjustes.MENU
@@ -125,15 +126,15 @@ fun BoxScope.HojaAjustes(
                     }
                 }
                 Column(Modifier.weight(1f)) {
-                    BasicText(if (actual != PaginaAjustes.MENU) "AJUSTES" else "MAPA DE PENSUM", style = versal(Paleta.tenue))
+                    if (actual != PaginaAjustes.MENU) BasicText("AJUSTES", style = versal(Paleta.tenue))
                     BasicText(
                         when (actual) {
                             PaginaAjustes.CARRERA -> "Elige tu carrera"
                             PaginaAjustes.PERSONALIZAR -> "Personalizar"
-                            PaginaAjustes.MENU -> "Ajustes y ayuda"
+                            PaginaAjustes.MENU -> "Ajustes"
                         },
-                        Modifier.padding(top = Espacio.xxs),
-                        style = TextStyle(fontFamily = jost(), fontWeight = FontWeight.Medium, fontSize = Tipo.xl, lineHeight = 22.sp, color = Paleta.tinta),
+                        Modifier.padding(top = if (actual != PaginaAjustes.MENU) Espacio.xxs else 0.dp),
+                        style = estiloTitulo(),
                     )
                 }
                 BotonCerrar(alCerrar)
@@ -186,7 +187,7 @@ fun BoxScope.HojaAjustes(
                         Etiqueta("EL PROYECTO", Modifier.padding(start = Espacio.xxs, top = Espacio.xl, bottom = Espacio.s))
                         Row(horizontalArrangement = Arrangement.spacedBy(Espacio.m)) {
                             Box(Modifier.weight(1f)) { Renglon(Lucide.mundo, "Abrir la versión web", "mapa-pensum.vercel.app", fuera = true, alPulsar = web) }
-                            Box(Modifier.weight(1f)) { Renglon(Lucide.codigo, "Código abierto", "Revísalo en GitHub", fuera = true, alPulsar = codigo) }
+                            Box(Modifier.weight(1f)) { Renglon(Lucide.codigo, "Código abierto", "GitHub", fuera = true, alPulsar = codigo) }
                         }
                         Version(Modifier.padding(top = Espacio.xl))
                     }
@@ -219,8 +220,8 @@ private fun FilaPersonalizar(alPulsar: () -> Unit) {
 private fun BloqueAyuda(alVerGuia: () -> Unit, alReportar: () -> Unit, etiqueta: Modifier = Modifier.padding(start = Espacio.xxs, top = 28.dp, bottom = Espacio.s)) {
     Etiqueta("AYUDA", etiqueta)
     Column(verticalArrangement = Arrangement.spacedBy(Espacio.xs)) {
-        Renglon(Lucide.ayuda, "Ver la guía otra vez", "Cómo funciona, en cuatro pasos", alPulsar = alVerGuia)
-        Renglon(Lucide.bandera, "Reportar un error", "Una materia o prelación mal puesta", fuera = true, alPulsar = alReportar)
+        Renglon(Lucide.ayuda, "Ver la guía", null, alPulsar = alVerGuia)
+        Renglon(Lucide.bandera, "Reportar un error", null, fuera = true, alPulsar = alReportar)
     }
 }
 
@@ -229,7 +230,7 @@ private fun BloqueProyecto(alAbrirWeb: () -> Unit, alAbrirCodigo: () -> Unit) {
     Etiqueta("EL PROYECTO")
     Column(verticalArrangement = Arrangement.spacedBy(Espacio.xs)) {
         Renglon(Lucide.mundo, "Abrir la versión web", "mapa-pensum.vercel.app", fuera = true, alPulsar = alAbrirWeb)
-        Renglon(Lucide.codigo, "Código abierto", "Revísalo en GitHub", fuera = true, alPulsar = alAbrirCodigo)
+        Renglon(Lucide.codigo, "Código abierto", "GitHub", fuera = true, alPulsar = alAbrirCodigo)
     }
 }
 
@@ -277,7 +278,7 @@ internal fun FilaCristal(alPulsar: () -> Unit, contenido: @Composable RowScope.(
 
 /** Lo que hace la fila en Jost, como los nombres de la portada, y su porqué debajo en Inter */
 @Composable
-internal fun Textos(titulo: String, texto: String, modifier: Modifier) {
+internal fun Textos(titulo: String, texto: String?, modifier: Modifier) {
     Column(modifier) {
         BasicText(
             titulo,
@@ -285,13 +286,13 @@ internal fun Textos(titulo: String, texto: String, modifier: Modifier) {
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
-        BasicText(texto, Modifier.padding(top = Espacio.hilo), style = TextStyle(fontFamily = inter(), fontSize = Tipo.s, lineHeight = 18.sp, color = Paleta.tenue), maxLines = 2, overflow = TextOverflow.Ellipsis)
+        if (texto != null) BasicText(texto, Modifier.padding(top = Espacio.hilo), style = TextStyle(fontFamily = inter(), fontSize = Tipo.s, lineHeight = 18.sp, color = Paleta.tenue), maxLines = 2, overflow = TextOverflow.Ellipsis)
     }
 }
 
 /** Un renglón: su icono en una tecla, lo que hace y la flecha (› si se queda en la app, ↗ si sale) */
 @Composable
-private fun Renglon(icono: List<Path>, titulo: String, texto: String, fuera: Boolean = false, alPulsar: () -> Unit) {
+private fun Renglon(icono: List<Path>, titulo: String, texto: String?, fuera: Boolean = false, alPulsar: () -> Unit) {
     FilaCristal(alPulsar) {
         Box(Modifier.size(40.dp).clip(RoundedCornerShape(Radio.Chip)).background(Paleta.tinta.copy(alpha = 0.06f)), contentAlignment = Alignment.Center) {
             IconoTrazo(icono, Paleta.suave, 20.dp, 1.75f)
@@ -346,7 +347,7 @@ private fun FilaCarrera(propia: Carrera?, alPulsar: () -> Unit) {
 private fun ListaCarreras(carreras: List<Carrera>, propia: Carrera?, alElegir: (Carrera) -> Unit) {
     Column(Modifier.padding(start = margenPantalla(), end = margenPantalla(), top = Espacio.xxs, bottom = Espacio.xl), verticalArrangement = Arrangement.spacedBy(Espacio.xs)) {
         BasicText(
-            "La tuya sale primero en la portada, con tu avance. Las demás las abres cuando quieras.",
+            "Sale primera en la portada.",
             Modifier.padding(start = Espacio.xxs, end = Espacio.xxs, bottom = Espacio.xs),
             style = TextStyle(fontFamily = inter(), fontSize = Tipo.s, lineHeight = 18.sp, color = Paleta.tenue),
         )

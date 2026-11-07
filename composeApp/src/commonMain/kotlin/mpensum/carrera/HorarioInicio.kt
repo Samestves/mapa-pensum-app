@@ -112,16 +112,15 @@ internal fun HorarioVacio(horario: EstadoHorario, arriba: Dp, abajo: Dp, modifie
     }
 }
 
-/** El rótulo, el título, el párrafo y los dos accesos: centrados bajo la escena y, al lado de ella, pegados a la izquierda */
+/** El título, el párrafo y los dos accesos: centrados bajo la escena y, al lado de ella, pegados a la izquierda */
 @Composable
 private fun Invitacion(horario: EstadoHorario, modifier: Modifier, horizontal: Boolean) {
     val l = letrasHorario()
     val alineado = if (horizontal) TextAlign.Start else TextAlign.Center
     Column(modifier, horizontalAlignment = if (horizontal) Alignment.Start else Alignment.CenterHorizontally) {
-        BasicText("MI HORARIO", style = l.etiqueta)
-        BasicText("Arma tu semana", Modifier.padding(top = Espacio.xs), style = l.titulo.copy(fontSize = 36.sp, lineHeight = 40.sp, textAlign = alineado))
+        BasicText("Arma tu semana", style = l.titulo.copy(textAlign = alineado))
         BasicText(
-            "Sube la captura de tu horario de Intradace y la pasamos a tu semana, clase por clase.",
+            "Sube una captura y la pasamos a tu semana.",
             Modifier.padding(top = Espacio.s + Espacio.hilo).widthIn(max = 300.dp),
             style = l.parrafo.copy(fontSize = 15.sp, lineHeight = 22.sp, textAlign = alineado),
         )
@@ -129,7 +128,7 @@ private fun Invitacion(horario: EstadoHorario, modifier: Modifier, horizontal: B
         Box(
             Modifier.padding(top = Espacio.xxs).fillMaxWidth().heightIn(min = Alto.fila).pulsable({ horario.abrirNueva(if (horario.ahora.dia < 5) horario.ahora.dia else 0, 7 * 60) }, escala = 0.96f),
             contentAlignment = Alignment.Center,
-        ) { BasicText("Crearlo manualmente", style = l.accion.copy(fontSize = 15.sp, color = Paleta.suave)) }
+        ) { BasicText("Crear a mano", style = l.accion.copy(fontSize = 15.sp, color = Paleta.suave)) }
         SelloIntradace(Modifier.padding(top = Espacio.xs + Espacio.hilo).align(Alignment.CenterHorizontally))
     }
 }

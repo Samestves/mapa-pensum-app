@@ -45,6 +45,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
+import mpensum.componentes.estiloTitular
 import mpensum.componentes.BarraPasos
 import mpensum.componentes.BotonIcono
 import mpensum.componentes.BotonPrincipal
@@ -189,11 +190,8 @@ fun BloqueTexto(primera: String, segunda: String, boton: String, alPulsar: () ->
                 append("\n")
                 withStyle(SpanStyle(color = Paleta.azul)) { append(segunda) }
             },
-            style = TextStyle(
-                fontFamily = jost(), fontSize = TITULO_MAXIMO, lineHeight = 1.1.em, fontWeight = FontWeight.Light, letterSpacing = (-0.02).em, color = Paleta.tinta,
-                // Como la web: el interlineado se reparte arriba y abajo, así la caja mide 88 y el hueco con el botón es el del tablero
-                lineHeightStyle = LineHeightStyle(LineHeightStyle.Alignment.Center, LineHeightStyle.Trim.None),
-            ),
+            // Como la web: el interlineado se reparte arriba y abajo, así la caja mide 88 y el hueco con el botón es el del tablero
+            style = estiloTitular(TITULO_MAXIMO).copy(lineHeightStyle = LineHeightStyle(LineHeightStyle.Alignment.Center, LineHeightStyle.Trim.None)),
             softWrap = false,
             maxLines = 2,
             autoSize = TextAutoSize.StepBased(minFontSize = TITULO_MINIMO, maxFontSize = TITULO_MAXIMO, stepSize = 1.sp),

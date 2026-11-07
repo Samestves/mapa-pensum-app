@@ -293,6 +293,9 @@ fun momentoDe(dias: List<List<Sesion>>, ahora: Ahora): Momento {
     return Momento.Libre(terminado = hoy.isNotEmpty(), proxima = proxima)
 }
 
+/** El nombre del día de la semana, de 0 (lunes) a 6 (domingo) */
+fun nombreDia(dia: Int): String = SEMANA_ENTERA.getOrElse(dia) { "" }
+
 /** "Mañana", "El miércoles", "El próximo lunes" */
 fun cuandoViene(p: Proxima): String = when (p.dentroDe) {
     1 -> "Mañana"
@@ -303,7 +306,7 @@ fun cuandoViene(p: Proxima): String = when (p.dentroDe) {
 /** El título de un día sin más clases */
 fun tituloLibre(m: Momento.Libre, ahora: Ahora): String = when {
     m.terminado -> "Listo por hoy"
-    ahora.dia < 5 -> "Hoy no tienes clases"
+    ahora.dia < 5 -> "Sin clases hoy"
     else -> "Fin de semana"
 }
 

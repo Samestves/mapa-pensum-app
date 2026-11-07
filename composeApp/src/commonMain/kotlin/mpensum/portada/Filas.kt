@@ -1,7 +1,6 @@
 package mpensum.portada
 
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -32,16 +31,20 @@ import mpensum.componentes.renglon
 import mpensum.datos.Carrera
 
 import mpensum.tema.Espacio
-import mpensum.tema.Tipo
 import mpensum.tema.Paleta
 import mpensum.tema.colorDe
 import mpensum.tema.jost
 import mpensum.tema.porTema
 
+/** Encabezado: Jost 17/22, −1 %; 300 en oscuro y 400 en claro, donde el trazo fino pierde cuerpo */
+@Composable
+private fun estiloEncabezado() =
+    TextStyle(fontFamily = jost(), fontWeight = porTema(FontWeight.Light, FontWeight.Normal), fontSize = 17.sp, lineHeight = 22.sp, letterSpacing = (-0.01).em, color = Paleta.tinta)
+
 /**
- * Otra carrera: su silueta entera y tenue en su color, el nombre corto, el
- * tipo y la flecha. Una fila de cristal apenas marcada: lo que está a la
- * vista es tu carrera; esto es el índice.
+ * Otra carrera: su silueta entera y tenue en su color, el nombre corto y la
+ * flecha. Una fila de cristal apenas marcada: lo que está a la vista es tu
+ * carrera; esto es el índice. El tipo lo dice el rótulo del grupo.
  */
 @Composable
 internal fun Fila(c: Carrera, modifier: Modifier, alPulsar: (TransformOrigin) -> Unit) {
@@ -71,24 +74,21 @@ internal fun Fila(c: Carrera, modifier: Modifier, alPulsar: (TransformOrigin) ->
                 huecoFila = (36f / 7f - 2.5f).dp,
             )
         }
-        Column(Modifier.padding(start = Espacio.m, end = Espacio.s).weight(1f)) {
-            BasicText(
-                c.nombreCorto,
-                Modifier.renglon(22.dp, 17.sp),
-                style = TextStyle(fontFamily = jost(), fontSize = Tipo.xl, lineHeight = 22.sp, fontWeight = FontWeight.Light, letterSpacing = (-0.01).em, color = Paleta.tinta),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            BasicText(c.tipo.uppercase(), Modifier.padding(top = Espacio.xxs).renglon(14.dp, 11.sp), style = etiqueta(Paleta.tenue), maxLines = 1)
-        }
+        BasicText(
+            c.nombreCorto,
+            Modifier.padding(start = Espacio.m, end = Espacio.s).weight(1f).renglon(22.dp, 17.sp),
+            style = estiloEncabezado(),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
         IconoTrazo(Lucide.siguiente, Paleta.apagada, 16.dp, 1.75f)
     }
 }
 
 /**
  * La ficha compacta de otra carrera para la rejilla de dos columnas en
- * horizontal: 68 dp, su silueta entera en 36 × 28, el nombre (que baja de 15 a
- * 13 sp antes de cortar) y el tipo. Sin flecha: toda la ficha es el toque.
+ * horizontal: 68 dp, su silueta entera en 36 × 28 y el nombre (que baja de 17 a
+ * 13 sp antes de cortar). Sin flecha: toda la ficha es el toque.
  */
 @Composable
 internal fun FilaCompacta(c: Carrera, modifier: Modifier, alPulsar: (TransformOrigin) -> Unit) {
@@ -115,16 +115,13 @@ internal fun FilaCompacta(c: Carrera, modifier: Modifier, alPulsar: (TransformOr
                 huecoFila = (28f / 7f - 2f).dp,
             )
         }
-        Column(Modifier.padding(start = 14.dp).weight(1f)) {
-            BasicText(
-                c.nombreCorto,
-                Modifier.renglon(20.dp, 15.sp),
-                style = TextStyle(fontFamily = jost(), fontSize = Tipo.l, lineHeight = 20.sp, fontWeight = FontWeight.Light, letterSpacing = (-0.01).em, color = Paleta.tinta),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                autoSize = TextAutoSize.StepBased(13.sp, 15.sp, 1.sp),
-            )
-            BasicText(c.tipo.uppercase(), Modifier.padding(top = Espacio.xxs).renglon(14.dp, 11.sp), style = etiqueta(Paleta.tenue), maxLines = 1)
-        }
+        BasicText(
+            c.nombreCorto,
+            Modifier.padding(start = 14.dp).weight(1f).renglon(22.dp, 17.sp),
+            style = estiloEncabezado(),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            autoSize = TextAutoSize.StepBased(13.sp, 17.sp, 1.sp),
+        )
     }
 }

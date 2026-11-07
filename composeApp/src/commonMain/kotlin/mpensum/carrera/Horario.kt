@@ -65,6 +65,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
@@ -95,6 +96,7 @@ import mpensum.logica.horaDe
 import mpensum.logica.inicioParaAnadir
 import mpensum.logica.lugarDe
 import mpensum.logica.meridiano
+import mpensum.logica.nombreDia
 import mpensum.logica.tituloLibre
 import mpensum.logica.tramoCorto
 import mpensum.tema.Paleta
@@ -132,23 +134,27 @@ private val SALIDA_DERECHA = 14.dp
 @Immutable
 internal class LetrasHorario(j: FontFamily, i: FontFamily) {
     private val numeros = "tnum"
-    /** El rótulo en mayúsculas finas y espaciadas (.rotulo-horario de la web, a 11 como mínimo) */
-    val etiqueta = TextStyle(fontFamily = j, fontWeight = FontWeight.Medium, fontSize = 11.sp, lineHeight = 14.sp, letterSpacing = 0.2.em, color = Paleta.tenue)
-    val titulo = TextStyle(fontFamily = j, fontWeight = FontWeight.Light, fontSize = 34.sp, lineHeight = 37.sp, letterSpacing = (-0.015).em, color = Paleta.tinta)
+    /** Rótulo: Inter 500, 11/16, +8 %, en mayúsculas */
+    val etiqueta = TextStyle(fontFamily = i, fontWeight = FontWeight.Medium, fontSize = 11.sp, lineHeight = 16.sp, letterSpacing = 0.08.em, color = Paleta.tenue, fontFeatureSettings = numeros)
+    /** Titular: Jost 300, 40 con interlínea de 1,1 em y −2 %; el que lo pone le añade el `autoSize` */
+    val titulo = TextStyle(fontFamily = j, fontWeight = FontWeight.Light, fontSize = 40.sp, lineHeight = 1.1.em, letterSpacing = (-0.02).em, color = Paleta.tinta)
     val tituloHoja = TextStyle(fontFamily = j, fontWeight = FontWeight.Light, fontSize = 24.sp, lineHeight = 28.sp, letterSpacing = (-0.01).em, color = Paleta.tinta)
     val horaGrande = TextStyle(fontFamily = j, fontWeight = FontWeight.Light, fontSize = 20.sp, lineHeight = 22.sp, letterSpacing = (-0.01).em, color = Paleta.tinta, fontFeatureSettings = numeros)
     /** La hora de entrada de una fila del día, grande y fina; la de salida, pequeña */
     val horaEntrada = TextStyle(fontFamily = j, fontWeight = FontWeight.Light, fontSize = 21.sp, lineHeight = 21.sp, letterSpacing = (-0.01).em, color = Paleta.tinta, fontFeatureSettings = numeros)
-    val horaSalida = TextStyle(fontFamily = i, fontSize = 12.5.sp, lineHeight = 13.sp, color = Paleta.tenue, fontFeatureSettings = numeros)
-    val nombreFila = TextStyle(fontFamily = i, fontWeight = FontWeight.Medium, fontSize = 15.5.sp, lineHeight = 20.sp, letterSpacing = (-0.012).em, color = Paleta.tinta)
+    val horaSalida = TextStyle(fontFamily = i, fontSize = 13.sp, lineHeight = 16.sp, letterSpacing = (-0.003).em, color = Paleta.tenue, fontFeatureSettings = numeros)
+    /** Fila: Inter 500, 15/20, −0,9 % */
+    val nombreFila = TextStyle(fontFamily = i, fontWeight = FontWeight.Medium, fontSize = 15.sp, lineHeight = 20.sp, letterSpacing = (-0.009).em, color = Paleta.tinta, fontFeatureSettings = numeros)
     val bloque = TextStyle(fontFamily = j, fontWeight = FontWeight.Medium, fontSize = 12.sp, lineHeight = 15.sp, color = Paleta.tinta)
-    /** El cuerpo del momento: «Quedan 1 h 20 min · Aula 5» y la clase de después */
-    val cuerpo = TextStyle(fontFamily = i, fontSize = 14.sp, lineHeight = 20.sp, color = Paleta.suave, fontFeatureSettings = numeros)
-    val texto = TextStyle(fontFamily = i, fontSize = 13.sp, lineHeight = 17.sp, color = Paleta.tenue, fontFeatureSettings = numeros)
+    /** Cuerpo: Inter 400, 15/20, −0,9 %: «Quedan 1 h 20 min · Aula 5» y la clase de después */
+    val cuerpo = TextStyle(fontFamily = i, fontSize = 15.sp, lineHeight = 20.sp, letterSpacing = (-0.009).em, color = Paleta.suave, fontFeatureSettings = numeros)
+    /** Nota: Inter 400, 13/16, −0,3 % */
+    val texto = TextStyle(fontFamily = i, fontSize = 13.sp, lineHeight = 16.sp, letterSpacing = (-0.003).em, color = Paleta.tenue, fontFeatureSettings = numeros)
     val parrafo = texto.copy(lineHeight = 20.sp, color = Paleta.suave)
-    val dato = TextStyle(fontFamily = i, fontSize = 12.5.sp, lineHeight = 16.sp, color = Paleta.tenue, fontFeatureSettings = numeros)
+    val dato = texto
     val pequeno = TextStyle(fontFamily = i, fontSize = 11.sp, lineHeight = 14.sp, color = Paleta.tenue, fontFeatureSettings = numeros)
-    val meridiano = TextStyle(fontFamily = i, fontWeight = FontWeight.Medium, fontSize = 8.5.sp, letterSpacing = 0.1.em, color = Paleta.tenue)
+    /** La unidad de la hora: 11 sp, un peso más que la cifra, tenue */
+    val meridiano = TextStyle(fontFamily = i, fontSize = 11.sp, color = Paleta.tenue)
     val accion = TextStyle(fontFamily = i, fontWeight = FontWeight.Medium, fontSize = 13.sp, color = Paleta.tinta)
     val boton = TextStyle(fontFamily = i, fontWeight = FontWeight.Medium, fontSize = 17.sp, color = Paleta.lienzo)
 }
@@ -162,8 +168,8 @@ internal fun letrasHorario(): LetrasHorario {
     return remember(j, i, claro) { LetrasHorario(j, i) }
 }
 
-/** El meridiano pegado a una hora, pequeño y espaciado: la hora es el número, «AM» solo desambigua */
-private val SPAN_MERIDIANO get() = SpanStyle(fontSize = 8.5.sp, fontWeight = FontWeight.Medium, letterSpacing = 0.1.em, color = Paleta.tenue)
+/** El meridiano pegado a una hora, como unidad suya: la hora es el número, «AM» solo desambigua */
+private val SPAN_MERIDIANO get() = SpanStyle(fontSize = 11.sp, fontWeight = FontWeight.Normal, color = Paleta.tenue)
 
 /* ---- Iconos (propios del horario) ------------------------------------------ */
 
@@ -255,7 +261,7 @@ private fun Cabecera(horario: EstadoHorario) {
                 when (momento) {
                     is Momento.EnCurso -> "EN CURSO"
                     is Momento.Luego -> "PRÓXIMA CLASE"
-                    else -> "HOY"
+                    else -> nombreDia(horario.ahora.dia).uppercase()
                 },
                 style = l.etiqueta.copy(color = if (enCurso) Paleta.tinta else Paleta.tenue),
             )
@@ -273,10 +279,6 @@ private fun anchoHora(): Dp = if (ventana().compacta) ANCHO_HORA_ESTRECHO else A
 /** Lo que se sangra el texto de un renglón del día: la hora, el riel y su aire */
 @Composable
 private fun sangriaDia(): Dp = anchoHora() + AIRE_RIEL + ANCHO_RIEL + AIRE_RIEL
-
-/** El nombre manda: baja un cuerpo si es largo, como el NOMBRE_LARGO de la web */
-private fun LetrasHorario.tituloPara(nombre: String) =
-    if (nombre.length > 26) titulo.copy(fontSize = 27.sp, lineHeight = 30.sp) else titulo
 
 /**
  * Lo primero que dice el horario: qué toca y qué viene. Sin tarjeta: el
@@ -301,7 +303,11 @@ private fun AhoraYDespues(horario: EstadoHorario) {
             momento is Momento.Libre -> tituloLibre(momento, ahora)
             else -> ""
         }
-        BasicText(titulo, Modifier.padding(top = Espacio.xxs), style = l.tituloPara(titulo))
+        // El nombre manda: la letra baja de 40 a 28 antes de partirlo en más de dos líneas
+        BasicText(
+            titulo, Modifier.padding(top = Espacio.xxs), style = l.titulo,
+            maxLines = 2, overflow = TextOverflow.Ellipsis, autoSize = TextAutoSize.StepBased(28.sp, 40.sp, 1.sp),
+        )
 
         if (clase != null) {
             val enCurso = momento is Momento.EnCurso
@@ -576,9 +582,6 @@ private fun ContenidoDia(horario: EstadoHorario, d: Int) {
             }
             anterior = r
         }
-        if (delDia.isEmpty()) {
-            BasicText("Este día no tienes clases.", Modifier.padding(start = sangriaDia(), bottom = Espacio.xxs), style = l.texto)
-        }
         Row(
             Modifier
                 .padding(top = Espacio.xs)
@@ -655,7 +658,7 @@ private fun FilaClase(horario: EstadoHorario, s: Sesion) {
             if (lugar.isNotBlank()) BasicText(lugar, style = l.texto.copy(color = Paleta.suave), maxLines = 1, overflow = TextOverflow.Ellipsis)
             BasicText(
                 if (enCurso) "En curso · quedan ${duracion(s.fin - horario.ahora.minuto)}" else duracion(s.duracion),
-                style = l.dato.copy(fontSize = 12.sp, color = if (enCurso) Paleta.suave else Paleta.tenue),
+                style = l.dato.copy(color = if (enCurso) Paleta.suave else Paleta.tenue),
             )
         }
         // El «⋯» es la pista de que hay más: toda la fila abre el detalle. Va a la altura del nombre
@@ -679,7 +682,7 @@ private fun HoraConMeridiano(hora: String, mer: String, estilo: TextStyle, l: Le
     Row {
         // "10:00" a 21 sp ocupa casi todo el carril: si no cabe, sobresale hacia la izquierda en vez de partirse
         BasicText(hora, Modifier.weight(1f).alignByBaseline().wrapContentWidth(Alignment.End, unbounded = true), style = estilo, softWrap = false)
-        BasicText(mer, Modifier.width(18.dp).padding(start = 3.dp).alignByBaseline(), style = l.meridiano)
+        BasicText(mer, Modifier.width(22.dp).padding(start = 3.dp).alignByBaseline(), style = l.meridiano)
     }
 }
 

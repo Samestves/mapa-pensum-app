@@ -40,7 +40,7 @@ fun tonoDe(f: FiltroLista): Tono = when (f) {
  * no se vuelven a pintar.
  */
 
-/** Una materia: nombre; debajo, sus UC y lo que significa hoy */
+/** Una materia: nombre; debajo, sus UC y, si trae un dato, la nota (vacía cuando el icono ya lo dice todo) */
 data class FilaMateria(
     val codigo: String,
     val nombre: String,
@@ -48,7 +48,16 @@ data class FilaMateria(
     val situacion: Situacion,
     val nota: String,
     val tono: Tono,
-)
+) {
+    /** Lo que lee el lector de pantalla: la fila ya no escribe su estado, lo dice el icono */
+    val descripcion: String
+        get() = when (situacion) {
+            Situacion.HECHA -> "$nombre, Aprobada"
+            Situacion.CURSANDO -> "$nombre, Cursando"
+            Situacion.INSCRIBIBLE -> "$nombre, Puedes inscribirla"
+            Situacion.PROXIMA, Situacion.LEJANA -> if (nota.isEmpty()) "$nombre, Bloqueada" else "$nombre, Bloqueada. $nota"
+        }
+}
 
 /** Una casilla de electiva sin elegir: se toca para elegir */
 data class FilaCasilla(
@@ -86,19 +95,21 @@ data class ModeloLista(
     val actual: Int?,
 )
 
-/** Lo que dice una materia debajo de su nombre */
-fun notaDe(situacion: Situacion, faltan: List<String>): Pair<String, Tono> {
+/**
+ * Lo que dice una materia tras sus UC. El estado ya lo cuentan el icono y el
+ * color, así que la nota solo lleva un dato: lo que abre, lo que pide o cuándo.
+ */
+fun notaDe(situacion: Situacion, faltan: List<String>, abre: Int = 0): Pair<String, Tono> {
     val quien = when {
         faltan.isEmpty() -> ""
         faltan.size == 1 -> faltan[0]
         else -> "${faltan[0]} y ${faltan.size - 1} más"
     }
     return when (situacion) {
-        Situacion.HECHA -> "Aprobada" to Tono.TENUE
-        Situacion.CURSANDO -> "Cursando" to Tono.AMBAR
-        Situacion.INSCRIBIBLE -> "Puedes inscribirla" to Tono.AZUL
-        Situacion.PROXIMA -> (if (quien.isEmpty()) "Se abre el próximo semestre" else "Se abre al aprobar $quien") to Tono.TENUE
-        Situacion.LEJANA -> (if (quien.isEmpty()) "Bloqueada" else "Requiere $quien") to Tono.TENUE
+        Situacion.HECHA, Situacion.CURSANDO -> "" to Tono.TENUE
+        Situacion.INSCRIBIBLE -> (if (abre > 0) "Abre $abre" else "") to Tono.AZUL
+        Situacion.PROXIMA -> (if (quien.isEmpty()) "El próximo semestre" else "Pide $quien") to Tono.TENUE
+        Situacion.LEJANA -> (if (quien.isEmpty()) "" else "Pide $quien") to Tono.TENUE
     }
 }
 
@@ -131,7 +142,8 @@ fun modeloLista(
     fun fila(m: Asignatura): FilaMateria {
         val s = situaciones[m.codigo] ?: Situacion.LEJANA
         val faltan = m.prerrequisitos.filter { estados[it] != EstadoMateria.APROBADA }.map { nombreDe(it) ?: it }
-        val (nota, tono) = notaDe(s, faltan)
+        val abre = nodos.count { o -> m.codigo in o.prerrequisitos && estados[o.codigo] != EstadoMateria.APROBADA }
+        val (nota, tono) = notaDe(s, faltan, abre)
         return FilaMateria(m.codigo, m.nombre, m.uc, s, nota, tono)
     }
 

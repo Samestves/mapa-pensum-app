@@ -45,6 +45,7 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.vector.PathParser
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
@@ -55,6 +56,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
+import mpensum.componentes.estiloTitular
 import mpensum.componentes.Silueta
 import mpensum.componentes.esApaisado
 import mpensum.componentes.pulsable
@@ -83,6 +85,9 @@ private val MARGEN_LISTA = Espacio.xs
 
 /** El título baja hasta aquí antes de partirse: en 320 dp y con letra grande sigue entero */
 private val TITULO_MINIMO = 20.sp
+
+/** Lo que dice el botón mientras no hay carrera elegida: el color apagado ya dice que falta elegir */
+private const val APAGADO = "Empezar"
 
 /** Lo que respira el botón bajo él, y el fundido de la lista sobre él */
 private val BOTON_ABAJO = Espacio.xl + Espacio.hilo
@@ -159,7 +164,7 @@ private fun Titulo() {
             append("Elige tu carrera,\n")
             withStyle(SpanStyle(color = Paleta.azul)) { append("será tu inicio.") }
         },
-        style = TextStyle(fontFamily = jost(), fontSize = Tipo.gigante, lineHeight = 44.sp, fontWeight = FontWeight.Light, letterSpacing = (-0.02).em, color = Paleta.tinta),
+        style = estiloTitular(),
         softWrap = false,
         maxLines = 2,
         // Como en los otros pasos: en un teléfono estrecho la letra baja antes que partirse
@@ -351,15 +356,20 @@ private fun Boton(actual: Carrera?, texto: String, alPulsar: () -> Unit) {
             .drawBehind { drawRoundRect(Paleta.tinta.copy(alpha = 0.08f + 0.92f * b.value), cornerRadius = CornerRadius(size.height / 2f)) },
         contentAlignment = Alignment.Center,
     ) {
-        BasicText(
-            "Elige una carrera",
-            Modifier.graphicsLayer { alpha = (1f - 2f * b.value).coerceIn(0f, 1f) },
-            style = letra.copy(color = Paleta.apagada),
-        )
-        BasicText(
-            texto,
-            Modifier.graphicsLayer { alpha = (2f * b.value - 1f).coerceIn(0f, 1f) },
-            style = letra.copy(color = Paleta.lienzo),
-        )
+        if (texto == APAGADO) {
+            // Mismo texto en los dos estados: no se montan dos, solo cambia el color
+            BasicText(texto, style = letra.copy(color = lerp(Paleta.apagada, Paleta.lienzo, b.value)))
+        } else {
+            BasicText(
+                APAGADO,
+                Modifier.graphicsLayer { alpha = (1f - 2f * b.value).coerceIn(0f, 1f) },
+                style = letra.copy(color = Paleta.apagada),
+            )
+            BasicText(
+                texto,
+                Modifier.graphicsLayer { alpha = (2f * b.value - 1f).coerceIn(0f, 1f) },
+                style = letra.copy(color = Paleta.lienzo),
+            )
+        }
     }
 }

@@ -57,6 +57,8 @@ import mpensum.componentes.anchoCifraConUnidad
 import mpensum.componentes.baseJost
 import mpensum.componentes.dibujarCifraConUnidad
 import mpensum.componentes.estiloCifra
+import mpensum.carrera.estiloNota
+import mpensum.carrera.estiloTitulo
 import mpensum.componentes.estiloUnidad
 import mpensum.componentes.IconoTrazo
 import mpensum.componentes.Lucide
@@ -163,7 +165,7 @@ internal fun TuCarrera(
                     if (resumen != null || !cargando) {
                         Column(Modifier.align(Alignment.TopEnd).padding(top = 22.dp, end = Espacio.xl), horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(6.dp)) {
                             Cifra(resumen?.porcentaje ?: 0, 56.sp) { if (resumen != null) ENFATICA.transform(tramo(380f, 900f)) else 1f }
-                            BasicText(if (resumen != null) "APROBADO" else "SIN MARCAS", Modifier.renglon(14.dp, 11.sp), style = etiqueta(Paleta.suave))
+                            if (resumen != null) BasicText(avanceEnUc(resumen), style = estiloNota(), maxLines = 1)
                         }
                     }
                 }
@@ -172,13 +174,13 @@ internal fun TuCarrera(
             Column(Modifier.fillMaxWidth().padding(start = Espacio.xl, end = Espacio.xl, bottom = Espacio.l)) {
                 BasicText(
                     c?.nombreCorto ?: "Elige tu carrera",
-                    Modifier.renglon(38.dp, 32.sp),
-                    style = TextStyle(fontFamily = jost(), fontSize = Tipo.cifra, lineHeight = 38.sp, fontWeight = FontWeight.Light, letterSpacing = (-0.01).em, color = Paleta.tinta),
+                    Modifier.renglon(32.dp, 28.sp),
+                    style = estiloTitulo(),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                    autoSize = TextAutoSize.StepBased(20.sp, 32.sp, 1.sp),
+                    autoSize = TextAutoSize.StepBased(20.sp, 28.sp, 1.sp),
                 )
-                BasicText(c?.tipo?.uppercase() ?: "TOCA UNA DE LA DERECHA", Modifier.padding(top = Espacio.xxs).renglon(14.dp, 11.sp), style = etiqueta(Paleta.tenue), maxLines = 1)
+                if (c != null) BasicText(c.tipo.uppercase(), Modifier.padding(top = Espacio.xxs).renglon(14.dp, 11.sp), style = etiqueta(Paleta.tenue), maxLines = 1)
                 if (c != null) {
                     Box(Modifier.padding(top = Espacio.s).fillMaxWidth().height(1.dp).background(Paleta.tinta.copy(alpha = 0.08f)))
                     Row(
@@ -212,7 +214,7 @@ internal fun TuCarrera(
                     verticalArrangement = Arrangement.SpaceBetween,
                 ) {
                     Cifra(resumen?.porcentaje ?: 0) { if (resumen != null) ENFATICA.transform(tramo(380f, 900f)) else 1f }
-                    BasicText(if (resumen != null) "APROBADO" else "SIN MARCAS", Modifier.renglon(14.dp, 11.sp), style = etiqueta(Paleta.suave))
+                    if (resumen != null) BasicText(avanceEnUc(resumen), style = estiloNota(), maxLines = 1)
                 }
             }
         }
@@ -231,12 +233,15 @@ internal fun TuCarrera(
                     // Los nombres largos (o la letra del sistema grande) bajan de tamaño antes de cortar con "…"
                     autoSize = TextAutoSize.StepBased(17.sp, 24.sp, 1.sp),
                 )
-                BasicText(c?.tipo?.uppercase() ?: "TOCA UNA DE ABAJO", Modifier.padding(top = Espacio.xxs).renglon(14.dp, 11.sp), style = etiqueta(Paleta.suave), maxLines = 1)
+                if (c != null) BasicText(c.tipo.uppercase(), Modifier.padding(top = Espacio.xxs).renglon(14.dp, 11.sp), style = etiqueta(Paleta.suave), maxLines = 1)
             }
             if (c != null) Chip(if (resumen == null && !cargando) "Empezar" else "Continuar", acento)
         }
     }
 }
+
+/** Lo que explica el porcentaje: «62 / 153 UC» */
+private fun avanceEnUc(r: ResumenPortada) = "${r.llevas} / ${r.de} ${r.unidad}"
 
 /**
  * El dato de la tarjeta grande: lo que puedes inscribir (el azul de lo

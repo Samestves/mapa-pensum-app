@@ -243,8 +243,6 @@ fun FichaMateria(
     }
 }
 
-private val TITULO_SECCION get() = TextStyle(fontWeight = FontWeight.Medium, fontSize = 9.5.sp, letterSpacing = 0.26.em, color = Paleta.tenue)
-
 @Composable
 private fun CabeceraFicha(materia: Asignatura, estado: EstadoCarrera, alCerrar: () -> Unit) {
     val situacion = estado.situaciones[materia.codigo] ?: Situacion.LEJANA
@@ -263,7 +261,7 @@ private fun CabeceraFicha(materia: Asignatura, estado: EstadoCarrera, alCerrar: 
             }
             Column(Modifier.padding(start = Espacio.l, end = Espacio.l, top = Espacio.xs, bottom = Espacio.m)) {
                 Row(Modifier.padding(top = Espacio.xxs, end = 56.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Espacio.xs)) {
-                    BasicText(materia.semestre?.let { "SEMESTRE ${it.toString().padStart(2, '0')}" } ?: "ELECTIVA", style = TITULO_SECCION.copy(fontFamily = j))
+                    BasicText(materia.semestre?.let { "SEMESTRE $it" } ?: "ELECTIVA", style = estiloRotulo())
                     Box(Modifier.size(16.dp, 1.dp).background(BORDE_PANEL))
                     BasicText(materia.codigo, style = TextStyle(fontFamily = p, fontWeight = FontWeight.Light, fontSize = Tipo.xxs, letterSpacing = 0.04.em, color = Paleta.tenue))
                 }
@@ -277,7 +275,7 @@ private fun CabeceraFicha(materia: Asignatura, estado: EstadoCarrera, alCerrar: 
                     nombreArea(materia.area)?.let { BasicText(it, style = TextStyle(fontFamily = j, fontSize = Tipo.xs, color = Paleta.suave), maxLines = 1, overflow = TextOverflow.Ellipsis) }
                     BasicText("${materia.uc ?: 0} UC", style = TextStyle(fontFamily = p, fontWeight = FontWeight.Light, fontSize = Tipo.xxs, color = Paleta.tenue))
                     Spacer(Modifier.weight(1f))
-                    BasicText(palabra, style = TextStyle(fontFamily = j, fontWeight = FontWeight.Medium, fontSize = 9.5.sp, letterSpacing = 0.22.em, color = color))
+                    BasicText(palabra, style = estiloRotulo(color))
                 }
             }
         }
@@ -301,7 +299,7 @@ private fun Informacion(materia: Asignatura, estado: EstadoCarrera, alIrA: (Stri
     val requiere = relaciones.atras[materia.codigo].orEmpty().mapNotNull { porCodigo[it]?.asignatura }
     val desbloquea = relaciones.adelante[materia.codigo].orEmpty().mapNotNull { porCodigo[it]?.asignatura }
     AvisoSituacion(materia, requiere, estado)
-    ListaPrelaciones("REQUIERE", requiere, if (materia.requisitoEspecial != null) null else "Nada: puedes verla desde el inicio.", estado, alIrA)
+    ListaPrelaciones("REQUIERE", requiere, if (materia.requisitoEspecial != null) null else "Ninguna", estado, alIrA)
     materia.requisitoEspecial?.let { especial ->
         BasicText(
             buildAnnotatedString {
@@ -312,7 +310,7 @@ private fun Informacion(materia: Asignatura, estado: EstadoCarrera, alIrA: (Stri
             style = TextStyle(fontFamily = jost(), fontSize = TEXTO_AVISO, lineHeight = 17.sp, color = Paleta.suave),
         )
     }
-    ListaPrelaciones("DESBLOQUEA", desbloquea, "Nada: es final de rama.", estado, alIrA)
+    ListaPrelaciones("DESBLOQUEA", desbloquea, "Ninguna", estado, alIrA)
 }
 
 /** Quién falta, dicho con nombre: "A y B", o las dos primeras y cuántas quedan */
@@ -327,7 +325,7 @@ private fun AvisoSituacion(materia: Asignatura, requiere: List<Asignatura>, esta
     val situacion = estado.situaciones[materia.codigo] ?: Situacion.LEJANA
     val estilo = TextStyle(fontFamily = jost(), fontSize = TEXTO_AVISO, lineHeight = 17.sp, color = Paleta.suave)
     val (icono, texto) = when {
-        e == EstadoMateria.DISPONIBLE -> Situacion.INSCRIBIBLE to buildAnnotatedString { append("Puedes inscribirla: tienes aprobadas todas sus prelaciones.") }
+        // Disponible no lleva frase: la pastilla y el candado azul ya dicen que puedes inscribirla
         e != EstadoMateria.BLOQUEADA -> return
         else -> {
             val pendientes = requiere.filter { estado.estados[it.codigo] != EstadoMateria.APROBADA }
@@ -362,7 +360,7 @@ private fun ListaPrelaciones(titulo: String, materias: List<Asignatura>, vacio: 
     val j = jost()
     Column {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Espacio.s)) {
-            BasicText(titulo, style = TITULO_SECCION.copy(fontFamily = j, letterSpacing = 0.24.em))
+            BasicText(titulo, style = estiloRotulo())
             Box(Modifier.weight(1f).height(1.dp).background(BORDE_PANEL))
             BasicText("${materias.size}", style = TextStyle(fontFamily = plex(), fontWeight = FontWeight.Light, fontSize = Tipo.xxs, color = Paleta.tenue))
         }
@@ -404,7 +402,7 @@ private fun BotonCambiarElectiva(alPulsar: () -> Unit) {
             .clickable(role = Role.Button, onClick = alPulsar).heightIn(min = Alto.toque).padding(vertical = Espacio.xs),
         contentAlignment = Alignment.Center,
     ) {
-        BasicText("CAMBIAR ESTA ELECTIVA", style = TextStyle(fontFamily = jost(), fontWeight = FontWeight.Medium, fontSize = 9.5.sp, letterSpacing = 0.2.em, color = Paleta.suave))
+        BasicText("CAMBIAR ESTA ELECTIVA", style = estiloRotulo(Paleta.suave))
     }
 }
 

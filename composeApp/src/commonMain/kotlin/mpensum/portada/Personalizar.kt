@@ -162,11 +162,11 @@ private fun BloqueMovimiento(arriba: Dp) {
                 drawRoundRect(Paleta.tinta.copy(alpha = 0.065f), Offset(g / 2, g / 2), Size(size.width - g, size.height - g), CornerRadius(r - g / 2), style = Stroke(g))
             },
     ) {
-        FilaInterruptor("Luz de fondo", "Una luz suave desde arriba en la portada", luz ?: (Tema.juego.aurora > 0f), Preferencias::guardarLuzFondo)
+        FilaInterruptor("Luz de fondo", luz ?: (Tema.juego.aurora > 0f), Preferencias::guardarLuzFondo)
         Divisor()
-        FilaInterruptor("Reducir movimiento", "Menos animación, más fluida", reducir ?: animacionesQuitadas(), Preferencias::guardarReducirMovimiento)
+        FilaInterruptor("Reducir movimiento", reducir ?: animacionesQuitadas(), Preferencias::guardarReducirMovimiento)
         Divisor()
-        FilaInterruptor("Códigos en el mapa", "El código de cada materia", codigos, Preferencias::guardarCodigos)
+        FilaInterruptor("Códigos en el mapa", codigos, Preferencias::guardarCodigos)
     }
 }
 
@@ -221,9 +221,9 @@ private fun BloqueLigero() {
         OpcionTexto("No", null, ligero == false, Modifier.weight(1f)) { Preferencias.guardarModoLigero(false) }
     }
     val explica = when (ligero) {
-        null -> if (telefonoModesto()) "Activo en este teléfono: sin desenfoque ni luces en bucle" else "Apagado en este teléfono: va sobrado"
-        true -> "Sin desenfoque ni luces en bucle: el mapa va más suelto"
-        false -> "Todo el cristal y las luces, aunque el teléfono vaya justo"
+        null -> if (telefonoModesto()) "Activo: sin desenfoque" else "Apagado"
+        true -> "Activo: sin desenfoque"
+        false -> "Todo el cristal y las luces"
     }
     BasicText(
         explica,
@@ -281,9 +281,9 @@ private fun Divisor() {
     Box(Modifier.padding(start = Espacio.m).fillMaxWidth().height(1.dp).background(Paleta.borde))
 }
 
-/** Una fila con su interruptor: el título en Jost, lo que hace debajo y el interruptor a la derecha */
+/** Una fila con su interruptor: el título en Jost y el interruptor a la derecha; el título solo ya dice lo que hace */
 @Composable
-private fun FilaInterruptor(titulo: String, texto: String, activo: Boolean, alCambiar: (Boolean) -> Unit) {
+private fun FilaInterruptor(titulo: String, activo: Boolean, alCambiar: (Boolean) -> Unit) {
     Row(
         Modifier
             .fillMaxWidth()
@@ -292,10 +292,7 @@ private fun FilaInterruptor(titulo: String, texto: String, activo: Boolean, alCa
             .padding(start = Espacio.m, end = Espacio.m, top = Espacio.xs, bottom = Espacio.xs),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Column(Modifier.weight(1f).padding(end = Espacio.s)) {
-            BasicText(titulo, style = TextStyle(fontFamily = jost(), fontWeight = FontWeight.Light, fontSize = Tipo.xl, lineHeight = 22.sp, letterSpacing = (-0.01).em, color = Paleta.tinta))
-            BasicText(texto, Modifier.padding(top = Espacio.hilo), style = TextStyle(fontFamily = inter(), fontSize = Tipo.s, lineHeight = 18.sp, color = Paleta.tenue))
-        }
+        BasicText(titulo, Modifier.weight(1f).padding(end = Espacio.s), style = TextStyle(fontFamily = jost(), fontWeight = FontWeight.Light, fontSize = Tipo.xl, lineHeight = 22.sp, letterSpacing = (-0.01).em, color = Paleta.tinta))
         Interruptor(activo)
     }
 }

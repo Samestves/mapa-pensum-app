@@ -98,7 +98,7 @@ class QaAppTest {
         correr(1500)
         // En el último paso Saltar ya no está, y el botón espera apagado
         assertEquals(0, regla.onAllNodesWithText("Saltar").fetchSemanticsNodes().size)
-        regla.onNodeWithText("Elige una carrera").assertExists()
+        regla.onNodeWithText("Elige tu carrera", substring = true).assertExists()
         regla.onNodeWithText("Petróleo").performClick()
         correr(800)
         regla.onNodeWithText("Empezar").performClick()
@@ -117,7 +117,7 @@ class QaAppTest {
         correr(1500)
         regla.onNodeWithText("Saltar").performClick()
         correr(1200)
-        regla.onNodeWithText("Elige una carrera").assertExists()
+        regla.onNodeWithText("Elige tu carrera", substring = true).assertExists()
         // Atrás del sistema en el paso 4 vuelve al 3, no cierra la actividad
         atras()
         assertTrue(!regla.activity.isFinishing)
@@ -130,7 +130,7 @@ class QaAppTest {
         correr(3000)
         regla.onNodeWithContentDescription("Ajustes y ayuda").performClick()
         correr(900)
-        regla.onNodeWithText("Ver la guía otra vez").performClick()
+        regla.onNodeWithText("Ver la guía").performClick()
         correr(1500)
         // La guía llega con tu carrera ya elegida en su último paso; Atrás desde el primer paso vuelve a la portada
         regla.onNodeWithText("Saltar").assertExists()
@@ -147,7 +147,7 @@ class QaAppTest {
         correr(3000)
         regla.onNodeWithContentDescription("Ajustes y ayuda").performClick()
         correr(900)
-        regla.onNodeWithText("Ver la guía otra vez").performClick()
+        regla.onNodeWithText("Ver la guía").performClick()
         correr(1500)
         regla.onNodeWithText("Saltar").performClick()
         correr(1500)
@@ -305,7 +305,7 @@ class QaAppTest {
         interiorDeSistemas()
         regla.onNodeWithContentDescription("Horario").performClick()
         correr(900)
-        regla.onNodeWithText("Crearlo manualmente").performClick()
+        regla.onNodeWithText("Crear a mano").performClick()
         hasta("la hoja de nueva clase") { textos("NUEVA CLASE") == 1 }
         // Sin materia elegida el botón no hace nada
         regla.onNodeWithText("Añadir clase").performClick()

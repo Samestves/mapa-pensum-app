@@ -47,12 +47,15 @@ class ListaTest {
     @Test
     fun loQueDiceCadaFila() {
         val quinto = modelo(pensum("ingenieria-de-sistemas")).secciones[4].materias.associateBy { it.codigo }
-        assertEquals("Cursando", quinto.getValue("0624622").nota)
-        assertEquals("Puedes inscribirla", quinto.getValue("0713172").nota)
+        // El estado lo dicen el icono y el color: la nota solo trae un dato
+        assertEquals("", quinto.getValue("0624622").nota)
+        assertEquals("Cursando", quinto.getValue("0624622").descripcion.substringAfter(", "))
+        assertEquals("Abre 1", quinto.getValue("0713172").nota)
+        assertEquals("Puedes inscribirla", quinto.getValue("0713172").descripcion.substringAfter(", "))
         val sexto = modelo(pensum("ingenieria-de-sistemas")).secciones[5].materias.associateBy { it.codigo }
         // Análisis de Decisiones pide Inferencia, que estás cursando: se abre el semestre que viene
-        assertEquals("Se abre al aprobar Inferencia y Diseño de Experimentos", sexto.getValue("0713653").nota)
-        assertEquals("Requiere Sistemas de Costo", sexto.getValue("0713113").nota)
+        assertEquals("Pide Inferencia y Diseño de Experimentos", sexto.getValue("0713653").nota)
+        assertEquals("Pide Sistemas de Costo", sexto.getValue("0713113").nota)
     }
 
     @Test
