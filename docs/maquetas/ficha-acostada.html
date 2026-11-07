@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Ficha acostada · burbuja o pantalla completa</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,100..900&family=Jost:wght@100..900&family=IBM+Plex+Mono:wght@300&display=block" rel="stylesheet">
+<style>
+/* Copiado de ficha-mapa.html: página, paleta Acero oscuro, escala tipográfica, iconos y piezas de la hoja */
+/* ============ La página (presentación; no es la app) ============ */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #E6E7E9; color: #050608; font-family: Inter, sans-serif; font-optical-sizing: none; padding: 56px 40px 80px; -webkit-font-smoothing: antialiased; }
+.pagina { width: 1620px; margin: 0 auto; }
+.portada h1 { font: 300 40px/44px Jost; letter-spacing: -.01em; }
+.portada p { font: 400 15px/22px Inter; letter-spacing: -.009em; color: #34383E; margin-top: 12px; max-width: 1060px; }
+.portada b, .porque b, .texto b { font-weight: 500; color: #050608; }
+.bloque { margin-top: 64px; }
+.bloque > h2 { font: 500 11px/16px Inter; letter-spacing: .08em; text-transform: uppercase; color: #52565C; margin-bottom: 20px; }
+.fila { display: flex; gap: 40px; align-items: flex-start; }
+.op { width: 375px; flex: none; }
+.op > h3 { font: 500 15px/20px Inter; letter-spacing: -.009em; display: flex; align-items: center; gap: 8px; }
+.op > p { font: 400 13px/18px Inter; color: #34383E; margin: 4px 0 16px; min-height: 72px; }
+.op > p b { font-weight: 500; color: #050608; }
+.sello { font: 500 11px/16px Inter; letter-spacing: .08em; text-transform: uppercase; color: #fff; background: #1A47C2; border-radius: 10px; padding: 2px 8px; }
+.porque { margin-top: 28px; font: 400 15px/22px Inter; letter-spacing: -.009em; color: #1C1F23; max-width: 1240px; }
+.medida { position: absolute; z-index: 9; font: 500 11px/14px Inter; letter-spacing: .02em; color: #fff; background: #1A47C2; border-radius: 6px; padding: 3px 7px; white-space: nowrap; }
+.guia { position: absolute; z-index: 9; border: 0 dashed rgb(26 71 194 / .9); }
+
+/* ============ Paleta Acero · Oscuro ============ */
+.osc { --lienzo:#0B0C0E; --panel:#121316; --tinta:#ECEEF1; --suave:#B6BBC2; --tenue:#858B94; --apagada:#5D636C; --azul:#5B8AF5; --verde:#2EC27E; --rojo:#E5403A;
+       --t: 236 238 241; --a: 91 138 245; --r: 229 64 58;
+       --sup: rgb(var(--t) / .05); --hilo: rgb(var(--t) / .09); --pas: rgb(var(--t) / .08); --pend: rgb(var(--t) / .16); --pas-azul: rgb(var(--a) / .16);
+       color: var(--tinta); }
+
+/* ============ El teléfono ============ */
+.tel { width: 375px; height: 812px; position: relative; overflow: hidden; border-radius: 44px; background: var(--lienzo); box-shadow: 0 0 0 1px rgb(0 0 0 / .07), 0 32px 64px -28px rgb(0 0 0 / .32); }
+.tel-h { width: 915px; height: 412px; position: relative; overflow: hidden; border-radius: 36px; background: var(--lienzo); box-shadow: 0 0 0 1px rgb(0 0 0 / .1), 0 30px 60px -28px rgb(0 0 0 / .4); }
+svg.mapa { position: absolute; inset: 0; display: block; }
+.sis { position: absolute; top: 0; left: 0; right: 0; height: 32px; display: flex; align-items: center; justify-content: space-between; padding: 0 24px 0 28px; font: 500 13px/1 Inter; color: var(--tinta); z-index: 6; font-feature-settings: 'tnum'; }
+.sis .der { display: flex; gap: 6px; align-items: center; }
+.velo-sis { position: absolute; top: 0; left: 0; right: 0; height: 64px; background: linear-gradient(rgb(11 12 14 / .9), rgb(11 12 14 / 0)); z-index: 5; pointer-events: none; }
+.gestos { position: absolute; bottom: 8px; left: 50%; width: 108px; height: 4px; margin-left: -54px; border-radius: 2px; background: rgb(var(--t) / .55); z-index: 8; }
+.tel-h .gestos { width: 96px; margin-left: -48px; bottom: 6px; }
+
+/* ============ Escala tipográfica (roles de docs/reglas-diseno.md) ============ */
+.rot { font: 500 11px/16px Inter; letter-spacing: .08em; text-transform: uppercase; color: var(--tenue); font-feature-settings: 'tnum'; }
+.disp { font: 300 28px/32px Jost; letter-spacing: -.005em; color: var(--tinta); }
+.tt { font: 500 15px/20px Inter; letter-spacing: -.009em; color: var(--tinta); }
+.cuerpo { font: 400 15px/20px Inter; letter-spacing: -.009em; color: var(--suave); }
+.nota { font: 400 13px/16px Inter; letter-spacing: -.003em; color: var(--tenue); font-feature-settings: 'tnum'; }
+.nota b, .cuerpo b { font-weight: 500; color: var(--tinta); }
+.cod { font: 300 11px/16px 'IBM Plex Mono'; color: var(--tenue); letter-spacing: .02em; }
+.cifra { font-family: Inter; font-feature-settings: 'tnum'; color: var(--tinta); white-space: nowrap; }
+.c24 { font-size: 24px; line-height: 28px; font-weight: 300; letter-spacing: -.015em; font-variation-settings: 'opsz' 32; }
+.c20 { font-size: 20px; line-height: 24px; font-weight: 300; letter-spacing: -.01em; font-variation-settings: 'opsz' 20; }
+.u { font-weight: 400; color: var(--tenue); letter-spacing: 0; margin-left: 2px; font-size: 11px; font-variation-settings: 'opsz' 14; }
+.azul { color: var(--azul) !important; }
+.rojo { color: var(--rojo) !important; }
+.mt4 { margin-top: 4px; } .mt8 { margin-top: 8px; } .mt12 { margin-top: 12px; } .mt16 { margin-top: 16px; } .mt20 { margin-top: 20px; } .mt24 { margin-top: 24px; }
+
+/* ============ Iconos ============ */
+svg.i { fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; flex: none; display: block; }
+svg.est { flex: none; display: block; }
+.redondo { width: 36px; height: 36px; border-radius: 18px; background: var(--pas); color: var(--suave); display: grid; place-items: center; flex: none; }
+.pas { width: 32px; height: 32px; border-radius: 8px; background: var(--pas); color: var(--tinta); display: grid; place-items: center; flex: none; }
+.pas.azul { background: var(--pas-azul); }
+
+/* ============ Piezas comunes de la hoja ============ */
+.tarjeta { background: var(--sup); border-radius: 24px; }
+.f { display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 0 16px; position: relative; }
+.f.c56 { min-height: 56px; }
+.f.c48 { min-height: 48px; }
+.f + .f::before { content: ''; position: absolute; top: 0; left: 60px; right: 0; height: 1px; background: var(--hilo); }
+.f .t { flex: 1; min-width: 0; padding: 10px 0; }
+.f .t > span { display: block; }
+.ch { color: var(--apagada); }
+
+/* ============ La ficha: hoja pegada abajo, a todo el ancho ============ */
+.hojaF { position: absolute; left: 0; right: 0; bottom: 0; z-index: 7; background: var(--panel); border-radius: 28px 28px 0 0; padding: 0 20px 36px;
+         box-shadow: inset 0 1px 0 rgb(var(--t) / .12); }
+.hojaF::before { content: ''; position: absolute; left: 0; right: 0; top: -40px; height: 40px; background: linear-gradient(rgb(0 0 0 / 0), rgb(0 0 0 / .32)); pointer-events: none; }
+.hojaF .asa { width: 32px; height: 4px; border-radius: 2px; background: rgb(var(--t) / .28); margin: 8px auto 8px; }
+.fcab { display: flex; align-items: center; justify-content: space-between; height: 36px; }
+.fcab-t { display: flex; align-items: baseline; gap: 8px; }
+.ftit { font: 300 28px/32px Jost; letter-spacing: -.005em; color: var(--tinta); margin-top: 2px; text-wrap: balance; }
+.fmeta { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 10px; min-height: 24px; }
+.pildora { display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 9px 0 6px; border-radius: 6px; background: var(--pas); font: 500 11px/16px Inter; letter-spacing: .08em; text-transform: uppercase; color: var(--suave); flex: none; }
+.pildora.D { background: var(--pas-azul); color: var(--azul); }
+.pildora.C { background: none; box-shadow: inset 0 0 0 1.5px var(--tinta); color: var(--tinta); }
+.pildora.H { color: var(--tinta); }
+.pildora.E { background: none; border: 1.5px dashed rgb(var(--t) / .3); padding: 0 8px 0 5px; color: var(--suave); }
+
+/* Pide y Abre: una fila por materia, el rótulo solo en la primera de cada grupo; tocarla lleva a ella */
+.rel { padding: 2px 0; }
+.rel .r { display: grid; grid-template-columns: 36px 16px minmax(0, 1fr) 16px; column-gap: 10px; align-items: center; min-height: 48px; padding: 6px 12px 6px 16px; position: relative; }
+.rel .r.grupo::before { content: ''; position: absolute; top: 0; left: 16px; right: 0; height: 1px; background: var(--hilo); }
+.rel .r .tt { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.rel .r .tt.ten { color: var(--suave); font-weight: 400; }
+
+/* Botones: 52 dp, radio 26; uno lleno (el siguiente paso) y otro de superficie */
+.botones { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 16px; }
+.botones.uno { grid-template-columns: 1fr; }
+.btn { height: 52px; border-radius: 26px; display: flex; flex-direction: column; align-items: center; justify-content: center; font: 500 15px/20px Inter; letter-spacing: -.009em; white-space: nowrap; }
+.btn .sub { font: 400 13px/16px Inter; letter-spacing: -.003em; font-feature-settings: 'tnum'; }
+.btn.prim { background: var(--tinta); color: var(--panel); }
+.btn.prim .sub { color: rgb(18 19 22 / .6); }
+.btn.sec { background: var(--pas); color: var(--tinta); }
+.btn.sec .sub { color: var(--azul); }
+
+/* B · el selector de tres: pista 52 r26, lente 44 r22 (concéntricos) */
+.seg { position: relative; height: 52px; border-radius: 26px; background: var(--sup); display: grid; grid-template-columns: repeat(3, 1fr); padding: 4px; margin-top: 12px; }
+.seg .lente { position: absolute; top: 4px; bottom: 4px; left: 4px; width: calc((100% - 8px) / 3); border-radius: 22px; background: rgb(var(--t) / .1); box-shadow: inset 0 0 0 1px rgb(var(--t) / .14); }
+.seg .o { position: relative; display: flex; align-items: center; justify-content: center; gap: 6px; font: 500 15px/20px Inter; letter-spacing: -.009em; color: var(--suave); }
+.seg .o.act { color: var(--tinta); }
+.efecto { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 16px; }
+
+/* C · la línea de estado: tres paradas */
+.linea3 { position: relative; display: grid; grid-template-columns: repeat(3, 1fr); margin-top: 18px; }
+.linea3::before { content: ''; position: absolute; top: 21px; left: 16.66%; right: 16.66%; height: 1.5px; background: rgb(var(--t) / .16); }
+.linea3 .p { position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.linea3 .n { width: 44px; height: 44px; border-radius: 22px; display: grid; place-items: center; background: var(--panel); }
+.linea3 .n i { width: 28px; height: 28px; border-radius: 14px; display: grid; place-items: center; box-shadow: inset 0 0 0 1.5px rgb(var(--t) / .22); background: var(--panel); }
+.linea3 .p.act .n i { box-shadow: none; background: rgb(var(--t) / .12); }
+.linea3 .p .nota { color: var(--tenue); }
+.linea3 .p.act .nota { color: var(--tinta); font-weight: 500; }
+.camino { position: relative; }
+.camino .f { min-height: 48px; }
+.camino .f + .f::before { display: none; }
+.camino .via { position: absolute; left: 31px; top: 24px; bottom: 24px; width: 1.5px; background: rgb(var(--t) / .2); }
+.camino .nodo { width: 32px; height: 32px; display: grid; place-items: center; flex: none; position: relative; z-index: 1; }
+.camino .nodo i { width: 12px; height: 12px; border-radius: 6px; box-shadow: inset 0 0 0 1.5px rgb(var(--t) / .5); background: var(--panel); display: block; }
+.camino .nodo.az i { width: 14px; height: 14px; border-radius: 7px; background: var(--azul); box-shadow: 0 0 0 4px rgb(var(--a) / .2); }
+.camino .per { font: 400 13px/16px Inter; color: var(--tenue); font-feature-settings: 'tnum'; white-space: nowrap; }
+
+/* Casilla: la hoja es el selector */
+.radio { width: 22px; height: 22px; border-radius: 11px; box-shadow: inset 0 0 0 1.5px rgb(var(--t) / .3); flex: none; margin: 0 5px; }
+.buscar { height: 44px; border-radius: 22px; background: var(--sup); display: flex; align-items: center; gap: 8px; padding: 0 16px; color: var(--tenue); }
+.desv { position: absolute; left: 0; right: 0; bottom: 0; height: 72px; background: linear-gradient(rgb(18 19 22 / 0), var(--panel) 70%); pointer-events: none; z-index: 2; }
+
+/* ============ Acostado ============ */
+.franja { position: absolute; left: 0; right: 0; bottom: 0; z-index: 7; background: var(--panel); border-radius: 28px 28px 0 0; box-shadow: inset 0 1px 0 rgb(var(--t) / .12); padding: 0 28px 22px; }
+.franja::before { content: ''; position: absolute; left: 0; right: 0; top: -36px; height: 36px; background: linear-gradient(rgb(0 0 0 / 0), rgb(0 0 0 / .3)); pointer-events: none; }
+.franja .asa { width: 32px; height: 4px; border-radius: 2px; background: rgb(var(--t) / .28); margin: 8px auto 8px; }
+.franja .g { display: grid; grid-template-columns: 276px 1px minmax(0, 1fr) 232px; column-gap: 24px; align-items: stretch; }
+.franja .sep { background: var(--hilo); margin: 2px 0; }
+.franja .ftit { font-size: 24px; line-height: 28px; }
+.franja .botones { grid-template-columns: 1fr; margin-top: 0; }
+.pantallaC { position: absolute; inset: 0; background: var(--panel); padding: 20px 28px 0; z-index: 4; }
+.carril { position: relative; }
+
+/* ============ Panel de texto (cámara, movimiento, rendimiento) ============ */
+.algo { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+.algo > div { background: #fff; border-radius: 24px; padding: 22px 24px; box-shadow: 0 0 0 1px rgb(0 0 0 / .07); }
+.algo h4 { font: 300 22px/26px Jost; margin-bottom: 8px; }
+.algo p, .texto p { font: 400 13px/19px Inter; color: #34383E; }
+.algo p + p { margin-top: 8px; }
+.algo b { font-weight: 500; color: #050608; }
+.algo code { font: 300 12px/18px 'IBM Plex Mono'; color: #050608; background: #EEF0F2; border-radius: 4px; padding: 1px 4px; }
+.texto { width: 665px; flex: none; }
+.texto h3 { font: 500 20px/26px Inter; letter-spacing: -.01em; display: flex; align-items: center; gap: 10px; }
+.texto p { margin-top: 10px; font-size: 14px; line-height: 21px; }
+.texto ul { margin: 10px 0 0 18px; font: 400 14px/21px Inter; color: #34383E; }
+.texto li + li { margin-top: 4px; }
+
+/* Modelos de botones */
+.muestras { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; }
+.muestra { background: var(--panel); border-radius: 28px; padding: 20px 20px 22px; }
+.muestra h4 { font: 500 15px/20px Inter; color: var(--tinta); display: flex; align-items: center; gap: 8px; }
+.muestra .estado { display: flex; align-items: center; gap: 8px; margin-top: 18px; }
+.muestra .botones { margin-top: 8px; }
+
+/* ============ Esta maqueta ============ */
+.pagina { width: 1870px; }
+.rejilla { display: grid; grid-template-columns: 915px 915px; gap: 48px 40px; }
+.oph > h3 { font: 500 15px/20px Inter; letter-spacing: -.009em; display: flex; align-items: center; gap: 8px; }
+.oph > p { font: 400 13px/18px Inter; color: #34383E; margin: 4px 0 14px; max-width: 880px; min-height: 36px; }
+.oph > p b { font-weight: 500; color: #050608; }
+.algo.c4 { grid-template-columns: repeat(4, 1fr); }
+
+/* La burbuja: un solo dibujo (cuerpo + punta), filo de 1 dp y sombra corta, sin desenfoque */
+.burbuja { position: absolute; z-index: 7; width: 320px; background: var(--panel); border-radius: 28px; padding: 14px 16px 12px;
+           box-shadow: 0 0 0 1px rgb(var(--t) / .16), 0 2px 6px rgb(0 0 0 / .4); }
+.punta { position: absolute; left: -12px; width: 13px; height: 22px; overflow: visible; }
+.punta.der { left: auto; right: -12px; transform: scaleX(-1); }
+.bcab { display: flex; align-items: baseline; gap: 8px; height: 16px; }
+.btit { font: 300 22px/26px Jost; letter-spacing: -.005em; color: var(--tinta); margin-top: 4px; }
+.bmeta { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 8px; min-height: 24px; }
+.bres { display: flex; align-items: center; gap: 12px; margin-top: 12px; padding: 10px 0; border-top: 1px solid var(--hilo); }
+.bres .t > span { display: block; }
+.bpa { border-top: 1px solid var(--hilo); }
+.bpa .r { display: grid; grid-template-columns: 36px 16px minmax(0, 1fr) 16px; column-gap: 10px; align-items: center; height: 44px; }
+.bpa .r + .r { border-top: 1px solid var(--hilo); }
+.bpa .n { color: var(--suave); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bpa .n.fuerte { color: var(--tinta); font-weight: 500; }
+.bbot { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 4px -4px 0; }
+.bbot .btn { height: 48px; border-radius: 16px; font-size: 14px; }
+.bbot .btn .sub { font-size: 12px; line-height: 15px; }
+.cota { position: absolute; z-index: 9; border: 0 dashed rgb(26 71 194 / .95); }
+
+/* Pantalla completa */
+.pc { position: absolute; inset: 0; background: var(--panel); z-index: 4; padding: 28px 28px 0 28px; }
+.pc .barra { display: flex; align-items: center; gap: 12px; height: 44px; }
+.pc .g { display: grid; grid-template-columns: 260px 1px minmax(0, 1fr) 216px; column-gap: 24px; margin-top: 20px; }
+.pc .ftit { font-size: 32px; line-height: 36px; margin-top: 0; }
+.pc .botones { grid-template-columns: 1fr; margin-top: 0; }
+</style>
+</head>
+<body>
+<div class="pagina">
+
+<header class="portada">
+  <h1>La ficha acostada: burbuja o pantalla completa</h1>
+  <p>Acostado (915 × 412) hay poco alto y mucho ancho. Dos ideas de Sam, con las mismas piezas que la ficha de pie elegida («Siguiente paso»): <b>una burbuja</b> que sale de la tarjeta tocada con su punta, o <b>la ficha a pantalla completa</b>. Caso real de <b>Ingeniería de Sistemas</b>: Sistemas de Costo, disponible, 2 UC de Gestión; pide Introducción a la Economía (aprobada) y abre Economía de Empresas. Grado en Dic 2029.</p>
+</header>
+
+<section class="bloque">
+  <h2>1 · Burbuja · 915 × 412 · dos variantes, tarjeta en el centro y cerca de un borde</h2>
+  <div class="rejilla">
+    <div class="oph">
+      <h3>Mínima · tarjeta en el centro</h3>
+      <p>Quién es, la respuesta para tu fecha y los dos botones. Sale por la derecha, a la altura de la tarjeta; la punta apunta al centro de la tarjeta. <b>Tapa la columna de al lado</b> (aquí, lo que abre).</p>
+      <div class="tel-h osc" data-b="min-centro"></div>
+    </div>
+    <div class="oph">
+      <h3>Mínima · cerca del borde</h3>
+      <p>No cabe a la derecha: <b>cambia de lado</b>. Arriba choca con la barra de estado, así que el cuerpo se queda en su límite y <b>la punta se desliza</b> para seguir apuntando a la tarjeta.</p>
+      <div class="tel-h osc" data-b="min-borde"></div>
+    </div>
+    <div class="oph">
+      <h3>Con Pide · Abre <span class="sello">Recomendada</span></h3>
+      <p>Lo mismo y dos filas de 44 (una por grupo; «y N más» si hay varias). Devuelve lo que la burbuja tapa y <b>lleva a esa materia</b>: la burbuja salta y la cámara la sigue.</p>
+      <div class="tel-h osc" data-b="pa-centro"></div>
+    </div>
+    <div class="oph">
+      <h3>Con Pide · Abre · cerca del borde</h3>
+      <p>Mide <b data-h="pa-borde">—</b> de los 364 que caben: es casi la burbuja más alta que se permite sin desplazar por dentro. Lado y punta siguen la misma regla.</p>
+      <div class="tel-h osc" data-b="pa-borde"></div>
+    </div>
+  </div>
+</section>
+
+<section class="bloque">
+  <h2>La burbuja · medidas y comportamiento</h2>
+  <div class="algo c4">
+    <div><h4>Medidas</h4><p><b>Ancho 320 dp</b>, igual en las dos variantes. <b>Alto</b> el del contenido: mínima <b data-h="min-centro">—</b>, con Pide · Abre <b data-h="pa-centro">—</b>. <b>Tope 364</b> (alto de pantalla − barra de estado 24 − 12 − 12); lo que no cabe se desplaza dentro.</p><p>Radio 28; relleno 16 a los lados, 14 arriba. Botones de 48 con radio 16 a 12 del filo (16 + 12 = 28, concéntricos). Punta de 22 de base y 12 de largo, con la punta y la base redondeadas.</p></div>
+    <div><h4>Dónde sale</h4><p><b>Separación:</b> la punta queda a 8 dp de la tarjeta (4 más allá del aro de selección); el cuerpo, a 20.</p><p>Sale <b>por el lado con más sitio</b> (a la derecha si cabe). Nunca arriba ni abajo: acostado no caben. En vertical se centra en la tarjeta y se encaja entre 12 bajo la barra de estado y 20 sobre el borde. La punta se queda en el centro de la tarjeta y se desliza, a 40 como mínimo de una esquina (radio 28 + media base).</p></div>
+    <div><h4>Cámara</h4><p>Si tarjeta y burbuja caben en la zona segura (16 a los lados, contando el riel; 12 bajo la barra de estado), <b>la cámara no se mueve</b>.</p><p>Si no, se desliza <b>lo justo</b> para que quepan (mismo resorte, ~300 ms), con la burbuja ya colocada en su lado: <code>camara.mostrar(caja ∪ cajaBurbuja, márgenes)</code>. <b>Nunca acerca ni aleja.</b></p></div>
+    <div><h4>Tocar otra tarjeta</h4><p>La burbuja <b>no se cierra</b>: salta a la nueva (lado y punta se recalculan) y el contenido entra con un fundido de 150 ms, creciendo desde la punta (escala 0,96 → 1). Si hace falta cámara, viajan juntas.</p><p>Una fila de Pide o Abre hace lo mismo: así se recorren varias materias seguidas sin cerrar nada.</p></div>
+    <div><h4>Tocar fuera · Atrás</h4><p>Tocar el mapa vacío <b>cierra</b> (120 ms, escala 0,96 hacia la punta y alfa a 0) y ese toque no hace nada más. Atrás también cierra. Sin X y sin velo: la burbuja no es modal, el mapa sigue vivo.</p></div>
+    <div><h4>Arrastrar el mapa</h4><p>La burbuja <b>va pegada a su tarjeta</b>: solo cambia su traslación en la capa, leyendo la cámara en la fase de dibujo. Lado y punta se quedan fijos mientras dura el gesto y se recolocan al soltar.</p><p>Si la tarjeta sale más de la mitad de la pantalla, se cierra. <b>Pellizcar la cierra</b> al empezar.</p></div>
+    <div><h4>Marcar</h4><p>«La estoy cursando»: la píldora y los botones se funden en 150 ms (háptico <code>SegmentTick</code>); la burbuja no se mueve. «Ya la aprobé»: se cierra y la cámara enciende lo que abre, el camino que ya tiene <code>alMarcar</code>.</p></div>
+    <div><h4>Rendimiento (gama baja)</h4><p>Un solo <code>Path</code> (rectángulo redondeado + punta) pintado en <code>drawBehind</code>: relleno del panel, filo de 1 dp y una sombra corta de 2 dp. <b>Sin desenfoque, sin <code>hazeEffect</code> y sin <code>Popup</code></b>: una ventana aparte se queda un cuadro atrás al arrastrar.</p></div>
+  </div>
+</section>
+
+<section class="bloque">
+  <h2>2 · Pantalla completa · 915 × 412 · las mismas piezas</h2>
+  <div class="fila">
+    <div class="tel-h osc" data-b="completa"></div>
+    <div class="texto">
+      <h3>Pantalla completa</h3>
+      <p>La ficha de pie con más aire: el nombre en 32, la respuesta y Pide · Abre en sus tarjetas (filas de 48, todas las materias), y los botones de 52 apilados. Entra desde abajo como las demás hojas acostadas (~350 ms) y se cierra con la X o Atrás.</p>
+      <ul>
+        <li>A favor: todo legible y sin cortar; cabe cualquier materia, también Trabajo de Grado.</li>
+        <li>En contra: <b>tapa el mapa entero</b>. Revisar cinco materias seguidas son cinco aperturas y cinco cierres, y se pierde de vista dónde estaba cada una.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="bloque">
+  <h2>3 · La recomendada</h2>
+  <p class="porque" style="margin-top:0"><span class="sello">Recomendada</span>&nbsp; <b>Burbuja con Pide · Abre:</b> quien revisa varias materias seguidas toca una tras otra (o salta por Pide y Abre) sin cerrar nada y sin perder el mapa; la pantalla completa obliga a abrir y cerrar cada vez.</p>
+</section>
+
+</div>
+
+<script>
+/* Copiado de ficha-mapa.html: iconos, pensum real, el mapa y las piezas de la hoja */
+/* ---------- Iconos Lucide (rejilla de 24); el trazo se ajusta para medir 1,5 dp ---------- */
+const IC = {
+  'x': '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
+  'link': '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
+  'rotate-ccw': '<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>',
+  'calendar': '<path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/>',
+  'hourglass': '<path d="M5 22h14"/><path d="M5 2h14"/><path d="M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22"/><path d="M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2"/>',
+  'graduation-cap': '<path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/>',
+  'users': '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+  'search': '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
+  'map': '<path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z"/><path d="M15 5.764v15"/><path d="M9 3.236v15"/>',
+  'chevron-right': '<path d="m9 18 6-6-6-6"/>',
+  'chevron-up': '<path d="m18 15-6-6-6 6"/>',
+  'arrow-right': '<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>',
+};
+const f2 = n => +(+n).toFixed(2);
+const ico = (n, s = 18, cls = '') => `<svg class="i ${cls}" width="${s}" height="${s}" viewBox="0 0 24 24" style="stroke-width:${f2(1.5 * 24 / s)}" aria-hidden="true">${IC[n]}</svg>`;
+
+/* ---------- Iconos de estado (Iconos.kt, rejilla de 20) ---------- */
+const LIBRO = 'M10 6.1C8.3 4.85 6.3 4.35 4 4.5v9.9c2.3-.15 4.3.35 6 1.6 1.7-1.25 3.7-1.75 6-1.6V4.5c-2.3-.15-4.3.35-6 1.6z';
+const CUERPO = 'M6.5 9h7a2.25 2.25 0 0 1 2.25 2.25v3.75a2.25 2.25 0 0 1-2.25 2.25h-7a2.25 2.25 0 0 1-2.25-2.25v-3.75a2.25 2.25 0 0 1 2.25-2.25z';
+const RELOJ = 'M6 3.25h8M6 16.75h8M7 3.25v2.3c0 1.9 3 2.5 3 4.45s-3 2.55-3 4.45v2.3M13 3.25v2.3c0 1.9-3 2.5-3 4.45s3 2.55 3 4.45v2.3';
+const COLOR_EST = { H: 'var(--verde)', C: 'var(--tinta)', D: 'var(--azul)', P: 'var(--suave)', L: 'var(--rojo)', E: 'var(--tenue)', N: 'var(--suave)' };
+function est(s, tam = 20, sobre = 'var(--panel)', color) {
+  const c = color || COLOR_EST[s];
+  let g = '';
+  if (s === 'H') g = `<circle cx="10" cy="10" r="7.5" fill="${c}"/><path d="M6.6 10.3l2.3 2.3 4.5-4.9" fill="none" stroke="${sobre}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>`;
+  else if (s === 'C') g = `<path d="${LIBRO}" fill="${c}" fill-opacity=".14" stroke="${c}" stroke-width="1.5" stroke-linejoin="round"/><path d="M10 6.1V16" stroke="${c}" stroke-width="1.5" stroke-linecap="round"/>`;
+  else if (s === 'P') g = `<path d="${RELOJ}" fill="none" stroke="${c}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>`;
+  else if (s === 'D' || s === 'L') g = `<path d="${CUERPO}" fill="${c}" stroke="${c}" stroke-width="1.5"/><path d="M6.75 9V6.75a3.25 3.25 0 0 1 6.5 0V9" fill="none" stroke="${c}" stroke-width="1.5" stroke-linecap="round" ${s === 'D' ? 'transform="rotate(40 13.25 9)"' : ''}/><path d="M10 12.3v1.7" stroke="${sobre}" stroke-width="1.8" stroke-linecap="round"/>`;
+  else if (s === 'E') g = `<circle cx="10" cy="10" r="7.25" fill="none" stroke="${c}" stroke-width="1.5" stroke-dasharray="2.6 2.6"/>`;
+  else if (s === 'N') g = `<circle cx="10" cy="10" r="5.6" fill="none" stroke="${c}" stroke-width="1.5"/>`;
+  return `<svg class="est" width="${tam}" height="${tam}" viewBox="0 0 20 20" aria-hidden="true">${g}</svg>`;
+}
+const PALABRA = { H: 'Aprobada', C: 'Cursando', D: 'Disponible', P: 'Próxima', L: 'Bloqueada', E: 'Por elegir' };
+const pildora = s => `<span class="pildora ${s}">${est(s, 14)}${PALABRA[s]}</span>`;
+
+/* ---------- El pensum real de Sistemas (lo que pinta el mapa) ---------- */
+const AREA = { 'generales': '#8B9199', 'ciencias-basicas': '#5BC0EB', 'estadistica': '#A78BFA', 'computacion': '#3CCFA8', 'electronica': '#F2A65A', 'sistemas': '#5B8AF5', 'gestion': '#F0739B', 'tesis': '#E8CF4F' };
+const PENSUM = [
+  [1, '0021111', 'Extraacadémica', 1, 'generales', []], [1, '0061013', 'Comprensión y Expresión Lingüística I', 3, 'generales', []], [1, '0071823', 'Inglés Instrumental', 3, 'generales', []], [1, '0081814', 'Matemáticas I', 4, 'ciencias-basicas', []], [1, '0091012', 'Desarrollo de Destrezas para el Aprendizaje', 2, 'generales', []], [1, '0101214', 'Química General', 4, 'ciencias-basicas', []],
+  [2, '0051324', 'Física I', 4, 'ciencias-basicas', ['0081814']], [2, '0061023', 'Comprensión y Expresión Lingüística II', 3, 'generales', ['0061013']], [2, '0071121', 'Inglés Técnico I', 1, 'generales', ['0071823']], [2, '0081824', 'Matemáticas II', 4, 'ciencias-basicas', ['0081814']], [2, '0721162', 'Intr. a la Lógica Formal y Algoritmos', 2, 'computacion', []], [2, 'cas-h1', 'Electiva Sociohumanística', null, null, [], true],
+  [3, '0052131', 'Laboratorio de Física I', 1, 'ciencias-basicas', ['0051324']], [3, '0052134', 'Física II', 4, 'ciencias-basicas', ['0051324']], [3, '0082814', 'Matemáticas III', 4, 'ciencias-basicas', ['0081824']], [3, '0712642', 'Introducción a la Ingeniería de Sistemas', 2, 'sistemas', []], [3, '0722103', 'Programación Orientada a Objetos', 3, 'computacion', ['0081824', '0721162']], [3, '0722111', 'Taller de Program. Orientada a Objetos', 1, 'computacion', ['0721162']], [3, 'cas-h2', 'Electiva Sociohumanística', null, null, [], true],
+  [4, '0073023', 'Metodología de la Investigación', 3, 'generales', []], [4, '0082824', 'Matemáticas IV', 4, 'ciencias-basicas', ['0082814']], [4, '0623313', 'Estadística I', 3, 'estadistica', ['0082814']], [4, '0712142', 'Introducción a la Economía', 2, 'gestion', []], [4, '0722123', 'Objetos y Abstracción de Datos', 3, 'computacion', ['0722103', '0722111']], [4, '0722131', 'Taller de Objet. y Abstracción de Datos', 1, 'computacion', ['0722111']], [4, 'cas-h3', 'Electiva Sociohumanística', null, null, [], true],
+  [5, '0624622', 'Estadística II', 2, 'estadistica', ['0623313']], [5, '0713122', 'Inferencia y Diseño de Experimentos', 2, 'estadistica', ['0623313']], [5, '0713172', 'Sistemas de Costo', 2, 'gestion', ['0712142']], [5, '0713463', 'Circuitos y Sistemas', 3, 'electronica', ['0052134', '0082824']], [5, '0713632', 'Teoría de Sistemas', 2, 'sistemas', ['0712642']], [5, '0713643', 'Sistemas de Operación', 3, 'computacion', ['0722123']], [5, '0723913', 'Métodos Numéricos', 3, 'ciencias-basicas', ['0082824', '0722103']],
+  [6, '0713113', 'Economía de Empresas', 3, 'gestion', ['0713172']], [6, '0713622', 'Admón. de Stmas. de Base de Datos', 2, 'computacion', ['0713643']], [6, '0713633', 'Enfoque Sistémico', 3, 'sistemas', ['0713632']], [6, '0713653', 'Análisis de Decisiones', 3, 'sistemas', ['0713122']], [6, '0713663', 'Optimización de Operaciones', 3, 'sistemas', ['0723913']], [6, '0723533', 'Electrónica', 3, 'electronica', ['0713463']],
+  [7, '0714153', 'Prepar., Eval. y Control de Proyectos', 3, 'gestion', ['0713113']], [7, '0714323', 'Anál. y Diseño de Stms. de Información', 3, 'computacion', ['0713622']], [7, '0714633', 'Modelos de Operaciones I', 3, 'sistemas', ['0713663']], [7, '0714643', 'Sistemas Dinámicos', 3, 'sistemas', ['0723533']], [7, '0724641', 'Laboratorio de Circuitos y Electrónica', 1, 'electronica', ['0723533']], [7, 'cas-t4', 'Electiva Técnica', null, null, [], true],
+  [8, '0625613', 'Administración Financiera de Empresas', 3, 'gestion', ['0713113']], [8, '0714123', 'Gestión Empresarial I', 3, 'gestion', ['0714153']], [8, '0714133', 'Modelos de Operaciones II', 3, 'sistemas', ['0714633']], [8, '0714612', 'Aplicación y Audit. de Stmas. de Inform.', 2, 'computacion', ['0714323']], [8, '0714642', 'Sistemas de Comunicación Industrial', 2, 'electronica', ['0713622']], [8, 'cas-t5', 'Electiva Técnica', null, null, [], true],
+  [9, '0625822', 'Leyes y Deontología', 2, 'generales', []], [9, '0715112', 'Planificación Estratégica', 2, 'gestion', ['0714123']], [9, 'cas-t6', 'Electiva Técnica', null, null, [], true], [9, 'cas-t7', 'Electiva Técnica', null, null, [], true], [9, 'cas-t8', 'Electiva Técnica', null, null, [], true],
+  [10, '0715116', 'Trabajo de Grado', 6, 'tesis', ['0714133', '0715112']],
+];
+const POR = {}, ADEL = {}, TODAS = [];
+const filas = {};
+PENSUM.forEach(([sem, cod, nom, uc, area, pre, casilla]) => {
+  const fila = filas[sem] = (filas[sem] ?? -1) + 1;
+  const m = { sem, cod, nom, uc, area, pre, casilla: !!casilla, fila, x: (sem - 1) * 374, y: fila * 122 };
+  POR[cod] = m; TODAS.push(m);
+  pre.forEach(p => (ADEL[p] = ADEL[p] || []).push(cod));
+});
+/* Las marcas del caso: 1 a 4 aprobadas, cursando Estadística II e Inferencia; lo demás se deduce como en estadosDe */
+TODAS.forEach(m => {
+  if (m.casilla) m.e = 'E';
+  else if (m.sem <= 4) m.e = 'H';
+  else if (m.cod === '0624622' || m.cod === '0713122') m.e = 'C';
+});
+TODAS.forEach(m => {
+  if (m.e) return;
+  if (m.pre.every(p => POR[p].e === 'H')) m.e = 'D';
+  else if (m.pre.every(p => POR[p].e === 'H' || POR[p].e === 'C')) m.e = 'P';
+  else m.e = 'L';
+});
+const porSem = {};
+TODAS.forEach(m => (porSem[m.sem] = porSem[m.sem] || []).push(m));
+
+/* ---------- Medir texto (para partir los nombres de las tarjetas como el mapa) ---------- */
+const lienzo = document.createElement('canvas').getContext('2d');
+function partir(texto, fuente, ancho, max) {
+  lienzo.font = fuente;
+  const lineas = []; let actual = '';
+  for (const p of texto.split(' ')) {
+    const prueba = actual ? actual + ' ' + p : p;
+    if (!actual || lienzo.measureText(prueba).width <= ancho) actual = prueba;
+    else { lineas.push(actual); actual = p; }
+  }
+  if (actual) lineas.push(actual);
+  if (lineas.length > max) { const l = lineas.slice(0, max); l[max - 1] += '…'; return l; }
+  return lineas;
+}
+
+/* ---------- El mapa: tarjetas 224×96 en el plano, columnas a 374 y filas a 122 (Geometria.kt) ---------- */
+const CARA = {
+  H: { f: 'rgb(236 238 241 / .045)', b: 'rgb(236 238 241 / .10)', w: 1, n: 'var(--suave)' },
+  C: { f: 'rgb(236 238 241 / .03)', b: 'var(--tinta)', w: 1.5, n: 'var(--tinta)' },
+  D: { f: 'rgb(236 238 241 / .085)', b: 'rgb(236 238 241 / .16)', w: 1, n: 'var(--tinta)' },
+  P: { f: 'rgb(236 238 241 / .03)', b: 'rgb(236 238 241 / .08)', w: 1, n: 'var(--tenue)' },
+  L: { f: 'rgb(236 238 241 / .022)', b: 'rgb(236 238 241 / .06)', w: 1, n: 'var(--tenue)' },
+};
+function mapa(o) {
+  const { w, h, s } = o;
+  let cx, cy;
+  if (o.caja) { cx = o.caja[0]; cy = o.caja[1]; } else { const a = POR[o.ancla]; cx = a.x + 112; cy = a.y + 48; }
+  const X = x => (x - cx) * s + o.punto[0], Y = y => (y - cy) * s + o.punto[1];
+  const foco = new Set();
+  if (o.sel) { foco.add(o.sel); POR[o.sel].pre.forEach(c => foco.add(c)); (ADEL[o.sel] || []).forEach(c => foco.add(c)); }
+  const apagar = c => o.sel && !foco.has(c);
+  let rej = '', cab = '', cables = '', cartas = '';
+  // La rejilla del fondo, muy tenue
+  for (let gx = ((o.punto[0] - cx * s) % 40 + 40) % 40; gx < w; gx += 40) rej += `<line x1="${f2(gx)}" y1="0" x2="${f2(gx)}" y2="${h}" stroke="rgb(255 255 255 / .022)"/>`;
+  for (let gy = ((o.punto[1] - cy * s) % 40 + 40) % 40; gy < h; gy += 40) rej += `<line x1="0" y1="${f2(gy)}" x2="${w}" y2="${f2(gy)}" stroke="rgb(255 255 255 / .022)"/>`;
+  // Cables: de la derecha de lo que pide a la izquierda de lo que abre
+  const puertoSal = (p, dest) => { const l = (ADEL[p.cod] || []).slice().sort((a, b) => POR[a].y - POR[b].y); const i = l.indexOf(dest); return (i - (l.length - 1) / 2) * 12; };
+  const puertoEnt = (m, ori) => { const l = m.pre.slice().sort((a, b) => POR[a].y - POR[b].y); const i = l.indexOf(ori); return (i - (l.length - 1) / 2) * 12; };
+  const encendidos = [];
+  TODAS.forEach(m => m.pre.forEach(p => {
+    const q = POR[p];
+    const x1 = X(q.x + 224), y1 = Y(q.y + 48 + puertoSal(q, m.cod)), x2 = X(m.x), y2 = Y(m.y + 48 + puertoEnt(m, p));
+    if (Math.max(x1, x2) < -60 || Math.min(x1, x2) > w + 60) return;
+    const t = Math.max(44, (x2 - x1) * .45);
+    const d = `M${f2(x1)} ${f2(y1)} C ${f2(x1 + t)} ${f2(y1)}, ${f2(x2 - t)} ${f2(y2)}, ${f2(x2)} ${f2(y2)}`;
+    const col = AREA[q.area];
+    const vivo = o.sel && (m.cod === o.sel || p === o.sel);
+    if (vivo) encendidos.push(`<path d="${d}" fill="none" stroke="${col}" stroke-width="1.75" stroke-opacity=".95"/><path d="${d}" fill="none" stroke="#fff" stroke-width=".75" stroke-opacity=".45"/>`);
+    else cables += `<path d="${d}" fill="none" stroke="${col}" stroke-width="1" stroke-opacity="${o.sel ? .1 : .32}"/>`;
+  }));
+  cables += encendidos.join('');
+  // Cabeceras de semestre (las del mapa: Jost espaciado, con su cifra)
+  Object.keys(porSem).forEach(sem => {
+    const l = porSem[sem], x0 = X((sem - 1) * 374), yb = Y(-24);
+    if (x0 > w || x0 + 224 * s < 0 || yb < -10) return;
+    const hechas = l.filter(m => m.e === 'H').length, ucs = l.reduce((a, m) => a + (m.uc || 0), 0);
+    const op = o.sel ? .4 : 1;
+    cab += `<g opacity="${op}"><text x="${f2(x0)}" y="${f2(Y(-66))}" style="font:500 ${f2(11.5 * s)}px Jost;letter-spacing:.3em;fill:var(--tinta)">SEMESTRE ${String(sem).padStart(2, '0')}</text>`;
+    cab += `<text x="${f2(x0)}" y="${f2(Y(-50))}" style="font:300 ${f2(10 * s)}px 'IBM Plex Mono';fill:var(--tenue)">${ucs} UC · ${l.length} MATERIAS</text>`;
+    cab += `<text x="${f2(x0 + 224 * s)}" y="${f2(Y(-46))}" text-anchor="end" style="font:200 ${f2(32 * s)}px Jost;fill:var(--tinta)">${Math.round(100 * hechas / l.length)}<tspan style="font-size:${f2(14 * s)}px;fill:var(--tenue)">%</tspan></text>`;
+    cab += `<rect x="${f2(x0)}" y="${f2(Y(-38))}" width="${f2(224 * s)}" height="1" fill="rgb(236 238 241 / .12)"/><rect x="${f2(x0)}" y="${f2(Y(-38))}" width="${f2(224 * s * hechas / l.length)}" height="1" fill="var(--tinta)"/></g>`;
+  });
+  // Tarjetas
+  TODAS.forEach(m => {
+    const x = X(m.x), y = Y(m.y), cw = 224 * s, ch = 96 * s, r = 7 * s;
+    if (x > w + 10 || x + cw < -10 || y > h + 10 || y + ch < -10) return;
+    const sel = m.cod === o.sel, dim = apagar(m.cod);
+    let g = `<g opacity="${dim ? .28 : 1}">`;
+    if (m.casilla) {
+      g += `<rect x="${f2(x + .75)}" y="${f2(y + .75)}" width="${f2(cw - 1.5)}" height="${f2(ch - 1.5)}" rx="${f2(r)}" fill="${sel ? 'rgb(236 238 241 / .06)' : 'none'}" stroke="${sel ? 'var(--tinta)' : 'rgb(236 238 241 / .22)'}" stroke-width="${sel ? 1.5 : 1}" stroke-dasharray="${f2(5 * s)} ${f2(4 * s)}"/>`;
+      g += `<rect x="${f2(x + cw / 2 - 11 * s)}" y="${f2(y + 22 * s)}" width="${f2(22 * s)}" height="${f2(22 * s)}" rx="${f2(4 * s)}" fill="none" stroke="rgb(236 238 241 / .35)" stroke-width="1"/><path d="M${f2(x + cw / 2)} ${f2(y + 28 * s)}v${f2(10 * s)}M${f2(x + cw / 2 - 5 * s)} ${f2(y + 33 * s)}h${f2(10 * s)}" stroke="var(--suave)" stroke-width="1"/>`;
+      g += `<text x="${f2(x + cw / 2)}" y="${f2(y + 66 * s)}" text-anchor="middle" style="font:380 ${f2(14 * s)}px Jost;fill:var(--tenue)">${m.nom}</text>`;
+    } else {
+      const c = CARA[m.e];
+      g += `<rect x="${f2(x + c.w / 2)}" y="${f2(y + c.w / 2)}" width="${f2(cw - c.w)}" height="${f2(ch - c.w)}" rx="${f2(r)}" fill="${sel ? 'rgb(236 238 241 / .1)' : c.f}" stroke="${sel ? 'var(--tinta)' : c.b}" stroke-width="${sel ? 1.5 : c.w}"/>`;
+      g += `<text x="${f2(x + 18 * s)}" y="${f2(y + 24 * s)}" style="font:300 ${f2(10 * s)}px 'IBM Plex Mono';letter-spacing:.04em;fill:var(--tenue)">${m.cod}</text>`;
+      const l = partir(m.nom, '380 14px Jost', 190, 3);
+      const y0 = 55 - (l.length - 1) * 16.5 / 2 + 5;
+      l.forEach((t, i) => { g += `<text x="${f2(x + 18 * s)}" y="${f2(y + (y0 + i * 16.5) * s)}" style="font:380 ${f2(14 * s)}px Jost;fill:${c.n}">${t}</text>`; });
+      g += `<circle cx="${f2(x + 21 * s)}" cy="${f2(y + 81 * s)}" r="${f2(3 * s)}" fill="${AREA[m.area]}"/><text x="${f2(x + 29 * s)}" y="${f2(y + 84.5 * s)}" style="font:300 ${f2(10 * s)}px 'IBM Plex Mono';fill:var(--tenue)">${m.uc} UC</text>`;
+    }
+    if (sel) g += `<rect x="${f2(x - 4)}" y="${f2(y - 4)}" width="${f2(cw + 8)}" height="${f2(ch + 8)}" rx="${f2(r + 4)}" fill="none" stroke="rgb(236 238 241 / .3)" stroke-width="1"/>`;
+    cartas += g + '</g>';
+  });
+  return `<svg class="mapa" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">${rej}${cab}${cables}${cartas}</svg>`;
+}
+
+/* ---------- Barra de estado y gestos ---------- */
+const BATERIA = `<svg width="22" height="11" viewBox="0 0 22 11"><rect x=".5" y=".5" width="18" height="10" rx="2.5" fill="none" stroke="currentColor" stroke-opacity=".5"/><rect x="2" y="2" width="12" height="7" rx="1.2" fill="currentColor"/><rect x="19.5" y="3.5" width="1.5" height="4" rx=".6" fill="currentColor" fill-opacity=".5"/></svg>`;
+const SENAL = `<svg width="15" height="11" viewBox="0 0 15 11"><path d="M1 10h2V7H1zM5 10h2V5H5zM9 10h2V3H9zM13 10h2V1h-2z" fill="currentColor"/></svg>`;
+const sis = () => `<div class="velo-sis"></div><div class="sis"><span>9:41</span><span class="der">${SENAL}${BATERIA}</span></div>`;
+
+/* ---------- Piezas de la hoja ---------- */
+const filaResp = r => `<div class="f ${r.corta ? 'c56' : ''}"><span class="pas ${r.azul ? 'azul' : ''}">${ico(r.ico, 18, r.azul ? 'azul' : '')}</span><span class="t"><span class="tt">${r.fila}</span>${r.nota ? `<span class="nota">${r.nota}</span>` : ''}</span>${r.ch ? ico('chevron-right', 16, 'ch') : ''}</div>`;
+/* Pide y Abre: el rótulo en la primera fila de cada grupo; «Ninguna» si no hay */
+const filaRel = (rot, it, grupo) => `<div class="r ${grupo ? 'grupo' : ''}"><span class="rot">${rot}</span>${it ? est(it.s, 16) : '<span></span>'}<span class="tt ${!it || it.s === 'H' ? 'ten' : ''}">${it ? it.n : 'Ninguna'}</span>${it ? ico('chevron-right', 16, 'ch') : '<span></span>'}</div>`;
+const grupoRel = (rot, l, primero) => l.length ? l.map((it, i) => filaRel(i ? '' : rot, it, !primero && i === 0)).join('') : filaRel(rot, null, !primero);
+const puente = p => `<section class="tarjeta rel mt12">${grupoRel('Pide', p.pide, true)}${grupoRel('Abre', p.abre, false)}</section>`;
+const boton = b => `<div class="btn ${b.tipo}"><span>${b.t}</span>${b.sub ? `<span class="sub">${b.sub}</span>` : ''}</div>`;
+const botones = l => `<div class="botones ${l.length === 1 ? 'uno' : ''}">${l.map(boton).join('')}</div>`;
+
+/* ---------- Esta maqueta ---------- */
+const D = { cod: '0713172', rot: 'Semestre 5', titulo: 'Sistemas de Costo', meta: '2 UC · Gestión', e: 'D' };
+const ESC = .5, W = 915, H = 412, ANCHO = 320, SEP = 20;
+const ZONA = { izq: 16, der: 16, arr: 36, aba: 20 };
+const sisH = () => `<div class="velo-sis" style="height:44px"></div><div class="sis" style="height:24px;padding:0 28px;font-size:12px"><span>9:41</span><span class="der">${SENAL}${BATERIA}</span></div>`;
+const RUTA = 'M13 0C11.4 0 10.4.8 9.5 1.9L1.4 9.7Q0 11 1.4 12.3L9.5 20.1C10.4 21.2 11.4 22 13 22';
+const punta = (der, y) => `<svg class="punta ${der ? 'der' : ''}" style="top:${y}px" viewBox="0 0 13 22"><path d="${RUTA}Z" fill="var(--panel)"/><path d="${RUTA}" fill="none" stroke="rgb(236 238 241 / .16)" stroke-width="1"/></svg>`;
+const cuerpo = pa => `
+  <div class="bcab"><span class="rot">${D.rot}</span><span class="cod">${D.cod}</span></div>
+  <h2 class="btit">${D.titulo}</h2>
+  <div class="bmeta"><span class="nota">${D.meta}</span>${pildora(D.e)}</div>
+  <div class="bres"><span class="pas azul">${ico('link', 18, 'azul')}</span><span class="t"><span class="tt">No puede esperar</span><span class="nota">Si la atrasas, te gradúas en <b class="rojo">Jun 2030</b></span></span></div>
+  ${pa ? `<div class="bpa">
+    <div class="r"><span class="rot">Pide</span>${est('H', 16)}<span class="nota n">Introducción a la Economía</span>${ico('chevron-right', 16, 'ch')}</div>
+    <div class="r"><span class="rot">Abre</span>${est('L', 16)}<span class="nota n fuerte">Economía de Empresas</span>${ico('chevron-right', 16, 'ch')}</div></div>` : ''}
+  <div class="bbot"><div class="btn prim"><span>La estoy cursando</span></div><div class="btn sec"><span>Ya la aprobé</span><span class="sub">Se te abre 1</span></div></div>`;
+
+function burbuja(el, pa, punto, cotas) {
+  el.innerHTML = mapa({ w: W, h: H, s: ESC, ancla: D.cod, punto, sel: D.cod }) + sisH() + '<div class="gestos"></div>';
+  const b = document.createElement('div'); b.className = 'burbuja'; b.innerHTML = cuerpo(pa); el.appendChild(b);
+  const alto = b.offsetHeight;
+  const cw = 224 * ESC, x0 = punto[0] - 112 * ESC, cy = punto[1];
+  const sitioDer = W - ZONA.der - (x0 + cw), sitioIzq = x0 - ZONA.izq;
+  const derecha = sitioDer >= ANCHO + SEP || sitioDer >= sitioIzq;
+  const left = derecha ? x0 + cw + SEP : x0 - SEP - ANCHO;
+  const top = Math.min(Math.max(cy - alto / 2, ZONA.arr), H - ZONA.aba - alto);
+  const py = Math.min(Math.max(cy - top, 40), alto - 40);
+  b.style.left = left + 'px'; b.style.top = top + 'px';
+  b.insertAdjacentHTML('beforeend', punta(!derecha, py - 11));
+  document.querySelectorAll(`[data-h="${el.dataset.b}"]`).forEach(x => x.textContent = `${alto} dp`);
+  if (cotas) el.insertAdjacentHTML('beforeend', `
+    <div class="cota" style="left:${left}px;width:${ANCHO}px;top:${top - 8}px;border-top-width:1.5px"></div>
+    <div class="medida" style="left:${left + ANCHO / 2 - 26}px;top:${top - 30}px">320 dp</div>
+    <div class="cota" style="left:${left + ANCHO + 10}px;top:${top}px;height:${alto}px;border-left-width:1.5px"></div>
+    <div class="medida" style="left:${left + ANCHO + 18}px;top:${top + alto / 2 - 10}px">${alto} dp · tope 364</div>
+    <div class="medida" style="left:${x0 - 8}px;top:${cy + 34}px">punta a 8 · cuerpo a 20</div>`);
+}
+
+function completa(el) {
+  el.innerHTML = `<div class="pc">
+    <div class="barra"><span class="redondo">${ico('x')}</span><span class="fcab-t"><span class="rot">${D.rot}</span><span class="cod">${D.cod}</span></span></div>
+    <div class="g">
+      <div><h2 class="ftit">${D.titulo}</h2><div class="fmeta" style="justify-content:flex-start"><span class="nota">${D.meta}</span>${pildora(D.e)}</div></div>
+      <div style="background:var(--hilo)"></div>
+      <div><section class="tarjeta">${filaResp({ ico: 'link', azul: true, fila: 'No puede esperar', nota: 'Si la atrasas, te gradúas en <b class="rojo">Jun 2030</b>' })}</section>
+        ${puente({ pide: [{ s: 'H', n: 'Introducción a la Economía' }], abre: [{ s: 'L', n: 'Economía de Empresas' }] })}</div>
+      <div>${botones([{ t: 'La estoy cursando', tipo: 'prim' }, { t: 'Ya la aprobé', sub: 'Se te abre 1', tipo: 'sec' }])}</div>
+    </div></div><div class="sis" style="height:24px;padding:0 28px;font-size:12px"><span>9:41</span><span class="der">${SENAL}${BATERIA}</span></div><div class="gestos"></div>`;
+}
+
+Promise.all(['380 14px Jost', '300 22px Jost', '500 15px Inter', '400 13px Inter', '500 11px Inter', "300 11px 'IBM Plex Mono'"].map(f => document.fonts.load(f))).then(() => {
+  document.querySelectorAll('[data-b]').forEach(el => {
+    const k = el.dataset.b;
+    if (k === 'min-centro') burbuja(el, false, [330, 214], true);
+    if (k === 'min-borde') burbuja(el, false, [812, 92]);
+    if (k === 'pa-centro') burbuja(el, true, [330, 214]);
+    if (k === 'pa-borde') burbuja(el, true, [812, 92]);
+    if (k === 'completa') completa(el);
+  });
+  document.body.dataset.listo = '1';
+});
+</script>
+</body>
+</html>

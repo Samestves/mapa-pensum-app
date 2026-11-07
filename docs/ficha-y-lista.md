@@ -126,22 +126,41 @@ Una hoja pegada abajo y a todo el ancho, color `Paleta.panel`, radio 28 arriba y
 
 ---
 
-## 2. Ficha acostada · «Franja»
+## 2. Ficha acostada · «Burbuja» (recomendada) o pantalla completa
 
-- **Es la misma pieza:** `HojaInferior(modal = false, completaAcostada = false)` a todo el ancho, alto del contenido.
-  - En 915 × 412 mide unos **154 dp, el 37 %**.
-  - Laterales 28 más los recortes seguros.
-- **Rejilla de 3 columnas:** `276 | hilo | 1fr | 232`, con 24 entre columnas.
-  1. **Quién es:** rótulo y código; Título en su tamaño acostado (Jost 300 24/28); «2 UC · Gestión» y la píldora.
-  2. **La respuesta** (`Pastilla` 32 + Fila + Nota) y debajo «PIDE» / «ABRE», una línea cada uno (icono 16 + Nota; la segunda y siguientes, «y N más»).
-  3. **Los dos botones apilados**, de 52.
-- **Sin X:** se cierra con el asa, Atrás o tocando el mapa.
-- **El riel** se aparta 80 dp a la izquierda y se funde, en 200 ms, mientras la franja está arriba.
-- **Cámara:**
-  - encuadra la caja de la materia, lo que pide y lo que abre: `cajaDe(listOf(c) + atras + adelante)`;
-  - márgenes: arriba barra de estado + 16, abajo alto de la franja + 16, a los lados 24;
-  - sin acercar. Al zoom acostado (~0,46) el vecindario de Sistemas de Costo cabe en la banda de 220 dp. Si no cabe, se centra solo la materia.
-- **Rendimiento:** igual que de pie. Fuera `panelMapa()` y el reparto lateral.
+Maqueta: `docs/maquetas/ficha-acostada.html` (+ PNG). Sustituye a la franja.
+
+### Recomendada · Burbuja con Pide · Abre
+
+Por qué: quien revisa varias materias seguidas toca una tras otra (o salta por Pide y Abre) sin cerrar nada y sin perder el mapa.
+
+- **Forma:** ancho **320**; alto del contenido (mínima ~225, con Pide · Abre ~314), **tope 364** (alto − barra de estado − 2 × 12), lo demás se desplaza dentro. Radio 28, relleno 16 a los lados y 14 arriba.
+- **Punta:** 22 de base × 12 de largo, punta y base redondeadas. Es **un solo `Path`** (rectángulo redondeado + punta) en `drawBehind`: relleno `Paleta.panel`, filo de 1 dp (tinta 16 %), sombra corta de 2 dp. Sin desenfoque, sin `hazeEffect`, sin velo.
+- **Contenido**, las piezas de la ficha de pie en pequeño:
+  1. Rótulo «SEMESTRE 5» + código (sin X).
+  2. Nombre en Jost 300 22/26.
+  3. «2 UC · Gestión» y la píldora.
+  4. Hilo y la respuesta: `Pastilla` 32 + Fila + Nota.
+  5. Hilo y Pide · Abre: una fila de 44 por grupo (rótulo 36, icono 16, Nota a una línea con «y N más», chevrón); tocarla lleva a esa materia.
+  6. Dos botones lado a lado de 48, radio 16, a 12 del filo (16 + 12 = 28). Mismos textos que de pie.
+- **Variante mínima:** sin el punto 5. Más baja, pero tapa una columna vecina sin devolverla.
+- **Dónde sale:** al lado con más sitio (derecha si cabe 320 + 20); nunca arriba ni abajo. La punta queda a 8 dp de la tarjeta (4 más allá del aro de selección) y el cuerpo a 20. En vertical se centra en la tarjeta y se encaja entre barra de estado + 12 y 20 sobre el borde; la punta se queda en el centro de la tarjeta y se desliza, a 40 como mínimo de una esquina.
+- **Cámara:** si tarjeta + burbuja caben en la zona segura (16 a los lados contando el riel, 12 bajo la barra de estado), no se mueve. Si no, se desliza lo justo (~300 ms, mismo resorte): `camara.mostrar(caja ∪ cajaBurbuja, márgenes)`. Nunca acerca ni aleja.
+- **Otra tarjeta o fila de Pide · Abre:** no se cierra; salta a la nueva (lado y punta se recalculan) y el contenido entra con fundido de 150 ms y escala 0,96 → 1 desde la punta. Si hace falta, la cámara viaja con ella.
+- **Tocar fuera o Atrás:** cierra (120 ms, escala 0,96 hacia la punta, alfa 0); ese toque no hace nada más. No modal: el mapa sigue vivo.
+- **Arrastrar:** va pegada a la tarjeta con solo `graphicsLayer { translationX/Y }` leyendo la cámara en la fase de dibujo; lado y punta fijos durante el gesto, se recolocan al soltar. Se cierra si la tarjeta sale más de la mitad de la pantalla, y al empezar a pellizcar.
+- **Marcar:** igual que de pie («La estoy cursando» funde píldora y botones; «Ya la aprobé» cierra y sigue el camino de `alMarcar`).
+- **Riel:** se queda; cuenta como borde de la zona segura.
+- **No usar `Popup`:** una ventana aparte se queda un cuadro atrás al arrastrar. La burbuja se dibuja en la misma `Box` que el mapa, encima.
+
+### Alternativa · Pantalla completa
+
+- La ficha a pantalla entera sobre `Paleta.panel`; entra desde abajo como las demás hojas acostadas (~350 ms) y se cierra con la X (`BotonRedondo` 36) o Atrás.
+- Barra de 44: X, rótulo y código. Debajo, rejilla `260 | hilo | 1fr | 216`, 24 entre columnas:
+  1. nombre en Jost 300 32/36, «2 UC · Gestión» y la píldora;
+  2. la respuesta en `TarjetaLista` y Pide · Abre en otra (filas de 48, todas las materias);
+  3. los dos botones de 52 apilados.
+- A favor: todo legible y sin cortar, cabe cualquier materia. En contra: tapa el mapa; revisar varias seguidas es abrir y cerrar cada vez.
 
 ---
 
