@@ -57,10 +57,12 @@ import mpensum.logica.enCarriles
 import mpensum.logica.horaDe
 import mpensum.logica.horasOcupadas
 import mpensum.logica.materias
+import mpensum.logica.hora12
 import mpensum.logica.meridiano
 import mpensum.tema.Alto
 import mpensum.tema.Espacio
 import mpensum.tema.Paleta
+import mpensum.tema.Tema
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.TextUnit
@@ -366,11 +368,12 @@ private fun CabeceraDias(horario: EstadoHorario, riel: Dp, diaHoy: Int, provisio
 @Composable
 private fun RotuloHora(minuto: Int, riel: Dp, modifier: Modifier, estrecha: Boolean = false) {
     val l = letrasHorario()
-    val h = ((minuto / 60 + 11) % 12) + 1
+    val h = if (Tema.hora24) (minuto / 60).toString().padStart(2, '0') else hora12(minuto).toString()
+    val mer = meridiano(minuto)
     BasicText(
         buildAnnotatedString {
-            append("$h")
-            withStyle(SpanStyle(fontSize = 8.sp, letterSpacing = 0.08.em, color = Paleta.apagada)) { append(" ${meridiano(minuto)}") }
+            append(h)
+            if (mer.isNotEmpty()) withStyle(SpanStyle(fontSize = 8.sp, letterSpacing = 0.08.em, color = Paleta.apagada)) { append(" $mer") }
         },
         // Pegada a la derecha del carril, con aire antes de la rejilla; si no cabe, sobresale a la izquierda
         modifier.width(riel - 6.dp).wrapContentWidth(Alignment.End, unbounded = true),

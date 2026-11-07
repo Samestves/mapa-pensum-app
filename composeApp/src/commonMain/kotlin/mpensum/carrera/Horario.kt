@@ -413,7 +413,7 @@ private fun Trayecto(clase: Sesion, color: Color, minuto: (() -> Int)?) {
         BasicText(
             buildAnnotatedString {
                 append(horaDe(clase.fin))
-                withStyle(SPAN_MERIDIANO) { append(" ${meridiano(clase.fin)}") }
+                meridiano(clase.fin).takeIf { it.isNotEmpty() }?.let { withStyle(SPAN_MERIDIANO) { append(" $it") } }
             },
             style = estilo,
         )
@@ -682,7 +682,8 @@ private fun HoraConMeridiano(hora: String, mer: String, estilo: TextStyle, l: Le
     Row {
         // "10:00" a 21 sp ocupa casi todo el carril: si no cabe, sobresale hacia la izquierda en vez de partirse
         BasicText(hora, Modifier.weight(1f).alignByBaseline().wrapContentWidth(Alignment.End, unbounded = true), style = estilo, softWrap = false)
-        BasicText(mer, Modifier.width(22.dp).padding(start = 3.dp).alignByBaseline(), style = l.meridiano)
+        // En 24 h no hay meridiano y el carril no guarda su hueco
+        if (!Tema.hora24) BasicText(mer, Modifier.width(22.dp).padding(start = 3.dp).alignByBaseline(), style = l.meridiano)
     }
 }
 

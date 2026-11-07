@@ -91,6 +91,12 @@ class CapturaTemasTest {
     @Test fun medianoche() = portada(Juego.MEDIANOCHE)
     @Test fun papel() = portada(Juego.PAPEL)
     @Test fun exterior() = portada(Juego.EXTERIOR)
+    @Test fun exteriorOscuro() = portada(Juego.EXTERIOR_OSCURO)
+    @Test fun ciruela() = portada(Juego.CIRUELA)
+    @Test fun morichal() = portada(Juego.MORICHAL)
+    @Test fun niebla() = portada(Juego.NIEBLA)
+    @Test fun aluminio() = portada(Juego.ALUMINIO)
+    @Test fun cuarzo() = portada(Juego.CUARZO)
 
     @Test
     fun personalizar() {

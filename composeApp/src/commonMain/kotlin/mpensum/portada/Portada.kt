@@ -449,7 +449,7 @@ private fun VidrioCabecera(cristal: HazeState, barra: Dp, progreso: () -> Float)
                 .height(barra + 56.dp)
                 .then(
                     // En modo ligero, el mismo lienzo casi opaco que sin API 31
-                    if (Tema.ligero) Modifier.tinteLiso(vidrio(lienzo), progreso)
+                    if (Tema.sinDesenfoque) Modifier.tinteLiso(vidrio(lienzo), progreso)
                     else Modifier.hazeEffect(cristal, vidrio(lienzo)) {
                         alpha = progreso()
                         // A un tercio de resolución el desenfoque cuesta poco

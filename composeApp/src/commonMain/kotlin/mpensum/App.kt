@@ -32,6 +32,7 @@ import mpensum.bienvenida.Bienvenida
 import mpensum.carrera.Interior
 import mpensum.carrera.Vista
 import mpensum.componentes.LocalVentana
+import mpensum.componentes.ProveerTacto
 import mpensum.componentes.medirVentana
 import mpensum.datos.rememberCarreras
 import mpensum.plataforma.BarrasDelSistema
@@ -92,7 +93,9 @@ fun App() {
     // Una sola apariencia para toda la app; «Sistema» sigue al teléfono mientras la app está abierta
     val apariencia by Preferencias.tema.collectAsState()
     val nocheDelSistema = isSystemInDarkTheme()
-    val juego = apariencia.juego(nocheDelSistema)
+    val deDia by Preferencias.temaDia.collectAsState()
+    val deNoche by Preferencias.temaNoche.collectAsState()
+    val juego = apariencia.juego(nocheDelSistema, deDia, deNoche)
     // El resto de lo elegido en Personalizar se vuelca al Tema al componer: lo que dibuja lo lee de ahí
     val acento by Preferencias.acento.collectAsState()
     val grande by Preferencias.textoGrande.collectAsState()
@@ -100,6 +103,20 @@ fun App() {
     val reducir by Preferencias.reducirMovimiento.collectAsState()
     val codigos by Preferencias.codigos.collectAsState()
     val ligero by Preferencias.modoLigero.collectAsState()
+    val fondoMapa by Preferencias.fondoMapa.collectAsState()
+    val cables by Preferencias.cables.collectAsState()
+    val grosor by Preferencias.grosorCables.collectAsState()
+    val atenuar by Preferencias.atenuarAprobadas.collectAsState()
+    val contraste by Preferencias.contraste.collectAsState()
+    val hora24 by Preferencias.hora24.collectAsState()
+    val vibracion by Preferencias.vibracion.collectAsState()
+    Tema.contraste = contraste
+    Tema.fondo = fondoMapa ?: juego.fondo
+    Tema.cables = cables
+    Tema.grosor = grosor
+    Tema.atenuarAprobadas = atenuar
+    Tema.hora24 = hora24
+    Tema.vibracion = vibracion
     Tema.acento = acento
     Tema.textoGrande = grande
     Tema.luzFondo = luz ?: (juego.aurora > 0f)
@@ -113,19 +130,32 @@ fun App() {
     CompositionLocalProvider(LocalDensity provides Density(densidad.density, densidad.fontScale * escala), LocalFuentes provides rememberFuentes()) {
         // La ventana se mide una vez aquí, ya con la letra final, y las pantallas la leen con ventana()
         CompositionLocalProvider(LocalVentana provides medirVentana()) {
-            TemaVivo(juego) { Pantallas() }
+            ProveerTacto { TemaVivo(juego) { Pantallas() } }
         }
     }
+}
+
+/**
+ * Con qué pantalla abre la app: la guía la primera vez; después la portada o,
+ * si se pidió «Mi carrera» y hay una elegida, directo dentro de ella (Atrás
+ * vuelve a la portada). Una carrera que el índice ya no trae vuelve sola a la portada.
+ */
+private fun pantallaDeArranque(): Pantalla {
+    if (!Preferencias.bienvenidaVista()) return Pantalla.Bienvenida
+    val propia = Preferencias.carrera()
+    return if (Preferencias.abrirEnCarrera.value && propia != null) Pantalla.Carrera(propia) else Pantalla.Portada
 }
 
 @Composable
 private fun Pantallas() {
     val carreras = rememberCarreras()
     var pantalla by rememberSaveable(stateSaver = GuardarPantalla) {
-        mutableStateOf<Pantalla>(if (Preferencias.bienvenidaVista()) Pantalla.Portada else Pantalla.Bienvenida)
+        mutableStateOf<Pantalla>(pantallaDeArranque())
     }
     var propia by remember { mutableStateOf(Preferencias.carrera()) }
     var origen by remember { mutableStateOf(TransformOrigin.Center) }
+    // La vista con la que nace la carrera que se abre (el atajo del horario); null es el mapa
+    var vistaInicial by remember { mutableStateOf<Vista?>(null) }
     val guardado = rememberSaveableStateHolder()
 
     ManejarAtras(pantalla is Pantalla.Carrera || (pantalla == Pantalla.Bienvenida && Preferencias.bienvenidaVista())) {
@@ -154,8 +184,6 @@ private fun Pantallas() {
             },
             label = "pantalla",
         ) { p ->
-    // La vista con la que nace la carrera que se abre (el atajo del horario); null es el mapa
-    var vistaInicial by remember { mutableStateOf<Vista?>(null) }
             when (p) {
                 Pantalla.Bienvenida -> Bienvenida(carreras) { elegida ->
                     Preferencias.marcarBienvenidaVista()
@@ -173,6 +201,7 @@ private fun Pantallas() {
                         propia = carreras.find { it.slug == propia },
                         alAbrir = { c, desde, vista ->
                             origen = desde
+                            vistaInicial = vista
                             pantalla = Pantalla.Carrera(c.slug)
                         },
                         alVerGuia = { pantalla = Pantalla.Bienvenida },
@@ -186,10 +215,9 @@ private fun Pantallas() {
                     val carrera = carreras.firstOrNull { it.slug == p.slug }
                     // Una carrera que el índice ya no trae (un estado guardado de otra versión) no tiene a dónde entrar
                     if (carrera == null) LaunchedEffect(Unit) { pantalla = Pantalla.Portada }
-                    else Interior(carrera, alVolver = { pantalla = Pantalla.Portada }, vistaInicial = vistaInicial ?: Vista.MAPA)
+                    else Interior(carrera, alVolver = { pantalla = Pantalla.Portada }, vistaInicial = vistaInicial ?: Preferencias.vistaInicial.value)
                 }
             }
         }
     }
 }
-                            vistaInicial = vista

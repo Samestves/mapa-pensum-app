@@ -2,23 +2,33 @@ package mpensum.plataforma
 
 import androidx.compose.runtime.Composable
 import kotlinx.coroutines.flow.StateFlow
+import mpensum.carrera.Vista
 import mpensum.tema.Acento
+import mpensum.tema.Fondo
+import mpensum.tema.FormaCables
+import mpensum.tema.Grosor
 import mpensum.tema.Juego
 import mpensum.tema.Tema
 
 /**
- * Cómo quiere ver la app: uno de los siete juegos o lo que diga el teléfono.
+ * Cómo quiere ver la app: uno de los trece juegos o lo que diga el teléfono.
  * Es una sola para toda la app, se cambie desde Ajustes o desde la hoja de
  * avance. Se guarda con el nombre del juego en minúsculas, así que lo viejo
- * («claro», «oscuro», «sistema») sigue leyéndose.
+ * («claro», «oscuro», «exterior», «sistema») sigue leyéndose.
  */
 enum class Apariencia(val juego: Juego?) {
     OSCURO(Juego.OSCURO),
-    GRAFITO(Juego.GRAFITO),
     NEGRO(Juego.NEGRO),
+    GRAFITO(Juego.GRAFITO),
     MEDIANOCHE(Juego.MEDIANOCHE),
+    CIRUELA(Juego.CIRUELA),
+    MORICHAL(Juego.MORICHAL),
     CLARO(Juego.CLARO),
     PAPEL(Juego.PAPEL),
+    NIEBLA(Juego.NIEBLA),
+    ALUMINIO(Juego.ALUMINIO),
+    CUARZO(Juego.CUARZO),
+    EXTERIOR_OSCURO(Juego.EXTERIOR_OSCURO),
     EXTERIOR(Juego.EXTERIOR),
     SISTEMA(null);
 
@@ -27,8 +37,8 @@ enum class Apariencia(val juego: Juego?) {
     /** El nombre que se enseña */
     val nombre: String get() = juego?.nombre ?: "Sistema"
 
-    /** El juego que se pinta: el propio, o Claro u Oscuro según la noche del teléfono */
-    fun juego(nocheDelSistema: Boolean): Juego = juego ?: if (nocheDelSistema) Juego.OSCURO else Juego.CLARO
+    /** El juego que se pinta: el propio, o el de día o el de noche según la noche del teléfono */
+    fun juego(nocheDelSistema: Boolean, deDia: Juego, deNoche: Juego): Juego = juego ?: if (nocheDelSistema) deNoche else deDia
 
     companion object {
         /** Lo guardado, o la oscura: es la que existe hoy y con la que nació la app */
@@ -77,6 +87,46 @@ expect object Preferencias {
     /** El código de 7 cifras en las tarjetas del mapa */
     val codigos: StateFlow<Boolean>
     fun guardarCodigos(visibles: Boolean)
+
+    /** El fondo del mapa; null es el del tema, y vuelve a null al cambiar de tema */
+    val fondoMapa: StateFlow<Fondo?>
+    fun guardarFondoMapa(fondo: Fondo?)
+
+    val cables: StateFlow<FormaCables>
+    fun guardarCables(forma: FormaCables)
+
+    val grosorCables: StateFlow<Grosor>
+    fun guardarGrosorCables(grosor: Grosor)
+
+    /** Lo aprobado se dibuja al 45 % */
+    val atenuarAprobadas: StateFlow<Boolean>
+    fun guardarAtenuarAprobadas(atenuar: Boolean)
+
+    /** Más contraste: textos, bordes y rejilla hacia la tinta */
+    val contraste: StateFlow<Boolean>
+    fun guardarContraste(activo: Boolean)
+
+    /** Con Sistema: el tema de día y el de noche (por defecto Claro y Oscuro) */
+    val temaDia: StateFlow<Juego>
+    fun guardarTemaDia(juego: Juego)
+    val temaNoche: StateFlow<Juego>
+    fun guardarTemaNoche(juego: Juego)
+
+    /** Al abrir la app, entrar directo a la carrera elegida (si hay) */
+    val abrirEnCarrera: StateFlow<Boolean>
+    fun guardarAbrirEnCarrera(abrir: Boolean)
+
+    /** La vista con que se abre una carrera: el mapa o la lista */
+    val vistaInicial: StateFlow<Vista>
+    fun guardarVistaInicial(vista: Vista)
+
+    /** Las horas del horario en 24 h */
+    val hora24: StateFlow<Boolean>
+    fun guardarHora24(activo: Boolean)
+
+    /** La vibración de la lista, la barra, el mapa y la ficha */
+    val vibracion: StateFlow<Boolean>
+    fun guardarVibracion(activa: Boolean)
 }
 
 /**
@@ -91,13 +141,20 @@ expect fun animacionesQuitadas(): Boolean
 
 /** Vuelca las preferencias ya leídas al [Tema]: lo que se pinta lee de ahí */
 fun aplicarAlTema(nocheDelSistema: Boolean) {
-    val juego = Preferencias.tema.value.juego(nocheDelSistema)
+    val juego = Preferencias.tema.value.juego(nocheDelSistema, Preferencias.temaDia.value, Preferencias.temaNoche.value)
     Tema.juego = juego
     ponerPreferenciasEnTema(juego)
 }
 
-/** Todo menos el juego (que App cambia con fundido): acento, texto, luz, movimiento, códigos y modo ligero */
+/** Todo menos el juego (que App cambia con fundido): lo elegido en Personalizar, ya resuelto */
 fun ponerPreferenciasEnTema(juego: Juego) {
+    Tema.contraste = Preferencias.contraste.value
+    Tema.fondo = Preferencias.fondoMapa.value ?: juego.fondo
+    Tema.cables = Preferencias.cables.value
+    Tema.grosor = Preferencias.grosorCables.value
+    Tema.atenuarAprobadas = Preferencias.atenuarAprobadas.value
+    Tema.hora24 = Preferencias.hora24.value
+    Tema.vibracion = Preferencias.vibracion.value
     Tema.acento = Preferencias.acento.value
     Tema.textoGrande = Preferencias.textoGrande.value
     Tema.luzFondo = Preferencias.luzFondo.value ?: (juego.aurora > 0f)

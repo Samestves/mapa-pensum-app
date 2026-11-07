@@ -4,7 +4,6 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -39,12 +38,14 @@ import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.PathMeasure
+import androidx.compose.ui.graphics.PointMode
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
@@ -59,6 +60,8 @@ import mpensum.logica.Situacion
 import mpensum.logica.Tramo
 import mpensum.logica.marcasDeSemestres
 import mpensum.logica.tramoDe
+import mpensum.tema.Fondo
+import mpensum.tema.FormaCables
 import mpensum.tema.Paleta
 import mpensum.tema.Tema
 import mpensum.tema.avivar
@@ -84,6 +87,8 @@ private const val ESPERA_DESCARGA = 380
 private const val DURACION_DESCARGA = 1300
 /** La rejilla del fondo: cuadros de 34 en píxeles de pantalla, quietos (DefsGrafo.jsx) */
 private const val PASO_REJILLA = 34f
+/** «Lo aprobado: Atenuado»: la opacidad de las tarjetas aprobadas y de sus cables */
+private const val ATENUADO = 0.45f
 
 @Composable
 fun MapaCarrera(
@@ -171,7 +176,7 @@ fun MapaCarrera(
             }
             .gestosDelMapa(camara, alTocarVacio),
     ) {
-        if (conFondo) Canvas(Modifier.fillMaxSize()) { rejilla() }
+        if (conFondo) Spacer(Modifier.fillMaxSize().fondoDelMapa())
         Box(
             Modifier
                 .wrapContentSize(Alignment.TopStart, unbounded = true)
@@ -188,7 +193,8 @@ fun MapaCarrera(
                 },
         ) {
             Cables(estado, cadena = { cadenaVisible }, foco = { foco.value }, trazado = { trazado.value }, descarga = { efectos.descarga?.codigo to descarga.value })
-            if (!Tema.sinBucles) LuzDeFrontera(estado, congelada = { camara.enGesto || congelado || seleccionado != null }, cadena = { cadenaVisible }, foco = { foco.value })
+            // Al tocar no hay cables a la vista: tampoco la luz que viaja por ellos
+            if (!Tema.sinBucles && Tema.cables != FormaCables.AL_TOCAR) LuzDeFrontera(estado, congelada = { camara.enGesto || congelado || seleccionado != null }, cadena = { cadenaVisible }, foco = { foco.value })
 
             CabecerasSemestres(estado, tipos, medidor, alAlternarSemestre)
             estado.franja?.let { RotulosFranja(it, estado, tipos) }
@@ -250,7 +256,12 @@ private fun TarjetasMapa(
         val materia = estado.materiaDe(nodo)
         val codigo = materia?.codigo
         val situacion = codigo?.let { sit[it] }
-        val opacidad = remember(codigo, opacidadDe) { opacidadDe(codigo) }
+        // «Lo aprobado: Atenuado»: la tarjeta aprobada baja al 45 % salvo la que se está mirando
+        val atenuada = Tema.atenuarAprobadas && situacion == Situacion.HECHA && codigo != seleccionado
+        val opacidad = remember(codigo, opacidadDe, atenuada) {
+            val delFoco = opacidadDe(codigo)
+            if (atenuada) ({ delFoco() * ATENUADO }) else delFoco
+        }
         TarjetaMapa(
             nodo = nodo,
             materia = materia,
@@ -296,18 +307,43 @@ private fun semestreDeTrabajo(estado: EstadoCarrera): Int? {
     return reales.mapNotNull { it.semestre }.maxOrNull()
 }
 
-private fun DrawScope.rejilla() {
+/** Los puntos del fondo, en los cruces de la rejilla. Se arman una vez por tamaño, no en cada cuadro */
+private fun puntosDeRejilla(ancho: Float, alto: Float, paso: Float): List<Offset> {
+    val columnas = (ancho / paso).toInt() + 1
+    val filas = (alto / paso).toInt() + 1
+    val puntos = ArrayList<Offset>(columnas * filas)
+    for (f in 0 until filas) for (c in 0 until columnas) puntos += Offset(c * paso, f * paso)
+    return puntos
+}
+
+/**
+ * El fondo quieto del mapa: la rejilla, puntos en sus cruces o nada (liso),
+ * según [Tema.fondo]. Los puntos son una sola llamada con la lista guardada
+ * por tamaño; cambiar de fondo o de tema rehace solo este cuadro.
+ */
+private fun Modifier.fondoDelMapa(): Modifier = drawWithCache {
+    val fondo = Tema.fondo
     val paso = PASO_REJILLA * density
     val color = Paleta.rejilla
-    var x = 0f
-    while (x <= size.width) {
-        drawLine(color, Offset(x, 0f), Offset(x, size.height), 1f)
-        x += paso
-    }
-    var y = 0f
-    while (y <= size.height) {
-        drawLine(color, Offset(0f, y), Offset(size.width, y), 1f)
-        y += paso
+    val puntos = if (fondo == Fondo.PUNTOS) puntosDeRejilla(size.width, size.height, paso) else emptyList()
+    val colorPunto = lerp(color, Paleta.tinta, 0.1f)
+    onDrawBehind {
+        when (fondo) {
+            Fondo.REJILLA -> {
+                var x = 0f
+                while (x <= size.width) {
+                    drawLine(color, Offset(x, 0f), Offset(x, size.height), 1f)
+                    x += paso
+                }
+                var y = 0f
+                while (y <= size.height) {
+                    drawLine(color, Offset(0f, y), Offset(size.width, y), 1f)
+                    y += paso
+                }
+            }
+            Fondo.PUNTOS -> drawPoints(puntos, PointMode.Points, colorPunto, 2f * density, StrokeCap.Round)
+            Fondo.LISO -> Unit
+        }
     }
 }
 
@@ -354,15 +390,21 @@ private fun cablesDe(estado: EstadoCarrera): List<CableDibujo> {
                 is Segmento.Curva -> cubicTo(s.x1.toFloat(), s.y1.toFloat(), s.x2.toFloat(), s.y2.toFloat(), s.x.toFloat(), s.y.toFloat())
             }
         }
-        val inicio = a.trazo.first() as Segmento.Mover
-        val fin = a.trazo.last() as Segmento.Curva
+        val inicio = a.trazo.first()
+        val fin = a.trazo.last()
         CableDibujo(
             a, ruta,
-            porCodigo[a.origen]?.asignatura?.let(estado.colores::de) ?: Paleta.suave,
-            porCodigo[a.destino]?.asignatura?.let(estado.colores::de) ?: Paleta.suave,
+            porCodigo[a.origen]?.asignatura?.let(estado.colores::de)?.let(::colorDeCable) ?: Paleta.suave,
+            porCodigo[a.destino]?.asignatura?.let(estado.colores::de)?.let(::colorDeCable) ?: Paleta.suave,
             Offset(inicio.x.toFloat(), inicio.y.toFloat()), Offset(fin.x.toFloat(), fin.y.toFloat()),
         )
     }
+}
+
+/** El color de un cable: el de su área, más o menos tirado a la tinta según el tema (`Juego.cables`: 1 el del área, 0 la tinta) */
+private fun colorDeCable(area: Color): Color {
+    val color = Tema.juego.cables
+    return if (color >= 1f) area else lerp(Paleta.tinta, area, color)
 }
 
 /**
@@ -415,8 +457,10 @@ private fun Cables(
             val cables = cablesDe(estado)
             // Degradados y trazos se arman una vez: en cada cuadro solo se eligen
             val degradados = cables.map { degradado(it, false) }
-            val trazos = Tramo.entries.associateWith { Stroke(grosor(it), cap = StrokeCap.Round) }
-            val linea = Stroke(2.25f, cap = StrokeCap.Round)
+            // El grosor elegido es un factor del trazo que ya se crea: no cuesta nada más
+            val factor = Tema.grosor.factor
+            val trazos = Tramo.entries.associateWith { Stroke(grosor(it) * factor, cap = StrokeCap.Round) }
+            val linea = Stroke(2.25f * factor, cap = StrokeCap.Round)
             onDrawBehind {
                 scale(density, Offset.Zero) {
                     val sit = estado.situaciones
@@ -424,25 +468,33 @@ private fun Cables(
                     val f = foco()
                     val (aprobada, tiempo) = descarga()
                     val conDegradado = !Tema.ligero
+                    // Al tocar: solo los cables de la materia señalada (la cadena), que entran con el foco
+                    val soloTocar = Tema.cables == FormaCables.AL_TOCAR
+                    val atenuar = Tema.atenuarAprobadas
                     for ((i, c) in cables.withIndex()) {
                         val a = c.arista
                         val tramo = tramoDe(sit[a.origen] ?: Situacion.LEJANA, sit[a.destino] ?: Situacion.LEJANA)
                         val frontera = tramo == Tramo.FRONTERA
                         val enCadena = enFoco != null && a.origen in enFoco && a.destino in enFoco
-                        val apartado = if (enFoco != null && !enCadena) 1f - (1f - OPACIDAD_FOCO) * f else 1f
-                        // Dentro del foco la base baja a 0,2 y la cadena se dibuja encima, en su color
-                        val alfa = if (enCadena) opacidad(tramo) + (0.2f - opacidad(tramo)) * f else opacidad(tramo) * apartado
-                        val estilo = trazos.getValue(tramo)
-                        if (frontera && conDegradado) drawPath(c.ruta, degradados[i], alpha = alfa, style = estilo)
-                        else drawPath(c.ruta, c.desde.copy(alpha = alfa), style = estilo)
-                        if (enCadena && f > 0f) {
-                            val trozo = c.hasta(trazado())
-                            if (frontera && conDegradado) drawPath(trozo, degradados[i], alpha = 0.95f * f, style = linea)
-                            else drawPath(trozo, c.desde.copy(alpha = 0.95f * f), style = linea)
+                        if (!soloTocar || enCadena) {
+                            val apartado = if (enFoco != null && !enCadena) 1f - (1f - OPACIDAD_FOCO) * f else 1f
+                            // Dentro del foco la base baja a 0,2 y la cadena se dibuja encima, en su color
+                            val base = if (enCadena) opacidad(tramo) + (0.2f - opacidad(tramo)) * f else opacidad(tramo) * apartado
+                            // Lo aprobado, atenuado, y al tocar la base entra con el foco
+                            val atenuado = if (atenuar && tramo == Tramo.RECORRIDO) ATENUADO else 1f
+                            val alfa = base * atenuado * (if (soloTocar) f else 1f)
+                            val estilo = trazos.getValue(tramo)
+                            if (frontera && conDegradado) drawPath(c.ruta, degradados[i], alpha = alfa, style = estilo)
+                            else drawPath(c.ruta, c.desde.copy(alpha = alfa), style = estilo)
+                            if (enCadena && f > 0f) {
+                                val trozo = c.hasta(trazado())
+                                if (frontera && conDegradado) drawPath(trozo, degradados[i], alpha = 0.95f * f, style = linea)
+                                else drawPath(trozo, c.desde.copy(alpha = 0.95f * f), style = linea)
+                            }
+                            // El punto de llegada: el de la frontera siempre, el de la cadena con el foco puesto
+                            if (frontera) drawCircle(c.hacia.copy(alpha = (if (enCadena) 1f else 0.9f) * apartado), 3f, c.fin)
+                            else if (enCadena && f > 0f) drawCircle(c.desde.copy(alpha = f), 3f, c.fin)
                         }
-                        // El punto de llegada: el de la frontera siempre, el de la cadena con el foco puesto
-                        if (frontera) drawCircle(c.hacia.copy(alpha = (if (enCadena) 1f else 0.9f) * apartado), 3f, c.fin)
-                        else if (enCadena && f > 0f) drawCircle(c.desde.copy(alpha = f), 3f, c.fin)
                         if (aprobada != null && a.origen == aprobada && tiempo < 1f) descargaPor(c, tiempo)
                     }
                 }

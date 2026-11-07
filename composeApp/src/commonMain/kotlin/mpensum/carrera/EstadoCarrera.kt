@@ -3,6 +3,7 @@ package mpensum.carrera
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.produceState
+import androidx.compose.runtime.referentialEqualityPolicy
 import androidx.compose.runtime.remember
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -41,6 +42,7 @@ import mpensum.mapa.NodoMapa
 import mpensum.mapa.calcularFranja
 import mpensum.mapa.calcularLayout
 import mpensum.tema.ColoresMapa
+import mpensum.tema.Tema
 
 /**
  * Todo lo de una carrera abierta: su geometría (fija), lo que marcaste y lo
@@ -58,6 +60,8 @@ class EstadoCarrera(
     /** El layout ya calculado (fuera del hilo principal) para `compactoInicial`; si no, se calcula al leerlo */
     private val layoutInicial: LayoutMapa? = null,
     private val compactoInicial: Boolean = compacto,
+    /** Si `layoutInicial` se calculó con cables rectos */
+    private val rectosInicial: Boolean = false,
 ) {
     /**
      * Horizontal: cabecera de una línea. Girar el teléfono cambia solo esto y,
@@ -65,9 +69,14 @@ class EstadoCarrera(
      */
     var compacto by mutableStateOf(compacto)
 
-    /** La geometría no depende del avance: solo se recalcula si gira el teléfono */
-    val layout: LayoutMapa by derivedStateOf {
-        if (layoutInicial != null && this.compacto == compactoInicial) layoutInicial else layoutDe(pensum, this.compacto)
+    /**
+     * La geometría no depende del avance: solo se recalcula si gira el teléfono
+     * o si cambian los cables a rectos (cuyo trazado sale del layout). Se compara
+     * por identidad: dos layouts nunca se comparan campo a campo.
+     */
+    val layout: LayoutMapa by derivedStateOf(referentialEqualityPolicy()) {
+        val rectos = Tema.rectos
+        if (layoutInicial != null && this.compacto == compactoInicial && rectos == rectosInicial) layoutInicial else layoutDe(pensum, this.compacto, rectos)
     }
 
     /**
@@ -197,11 +206,11 @@ class EstadoCarrera(
 }
 
 /** La geometría de una carrera; compacto (horizontal) lleva la cabecera de una línea */
-private fun layoutDe(pensum: Pensum, compacto: Boolean): LayoutMapa =
-    calcularLayout(pensum.asignaturas, pensum.grupos, if (compacto) ALTO_ENCABEZADO_COMPACTO else ALTO_ENCABEZADO)
+private fun layoutDe(pensum: Pensum, compacto: Boolean, rectos: Boolean): LayoutMapa =
+    calcularLayout(pensum.asignaturas, pensum.grupos, if (compacto) ALTO_ENCABEZADO_COMPACTO else ALTO_ENCABEZADO, rectos)
 
 /** Lo que llega junto de fuera del hilo principal: el pensum y su geometría */
-private class CarreraLista(val pensum: Pensum, val layout: LayoutMapa, val compacto: Boolean)
+private class CarreraLista(val pensum: Pensum, val layout: LayoutMapa, val compacto: Boolean, val rectos: Boolean)
 
 /**
  * El estado de una carrera al abrirla. El JSON se decodifica y la geometría se
@@ -212,12 +221,15 @@ private class CarreraLista(val pensum: Pensum, val layout: LayoutMapa, val compa
 fun rememberEstadoCarrera(slug: String, horizontal: Boolean): EstadoCarrera? {
     val lista = produceState<CarreraLista?>(null, slug) {
         val compacto = horizontal
+        val rectos = Tema.rectos
         value = withContext(Dispatchers.Default) {
             val pensum = leerPensumDelPaquete(slug)
-            CarreraLista(pensum, layoutDe(pensum, compacto), compacto)
+            CarreraLista(pensum, layoutDe(pensum, compacto, rectos), compacto, rectos)
         }
     }.value
-    val estado = remember(lista) { lista?.let { EstadoCarrera(it.pensum, compacto = horizontal, layoutInicial = it.layout, compactoInicial = it.compacto) } }
+    val estado = remember(lista) {
+        lista?.let { EstadoCarrera(it.pensum, compacto = horizontal, layoutInicial = it.layout, compactoInicial = it.compacto, rectosInicial = it.rectos) }
+    }
     // Girar solo cambia el layout: el estado, el horario, la cámara y la lista siguen vivos
     estado?.compacto = horizontal
     return estado

@@ -73,9 +73,13 @@ data class ColumnaMapa(val semestre: Int, val x: Double, val cantidad: Int, val 
 
 /** Un trozo del trazado de un cable: se convierte en Path al dibujar */
 sealed interface Segmento {
-    data class Mover(val x: Double, val y: Double) : Segmento
-    data class Linea(val x: Double, val y: Double) : Segmento
-    data class Curva(val x1: Double, val y1: Double, val x2: Double, val y2: Double, val x: Double, val y: Double) : Segmento
+    /** Adonde llega el segmento */
+    val x: Double
+    val y: Double
+
+    data class Mover(override val x: Double, override val y: Double) : Segmento
+    data class Linea(override val x: Double, override val y: Double) : Segmento
+    data class Curva(val x1: Double, val y1: Double, val x2: Double, val y2: Double, override val x: Double, override val y: Double) : Segmento
 }
 
 /** Un cable de prelación ya ruteado */
@@ -147,7 +151,13 @@ fun partirEnLineas(texto: String, anchoDisponible: Double, tamano: Double, maxLi
  * orden dentro del semestre (fila), respetando el orden del JSON. El alto de
  * la cabecera entra como parámetro (no hay globales): en horizontal es la compacta.
  */
-fun calcularLayout(asignaturas: List<Asignatura>, grupos: List<Grupo> = emptyList(), altoEncabezado: Double = ALTO_ENCABEZADO): LayoutMapa {
+fun calcularLayout(
+    asignaturas: List<Asignatura>,
+    grupos: List<Grupo> = emptyList(),
+    altoEncabezado: Double = ALTO_ENCABEZADO,
+    /** Cables con codos octilineales en vez de curvas */
+    rectos: Boolean = false,
+): LayoutMapa {
     val semestres = asignaturas.mapNotNull { it.semestre }.distinct().sorted()
     val nodos = mutableListOf<NodoMapa>()
     val columnas = mutableListOf<ColumnaMapa>()
@@ -176,7 +186,7 @@ fun calcularLayout(asignaturas: List<Asignatura>, grupos: List<Grupo> = emptyLis
         electivas = electivas,
         // Cero cables hacia las electivas: un cable que bajara desde la malla
         // diría "esta electiva es parte del semestre X", y no lo es
-        aristas = generarAristas(nodos),
+        aristas = generarAristas(nodos, rectos),
         // Las relaciones sí las incluyen: señalar una electiva ilumina lo que pide
         relaciones = construirRelaciones((nodos + electivas).map { it.asignatura }),
         finSemestres = finSemestres,
@@ -239,8 +249,68 @@ private fun trazar(x1: Double, y1: Double, x2: Double, y2: Double, cruces: List<
     return trazo
 }
 
-/** Un cable por cada par prerrequisito → materia, ya ruteado */
-fun generarAristas(nodos: List<NodoMapa>): List<Arista> {
+/* El codo octilineal: radio del chaflán de 45°, aire que se deja a las tarjetas y corrimiento del canal por puerto */
+private const val CHAFLAN = 16.0
+private const val AIRE_CODO = 4.0
+private const val CORRIMIENTO_CANAL = 6.0
+
+/**
+ * Cuánto se corre el canal vertical de un cable según su puerto, para que los
+ * de una misma tarjeta no se monten en el mismo: el de más arriba gira más
+ * tarde al bajar y más pronto al subir, y así no se cruzan.
+ */
+private fun corrimiento(indice: Int, total: Int, bajando: Boolean): Double {
+    if (total <= 1) return 0.0
+    val k = -CORRIMIENTO_CANAL + 2 * CORRIMIENTO_CANAL * indice / (total - 1)
+    return if (bajando) -k else k
+}
+
+/**
+ * Un tramo recto entre dos puntos con el codo octilineal: horizontal hasta
+ * `xm − d`, 45° hasta `y1 ± d`, vertical, 45° y horizontal hasta el final.
+ * `d = min(16, |dy| / 2, (x2 − x1) / 2 − 4)`; sin desnivel, una línea.
+ */
+private fun codo(trazo: MutableList<Segmento>, x1: Double, y1: Double, x2: Double, y2: Double, corrida: Double) {
+    val dy = y2 - y1
+    val ancho = (x2 - x1) / 2
+    val d = minOf(CHAFLAN, abs(dy) / 2, ancho - AIRE_CODO - abs(corrida))
+    if (abs(dy) < 1.0 || d <= 0.0) {
+        trazo += Segmento.Linea(x2, y2)
+        return
+    }
+    val xm = x1 + ancho + corrida
+    val s = if (dy > 0) 1.0 else -1.0
+    trazo += Segmento.Linea(xm - d, y1)
+    trazo += Segmento.Linea(xm, y1 + s * d)
+    trazo += Segmento.Linea(xm, y2 - s * d)
+    trazo += Segmento.Linea(xm + d, y2)
+    trazo += Segmento.Linea(x2, y2)
+}
+
+/**
+ * El trazado recto de un cable: un codo por cada salto entre columnas y los
+ * mismos tramos rectos por los pasillos. `salida` y `entrada` son el puerto
+ * (índice, total) en los dos extremos; el primer salto corre su canal por el
+ * puerto de salida y el último por el de entrada.
+ */
+private fun trazarRecto(x1: Double, y1: Double, x2: Double, y2: Double, cruces: List<Cruce>, salida: Pair<Int, Int>, entrada: Pair<Int, Int>): List<Segmento> {
+    val trazo = mutableListOf<Segmento>(Segmento.Mover(x1, y1))
+    var cx = x1
+    var cy = y1
+    for ((i, c) in cruces.withIndex()) {
+        val corrida = if (i == 0) corrimiento(salida.first, salida.second, c.y > cy) else 0.0
+        codo(trazo, cx, cy, c.xEntrada, c.y, corrida)
+        trazo += Segmento.Linea(c.xSalida, c.y)
+        cx = c.xSalida
+        cy = c.y
+    }
+    val puerto = if (cruces.isEmpty()) salida else entrada
+    codo(trazo, cx, cy, x2, y2, corrimiento(puerto.first, puerto.second, y2 > cy))
+    return trazo
+}
+
+/** Un cable por cada par prerrequisito → materia, ya ruteado; con `rectos`, de codos octilineales en vez de curvas */
+fun generarAristas(nodos: List<NodoMapa>, rectos: Boolean = false): List<Arista> {
     val porCodigo = nodos.associateBy { it.codigo }
     val pasillos = pasillosPorSemestre(nodos)
 
@@ -275,7 +345,10 @@ fun generarAristas(nodos: List<NodoMapa>): List<Arista> {
             val pasillo = pasillos[s] ?: continue
             cruces += Cruce(pasillo.x, pasillo.x + Nodo.ANCHO, pasillo.elegir((y1 + y2) / 2))
         }
-        aristas += Arista(origen.codigo, destino.codigo, origen.asignatura.area, cruces.isNotEmpty(), trazar(x1, y1, x2, y2, cruces))
+        val trazo = if (rectos) {
+            trazarRecto(x1, y1, x2, y2, cruces, salida.indexOf(destino.codigo) to salida.size, entrada.indexOf(pre) to entrada.size)
+        } else trazar(x1, y1, x2, y2, cruces)
+        aristas += Arista(origen.codigo, destino.codigo, origen.asignatura.area, cruces.isNotEmpty(), trazo)
     }
     return aristas
 }

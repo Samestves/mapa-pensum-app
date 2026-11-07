@@ -492,7 +492,7 @@ private fun BoxScope.CabeceraLista(
             .fillMaxWidth()
             .height(arriba + ALTO_FILTROS)
             .then(
-                if (Tema.ligero) Modifier.tinteLiso(ESTILO_VELO) { vidrio.value }
+                if (Tema.sinDesenfoque) Modifier.tinteLiso(ESTILO_VELO) { vidrio.value }
                 else Modifier.hazeEffect(fondo, ESTILO_VELO) {
                     alpha = vidrio.value
                     blurEnabled = vidrio.value > 0f

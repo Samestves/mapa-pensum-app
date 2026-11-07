@@ -66,9 +66,9 @@ internal fun Modifier.cristal(estado: HazeState, forma: Shape, estilo: HazeStyle
 
 /**
  * Lo que recoge el cristal (la vista de debajo). En modo ligero no hay
- * desenfoque, así que tampoco se graba lo de detrás en cada cuadro.
+ * desenfoque (o es un Exterior), así que tampoco se graba lo de detrás en cada cuadro.
  */
-fun Modifier.fuenteCristal(estado: HazeState): Modifier = if (Tema.ligero) this else hazeSource(estado)
+fun Modifier.fuenteCristal(estado: HazeState): Modifier = if (Tema.sinDesenfoque) this else hazeSource(estado)
 
 /**
  * El cristal del modo ligero: sin desenfoque, el fondo del estilo con su tinte
@@ -87,7 +87,7 @@ fun Modifier.tinteLiso(estilo: HazeStyle, alfa: () -> Float = { 1f }): Modifier 
 @OptIn(ExperimentalHazeApi::class)
 internal fun Modifier.vidrio(estado: HazeState, estilo: HazeStyle, vidrio: Vidrio): Modifier =
     this
-        .then(if (Tema.ligero) Modifier.tinteLiso(estilo) else Modifier.hazeEffect(estado, estilo) { inputScale = HazeInputScale.Auto })
+        .then(if (Tema.sinDesenfoque) Modifier.tinteLiso(estilo) else Modifier.hazeEffect(estado, estilo) { inputScale = HazeInputScale.Auto })
         .drawWithCache {
             val claro = Tema.claro
             val relleno = if (claro) fondoVidrio() else vidrio.fondoOscuro

@@ -455,7 +455,7 @@ private fun PantallaCompleta(
 @OptIn(ExperimentalHazeApi::class)
 @Composable
 private fun FondoHoja(fondo: HazeState?, hoja: Hoja, toque: MutableInteractionSource, alCerrar: () -> Unit) {
-    if (fondo != null && !Tema.ligero) {
+    if (fondo != null && !Tema.sinDesenfoque) {
         Box(
             Modifier
                 .fillMaxSize()

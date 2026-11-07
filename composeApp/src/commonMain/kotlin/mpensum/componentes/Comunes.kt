@@ -82,7 +82,7 @@ fun Modifier.aurora(intensidad: Float = 1f): Modifier = drawBehind {
     )
     drawRect(
         Brush.radialGradient(
-            listOf(Paleta.turquesa.copy(alpha = 0.10f * intensidad), Color.Transparent),
+            listOf(Paleta.aurora2.copy(alpha = 0.10f * intensidad), Color.Transparent),
             center = Offset(size.width * 0.8f, -alto * 0.15f),
             radius = size.width * 0.6f,
         ),

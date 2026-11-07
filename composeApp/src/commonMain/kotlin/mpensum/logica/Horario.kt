@@ -1,6 +1,7 @@
 package mpensum.logica
 
 import mpensum.datos.Asignatura
+import mpensum.tema.Tema
 
 /*
  * El horario de una carrera (layout/horario.js de la web): las clases de la
@@ -56,21 +57,31 @@ fun porDia(sesiones: List<Sesion>): List<List<Sesion>> =
 
 /* ---- Horas dichas para leer de reojo ------------------------------------ */
 
-fun meridiano(min: Int) = if (min < 12 * 60) "AM" else "PM"
+/*
+ * Con «Formato de hora: 24 h» (Tema.hora24, que estos textos leen por defecto)
+ * no hay meridiano: «13:00» ocupa en el carril lo mismo que «10:00».
+ */
 
-private fun hora12(min: Int) = ((min / 60 + 11) % 12) + 1
+/** "AM" o "PM"; vacío en 24 h, y así «¿cambia el meridiano?» sigue siendo falso */
+fun meridiano(min: Int, h24: Boolean = Tema.hora24) = if (h24) "" else if (min < 12 * 60) "AM" else "PM"
 
-/** "7:00" de "7:00 AM": la hora grande, el meridiano aparte y pequeño */
-fun horaDe(min: Int) = "${hora12(min)}:${(min % 60).toString().padStart(2, '0')}"
+fun hora12(min: Int) = ((min / 60 + 11) % 12) + 1
 
-/** "12:00 PM" */
-fun enDoceHoras(min: Int) = "${horaDe(min)} ${meridiano(min)}"
+/** "7:00" de "7:00 AM": la hora grande, el meridiano aparte y pequeño. En 24 h, "07:00" y "13:00" */
+fun horaDe(min: Int, h24: Boolean = Tema.hora24): String {
+    val minutos = (min % 60).toString().padStart(2, '0')
+    return if (h24) "${(min / 60).toString().padStart(2, '0')}:$minutos" else "${hora12(min)}:$minutos"
+}
 
-/** Un tramo en corto, como Calendario de Apple: "7 – 9 AM", "11 AM – 1 PM", "8:15 – 9:50 AM" */
-fun tramoCorto(inicio: Int, fin: Int): String {
-    fun h(m: Int) = if (m % 60 != 0) horaDe(m) else hora12(m).toString()
-    return if (meridiano(inicio) == meridiano(fin)) "${h(inicio)} – ${h(fin)} ${meridiano(fin)}"
-    else "${h(inicio)} ${meridiano(inicio)} – ${h(fin)} ${meridiano(fin)}"
+/** "12:00 PM", o "12:00" en 24 h */
+fun enDoceHoras(min: Int, h24: Boolean = Tema.hora24) = if (h24) horaDe(min, true) else "${horaDe(min, false)} ${meridiano(min, false)}"
+
+/** Un tramo en corto, como Calendario de Apple: "7 – 9 AM", "11 AM – 1 PM", "8:15 – 9:50 AM"; en 24 h, "07:00 – 09:00" */
+fun tramoCorto(inicio: Int, fin: Int, h24: Boolean = Tema.hora24): String {
+    if (h24) return "${horaDe(inicio, true)} – ${horaDe(fin, true)}"
+    fun h(m: Int) = if (m % 60 != 0) horaDe(m, false) else hora12(m).toString()
+    return if (meridiano(inicio, false) == meridiano(fin, false)) "${h(inicio)} – ${h(fin)} ${meridiano(fin, false)}"
+    else "${h(inicio)} ${meridiano(inicio, false)} – ${h(fin)} ${meridiano(fin, false)}"
 }
 
 /** Cuánto dura algo: "1 h 40 min", "2 h", "30 min" */
