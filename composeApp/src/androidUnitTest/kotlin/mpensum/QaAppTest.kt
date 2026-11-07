@@ -87,6 +87,7 @@ class QaAppTest {
 
     private fun atras() {
         regla.runOnUiThread { regla.activity.onBackPressedDispatcher.onBackPressed() }
+        regla.waitForIdle()
         correr(700)
     }
 
@@ -259,9 +260,8 @@ class QaAppTest {
         correr(900)
         // Tocar una fila abre su ficha; los botones de estado de la ficha son los que marcan
         regla.onNodeWithContentDescription("Matemáticas I, Puedes inscribirla").performClick()
+        regla.waitForIdle()
         correr(900)
-        correr(1500)
-        println("ARBOL: " + regla.onRoot().printToString(60))
         regla.onNodeWithText("Cursando").performClick()
         correr(500)
         assertEquals(Marca.CURSANDO, Guardado.marcas(sistemas())["0081814"])
