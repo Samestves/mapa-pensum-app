@@ -135,6 +135,15 @@ fun Interior(carrera: Carrera, alVolver: () -> Unit) {
         casillaAbierta = casilla
     }
 
+    // Acostado, una casilla de electiva vacía no cabe en la burbuja: abre el selector a pantalla completa
+    LaunchedEffect(seleccionado, horizontal, vista) {
+        val c = seleccionado ?: return@LaunchedEffect
+        if (horizontal && vista == Vista.MAPA && estado != null && estado.layout.porCodigo[c]?.asignatura?.esHueco == true && estado.enCasilla(c) == null) {
+            seleccionado = null
+            abrirCasilla(c, aprobar = false)
+        }
+    }
+
     BoxWithConstraints(
         Modifier
             .fillMaxSize()
@@ -153,6 +162,8 @@ fun Interior(carrera: Carrera, alVolver: () -> Unit) {
         val inicio = if (horizontal) izquierda + RESERVA_RIEL else 0.dp
         val tapa = if (horizontal) abajo + Espacio.m else tapaBarra
         val enLista = horizontal && vista == Vista.LISTA
+        // Acostado, sobre el mapa la ficha es una burbuja pegada a su tarjeta; en la lista, de momento, la hoja a pantalla completa
+        val burbuja = horizontal && vista == Vista.MAPA
         val reparto = if (enLista) repartoLista(maxWidth, inicio, derecha, arriba) else null
         CapaVista(
             vista = vista,
@@ -183,36 +194,53 @@ fun Interior(carrera: Carrera, alVolver: () -> Unit) {
             alVolver = alVolver,
             alCambiar = { vista = it },
             alAvance = { if (estado != null) avanceAbierto = true },
-            oculta = seleccionado != null && vista != Vista.HORARIO,
+            oculta = seleccionado != null && vista != Vista.HORARIO && !horizontal,
         )
 
-        // Encima de la barra: mientras la ficha está abierta la barra se esconde y la hoja ocupa su sitio
         if (estado != null) {
+            val alMarcar: (String, Marca?) -> Unit = { codigo, marca ->
+                // Aprobar enseña lo que abre: el mapa se corre hasta que se vea todo, y entonces descarga.
+                // En la lista no hay cámara que mover: solo se marca
+                if (vista == Vista.MAPA && marca == Marca.APROBADA && estado.marcas[codigo] != Marca.APROBADA) {
+                    val abre = estado.layout.relaciones.adelante[codigo].orEmpty()
+                    estado.cajaDe(abre + codigo)?.let { camara.mostrar(alcance, it, MARGEN_AL_APROBAR) }
+                    seleccionado = null
+                    estado.marcar(codigo, marca)
+                    efectos.descargar(codigo)
+                } else {
+                    estado.marcar(codigo, marca)
+                }
+                efectos.tocar(codigo)
+            }
+            val alCambiarElectiva: (String) -> Unit = { casilla ->
+                seleccionado = null
+                abrirCasilla(casilla, aprobar = false)
+            }
+            // Encima de la barra: la ficha esconde la barra y ocupa su sitio. Acostada en el mapa, la burbuja
+            BurbujaFicha(
+                codigo = seleccionado.takeIf { burbuja },
+                estado = estado,
+                camara = camara,
+                zona = ZonaSegura(
+                    izq = inicio.value + 16f, arriba = arriba.value + 12f,
+                    der = maxWidth.value - derecha.value - 16f, abajo = maxHeight.value - abajo.value - 20f,
+                ),
+                ancho = maxWidth.value,
+                alto = maxHeight.value,
+                alCerrar = { seleccionado = null },
+                alMarcar = alMarcar,
+                alIrA = { seleccionado = it },
+                alCambiarElectiva = alCambiarElectiva,
+            )
             FichaMateria(
-                codigo = seleccionado.takeIf { vista != Vista.HORARIO },
+                codigo = seleccionado.takeIf { vista != Vista.HORARIO && !burbuja },
                 estado = estado,
                 alCerrar = { seleccionado = null },
-                alMarcar = { codigo, marca ->
-                    // Aprobar enseña lo que abre: el mapa se corre hasta que se vea todo, y entonces descarga.
-                    // En la lista no hay cámara que mover: solo se marca
-                    if (vista == Vista.MAPA && marca == Marca.APROBADA && estado.marcas[codigo] != Marca.APROBADA) {
-                        val abre = estado.layout.relaciones.adelante[codigo].orEmpty()
-                        estado.cajaDe(abre + codigo)?.let { camara.mostrar(alcance, it, MARGEN_AL_APROBAR) }
-                        seleccionado = null
-                        estado.marcar(codigo, marca)
-                        efectos.descargar(codigo)
-                    } else {
-                        estado.marcar(codigo, marca)
-                    }
-                    efectos.tocar(codigo)
-                },
+                alMarcar = alMarcar,
                 alIrA = { seleccionado = it },
-                alCambiarElectiva = { casilla ->
-                    seleccionado = null
-                    abrirCasilla(casilla, aprobar = false)
-                },
+                alCambiarElectiva = alCambiarElectiva,
                 alEncuadrar = { codigo, alto ->
-                    // Solo de pie: acostada la ficha ocupa la pantalla y no hay hueco donde centrar nada
+                    // Solo de pie: acostada la ficha ocupa la pantalla (o es la burbuja) y no hay hueco donde centrar nada
                     if (vista == Vista.MAPA && !horizontal && codigo == seleccionado && codigo != encuadrada) {
                         estado.cajaDe(listOf(codigo))?.let {
                             // Centrada en el hueco libre: 16 bajo la barra de estado y 16 sobre la hoja

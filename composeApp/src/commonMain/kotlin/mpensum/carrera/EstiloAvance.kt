@@ -222,10 +222,13 @@ internal fun BotonTinta(
     nota: String? = null,
     colorNota: Color? = null,
     superficie: Boolean = false,
+    /** La burbuja acostada usa botones de 48 con radio 16; la ficha de pie, los de 52 con radio 26 */
+    alto: Dp = 52.dp,
+    radio: Dp = Radio.Barra,
 ) {
     val lleno = !superficie
     Column(
-        modifier.fillMaxWidth().heightIn(min = 52.dp).clip(RoundedCornerShape(Radio.Barra))
+        modifier.fillMaxWidth().heightIn(min = alto).clip(RoundedCornerShape(radio))
             .background(if (lleno) Paleta.tinta else Paleta.tinta.copy(alpha = Velo.pastilla))
             .clickable(role = Role.Button, onClick = alTocar),
         horizontalAlignment = Alignment.CenterHorizontally,

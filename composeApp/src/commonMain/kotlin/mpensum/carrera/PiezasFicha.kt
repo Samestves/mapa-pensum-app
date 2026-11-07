@@ -72,6 +72,7 @@ import mpensum.logica.seAbrenAlAprobar
 import mpensum.mapa.nombreCasilla
 import mpensum.tema.Espacio
 import mpensum.tema.Paleta
+import mpensum.tema.Radio
 import mpensum.tema.Tipo
 import mpensum.tema.plex
 
@@ -180,10 +181,10 @@ internal fun FundidoDeMateria(codigo: String, modifier: Modifier = Modifier, con
 
 // ─────────────────────────────────── Cabecera ──────────────────────────────────
 
-/** Rótulo y código a la izquierda, un texto-botón opcional («Cambiar») y la X: una fila de 44, el toque mínimo */
+/** Rótulo y código a la izquierda, un texto-botón opcional («Cambiar») y la X (la burbuja no lleva): una fila de 44, el toque mínimo */
 @Composable
-internal fun RotuloFicha(enc: EncabezadoFicha, alCerrar: () -> Unit, alCambiar: (String) -> Unit) {
-    Row(Modifier.fillMaxWidth().heightIn(min = 44.dp), verticalAlignment = Alignment.CenterVertically) {
+internal fun RotuloFicha(enc: EncabezadoFicha, alCerrar: () -> Unit, alCambiar: (String) -> Unit, conCerrar: Boolean = true) {
+    Row(Modifier.fillMaxWidth().heightIn(min = if (conCerrar) 44.dp else 24.dp), verticalAlignment = Alignment.CenterVertically) {
         Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
             BasicText(enc.rotulo, style = estiloRotulo(), maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
             if (enc.codigo != null) {
@@ -198,17 +199,19 @@ internal fun RotuloFicha(enc: EncabezadoFicha, alCerrar: () -> Unit, alCambiar: 
                 )
             }
         }
-        BotonRedondo(Lucide.cerrar, "Cerrar", alCerrar)
+        if (conCerrar) BotonRedondo(Lucide.cerrar, "Cerrar", alCerrar)
     }
 }
 
 /** El texto de un botón de texto, centrado en su alto: `heightIn` solo no lo centra */
 private fun Modifier.wrapCentrado(): Modifier = this.then(Modifier.padding(vertical = 14.dp))
 
-/** El nombre: Jost 300, dos líneas como mucho, encogiéndose de 28 a 24 antes de partirse de más */
+/** El nombre: Jost 300, dos líneas como mucho, encogiéndose de 28 a 24 (en la burbuja, de 22 a 20) antes de partirse de más */
 @Composable
-internal fun TituloFicha(enc: EncabezadoFicha, modifier: Modifier = Modifier) {
-    BasicText(enc.titulo, modifier, style = estiloTitulo(), maxLines = 2, overflow = TextOverflow.Ellipsis, autoSize = TextAutoSize.StepBased(minFontSize = 24.sp, maxFontSize = 28.sp, stepSize = 1.sp))
+internal fun TituloFicha(enc: EncabezadoFicha, modifier: Modifier = Modifier, compacto: Boolean = false) {
+    val estilo = if (compacto) estiloTitulo().copy(lineHeight = 26.sp) else estiloTitulo()
+    val tamanos = if (compacto) TextAutoSize.StepBased(minFontSize = 20.sp, maxFontSize = 22.sp, stepSize = 1.sp) else TextAutoSize.StepBased(minFontSize = 24.sp, maxFontSize = 28.sp, stepSize = 1.sp)
+    BasicText(enc.titulo, modifier, style = estilo, maxLines = 2, overflow = TextOverflow.Ellipsis, autoSize = tamanos)
 }
 
 /** «2 UC · Gestión» y, a la derecha, la píldora de estado */
@@ -426,6 +429,52 @@ private fun FilaPideAbre(rotulo: String?, materia: Asignatura?, estado: EstadoCa
     }
 }
 
+/**
+ * Pide · Abre en una línea cada uno, para la burbuja: la primera materia y «y N más».
+ * Tocar la fila lleva a esa primera; sin materias dice «Ninguna».
+ */
+@Composable
+internal fun PideAbreResumen(codigo: String, estado: EstadoCarrera, alIrA: (String) -> Unit, modifier: Modifier = Modifier) {
+    val relaciones = estado.layout.relaciones
+    val porCodigo = estado.layout.porCodigo
+    val pide = relaciones.atras[codigo].orEmpty().mapNotNull { porCodigo[it]?.asignatura }
+    val abre = relaciones.adelante[codigo].orEmpty().mapNotNull { porCodigo[it]?.asignatura }
+    TarjetaLista(modifier) {
+        FilaResumen("PIDE", pide, estado, alIrA)
+        Box(Modifier.padding(start = Espacio.m).fillMaxWidth().height(1.dp).background(Paleta.tinta.copy(alpha = Velo.hilo)))
+        FilaResumen("ABRE", abre, estado, alIrA)
+    }
+}
+
+/** Una fila de 44: rótulo (36), icono de estado (16), el nombre a una línea con «y N más» y el chevrón */
+@Composable
+private fun FilaResumen(rotulo: String, materias: List<Asignatura>, estado: EstadoCarrera, alIrA: (String) -> Unit) {
+    val primera = materias.firstOrNull()
+    val puedeIr = primera != null && estado.nodoDe(primera.codigo) != null
+    Row(
+        Modifier.fillMaxWidth().heightIn(min = 44.dp)
+            .then(if (puedeIr) Modifier.pulsable({ alIrA(primera!!.codigo) }, escala = 0.985f) else Modifier)
+            .padding(horizontal = Espacio.m),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Box(Modifier.widthIn(min = ANCHO_ROTULO)) { BasicText(rotulo, style = estiloRotulo(), maxLines = 1, softWrap = false) }
+        if (primera == null) {
+            BasicText("Ninguna", Modifier.padding(start = Espacio.xs + 16.dp), style = estiloFila(Paleta.tenue, FontWeight.Normal))
+            return@Row
+        }
+        val s = estado.situaciones[primera.codigo] ?: Situacion.LEJANA
+        Spacer(Modifier.width(Espacio.xs))
+        IconoSituacion(s, 16.dp)
+        BasicText(
+            primera.nombre, Modifier.weight(1f, fill = false).padding(start = Espacio.xs),
+            style = estiloFila(if (s == Situacion.HECHA) Paleta.suave else Paleta.tinta), maxLines = 1, overflow = TextOverflow.Ellipsis,
+        )
+        if (materias.size > 1) BasicText(" y ${materias.size - 1} más", style = estiloNota(), maxLines = 1, softWrap = false)
+        Spacer(Modifier.weight(1f))
+        if (puedeIr) Chevron()
+    }
+}
+
 // ─────────────────────────────────── Botones ──────────────────────────────────
 
 /** Qué botones lleva cada estado: el lleno es siempre el siguiente paso */
@@ -444,12 +493,14 @@ private fun botonesDe(marca: Marca?, bloqueada: Boolean) = when {
  * lleva su háptico, y los textos se funden en 150 ms al cambiar de estado.
  */
 @Composable
-internal fun BotonesMarca(codigo: String, estado: EstadoCarrera, alMarcar: (String, Marca?) -> Unit, modifier: Modifier = Modifier) {
+internal fun BotonesMarca(codigo: String, estado: EstadoCarrera, alMarcar: (String, Marca?) -> Unit, modifier: Modifier = Modifier, compacto: Boolean = false) {
     val haptica = LocalHapticFeedback.current
     val marca = estado.marcas[codigo]
     val bloqueada = estado.situaciones[codigo].let { it == Situacion.PROXIMA || it == Situacion.LEJANA }
     val abre = remember(estado.marcas, codigo) { seAbrenAlAprobar(estado.pensum, estado.marcas, listOf(codigo)).size }
-    val apilados = ventana().let { it.compacta || it.letraGrande }
+    val apilados = !compacto && ventana().let { it.compacta || it.letraGrande }
+    val alto = if (compacto) 48.dp else 52.dp
+    val radio = if (compacto) 16.dp else Radio.Barra
     fun marcar(m: Marca?) {
         haptica.performHapticFeedback(HapticFeedbackType.SegmentTick)
         alMarcar(codigo, m)
@@ -465,12 +516,12 @@ internal fun BotonesMarca(codigo: String, estado: EstadoCarrera, alMarcar: (Stri
         transitionSpec = { (fadeIn(tween(FUNDIDO_MS)) togetherWith fadeOut(tween(FUNDIDO_MS))).using(null) },
         label = "botones",
     ) { modo ->
-        val cursando = @Composable { m: Modifier, lleno: Boolean -> BotonTinta("La estoy cursando", { marcar(Marca.CURSANDO) }, m, superficie = !lleno) }
+        val cursando = @Composable { m: Modifier, lleno: Boolean -> BotonTinta("La estoy cursando", { marcar(Marca.CURSANDO) }, m, superficie = !lleno, alto = alto, radio = radio) }
         val aprobada = @Composable { m: Modifier, lleno: Boolean ->
             // Sobre el botón lleno la nota sigue la tinta del panel; en uno de superficie, azul: es lo que se te abre
-            BotonTinta("Ya la aprobé", { marcar(Marca.APROBADA) }, m, nota = nota, colorNota = if (lleno) null else Paleta.azul, superficie = !lleno)
+            BotonTinta("Ya la aprobé", { marcar(Marca.APROBADA) }, m, nota = nota, colorNota = if (lleno) null else Paleta.azul, superficie = !lleno, alto = alto, radio = radio)
         }
-        val desmarcar = @Composable { m: Modifier -> BotonTinta("Desmarcar", { marcar(null) }, m, superficie = true) }
+        val desmarcar = @Composable { m: Modifier -> BotonTinta("Desmarcar", { marcar(null) }, m, superficie = true, alto = alto, radio = radio) }
         val dos = modo != Botones.APROBADA
         val primero: @Composable (Modifier) -> Unit = { m ->
             when (modo) {
