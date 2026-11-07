@@ -76,7 +76,7 @@ class RecomendacionTest {
             val b = estimarGraduacion(sistemas, marcas, emptyMap(), carga, hoy, noAntesDe = emptyMap())
             assertEquals(a.plan, b.plan)
             assertEquals(a.periodoFinal, b.periodoFinal)
-            assertTrue(a.cadenaDe.isNotEmpty())
+            assertTrue(a.cuelloDeBotella.isNotEmpty())
         }
     }
 

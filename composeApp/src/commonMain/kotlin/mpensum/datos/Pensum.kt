@@ -2,6 +2,8 @@ package mpensum.datos
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.produceState
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import kotlinx.serialization.json.Json
@@ -28,10 +30,10 @@ data class Pensum(
     val electivasEnCasillas: Boolean = false,
 ) {
     /** Las materias de verdad: las casillas de electiva se dibujan, pero no se marcan ni cuentan */
-    val obligatorias: List<Asignatura> get() = asignaturas.filter { !it.esHueco }
+    val obligatorias: List<Asignatura> by lazy { asignaturas.filter { !it.esHueco } }
 
     /** Obligatorias y electivas juntas: comparten las mismas marcas */
-    val todas: List<Asignatura> get() = obligatorias + grupos.flatMap { it.asignaturas }
+    val todas: List<Asignatura> by lazy { obligatorias + grupos.flatMap { it.asignaturas } }
 }
 
 @Serializable
@@ -80,11 +82,13 @@ private val lector = Json { ignoreUnknownKeys = true }
 /** Lee un pensum del texto de su JSON */
 fun leerPensum(texto: String): Pensum = lector.decodeFromString(texto)
 
+/** Lee y decodifica el pensum de una carrera del paquete, fuera del hilo principal (el JSON pesa 8-14 KB y decodificarlo no es gratis en gama baja) */
+suspend fun leerPensumDelPaquete(slug: String): Pensum =
+    withContext(Dispatchers.Default) { leerPensum(Res.readBytes("files/carreras/$slug.json").decodeToString()) }
+
 /** El pensum de una carrera, leído del paquete de la app al abrirla. Null mientras llega */
 @Composable
 fun rememberPensum(slug: String): Pensum? {
-    val estado = produceState<Pensum?>(null, slug) {
-        value = leerPensum(Res.readBytes("files/carreras/$slug.json").decodeToString())
-    }
+    val estado = produceState<Pensum?>(null, slug) { value = leerPensumDelPaquete(slug) }
     return estado.value
 }

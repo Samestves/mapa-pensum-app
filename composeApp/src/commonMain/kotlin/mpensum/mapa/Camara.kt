@@ -18,6 +18,7 @@ import kotlin.math.hypot
 import kotlin.math.ln
 import kotlin.math.min
 import kotlin.math.pow
+import kotlin.time.TimeSource
 
 /*
  * La cámara del mapa, con las reglas de la web (hooks/useVistaGrafo.js,
@@ -127,7 +128,9 @@ class Camara(private val clave: String) {
     private var anchoContenido = 0f
     private var altoContenido = 0f
     private var movimiento: Job? = null
-    private var finGesto: Job? = null
+    /** El vigilante que da el gesto por acabado; uno solo, no una corrutina por evento */
+    private var vigilante: Job? = null
+    private var ultimoMovimiento = TimeSource.Monotonic.markNow()
 
     val vista get() = Vista(x, y, escala)
 
@@ -176,9 +179,16 @@ class Camara(private val clave: String) {
     /** Marca que el mapa se está moviendo; se da por quieto un cuarto de segundo después del último movimiento */
     fun marcarGesto(alcance: CoroutineScope) {
         enGesto = true
-        finGesto?.cancel()
-        finGesto = alcance.launch {
-            delay(FIN_GESTO_MS)
+        ultimoMovimiento = TimeSource.Monotonic.markNow()
+        // Cada evento y cada cuadro de la inercia llegan aquí: solo anotan la hora, y el vigilante, que duerme
+        // lo que falta, es el único que se lanza
+        if (vigilante?.isActive == true) return
+        vigilante = alcance.launch {
+            while (true) {
+                val falta = FIN_GESTO_MS - ultimoMovimiento.elapsedNow().inWholeMilliseconds
+                if (falta <= 0) break
+                delay(falta)
+            }
             enGesto = false
             recordar()
         }

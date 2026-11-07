@@ -1,5 +1,6 @@
 package mpensum.logica
 
+import androidx.compose.runtime.mutableStateMapOf
 import mpensum.datos.Pensum
 
 /*
@@ -37,15 +38,27 @@ data class ProximoSemestre(
 /** Lo más que se espera una materia al medir su margen: pasado esto no se sigue simulando */
 private const val TOPE_MARGEN = 8
 
-/** Un plan base y las simulaciones con veto sobre él, con la misma carga y el mismo `hoy` */
-private class Simulador(
+/**
+ * Un plan base y las simulaciones con veto sobre él, con la misma carga y el
+ * mismo `hoy`. Se comparte entre «Tu próximo semestre» y «No puedes atrasar»:
+ * el margen de cada materia se mide una vez y el que ya se midió no se repite.
+ * `planes` y `base` pueden venir ya calculados (EstadoCarrera los comparte con
+ * la hoja y con el mando de carga); si no, se calculan aquí.
+ */
+class Simulador(
     val pensum: Pensum,
     val marcas: Map<String, Marca>,
     val casillas: Map<String, String>,
     carga: Int?,
     val hoy: Periodo,
+    planes: List<EstimacionGraduacion>? = null,
+    base: EstimacionGraduacion? = null,
 ) {
-    val base = estimarGraduacion(pensum, marcas, casillas, carga, hoy)
+    val planes: List<EstimacionGraduacion> by lazy { planes ?: planesPorCarga(pensum, marcas, casillas, hoy) }
+    val base: EstimacionGraduacion = base ?: estimarGraduacion(pensum, marcas, casillas, carga, hoy)
+
+    /** Los márgenes ya medidos; un mapa de estado porque dos pantallas pueden pedirlos desde hilos distintos */
+    private val medidos = mutableStateMapOf<String, Int>()
 
     fun conVeto(codigo: String, periodo: Int) =
         estimarGraduacion(pensum, marcas, casillas, base.carga, hoy, mapOf(codigo to periodo))
@@ -53,12 +66,9 @@ private class Simulador(
     fun indiceEnPlan(codigo: String) = base.plan.indexOfFirst { codigo in it }.coerceAtLeast(0)
 
     /** Cuántos períodos más allá de donde el plan la pone puede esperar `codigo` sin mover la fecha */
-    fun margen(codigo: String): Int {
+    fun margen(codigo: String): Int = medidos.getOrPut(codigo) {
         val desde = indiceEnPlan(codigo)
-        for (j in 1..TOPE_MARGEN) {
-            if (conVeto(codigo, desde + j).periodoFinal != base.periodoFinal) return j - 1
-        }
-        return TOPE_MARGEN
+        (1..TOPE_MARGEN).firstOrNull { j -> conVeto(codigo, desde + j).periodoFinal != base.periodoFinal }?.minus(1) ?: TOPE_MARGEN
     }
 }
 
@@ -68,8 +78,8 @@ fun proximoSemestre(
     casillas: Map<String, String>,
     carga: Int?,
     hoy: Periodo,
+    sim: Simulador = Simulador(pensum, marcas, casillas, carga, hoy),
 ): ProximoSemestre {
-    val sim = Simulador(pensum, marcas, casillas, carga, hoy)
     val base = sim.base
     val obligatorias = pensum.obligatorias.mapTo(mutableSetOf()) { it.codigo }
     val ucDe = pensum.todas.associate { it.codigo to (it.uc ?: 0) }
@@ -105,7 +115,7 @@ fun proximoSemestre(
         .firstOrNull()?.codigo
 
     val conUnaMenos = if (base.carga > 1 && base.plan.isNotEmpty()) {
-        estimarGraduacion(pensum, marcas, casillas, base.carga - 1, hoy).periodoFinal
+        sim.planes[base.carga - 2].periodoFinal
     } else null
 
     return ProximoSemestre(hoy.mas(1), recomendadas, opcionales, dejar, conUnaMenos)
@@ -131,8 +141,8 @@ fun cadenaExplicada(
     casillas: Map<String, String>,
     carga: Int?,
     hoy: Periodo,
+    sim: Simulador = Simulador(pensum, marcas, casillas, carga, hoy),
 ): CadenaExplicada {
-    val sim = Simulador(pensum, marcas, casillas, carga, hoy)
     val base = sim.base
     val eslabones = base.cuelloDeBotella
     val primero = eslabones.firstOrNull()

@@ -78,9 +78,14 @@ private fun entre(a: Periodo, b: Periodo): Int = (b.anio - a.anio) * 2 + (b.laps
 
 @Composable
 internal fun DetalleCadena(estado: EstadoCarrera, hoy: Periodo) {
-    val c = remember(estado.marcas, estado.casillas, estado.carga, hoy) {
-        cadenaExplicada(estado.pensum, estado.marcas, estado.casillas, estado.carga, hoy)
+    val sim = estado.simulador
+    Calculado(clave = sim, calculo = { cadenaExplicada(sim.pensum, sim.marcas, sim.casillas, estado.carga, sim.hoy, sim) }) { c ->
+        ContenidoCadena(estado, c, hoy)
     }
+}
+
+@Composable
+private fun ContenidoCadena(estado: EstadoCarrera, c: CadenaExplicada, hoy: Periodo) {
     if (c.eslabones.isEmpty()) return
     val nombre = remember(estado.pensum) { nombresDelPlan(estado.pensum) }
 

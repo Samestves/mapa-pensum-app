@@ -155,7 +155,7 @@ fun BarraCarrera(
 /** Una pestaña: el icono en reposo, y la elegida en blanco con un halo del mismo icono desenfocado detrás */
 @Composable
 private fun Pestana(icono: IconoDoble, etiqueta: String, activa: Boolean, tam: DpSize, lado: Dp, alPulsar: () -> Unit) {
-    val luz by animateFloatAsState(if (activa) 1f else 0f, tween(350), label = "luz")
+    val luz = animateFloatAsState(if (activa) 1f else 0f, tween(350), label = "luz")
     Box(
         Modifier
             .size(tam)
@@ -166,18 +166,21 @@ private fun Pestana(icono: IconoDoble, etiqueta: String, activa: Boolean, tam: D
             .pulsable(alPulsar, Role.Tab),
         contentAlignment = Alignment.Center,
     ) {
-        // El halo es luz: en claro sería una mancha de tinta, así que allí la elegida solo se oscurece
-        if (luz > 0f && !Tema.claro) {
+        // El halo es luz: en claro sería una mancha de tinta, así que allí la elegida solo se oscurece;
+        // y en modo ligero no hay desenfoque. La luz se lee al dibujar: animarla no recompone la pestaña,
+        // y en reposo la capa no lleva efecto alguno
+        if (!Tema.claro && !Tema.ligero) {
             // Más grande que el icono para que el desenfoque no se corte en el borde de su capa
             Box(
                 Modifier.size(38.dp).graphicsLayer {
-                    alpha = luz * 0.55f
-                    renderEffect = desenfoque(6.dp.toPx())
+                    val l = luz.value
+                    alpha = l * 0.55f
+                    renderEffect = if (l > 0f) desenfoque(6.dp.toPx()) else null
                 },
                 contentAlignment = Alignment.Center,
             ) { IconoRelleno(icono, false, ACTIVO, lado) }
         }
-        IconoRelleno(icono, false, lerp(REPOSO, ACTIVO, luz), lado)
+        IconoRelleno(icono, false, lerp(REPOSO, ACTIVO, luz.value), lado)
     }
 }
 

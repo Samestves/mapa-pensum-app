@@ -1,6 +1,9 @@
 package mpensum.tema
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -197,9 +200,45 @@ private val PESO_NOMBRE_CLARO = FontWeight(440)
 
 private fun variable(peso: Int) = FontVariation.Settings(FontVariation.weight(peso))
 
+/**
+ * Las cuatro familias de la app, hechas una sola vez en la raíz. Cada `Font()`
+ * de recurso es un composable con su `remember` y su carga: armar la familia
+ * en cada llamada (más de 70 sitios, varias veces por fila de la lista) era
+ * trabajo repetido. `jost()` y compañía leen de aquí sin cambiar su firma.
+ */
+@Immutable
+class Fuentes(val jost: FontFamily, val inter: FontFamily, val interCifra: FontFamily, val plex: FontFamily)
+
+val LocalFuentes = staticCompositionLocalOf<Fuentes?> { null }
+
+/** Las fuentes de la app, para proveerlas en la raíz */
+@Composable
+fun rememberFuentes(): Fuentes {
+    val j = nuevaJost()
+    val i = nuevaInter()
+    val c = nuevaInterCifra()
+    val p = nuevaPlex()
+    return remember(j, i, c, p) { Fuentes(j, i, c, p) }
+}
+
 /** Jost: títulos ligeros y nombres, la "voz que nombra" de la web */
 @Composable
-fun jost(): FontFamily = FontFamily(
+fun jost(): FontFamily = LocalFuentes.current?.jost ?: nuevaJost()
+
+/** Inter: el texto */
+@Composable
+fun inter(): FontFamily = LocalFuentes.current?.inter ?: nuevaInter()
+
+/** Inter «Display» (opsz 32) en 200 y 300: las cifras grandes. Úsese con fontFeatureSettings = "tnum" */
+@Composable
+fun interCifra(): FontFamily = LocalFuentes.current?.interCifra ?: nuevaInterCifra()
+
+/** IBM Plex Mono: solo códigos y UC, como en las tarjetas del mapa */
+@Composable
+fun plex(): FontFamily = LocalFuentes.current?.plex ?: nuevaPlex()
+
+@Composable
+private fun nuevaJost() = FontFamily(
     Font(Res.font.jost, FontWeight.Thin, variationSettings = variable(100)),
     Font(Res.font.jost, FontWeight.ExtraLight, variationSettings = variable(200)),
     Font(Res.font.jost, FontWeight.Light, variationSettings = variable(300)),
@@ -210,22 +249,19 @@ fun jost(): FontFamily = FontFamily(
     Font(Res.font.jost, FontWeight.Medium, variationSettings = variable(500)),
 )
 
-/** Inter: el texto */
 @Composable
-fun inter(): FontFamily = FontFamily(
+private fun nuevaInter() = FontFamily(
     Font(Res.font.inter, FontWeight.Light, variationSettings = variable(300)),
     Font(Res.font.inter, FontWeight.Normal, variationSettings = variable(400)),
     Font(Res.font.inter, FontWeight.Medium, variationSettings = variable(500)),
     Font(Res.font.inter, FontWeight.SemiBold, variationSettings = variable(600)),
 )
 
-/** Inter «Display» (opsz 32) en 200 y 300: las cifras grandes. Úsese con fontFeatureSettings = "tnum" */
 @Composable
-fun interCifra(): FontFamily = FontFamily(
+private fun nuevaInterCifra() = FontFamily(
     Font(Res.font.inter, FontWeight.ExtraLight, variationSettings = FontVariation.Settings(FontVariation.weight(200), FontVariation.Setting("opsz", 32f))),
     Font(Res.font.inter, FontWeight.Light, variationSettings = FontVariation.Settings(FontVariation.weight(300), FontVariation.Setting("opsz", 32f))),
 )
 
-/** IBM Plex Mono: solo códigos y UC, como en las tarjetas del mapa */
 @Composable
-fun plex(): FontFamily = FontFamily(Font(Res.font.plex_mono_light, FontWeight.Light))
+private fun nuevaPlex() = FontFamily(Font(Res.font.plex_mono_light, FontWeight.Light))

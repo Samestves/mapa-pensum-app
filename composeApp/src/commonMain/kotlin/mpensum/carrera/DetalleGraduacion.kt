@@ -44,8 +44,6 @@ import mpensum.componentes.margenPantalla
 import mpensum.logica.MAX_CARGA
 import mpensum.logica.Periodo
 import mpensum.logica.cargaMasRapida
-import mpensum.logica.estimarGraduacion
-import mpensum.logica.planesPorCarga
 import mpensum.tema.Espacio
 import mpensum.tema.Paleta
 import kotlin.math.abs
@@ -60,8 +58,8 @@ import kotlin.math.roundToInt
  * el anillo a la izquierda, entero y quieto, y la tarjeta a su lado, con los
  * chips en dos filas de cuatro; si no, uno debajo del otro.
  *
- * Los ocho planes se calculan una sola vez al abrir y solo se recalculan si
- * cambian las marcas o las casillas. Tocar un chip solo elige entre ellos: el
+ * Los ocho planes los calcula EstadoCarrera una sola vez y los comparte con
+ * la hoja; solo se recalculan si cambian las marcas o las casillas. Tocar un chip solo elige entre ellos: el
  * anillo y la comparación cambian al instante y la carga se guarda.
  */
 
@@ -77,10 +75,10 @@ private const val ENTRADA_MS = 1_100
 @Composable
 internal fun DetalleGraduacion(estado: EstadoCarrera, hoy: Periodo) {
     val pensum = estado.pensum
-    // Una sola vez al abrir: cada plan con su anillo
-    val planes = remember(estado.marcas, estado.casillas) { planesPorCarga(pensum, estado.marcas, estado.casillas, hoy) }
+    // Los planes son los del estado (los mismos de la hoja); aquí solo se dibuja cada uno con su anillo
+    val planes = estado.planes
     val anillos = remember(planes) { planes.map { anilloDe(estado, it, hoy) } }
-    val habitual = remember(estado.marcas, estado.casillas) { estimarGraduacion(pensum, estado.marcas, estado.casillas, null, hoy).carga.coerceIn(1, MAX_CARGA) }
+    val habitual = estado.habitual
     var elegida by remember { mutableIntStateOf((estado.carga ?: habitual).coerceIn(1, MAX_CARGA)) }
     val g = planes[elegida - 1]
     val porcentaje = estado.progreso.avance.roundToInt()

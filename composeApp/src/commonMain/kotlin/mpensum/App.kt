@@ -41,7 +41,9 @@ import mpensum.plataforma.telefonoModesto
 import mpensum.portada.Portada
 import mpensum.tema.Paleta
 import mpensum.tema.Tema
+import mpensum.tema.LocalFuentes
 import mpensum.tema.TemaVivo
+import mpensum.tema.rememberFuentes
 
 /** Las tres pantallas de la app; dentro de una carrera, sus vistas */
 private sealed interface Pantalla {
@@ -107,7 +109,7 @@ fun App() {
     // El texto grande es la escala de letra del sistema por 1,15: se lee en sp, no toca los dp
     val densidad = LocalDensity.current
     val escala = if (grande) 1.15f else 1f
-    CompositionLocalProvider(LocalDensity provides Density(densidad.density, densidad.fontScale * escala)) {
+    CompositionLocalProvider(LocalDensity provides Density(densidad.density, densidad.fontScale * escala), LocalFuentes provides rememberFuentes()) {
         // La ventana se mide una vez aquí, ya con la letra final, y las pantallas la leen con ventana()
         CompositionLocalProvider(LocalVentana provides medirVentana()) {
             TemaVivo(juego) { Pantallas() }

@@ -3,9 +3,6 @@ package mpensum.mapa
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -24,6 +21,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.snapshotFlow
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -53,6 +53,7 @@ import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
 import mpensum.carrera.EstadoCarrera
 import mpensum.logica.Situacion
 import mpensum.logica.Tramo
@@ -187,7 +188,7 @@ fun MapaCarrera(
                 },
         ) {
             Cables(estado, cadena = { cadenaVisible }, foco = { foco.value }, trazado = { trazado.value }, descarga = { efectos.descarga?.codigo to descarga.value })
-            if (!Tema.sinBucles) LuzDeFrontera(estado, congelada = { camara.enGesto || congelado }, cadena = { cadenaVisible }, foco = { foco.value })
+            if (!Tema.sinBucles) LuzDeFrontera(estado, congelada = { camara.enGesto || congelado || seleccionado != null }, cadena = { cadenaVisible }, foco = { foco.value })
 
             CabecerasSemestres(estado, tipos, medidor, alAlternarSemestre)
             estado.franja?.let { RotulosFranja(it, estado, tipos) }
@@ -476,10 +477,23 @@ private fun DrawScope.descargaPor(c: CableDibujo, tiempo: Float) {
  */
 @Composable
 private fun LuzDeFrontera(estado: EstadoCarrera, congelada: () -> Boolean, cadena: () -> Set<String>?, foco: () -> Float) {
-    val reloj by rememberInfiniteTransition(label = "luz").animateFloat(
-        0f, 1000f, infiniteRepeatable(tween(1_000_000, easing = LinearEasing)), label = "segundos",
-    )
-    val congeladaEn = remember { floatArrayOf(0f) }
+    // El reloj solo corre mientras la luz se ve moverse: congelada, el bucle se para y no pide cuadros;
+    // al reanudar sigue desde donde iba, sin salto
+    var reloj by remember { mutableFloatStateOf(0f) }
+    val estaCongelada by rememberUpdatedState(congelada)
+    LaunchedEffect(Unit) {
+        snapshotFlow { estaCongelada() }.collectLatest { quieta ->
+            if (quieta) return@collectLatest
+            var antes = -1L
+            while (true) {
+                withFrameNanos { n ->
+                    // Tras un cuadro perdido la luz no da un salto
+                    if (antes >= 0) reloj += minOf(n - antes, 100_000_000L) / 1e9f
+                    antes = n
+                }
+            }
+        }
+    }
     Spacer(
         // En su propia capa: cada cuadro de la luz repinta solo la luz, no los cables ni las cabeceras de debajo
         Modifier.fillMaxSize().graphicsLayer {}.drawWithCache {
@@ -494,8 +508,7 @@ private fun LuzDeFrontera(estado: EstadoCarrera, congelada: () -> Boolean, caden
                 val enFoco = cadena()
                 val f = foco()
                 if (fronteras.isEmpty()) return@onDrawBehind
-                // Congelada, sin leer el reloj: la capa no se invalida y la luz se queda donde estaba
-                val segundos = if (congelada()) congeladaEn[0] else reloj.also { congeladaEn[0] = it }
+                val segundos = reloj
                 scale(density, Offset.Zero) {
                     for ((k, ic) in fronteras.withIndex()) {
                         val (i, c) = ic

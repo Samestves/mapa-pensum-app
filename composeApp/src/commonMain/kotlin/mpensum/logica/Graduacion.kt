@@ -107,13 +107,6 @@ data class EstimacionGraduacion(
     /** Las que faltan sin contar las que cursas, casillas incluidas */
     val materiasRestantes: Int,
     val cursaAhora: Boolean,
-    /**
-     * Por cada pendiente, su cadena: cuántos períodos hacen falta, como
-     * mínimo, para ella y lo que cuelga de ella (con el freno del nivel). Es
-     * lo primero que decide quién entra antes, y sirve para medir cuánto
-     * puede esperar una materia.
-     */
-    val cadenaDe: Map<String, Int> = emptyMap(),
 ) {
     val terminado: Boolean get() = semestresRestantes == 0
 }
@@ -246,7 +239,7 @@ private fun pendientesDe(pensum: Pensum, marcas: Map<String, Marca>, elegidasEnC
  * tampoco basta el ritmo: quien este período mete más que antes, va a ese paso.
  * A igual valor gana lo que cursas, que es el dato más de hoy.
  */
-private fun cargaHabitual(pensum: Pensum, marcas: Map<String, Marca>): Pair<Int, FuenteCarga> {
+fun cargaHabitual(pensum: Pensum, marcas: Map<String, Marca>): Pair<Int, FuenteCarga> {
     val todas = pensum.todas
     val cursando = todas.count { marcas[it.codigo] == Marca.CURSANDO }
     val aprobadas = todas.count { marcas[it.codigo] == Marca.APROBADA }
@@ -254,7 +247,9 @@ private fun cargaHabitual(pensum: Pensum, marcas: Map<String, Marca>): Pair<Int,
     val delPensum = cargaDelPensum(pensum)
     val porSemestre = if (aprobadas > 0 && recorridos != null) aprobadas.toDouble() / recorridos else null
     val ritmo = if (porSemestre != null && porSemestre >= delPensum / 2.0) max(1, redondear(porSemestre)) to FuenteCarga.RITMO else delPensum to FuenteCarga.PENSUM
-    return if (cursando >= ritmo.first) cursando to FuenteCarga.CURSANDO else ritmo
+    val (carga, fuente) = if (cursando >= ritmo.first) cursando to FuenteCarga.CURSANDO else ritmo
+    // Un solo tope para todo: lo que ves en el mando es lo que se cuenta
+    return carga.coerceIn(1, MAX_CARGA) to fuente
 }
 
 /**
@@ -287,9 +282,7 @@ fun estimarGraduacion(
     hoy: Periodo = Periodo.actual(),
     noAntesDe: Map<String, Int> = emptyMap(),
 ): EstimacionGraduacion {
-    val (pedida, fuente) = if (carga != null) carga to FuenteCarga.ELEGIDA else cargaHabitual(pensum, marcas)
-    // Un solo tope para todo: lo que ves en el mando es lo que se cuenta
-    val cargaUsada = pedida.coerceIn(1, MAX_CARGA)
+    val (cargaUsada, fuente) = if (carga != null) carga.coerceIn(1, MAX_CARGA) to FuenteCarga.ELEGIDA else cargaHabitual(pensum, marcas)
     val todas = pensum.todas
     val cursaAhora = todas.any { marcas[it.codigo] == Marca.CURSANDO }
     val pendientes = pendientesDe(pensum, marcas, casillas)
@@ -384,6 +377,5 @@ fun estimarGraduacion(
         plan = plan,
         materiasRestantes = pendientes.size,
         cursaAhora = cursaAhora,
-        cadenaDe = cadena,
     )
 }

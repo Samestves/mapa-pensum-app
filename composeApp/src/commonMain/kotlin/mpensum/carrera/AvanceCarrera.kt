@@ -82,7 +82,6 @@ import mpensum.logica.avanceDeGrupos
 import mpensum.logica.capsulasDe
 import mpensum.logica.cargaMasRapida
 import mpensum.logica.cursandoDe
-import mpensum.logica.planesPorCarga
 import mpensum.logica.siApruebasLoQueCursas
 import mpensum.logica.ucTipicaDe
 import mpensum.mapa.tituloGrupo
@@ -477,7 +476,7 @@ internal fun rememberPreguntas(estado: EstadoCarrera, hoy: Periodo): List<Pregun
     val cursando = remember(estado.marcas) { cursandoDe(pensum, estado.marcas).size }
     val seAbren = remember(estado.marcas) { if (cursando > 0) siApruebasLoQueCursas(pensum, estado.marcas).seAbren.size else 0 }
     val nombre = remember(pensum) { nombresDelPlan(pensum) }
-    val rapida = rememberRapida(estado, hoy)
+    val rapida = rememberRapida(estado)
     return preguntasDe(estado.graduacion, hoy, cursando, seAbren, rapida, nombre)
 }
 
@@ -490,9 +489,8 @@ internal fun electivasDe(estado: EstadoCarrera): List<Pregunta> =
 
 /** Lo más rápido que dejan las prelaciones, probando de 1 a 8 materias por semestre */
 @Composable
-internal fun rememberRapida(estado: EstadoCarrera, hoy: Periodo): Periodo? = remember(estado.marcas, estado.casillas, hoy) {
-    val planes = planesPorCarga(estado.pensum, estado.marcas, estado.casillas, hoy)
-    planes[cargaMasRapida(planes) - 1].periodoFinal
+internal fun rememberRapida(estado: EstadoCarrera): Periodo? = remember(estado.planes) {
+    estado.planes[cargaMasRapida(estado.planes) - 1].periodoFinal
 }
 
 /** Las filas agrupadas de la hoja de pie: cada una abre su pantalla */

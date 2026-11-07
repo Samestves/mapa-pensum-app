@@ -43,7 +43,6 @@ import mpensum.componentes.esApaisado
 import mpensum.componentes.IconoDoble
 import mpensum.componentes.Phosphor
 import mpensum.datos.Carrera
-import mpensum.datos.rememberPensum
 import mpensum.logica.AccionSemestre
 import mpensum.logica.Marca
 import mpensum.logica.accionDeSemestre
@@ -86,12 +85,9 @@ private val ANCHO_VELO = 150.dp
 @Composable
 fun Interior(carrera: Carrera, alVolver: () -> Unit) {
     var vista by rememberSaveable { mutableStateOf(Vista.MAPA) }
-    val pensum = rememberPensum(carrera.slug)
     // Se sabe antes de medir porque de ello depende la geometría del mapa
     val horizontal = esApaisado()
-    val estado = remember(pensum) { pensum?.let { EstadoCarrera(it, compacto = horizontal) } }
-    // Girar solo cambia el layout: el estado, el horario, la cámara y la lista siguen vivos
-    estado?.compacto = horizontal
+    val estado = rememberEstadoCarrera(carrera.slug, horizontal)
     // El horario vive aquí y no en su vista: sus hojas suben por encima de la barra
     val horario = estado?.let { rememberEstadoHorario(it) }
     val color = colorDe(carrera.color)

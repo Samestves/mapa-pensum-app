@@ -1,6 +1,12 @@
 package mpensum.carrera
 
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import mpensum.datos.leerPensumDelPaquete
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -9,6 +15,10 @@ import mpensum.datos.Asignatura
 import mpensum.datos.Guardado
 import mpensum.datos.Pensum
 import mpensum.logica.EstimacionGraduacion
+import mpensum.logica.FuenteCarga
+import mpensum.logica.Simulador
+import mpensum.logica.cargaHabitual
+import mpensum.logica.planesPorCarga
 import mpensum.logica.MAX_CARGA
 import mpensum.logica.Marca
 import mpensum.logica.Periodo
@@ -18,7 +28,6 @@ import mpensum.logica.casillasEfectivas
 import mpensum.logica.colocarElectiva
 import mpensum.logica.conMarcas
 import mpensum.logica.estadosDe
-import mpensum.logica.estimarGraduacion
 import mpensum.logica.progresoDe
 import mpensum.logica.situacionDe
 import mpensum.mapa.ALTO_ENCABEZADO
@@ -42,7 +51,14 @@ import mpensum.tema.ColoresMapa
  * esas marcas y no guarda nada, para no tocar el avance de verdad.
  */
 @Stable
-class EstadoCarrera(val pensum: Pensum, private val demostracion: Map<String, Marca>? = null, compacto: Boolean = false) {
+class EstadoCarrera(
+    val pensum: Pensum,
+    private val demostracion: Map<String, Marca>? = null,
+    compacto: Boolean = false,
+    /** El layout ya calculado (fuera del hilo principal) para `compactoInicial`; si no, se calcula al leerlo */
+    private val layoutInicial: LayoutMapa? = null,
+    private val compactoInicial: Boolean = compacto,
+) {
     /**
      * Horizontal: cabecera de una línea. Girar el teléfono cambia solo esto y,
      * con ello, el layout; las marcas, el horario y la lista siguen donde estaban.
@@ -50,7 +66,9 @@ class EstadoCarrera(val pensum: Pensum, private val demostracion: Map<String, Ma
     var compacto by mutableStateOf(compacto)
 
     /** La geometría no depende del avance: solo se recalcula si gira el teléfono */
-    val layout: LayoutMapa by derivedStateOf { calcularLayout(pensum.asignaturas, pensum.grupos, if (this.compacto) ALTO_ENCABEZADO_COMPACTO else ALTO_ENCABEZADO) }
+    val layout: LayoutMapa by derivedStateOf {
+        if (layoutInicial != null && this.compacto == compactoInicial) layoutInicial else layoutDe(pensum, this.compacto)
+    }
 
     /**
      * El período de hoy, uno solo para la fecha de la carrera y para todas las
@@ -83,10 +101,26 @@ class EstadoCarrera(val pensum: Pensum, private val demostracion: Map<String, Ma
         private set
 
     /**
-     * Cuándo te gradúas. Solo se calcula si algo lo lee (la hoja de avance), y
-     * entonces una vez por cada marca, casilla o carga que cambie.
+     * Los ocho planes (de 1 a 8 materias por semestre), calculados una sola vez
+     * por cada marca, casilla o período que cambie. La hoja, el mando de carga,
+     * la fecha más rápida y los detalles leen estos mismos: nadie los repite.
+     * Solo se calculan si algo los lee (la hoja de avance).
      */
-    val graduacion: EstimacionGraduacion by derivedStateOf { estimarGraduacion(pensum, marcas, casillas, carga, hoy) }
+    val planes: List<EstimacionGraduacion> by derivedStateOf { planesPorCarga(pensum, marcas, casillas, hoy) }
+
+    private val habitualYFuente by derivedStateOf { cargaHabitual(pensum, marcas) }
+
+    /** Cuántas materias por semestre salen de tus marcas, acotada al tope del mando */
+    val habitual: Int get() = habitualYFuente.first
+
+    /** Cuándo te gradúas: el plan de la carga que elegiste o, si no, el de tu habitual */
+    val graduacion: EstimacionGraduacion by derivedStateOf {
+        val (usada, fuente) = carga?.let { it.coerceIn(1, MAX_CARGA) to FuenteCarga.ELEGIDA } ?: habitualYFuente
+        planes[usada - 1].copy(fuenteCarga = fuente)
+    }
+
+    /** Las simulaciones con veto que comparten «Tu próximo semestre» y «No puedes atrasar» */
+    val simulador: Simulador by derivedStateOf { Simulador(pensum, marcas, casillas, carga, hoy, planes, graduacion) }
 
     /** Dónde está cada electiva: la misma cuenta que usa la fecha (casillasEfectivas) */
     private val elegidas by derivedStateOf { casillasEfectivas(pensum, casillas, marcas) }
@@ -160,4 +194,31 @@ class EstadoCarrera(val pensum: Pensum, private val demostracion: Map<String, Ma
         casillas = colocarElectiva(casillas, casilla, electiva)
         if (demostracion == null) Guardado.guardarCasillas(pensum.slug, casillas)
     }
+}
+
+/** La geometría de una carrera; compacto (horizontal) lleva la cabecera de una línea */
+private fun layoutDe(pensum: Pensum, compacto: Boolean): LayoutMapa =
+    calcularLayout(pensum.asignaturas, pensum.grupos, if (compacto) ALTO_ENCABEZADO_COMPACTO else ALTO_ENCABEZADO)
+
+/** Lo que llega junto de fuera del hilo principal: el pensum y su geometría */
+private class CarreraLista(val pensum: Pensum, val layout: LayoutMapa, val compacto: Boolean)
+
+/**
+ * El estado de una carrera al abrirla. El JSON se decodifica y la geometría se
+ * calcula en otro hilo, para no robarle cuadros a la animación de entrada; null
+ * mientras llega. Girar el teléfono no lo recrea: solo cambia `compacto`.
+ */
+@Composable
+fun rememberEstadoCarrera(slug: String, horizontal: Boolean): EstadoCarrera? {
+    val lista = produceState<CarreraLista?>(null, slug) {
+        val compacto = horizontal
+        value = withContext(Dispatchers.Default) {
+            val pensum = leerPensumDelPaquete(slug)
+            CarreraLista(pensum, layoutDe(pensum, compacto), compacto)
+        }
+    }.value
+    val estado = remember(lista) { lista?.let { EstadoCarrera(it.pensum, compacto = horizontal, layoutInicial = it.layout, compactoInicial = it.compacto) } }
+    // Girar solo cambia el layout: el estado, el horario, la cámara y la lista siguen vivos
+    estado?.compacto = horizontal
+    return estado
 }

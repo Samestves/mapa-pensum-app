@@ -135,23 +135,21 @@ fun TarjetaMapa(
     val destello = remember { Animatable(1f) }
     val carga = remember { Animatable(0f) }
     val apagado = remember { Animatable(1f) }
-    LaunchedEffect(animaciones.toque) {
-        if (animaciones.toque == null) return@LaunchedEffect
+    // Casi ninguna tarjeta anima nada a la vez: los efectos solo existen mientras hay algo que animar
+    // (60 tarjetas × 4 corrutinas quietas eran unas 240 al abrir el mapa). Al irse, la animación se cancela
+    // igual que al cambiar de clave; cada una vuelve a empezar desde cero la próxima vez.
+    if (animaciones.toque != null) LaunchedEffect(animaciones.toque) {
         anillo.snapTo(0f)
         anillo.animateTo(1f, tween(620, easing = LinearEasing))
     }
-    LaunchedEffect(animaciones.destello) {
-        if (animaciones.destello == null) return@LaunchedEffect
+    if (animaciones.destello != null) LaunchedEffect(animaciones.destello) {
         destello.snapTo(0f)
         // Espera a que la luz llegue por el cable: encenderse antes que el cable se ve mal
         destello.animateTo(1f, tween(1100, delayMillis = 1000, easing = LinearEasing))
     }
-    LaunchedEffect(animaciones.carga?.n, animaciones.carga?.hecha) {
-        val c = animaciones.carga
-        if (c == null) {
-            carga.snapTo(0f)
-            apagado.snapTo(1f)
-        } else if (!c.hecha) {
+    val cargando = animaciones.carga
+    if (cargando != null) LaunchedEffect(cargando.n, cargando.hecha) {
+        if (!cargando.hecha) {
             apagado.snapTo(1f)
             carga.snapTo(0f)
             carga.animateTo(1f, tween(CARGA_MS, delayMillis = ESPERA_MS, easing = CARGA))
@@ -173,17 +171,17 @@ fun TarjetaMapa(
         .drawWithContent {
             drawContent()
             val u = density
-            if (anillo.value < 1f) {
+            if (animaciones.toque != null && anillo.value < 1f) {
                 val p = ANILLO.transform(anillo.value)
                 bordeRedondeado(Paleta.tinta.copy(alpha = 0.7f * (1 - p)), (2 + 12 * p) * u)
             }
-            if (destello.value > 0f && destello.value < 1f) {
+            if (animaciones.destello != null && destello.value > 0f && destello.value < 1f) {
                 val t = destello.value
                 val p = DESTELLO.transform(t)
                 val alfa = if (t < 0.18f) 0.8f * (t / 0.18f) else 0.8f * (1 - (p - 0.18f) / 0.82f)
                 scale(1 + 0.06f * p, 1 + 0.28f * p) { bordeRedondeado(Paleta.azul.copy(alpha = alfa.coerceIn(0f, 1f)), 1.5f * u) }
             }
-            if (carga.value > 0f && apagado.value > 0f) contornoDeCarga(carga.value, avivar(acento).copy(alpha = apagado.value), 1.6f / escala())
+            if (cargando != null && carga.value > 0f && apagado.value > 0f) contornoDeCarga(carga.value, avivar(acento).copy(alpha = apagado.value), 1.6f / escala())
         }
 
     if (materia == null || situacion == null) {
