@@ -191,6 +191,14 @@ abstract class BaseResponsive(private val tam: String, private val escalaLetra: 
     }
 
     @Test
+    fun avanceCadena() {
+        interior()
+        pulsarIcono("Tu avance")
+        pulsar("No puedes atrasar")
+        foto("avance-cadena")
+    }
+
+    @Test
     fun avanceElectivas() {
         interior()
         pulsarIcono("Tu avance")

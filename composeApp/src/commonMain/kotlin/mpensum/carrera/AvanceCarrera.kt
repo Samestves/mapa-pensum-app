@@ -15,6 +15,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -141,8 +142,8 @@ fun numeroAnimado(destino: Float): Float {
 internal fun ContenidoDetalle(d: DetalleAvance, estado: EstadoCarrera, hoy: Periodo, alVerEnMapa: (List<String>) -> Unit, alAbrirCasilla: (String) -> Unit) {
     when (d) {
         DetalleAvance.EsteSemestre -> DetalleEsteSemestre(estado, hoy)
-        DetalleAvance.Proximo -> DetalleProximo(estado, hoy, alVerEnMapa)
-        DetalleAvance.Cadena -> DetalleCadena(estado, hoy, alVerEnMapa)
+        DetalleAvance.Proximo -> DetalleProximo(estado, hoy)
+        DetalleAvance.Cadena -> DetalleCadena(estado, hoy)
         DetalleAvance.Graduacion -> DetalleGraduacion(estado, hoy)
         is DetalleAvance.Electivas -> DetalleElectivas(estado, d.clave, alAbrirCasilla)
     }
@@ -159,23 +160,21 @@ internal sealed interface DetalleAvance {
 
 /** La pastilla, el título y el subtítulo de cada pantalla interna */
 internal fun cabeceraDe(d: DetalleAvance, estado: EstadoCarrera, g: EstimacionGraduacion, hoy: Periodo): DatosCabecera = when (d) {
-    DetalleAvance.EsteSemestre -> DatosCabecera(IconosHoja.libroAbierto, "Este semestre", "Qué te abre aprobarlas")
-    DetalleAvance.Proximo -> DatosCabecera(
-        IconosHoja.calendario,
-        hoy.mas(1).rango(),
-        g.periodoFinal?.let { "Para graduarte en ${it.mesYAnio()}" } ?: "Qué inscribir",
-        azul = true,
-    )
-    DetalleAvance.Cadena -> DatosCabecera(
-        IconosHoja.eslabon,
-        "No puedes atrasar",
-        g.cuelloDeBotella.size.let { if (it == 1) "1 materia en tu cadena" else "$it materias encadenadas" },
-    )
-    DetalleAvance.Graduacion -> DatosCabecera(Lucide.birrete, "¿Cuándo me gradúo?", "Depende de tu ritmo")
+    DetalleAvance.EsteSemestre -> DatosCabecera(IconosHoja.libroAbierto, "Este semestre")
+    DetalleAvance.Proximo -> DatosCabecera(IconosHoja.calendario, hoy.mas(1).rango(), azul = true)
+    DetalleAvance.Cadena -> DatosCabecera(IconosHoja.eslabon, "No puedes atrasar")
+    DetalleAvance.Graduacion -> DatosCabecera(Lucide.birrete, "¿Cuándo me gradúo?")
     is DetalleAvance.Electivas -> {
         val grupo = estado.pensum.grupos.firstOrNull { it.clave == d.clave }
-        DatosCabecera(grupo?.let(::iconoDeGrupo) ?: IconosHoja.libroAbierto, grupo?.let(::tituloGrupo) ?: "Electivas", "Tú eliges cuáles")
+        DatosCabecera(grupo?.let(::iconoDeGrupo) ?: IconosHoja.libroAbierto, grupo?.let(::tituloGrupo) ?: "Electivas")
     }
+}
+
+/** Lo que se enciende en el mapa desde una pantalla interna: las que te conviene inscribir o tu cadena; las demás no llevan mapa */
+internal fun codigosDelMapa(d: DetalleAvance, g: EstimacionGraduacion): List<String>? = when (d) {
+    DetalleAvance.Proximo -> g.plan.firstOrNull()?.takeIf { it.isNotEmpty() }
+    DetalleAvance.Cadena -> g.cuelloDeBotella.takeIf { it.isNotEmpty() }
+    else -> null
 }
 
 @Composable
@@ -206,8 +205,10 @@ fun BoxScope.HojaAvance(abierta: Boolean, estado: EstadoCarrera, alCerrar: () ->
                 if (d == null) {
                     CabeceraHoja(estado.pensum.nombre, alCerrar)
                 } else {
-                    Row(Modifier.fillMaxWidth().padding(start = margenPantalla(), end = margenPantalla(), top = 7.dp)) {
+                    Row(Modifier.fillMaxWidth().padding(start = margenPantalla(), end = margenPantalla(), top = 7.dp), verticalAlignment = Alignment.CenterVertically) {
                         BotonRedondo(Lucide.atras, "Volver") { detalle = null }
+                        Spacer(Modifier.weight(1f))
+                        codigosDelMapa(d, estado.graduacion)?.let { codigos -> BotonMapa { alVerEnMapa(codigos) } }
                     }
                 }
             }
@@ -267,23 +268,47 @@ private fun CabeceraHoja(nombre: String, alCerrar: () -> Unit) {
 }
 
 /**
- * El cuerpo de una pantalla interna, una sola columna: de pie la desplaza la
- * hoja y empieza 24 dp bajo la cabecera; acostado va en el panel del detalle,
- * que ya trae sus márgenes, y se desplaza por su cuenta bajo su cabecera fija.
+ * El cuerpo de una pantalla interna: la respuesta `arriba` y debajo las dos
+ * partes, en una columna. De pie la desplaza la hoja y empieza 24 dp bajo la
+ * cabecera; acostado va en el panel del detalle, que ya trae sus márgenes, y
+ * se desplaza por su cuenta bajo su cabecera fija. Con `dosColumnas`, si el
+ * panel pasa de 500 dp, las dos partes van lado a lado bajo la respuesta.
  */
 @Composable
-internal fun CuerpoDetalle(izquierda: @Composable ColumnScope.() -> Unit, derecha: @Composable ColumnScope.() -> Unit) {
-    val desplazo = rememberScrollState()
-    val modifier = if (esApaisado()) {
-        Modifier.fillMaxSize().fundidoAbajo(desplazo).verticalScroll(desplazo).padding(top = ARRIBA_CUERPO_PANEL, bottom = Espacio.xl)
-    } else {
-        Modifier.padding(start = margenPantalla(), end = margenPantalla(), top = Espacio.xl, bottom = Espacio.xxl)
+internal fun CuerpoDetalle(
+    arriba: (@Composable ColumnScope.() -> Unit)? = null,
+    dosColumnas: Boolean = false,
+    izquierda: @Composable ColumnScope.() -> Unit,
+    derecha: @Composable ColumnScope.() -> Unit,
+) {
+    if (!esApaisado()) {
+        Column(Modifier.padding(start = margenPantalla(), end = margenPantalla(), top = Espacio.xl, bottom = Espacio.xxl)) {
+            arriba?.invoke(this)
+            izquierda()
+            derecha()
+        }
+        return
     }
-    Column(modifier) {
-        izquierda()
-        derecha()
+    BoxWithConstraints(Modifier.fillMaxSize()) {
+        val lado = dosColumnas && maxWidth >= ANCHO_DOS_COLUMNAS
+        val desplazo = rememberScrollState()
+        Column(Modifier.fillMaxSize().fundidoAbajo(desplazo).verticalScroll(desplazo).padding(top = ARRIBA_CUERPO_PANEL, bottom = Espacio.xl)) {
+            arriba?.invoke(this)
+            if (lado) {
+                Row(horizontalArrangement = Arrangement.spacedBy(Espacio.m)) {
+                    Column(Modifier.weight(1f), content = izquierda)
+                    Column(Modifier.weight(1f), content = derecha)
+                }
+            } else {
+                izquierda()
+                derecha()
+            }
+        }
     }
 }
+
+/** Desde este ancho de panel, dos columnas de filas caben sin cortar los nombres */
+private val ANCHO_DOS_COLUMNAS = 500.dp
 
 // ─────────────────────────────────── La hoja ──────────────────────────────────
 
@@ -294,12 +319,12 @@ private fun ContenidoHoja(estado: EstadoCarrera, hoy: Periodo, abrir: (DetalleAv
     val semestres = remember(estado.marcas, estado.casillas) { capsulasDe(pensum, estado.marcas, estado::enCasilla) }
     val cursando = remember(estado.marcas) { cursandoDe(pensum, estado.marcas).size }
     val si = remember(estado.marcas) { if (cursando > 0) siApruebasLoQueCursas(pensum, estado.marcas) else null }
-    val rapida = rememberRapida(estado, hoy)
+    val preguntas = rememberPreguntas(estado, hoy)
 
     Column(Modifier.padding(start = margenPantalla(), end = margenPantalla(), top = Espacio.l, bottom = Espacio.xl)) {
         TarjetaHeroe(estado, g, semestres, si, cursando)
         Spacer(Modifier.height(Espacio.m))
-        ListaDeFilas(preguntasDe(g, hoy, cursando, rapida), abrir)
+        ListaDeFilas(preguntas, abrir)
         TarjetaElectivas(estado, abrir)
         Spacer(Modifier.height(Espacio.xl))
         BotonReinicio(estado)
@@ -427,14 +452,32 @@ internal class Pregunta(
 )
 
 /** Las preguntas de la hoja: solo las que tienen algo que decir */
-internal fun preguntasDe(g: EstimacionGraduacion, hoy: Periodo, cursando: Int, rapida: Periodo?): List<Pregunta> = buildList {
-    if (cursando > 0) add(Pregunta(IconosHoja.libroAbierto, false, "Este semestre", "Lo que cursas y qué abre", "$cursando", null, DetalleAvance.EsteSemestre))
-    g.plan.firstOrNull()?.let { add(Pregunta(IconosHoja.calendario, true, "Tu próximo semestre", "Qué inscribir · ${hoy.mas(1).rango()}", "${it.size}", null, DetalleAvance.Proximo)) }
-    if (g.cuelloDeBotella.isNotEmpty()) add(Pregunta(IconosHoja.eslabon, false, "No puedes atrasar", "Las que fijan tu fecha", "${g.cuelloDeBotella.size}", null, DetalleAvance.Cadena))
+internal fun preguntasDe(g: EstimacionGraduacion, hoy: Periodo, cursando: Int, seAbren: Int, rapida: Periodo?, nombre: (String) -> String): List<Pregunta> = buildList {
+    if (cursando > 0) {
+        val abren = when (seAbren) {
+            0 -> "No te abren otras"
+            1 -> "Te abren 1"
+            else -> "Te abren $seAbren"
+        }
+        add(Pregunta(IconosHoja.libroAbierto, false, "Este semestre", abren, "$cursando", null, DetalleAvance.EsteSemestre))
+    }
+    g.plan.firstOrNull()?.let { add(Pregunta(IconosHoja.calendario, true, "Tu próximo semestre", hoy.mas(1).rango(), "${it.size}", null, DetalleAvance.Proximo)) }
+    g.cuelloDeBotella.firstOrNull()?.let { add(Pregunta(IconosHoja.eslabon, false, "No puedes atrasar", "Empieza en ${nombre(it)}", "${g.cuelloDeBotella.size}", null, DetalleAvance.Cadena)) }
     if (!g.terminado) add(Pregunta(Lucide.birrete, false, "¿Cuándo me gradúo?", rapida?.let {
         // Si tu fecha ya es la más rápida posible, decirlo en vez de repetirla
-        if (it == g.periodoFinal) "Ya vas a lo más rápido" else "Lo más rápido: ${it.mesYAnio()}"
-    } ?: "Depende de tu ritmo", null, null, DetalleAvance.Graduacion))
+        if (it == g.periodoFinal) "Ya vas lo más rápido" else "Lo más rápido: ${it.mesYAnio()}"
+    } ?: "A tu ritmo", null, null, DetalleAvance.Graduacion))
+}
+
+/** Las preguntas con lo que piden calculado: lo mismo de pie que en el índice acostado */
+@Composable
+internal fun rememberPreguntas(estado: EstadoCarrera, hoy: Periodo): List<Pregunta> {
+    val pensum = estado.pensum
+    val cursando = remember(estado.marcas) { cursandoDe(pensum, estado.marcas).size }
+    val seAbren = remember(estado.marcas) { if (cursando > 0) siApruebasLoQueCursas(pensum, estado.marcas).seAbren.size else 0 }
+    val nombre = remember(pensum) { nombresDelPlan(pensum) }
+    val rapida = rememberRapida(estado, hoy)
+    return preguntasDe(estado.graduacion, hoy, cursando, seAbren, rapida, nombre)
 }
 
 /** Las electivas con cuota: una fila por grupo, con lo que llevas de lo que pide el título */

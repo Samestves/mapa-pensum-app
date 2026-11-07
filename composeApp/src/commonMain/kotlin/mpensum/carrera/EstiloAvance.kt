@@ -392,8 +392,8 @@ internal fun DosALoAncho(hueco: Dp, vertical: Dp, porAbajo: Boolean = false, izq
 
 // ─────────────────────────────────── Cabeceras ──────────────────────────────────
 
-/** Lo que dice la cabecera de una pantalla interna: su pastilla, el título y el subtítulo */
-internal class DatosCabecera(val icono: List<Path>, val titulo: String, val subtitulo: String, val azul: Boolean = false)
+/** Lo que dice la cabecera de una pantalla interna: su pastilla y el título; subtítulo solo si trae un dato que el título no dice */
+internal class DatosCabecera(val icono: List<Path>, val titulo: String, val subtitulo: String? = null, val azul: Boolean = false)
 
 /** La cabecera en rejilla: la pastilla centrada con el título y el subtítulo debajo del título */
 @Composable
@@ -403,7 +403,25 @@ internal fun CabeceraInterna(d: DatosCabecera, modifier: Modifier = Modifier) {
             Pastilla(d.icono, d.azul)
             BasicText(d.titulo, Modifier.padding(start = Espacio.s), style = estiloTitulo())
         }
-        BasicText(d.subtitulo, Modifier.padding(start = LADO_PASTILLA + Espacio.s, top = Espacio.hilo), style = estiloCuerpo(), maxLines = 1, overflow = TextOverflow.Ellipsis)
+        if (d.subtitulo != null) BasicText(d.subtitulo, Modifier.padding(start = LADO_PASTILLA + Espacio.s, top = Espacio.hilo), style = estiloCuerpo(), maxLines = 1, overflow = TextOverflow.Ellipsis)
+    }
+}
+
+/**
+ * «Ver en el mapa», arriba a la derecha de la cabecera: una cápsula de 36 dp
+ * (el alto de los círculos de atrás y cerrar) con el icono del mapa. Es una
+ * acción de la pantalla, no un bloque más al final de la lista.
+ */
+@Composable
+internal fun BotonMapa(alTocar: () -> Unit) {
+    Row(
+        Modifier.height(36.dp).clip(RoundedCornerShape(18.dp)).background(Paleta.tinta.copy(alpha = Velo.pastilla))
+            .clickable(role = Role.Button, onClick = alTocar).padding(start = Espacio.s, end = 14.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(Espacio.xs),
+    ) {
+        IconoLucide(Lucide.mapa, Paleta.tinta, 16.dp)
+        BasicText("Ver en el mapa", style = estiloNota(Paleta.tinta, FontWeight.Medium), maxLines = 1)
     }
 }
 
@@ -426,6 +444,12 @@ internal object IconosHoja {
     val candadoAbierto = listOf(trazo("M5 11h14a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2z"), trazo("M7 11V7a5 5 0 0 1 9.9-1"))
     val mas = listOf(trazo("M5 12h14"), trazo("M12 5v14"))
     val abajo = listOf(trazo("m6 9 6 6 6-6"))
+    val relojArena = listOf(
+        trazo("M5 22h14"),
+        trazo("M5 2h14"),
+        trazo("M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22"),
+        trazo("M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2"),
+    )
     val fuera = listOf(trazo("M7 7h10v10"), trazo("M7 17 17 7"))
 }
 

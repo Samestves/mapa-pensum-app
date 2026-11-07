@@ -107,6 +107,13 @@ data class EstimacionGraduacion(
     /** Las que faltan sin contar las que cursas, casillas incluidas */
     val materiasRestantes: Int,
     val cursaAhora: Boolean,
+    /**
+     * Por cada pendiente, su cadena: cuántos períodos hacen falta, como
+     * mínimo, para ella y lo que cuelga de ella (con el freno del nivel). Es
+     * lo primero que decide quién entra antes, y sirve para medir cuánto
+     * puede esperar una materia.
+     */
+    val cadenaDe: Map<String, Int> = emptyMap(),
 ) {
     val terminado: Boolean get() = semestresRestantes == 0
 }
@@ -255,6 +262,8 @@ private fun cargaHabitual(pensum: Pensum, marcas: Map<String, Marca>): Pair<Int,
  *    UC mínimas) cumplidas y cae en la ventana de nivel, se meten hasta
  *    `carga` materias sin pasar de 28 UC, primero la de cadena más larga y
  *    luego la más atrasada. Siempre entra al menos una.
+ *    `noAntesDe` veta: una materia vetada a k no entra antes del período k del
+ *    plan (0 es el que viene); un período puede quedar vacío si solo hay vetadas.
  * 5. Los períodos simulados (más el que cursas) son la estimación; la cadena
  *    más larga de lo pendiente es el mínimo, y la estimación nunca baja de él.
  *
@@ -267,6 +276,7 @@ fun estimarGraduacion(
     casillas: Map<String, String>,
     carga: Int? = null,
     hoy: Periodo = Periodo.actual(),
+    noAntesDe: Map<String, Int> = emptyMap(),
 ): EstimacionGraduacion {
     val (cargaUsada, fuente) = if (carga != null) max(1, carga) to FuenteCarga.ELEGIDA else cargaHabitual(pensum, marcas)
     val todas = pensum.todas
@@ -312,11 +322,13 @@ fun estimarGraduacion(
     val porHacer = pendientes.mapTo(mutableSetOf()) { it.codigo }
     var ucHechas = todas.filter { marcas[it.codigo] != null }.sumOf { it.uc ?: 0 }
     while (restantes.isNotEmpty() && plan.size < TOPE_PERIODOS) {
-        val listas = restantes.filter { p -> p.prerrequisitos.none { it in porHacer } && (p.ucMinimas == null || ucHechas >= p.ucMinimas) }
+        val abiertas = restantes.filter { p -> p.prerrequisitos.none { it in porHacer } && (p.ucMinimas == null || ucHechas >= p.ucMinimas) }
+        // El veto: lo que aún no puede entrar este período se queda fuera
+        val listas = if (noAntesDe.isEmpty()) abiertas else abiertas.filter { (noAntesDe[it.codigo] ?: 0) <= plan.size }
         val nivel = restantes.filter { it.marcaNivel }.minOfOrNull { it.semestre!! }
         val enNivel = if (nivel == null) listas else listas.filter { it.semestre == null || it.semestre <= nivel + VENTANA_NIVEL }
         // Si el nivel no deja nada o los datos no cuadran (una prelación imposible), mejor avanzar que atascarse
-        val candidatas = enNivel.ifEmpty { listas }.ifEmpty { restantes }.sortedWith(prioridad)
+        val candidatas = if (listas.isEmpty() && abiertas.isNotEmpty()) emptyList() else enNivel.ifEmpty { listas }.ifEmpty { restantes }.sortedWith(prioridad)
 
         val periodo = mutableListOf<Pendiente>()
         var uc = 0
@@ -361,5 +373,6 @@ fun estimarGraduacion(
         plan = plan,
         materiasRestantes = pendientes.size,
         cursaAhora = cursaAhora,
+        cadenaDe = cadena,
     )
 }

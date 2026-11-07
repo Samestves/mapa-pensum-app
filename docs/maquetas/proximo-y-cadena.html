@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Próximo semestre y cadena · opciones</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,100..900&family=Jost:wght@100..900&family=IBM+Plex+Mono:wght@300&display=block" rel="stylesheet">
+<style>
+/* ============ La página (presentación; no es la app) ============ */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #E6E7E9; color: #050608; font-family: Inter, sans-serif; font-optical-sizing: none; padding: 56px 40px 80px; -webkit-font-smoothing: antialiased; }
+.pagina { width: 1620px; margin: 0 auto; }
+.portada h1 { font: 300 40px/44px Jost; letter-spacing: -.01em; }
+.portada p { font: 400 15px/22px Inter; letter-spacing: -.009em; color: #34383E; margin-top: 12px; max-width: 980px; }
+.portada b { font-weight: 500; color: #050608; }
+.bloque { margin-top: 64px; }
+.bloque > h2 { font: 500 11px/16px Inter; letter-spacing: .08em; text-transform: uppercase; color: #52565C; margin-bottom: 20px; }
+.fila { display: flex; gap: 40px; align-items: flex-start; }
+.op { width: 375px; flex: none; }
+.op > h3 { font: 500 15px/20px Inter; letter-spacing: -.009em; display: flex; align-items: center; gap: 8px; }
+.op > p { font: 400 13px/18px Inter; color: #34383E; margin: 4px 0 16px; min-height: 72px; }
+.sello { font: 500 11px/16px Inter; letter-spacing: .08em; text-transform: uppercase; color: #fff; background: #1A47C2; border-radius: 10px; padding: 2px 8px; }
+.porque { margin-top: 28px; font: 400 15px/22px Inter; letter-spacing: -.009em; color: #1C1F23; max-width: 1200px; }
+.porque b { font-weight: 500; color: #050608; }
+
+/* ============ Paleta Acero · Oscuro ============ */
+.osc { --lienzo:#0B0C0E; --panel:#121316; --tinta:#ECEEF1; --suave:#B6BBC2; --tenue:#858B94; --apagada:#5D636C; --azul:#5B8AF5; --verde:#2EC27E; --rojo:#E5403A;
+       --t: 236 238 241; --a: 91 138 245; --r: 229 64 58;
+       --sup: rgb(var(--t) / .05); --hilo: rgb(var(--t) / .09); --pas: rgb(var(--t) / .08); --pend: rgb(var(--t) / .16); --pas-azul: rgb(var(--a) / .16);
+       --velo: rgb(0 0 0 / .6); color: var(--tinta); }
+
+/* ============ El teléfono y la hoja ============ */
+.tel { width: 375px; height: 812px; position: relative; overflow: hidden; border-radius: 48px; background: var(--lienzo); box-shadow: 0 0 0 1px rgb(0 0 0 / .07), 0 32px 64px -28px rgb(0 0 0 / .32); }
+.fondo { position: absolute; inset: 0; background: repeating-linear-gradient(90deg, rgb(var(--t) / .07) 0 120px, transparent 120px 136px); }
+.fondo::after { content: ''; position: absolute; inset: 0; background: var(--velo); }
+.hoja { position: absolute; inset: 48px 0 0; background: var(--panel); border-radius: 28px 28px 0 0; padding: 0 20px; overflow: hidden; box-shadow: inset 0 1px 0 rgb(var(--t) / .1); }
+.hoja.desplazada { inset: 0; border-radius: 0; padding-top: 52px; }
+.asa { width: 32px; height: 4px; border-radius: 2px; background: rgb(var(--t) / .28); margin: 8px auto 0; }
+.desv { position: absolute; left: 0; right: 0; bottom: 0; height: 64px; background: linear-gradient(transparent, var(--panel)); pointer-events: none; }
+.barra-estado { position: absolute; top: 0; left: 0; right: 0; height: 52px; background: linear-gradient(var(--panel) 70%, transparent); z-index: 2; }
+
+/* ============ Escala tipográfica (roles de docs/reglas-diseno.md) ============ */
+.rot { font: 500 11px/16px Inter; letter-spacing: .08em; text-transform: uppercase; color: var(--tenue); font-feature-settings: 'tnum'; }
+.disp { font: 300 28px/32px Jost; letter-spacing: -.005em; color: var(--tinta); }
+.tt { font: 500 15px/20px Inter; letter-spacing: -.009em; color: var(--tinta); }
+.cuerpo { font: 400 15px/20px Inter; letter-spacing: -.009em; color: var(--suave); }
+.cuerpo b { font-weight: 500; color: var(--tinta); }
+.nota { font: 400 13px/16px Inter; letter-spacing: -.003em; color: var(--tenue); font-feature-settings: 'tnum'; }
+.nota b { font-weight: 500; color: var(--tinta); }
+.cifra { font-family: Inter; font-feature-settings: 'tnum'; color: var(--tinta); white-space: nowrap; }
+.c40, .c24 { font-variation-settings: 'opsz' 32; }
+.c40 { font-size: 40px; line-height: 44px; font-weight: 200; letter-spacing: -.02em; }
+.c24 { font-size: 24px; line-height: 28px; font-weight: 300; letter-spacing: -.015em; }
+.c20 { font-size: 20px; line-height: 24px; font-weight: 300; letter-spacing: -.01em; font-variation-settings: 'opsz' 20; }
+.u { font-weight: 300; color: var(--tenue); letter-spacing: 0; margin-left: 2px; font-variation-settings: 'opsz' 14; }
+.c40 .u { font-size: 16px; }
+.c24 .u, .c20 .u { font-size: 11px; font-weight: 400; }
+.trim { text-box: trim-both cap alphabetic; }
+.azul { color: var(--azul) !important; }
+.rojo { color: var(--rojo) !important; }
+.fuerte { color: var(--tinta) !important; font-weight: 500 !important; }
+
+/* ============ Iconos (Lucide, trazo 1,5 dp) ============ */
+svg.i { fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; flex: none; display: block; }
+.redondo { width: 36px; height: 36px; border-radius: 18px; background: var(--pas); color: var(--suave); display: grid; place-items: center; flex: none; }
+.pas { width: 32px; height: 32px; border-radius: 8px; background: var(--pas); color: var(--tinta); display: grid; place-items: center; flex: none; }
+.pas.azul { background: var(--pas-azul); }
+.ico { width: 32px; height: 32px; display: grid; place-items: center; flex: none; color: var(--tinta); }
+.ico.tenue { color: var(--apagada); }
+.ch { color: var(--apagada); }
+
+/* ============ Piezas comunes ============ */
+.nav { margin-top: 12px; height: 36px; }
+.cab { display: flex; align-items: center; gap: 12px; margin-top: 16px; }
+.tarjeta { background: var(--sup); border-radius: 24px; }
+.pad { padding: 16px; }
+.mt20 { margin-top: 20px; }
+.mt16 { margin-top: 16px; }
+.mt12 { margin-top: 12px; }
+.mt8 { margin-top: 8px; }
+.entre { display: flex; justify-content: space-between; align-items: flex-end; }
+.seccion { display: flex; justify-content: space-between; align-items: center; margin: 24px 16px 8px; }
+.seccion .rot { display: flex; align-items: center; gap: 8px; }
+.f { display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 0 16px; position: relative; }
+.f.c56 { min-height: 56px; }
+.f.c48 { min-height: 48px; }
+.f + .f::before { content: ''; position: absolute; top: 0; left: 60px; right: 0; height: 1px; background: var(--hilo); }
+.f .t { flex: 1; min-width: 0; padding: 10px 0; }
+.f .t > span { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.f .v { flex: none; }
+.boton { height: 52px; border-radius: 26px; background: var(--tinta); color: var(--panel); display: grid; place-items: center; font: 500 15px/20px Inter; letter-spacing: -.009em; margin-top: 24px; }
+.boton.sec { background: var(--sup); color: var(--tinta); }
+.comp { display: grid; grid-template-columns: 1fr 1px 1fr; column-gap: 16px; padding: 16px; }
+.comp .sep { background: var(--hilo); }
+.comp .cifra { margin-top: 4px; }
+.comp .nota { margin-top: 4px; }
+
+/* Muestras de motivo: la misma pieza que en la barra, delante del rótulo */
+.muestra { width: 14px; height: 10px; border-radius: 2.5px; display: inline-block; flex: none; }
+.m-cadena { background: var(--azul); }
+.m-abre { background: rgb(var(--a) / .45); }
+.m-carga { box-shadow: inset 0 0 0 1.5px rgb(var(--a) / .7); }
+
+/* Barra de UC: una cápsula por materia, ancho por UC (la misma regla que la barra de la hoja) */
+.capsulas { display: flex; gap: 2px; height: 14px; }
+.capsulas b { display: block; height: 14px; border-radius: 2.5px; }
+.capsulas b.g { margin-left: 5px; }
+
+/* Miniatura del mapa: la conexión con el mapa */
+.mini { display: flex; align-items: center; gap: 12px; padding: 12px 16px 12px 12px; }
+.mini svg.mapa { flex: none; border-radius: 12px; background: rgb(var(--t) / .04); }
+.mini .t { flex: 1; min-width: 0; }
+
+/* Casillas de B */
+.casilla { width: 24px; height: 24px; border-radius: 7px; display: grid; place-items: center; flex: none; margin: 0 4px; }
+.casilla.si { background: var(--azul); color: var(--panel); }
+.casilla.no { box-shadow: inset 0 0 0 1.5px rgb(var(--t) / .3); }
+
+/* Grafo de C (Próximo) */
+.grafo { position: relative; height: 330px; }
+.grafo .card { position: absolute; height: 44px; border-radius: 8px; background: rgb(var(--t) / .05); box-shadow: inset 0 0 0 1px rgb(var(--t) / .1); padding: 0 10px; overflow: hidden; display: flex; align-items: center; }
+.grafo .card .cod { font: 300 9.5px/12px 'IBM Plex Mono'; color: var(--apagada); display: block; }
+.grafo .card .nom { font: 500 12px/15px Inter; letter-spacing: -.005em; color: var(--suave); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.grafo .card.ins { box-shadow: inset 0 0 0 1.5px rgb(var(--a) / .75); }
+.grafo .card.ins .nom { color: var(--tinta); }
+.grafo .card.cad { background: rgb(var(--a) / .2); box-shadow: inset 0 0 0 1.5px var(--azul); }
+.grafo svg { position: absolute; inset: 0; overflow: visible; }
+
+/* Metro de B (Cadena) */
+.metro { display: grid; grid-template-columns: 56px 100px minmax(0, 1fr); column-gap: 12px; }
+.metro .per { font: 400 12px/16px Inter; color: var(--tenue); text-align: right; font-feature-settings: 'tnum'; padding-top: 6px; }
+.metro .per.ya { color: var(--azul); font-weight: 500; }
+.metro .nom { padding: 4px 0 0; min-height: 52px; min-width: 0; }
+.metro .nom .tt { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+/* Gantt de C (Cadena) */
+.gantt .gf { display: grid; grid-template-columns: minmax(0, 1fr) 132px; column-gap: 12px; align-items: center; min-height: 32px; padding: 0 16px; }
+.gantt .gf .n { font: 500 13px/16px Inter; letter-spacing: -.003em; color: var(--tinta); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gantt .gf .n.ten { color: var(--suave); font-weight: 400; }
+.pista { display: grid; grid-template-columns: repeat(6, 1fr); gap: 2px; height: 12px; }
+.pista i { border-radius: 2.5px; background: rgb(var(--t) / .06); }
+.pista i.si { background: var(--tinta); }
+.pista i.az { background: var(--azul); }
+.pista i.puede { background: none; box-shadow: inset 0 0 0 1.5px rgb(var(--t) / .45); }
+.eje { display: grid; grid-template-columns: minmax(0, 1fr) 132px; column-gap: 12px; padding: 0 16px; }
+.eje .anios { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; font: 400 11px/16px Jost; color: var(--apagada); text-align: center; }
+
+/* ============ Acostado (915 × 412): índice + detalle ============ */
+.tel-h { width: 915px; height: 412px; border-radius: 36px; position: relative; overflow: hidden; background: var(--panel); box-shadow: 0 0 0 1px rgb(0 0 0 / .1), 0 30px 60px -28px rgb(0 0 0 / .4); display: flex; }
+.tel-h .izq { width: 330px; flex: none; padding: 14px 16px 16px 24px; position: relative; }
+.tel-h .der > div > div, .tel-h .der section { min-width: 0; }
+.tel-h .div { width: 1px; background: var(--hilo); margin: 16px 0; flex: none; }
+.tel-h .der { flex: 1; padding: 14px 24px 0 24px; position: relative; overflow: hidden; }
+.tel-h .f { min-height: 48px; }
+.tel-h .f + .f::before { left: 56px; }
+.tel-h .f.sel { background: rgb(var(--t) / .07); border-radius: 16px; }
+.tel-h .f.sel::before, .tel-h .f.sel + .f::before { display: none; }
+.tel-h .disp { font-size: 24px; line-height: 28px; }
+
+/* ============ Panel del algoritmo ============ */
+.algo { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+.algo > div { background: #fff; border-radius: 24px; padding: 24px; box-shadow: 0 0 0 1px rgb(0 0 0 / .07); }
+.algo h4 { font: 300 22px/26px Jost; margin-bottom: 8px; }
+.algo p { font: 400 13px/19px Inter; color: #34383E; }
+.algo p + p { margin-top: 8px; }
+.algo code { font: 300 12px/18px 'IBM Plex Mono'; color: #050608; background: #EEF0F2; border-radius: 4px; padding: 1px 4px; }
+.algo b { font-weight: 500; color: #050608; }
+</style>
+</head>
+<body>
+<div class="pagina">
+
+<header class="portada">
+  <h1>Tu próximo semestre y No puedes atrasar</h1>
+  <p>Tres opciones por pantalla, con los datos reales de <b>Ingeniería de Sistemas</b>: semestres 1 a 4 aprobados, cursando Estadística II e Inferencia y Diseño de Experimentos, grado en <b>Dic 2029</b>. Todas salen de la misma cuenta que ya hace la app (<b>estimarGraduacion</b>) más un dato nuevo: el <b>margen</b> de cada materia, cuántos semestres puede esperar sin mover tu fecha. Sin subtítulos: el primer bloque de cada pantalla ya contesta la pregunta del título.</p>
+</header>
+
+<!-- ======================= TU PRÓXIMO SEMESTRE ======================= -->
+<section class="bloque">
+  <h2>Tu próximo semestre · de pie, 375 × 812, oscuro</h2>
+  <div class="fila">
+
+    <!-- A · Por qué cada una -->
+    <div class="op">
+      <h3>A · Por qué cada una <span class="sello">Recomendada</span></h3>
+      <p>Arriba la respuesta: 6 materias, tu fecha y una barra con sus UC. Debajo, agrupadas por <b>motivo</b>. El motivo se dice una vez, en el rótulo, no en cada fila.</p>
+      <div class="tel osc"><div class="fondo"></div><div class="hoja">
+        <div class="asa"></div>
+        <div class="nav"><span class="redondo"><i data-ic="chevron-left"></i></span></div>
+        <header class="cab"><span class="pas azul"><i data-ic="calendar" class="azul"></i></span><h2 class="disp">Ene – Jun 2027</h2></header>
+
+        <section class="tarjeta pad mt20">
+          <div class="entre">
+            <div class="cifra c40 trim">6<span class="u">materias</span></div>
+            <div style="text-align:right"><div class="cifra c24 trim">Dic 2029</div></div>
+          </div>
+          <div class="entre mt8"><span class="nota"><b>16</b> UC</span><span class="nota">Te gradúas</span></div>
+          <div class="capsulas mt16" data-capsulas="2c|3a,3a,3a,2a|3k"></div>
+        </section>
+
+        <div class="seccion"><span class="rot azul"><i class="muestra m-cadena"></i>Fija tu fecha</span><span class="rot">2 UC</span></div>
+        <section class="tarjeta">
+          <div class="f c56"><span class="ico azul"><i data-ic="link"></i></span><span class="t"><span class="tt">Sistemas de Costo</span><span class="nota fuerte">No puede esperar</span></span><span class="cifra c20 v">2<span class="u">UC</span></span></div>
+        </section>
+
+        <div class="seccion"><span class="rot"><i class="muestra m-abre"></i>Te abren camino</span><span class="rot">11 UC</span></div>
+        <section class="tarjeta">
+          <div class="f c56"><span class="ico azul"><i data-ic="lock-open"></i></span><span class="t"><span class="tt">Métodos Numéricos</span><span class="nota">→ Optimización de Operaciones</span></span><span class="cifra c20 v">3<span class="u">UC</span></span></div>
+          <div class="f c56"><span class="ico azul"><i data-ic="lock-open"></i></span><span class="t"><span class="tt">Sistemas de Operación</span><span class="nota">→ Admón. de Base de Datos</span></span><span class="cifra c20 v">3<span class="u">UC</span></span></div>
+          <div class="f c56"><span class="ico azul"><i data-ic="lock-open"></i></span><span class="t"><span class="tt">Circuitos y Sistemas</span><span class="nota">→ Electrónica</span></span><span class="cifra c20 v">3<span class="u">UC</span></span></div>
+          <div class="f c56"><span class="ico azul"><i data-ic="lock-open"></i></span><span class="t"><span class="tt">Teoría de Sistemas</span><span class="nota">→ Enfoque Sistémico</span></span><span class="cifra c20 v">2<span class="u">UC</span></span></div>
+        </section>
+        <div class="seccion"><span class="rot"><i class="muestra m-carga"></i>Completan tu carga</span><span class="rot">3 UC</span></div>
+        <section class="tarjeta">
+          <div class="f c56"><span class="ico azul"><i data-ic="lock-open"></i></span><span class="t"><span class="tt">Análisis de Decisiones</span><span class="nota">Puede esperar 3 semestres</span></span><span class="cifra c20 v">3<span class="u">UC</span></span></div>
+        </section>
+      </div><div class="desv"></div></div>
+    </div>
+
+    <!-- A · al desplazar -->
+    <div class="op">
+      <h3>A · al desplazar</h3>
+      <p>Lo que completa la carga, la salida inteligente si no puedes con 6 y lo opcional. Cierra la miniatura del mapa con las 6 resaltadas.</p>
+      <div class="tel osc"><div class="hoja desplazada"><div class="barra-estado"></div>
+        <section class="tarjeta">
+          <div class="f c56"><span class="ico azul"><i data-ic="lock-open"></i></span><span class="t"><span class="tt">Circuitos y Sistemas</span><span class="nota">→ Electrónica</span></span><span class="cifra c20 v">3<span class="u">UC</span></span></div>
+          <div class="f c56"><span class="ico azul"><i data-ic="lock-open"></i></span><span class="t"><span class="tt">Teoría de Sistemas</span><span class="nota">→ Enfoque Sistémico</span></span><span class="cifra c20 v">2<span class="u">UC</span></span></div>
+        </section>
+
+        <div class="seccion"><span class="rot"><i class="muestra m-carga"></i>Completan tu carga</span><span class="rot">3 UC</span></div>
+        <section class="tarjeta">
+          <div class="f c56"><span class="ico azul"><i data-ic="lock-open"></i></span><span class="t"><span class="tt">Análisis de Decisiones</span><span class="nota">Puede esperar 3 semestres</span></span><span class="cifra c20 v">3<span class="u">UC</span></span></div>
+        </section>
+
+        <div class="seccion"><span class="rot">¿Solo puedes con 5?</span></div>
+        <section class="tarjeta">
+          <div class="f"><span class="pas"><i data-ic="calendar-check"></i></span><span class="t"><span class="tt">Deja Análisis de Decisiones</span><span class="nota">Sigues en <b>Dic 2029</b></span></span></div>
+          <div class="f"><span class="pas"><i data-ic="hourglass"></i></span><span class="t"><span class="tt">Con 5 cada semestre</span><span class="nota">Te gradúas en <b>Jun 2030</b></span></span></div>
+        </section>
+
+        <div class="seccion"><span class="rot">También puedes</span></div>
+        <section class="tarjeta">
+          <div class="f c56"><span class="ico tenue"><i data-ic="lock-open"></i></span><span class="t"><span class="tt">Leyes y Deontología</span><span class="nota">No abre otras</span></span><span class="cifra c20 v">2<span class="u">UC</span></span></div>
+        </section>
+
+        <section class="tarjeta mini mt16" data-mini="proximo">
+          <span class="t"><span class="tt" style="display:block">Verlas en el mapa</span><span class="nota" style="display:block">Se encienden las 6</span></span>
+          <i data-ic="chevron-right" data-s="16" class="ch"></i>
+        </section>
+      </div></div>
+    </div>
+
+    <!-- B · Arma tu inscripción -->
+    <div class="op">
+      <h3>B · Arma tu inscripción</h3>
+      <p>Un simulador: marcas lo que vas a inscribir y la fecha responde al instante. Aquí, quitaste Sistemas de Costo: tu grado salta a Jun 2030 y la fila dice por qué.</p>
+      <div class="tel osc"><div class="fondo"></div><div class="hoja">
+        <div class="asa"></div>
+        <div class="nav"><span class="redondo"><i data-ic="chevron-left"></i></span></div>
+        <header class="cab"><span class="pas azul"><i data-ic="calendar" class="azul"></i></span><h2 class="disp">Ene – Jun 2027</h2></header>
+
+        <section class="tarjeta pad mt20">
+          <div class="entre">
+            <div class="cifra c40 trim">Jun 2030</div>
+            <div class="cifra c24 trim">14<span class="u">/28 UC</span></div>
+          </div>
+          <div class="entre mt8"><span class="nota rojo">6 meses después</span><span class="nota">5 materias</span></div>
+          <div class="capsulas mt16" data-ranuras="14"></div>
+        </section>
+
+        <div class="seccion"><span class="rot azul">Te conviene · 6</span><span class="rot" style="color:var(--suave)">Restablecer</span></div>
+        <section class="tarjeta">
+          <div class="f c56"><span class="casilla no"></span><span class="t"><span class="tt">Sistemas de Costo</span><span class="nota rojo">Sin ella: Jun 2030</span></span><span class="cifra c20 v">2<span class="u">UC</span></span></div>
+          <div class="f c56"><span class="casilla si"><i data-ic="check" data-s="16"></i></span><span class="t"><span class="tt">Métodos Numéricos</span><span class="nota">Puede esperar 1</span></span><span class="cifra c20 v">3<span class="u">UC</span></span></div>
+          <div class="f c56"><span class="casilla si"><i data-ic="check" data-s="16"></i></span><span class="t"><span class="tt">Sistemas de Operación</span><span class="nota">Puede esperar 2</span></span><span class="cifra c20 v">3<span class="u">UC</span></span></div>
+          <div class="f c56"><span class="casilla si"><i data-ic="check" data-s="16"></i></span><span class="t"><span class="tt">Circuitos y Sistemas</span><span class="nota">Puede esperar 2</span></span><span class="cifra c20 v">3<span class="u">UC</span></span></div>
+          <div class="f c56"><span class="casilla si"><i data-ic="check" data-s="16"></i></span><span class="t"><span class="tt">Teoría de Sistemas</span><span class="nota">Puede esperar 2</span></span><span class="cifra c20 v">2<span class="u">UC</span></span></div>
+          <div class="f c56"><span class="casilla si"><i data-ic="check" data-s="16"></i></span><span class="t"><span class="tt">Análisis de Decisiones</span><span class="nota">Puede esperar 3</span></span><span class="cifra c20 v">3<span class="u">UC</span></span></div>
+        </section>
+        <div class="seccion"><span class="rot">También puedes</span></div>
+        <section class="tarjeta">
+          <div class="f c56"><span class="casilla no"></span><span class="t"><span class="tt">Leyes y Deontología</span><span class="nota">Puede esperar 5</span></span><span class="cifra c20 v">2<span class="u">UC</span></span></div>
+        </section>
+      </div><div class="desv"></div></div>
+    </div>
+
+    <!-- C · Lo que abren -->
+    <div class="op">
+      <h3>C · Lo que abren</h3>
+      <p>Un trozo del mapa: a la izquierda las 6 que inscribes, a la derecha lo que te abren el semestre siguiente, con los mismos cables. La de tu cadena va encendida.</p>
+      <div class="tel osc"><div class="fondo"></div><div class="hoja">
+        <div class="asa"></div>
+        <div class="nav"><span class="redondo"><i data-ic="chevron-left"></i></span></div>
+        <header class="cab"><span class="pas azul"><i data-ic="calendar" class="azul"></i></span><h2 class="disp">Ene – Jun 2027</h2></header>
+
+        <div class="entre mt20" style="padding:0 4px">
+          <div class="cifra c40 trim">6<span class="u">materias</span></div>
+          <div class="cifra c24 trim">16<span class="u">UC</span></div>
+        </div>
+
+        <section class="tarjeta pad mt20">
+          <div class="entre" style="margin-bottom:12px"><span class="rot azul">Inscribes</span><span class="rot">Te abren · Jul – Dic</span></div>
+          <div class="grafo" data-grafo></div>
+        </section>
+
+        <div class="seccion"><span class="rot">También puedes</span></div>
+        <section class="tarjeta">
+          <div class="f c56"><span class="ico tenue"><i data-ic="lock-open"></i></span><span class="t"><span class="tt">Leyes y Deontología</span><span class="nota">No abre otras</span></span><span class="cifra c20 v">2<span class="u">UC</span></span></div>
+        </section>
+        <div class="boton" style="margin-top:16px">Abrir en el mapa</div>
+      </div><div class="desv"></div></div>
+    </div>
+  </div>
+  <p class="porque"><b>Por qué A:</b> contesta «qué inscribo y por qué» sin abrir nada: la cifra y la fecha arriba, y cada grupo nombra su motivo una sola vez. El margen solo aparece donde decide algo («No puede esperar», «Deja Análisis: sigues en Dic 2029»). B es el siguiente paso natural (un modo «editar» encima de A); C ya lo hace el mapa, y aquí repetiría su trabajo en pequeño.</p>
+</section>
+
+<!-- ======================= NO PUEDES ATRASAR ======================= -->
+<section class="bloque">
+  <h2>No puedes atrasar · de pie, 375 × 812, oscuro</h2>
+  <div class="fila">
+
+    <!-- A · El dominó -->
+    <div class="op">
+      <h3>A · El dominó <span class="sello">Recomendada</span></h3>
+      <p>Se entiende sin leer: dos filas de fichas. A tiempo, las 6 caben antes de tu grado; si atrasas una, todas se corren un semestre y la última se sale.</p>
+      <div class="tel osc"><div class="fondo"></div><div class="hoja">
+        <div class="asa"></div>
+        <div class="nav"><span class="redondo"><i data-ic="chevron-left"></i></span></div>
+        <header class="cab"><span class="pas"><i data-ic="link"></i></span><h2 class="disp">No puedes atrasar</h2></header>
+
+        <section class="tarjeta pad mt20">
+          <p class="cuerpo"><b>6 materias en fila:</b> cada una abre la siguiente y no queda semestre libre.</p>
+          <div class="mt16" data-domino="303"></div>
+        </section>
+
+        <div class="seccion"><span class="rot">La cadena</span><span class="rot">6 semestres</span></div>
+        <section class="tarjeta" data-lista-cadena></section>
+      </div><div class="desv"></div></div>
+    </div>
+
+    <!-- A · al desplazar -->
+    <div class="op">
+      <h3>A · al desplazar</h3>
+      <p>Qué hacer, en tres filas con dato. La tercera es la parte inteligente: la cadena que viene detrás, la que se vuelve crítica si te descuidas.</p>
+      <div class="tel osc"><div class="hoja desplazada"><div class="barra-estado"></div>
+        <section class="tarjeta" data-lista-cadena="3"></section>
+
+        <div class="seccion"><span class="rot">Qué hacer</span></div>
+        <section class="tarjeta">
+          <div class="f"><span class="pas azul"><i data-ic="calendar-check" class="azul"></i></span><span class="t"><span class="tt">Inscribe Sistemas de Costo</span><span class="nota azul">Ene – Jun 2027</span></span></div>
+          <div class="f"><span class="pas"><i data-ic="rotate-ccw"></i></span><span class="t"><span class="tt">Si repruebas una, repítela ya</span><span class="nota">Cada semestre de espera, 6 meses más</span></span></div>
+          <div class="f"><span class="pas"><i data-ic="hourglass"></i></span><span class="t"><span class="tt">Vigila Métodos Numéricos</span><span class="nota">Su rama tiene 1 semestre de margen</span></span></div>
+        </section>
+
+        <section class="tarjeta mini mt16" data-mini="cadena">
+          <span class="t"><span class="tt" style="display:block">Verla en el mapa</span><span class="nota" style="display:block">Se enciende el cable de la 1 a la 6</span></span>
+          <i data-ic="chevron-right" data-s="16" class="ch"></i>
+        </section>
+      </div></div>
+    </div>
+
+    <!-- B · Las líneas -->
+    <div class="op">
+      <h3>B · Las líneas</h3>
+      <p>Tu plan como plano de metro: un punto por materia, una fila por semestre. La cadena es la línea encendida; la punteada (Métodos Numéricos) aún tiene margen.</p>
+      <div class="tel osc"><div class="fondo"></div><div class="hoja">
+        <div class="asa"></div>
+        <div class="nav"><span class="redondo"><i data-ic="chevron-left"></i></span></div>
+        <header class="cab"><span class="pas"><i data-ic="link"></i></span><h2 class="disp">No puedes atrasar</h2></header>
+        <p class="cuerpo mt16">Metes 6 por semestre. <b>Solo una por semestre</b> no puede esperar.</p>
+        <div class="mt20" data-metro></div>
+        <section class="tarjeta comp mt12">
+          <div><div class="rot">A tiempo</div><div class="cifra c24 trim mt8">Dic 2029</div></div>
+          <div class="sep"></div>
+          <div><div class="rot">Si atrasas una</div><div class="cifra c24 trim mt8">Jun 2030</div><div class="nota rojo">6 meses después</div></div>
+        </section>
+      </div><div class="desv"></div></div>
+    </div>
+
+    <!-- C · El margen -->
+    <div class="op">
+      <h3>C · El margen de todas</h3>
+      <p>Cada materia que te falta con su ventana: dónde la pone el plan y hasta dónde puede esperar. La cadena son las de ventana de un solo semestre.</p>
+      <div class="tel osc"><div class="fondo"></div><div class="hoja">
+        <div class="asa"></div>
+        <div class="nav"><span class="redondo"><i data-ic="chevron-left"></i></span></div>
+        <header class="cab"><span class="pas"><i data-ic="link"></i></span><h2 class="disp">No puedes atrasar</h2></header>
+        <section class="tarjeta pad mt20">
+          <div class="entre">
+            <div class="cifra c40 trim">6<span class="u">sin margen</span></div>
+            <div class="cifra c24 trim">Dic 2029</div>
+          </div>
+          <div class="entre mt8"><span class="nota">De las <b>24</b> que te faltan</span><span class="nota">Te gradúas</span></div>
+        </section>
+        <p class="nota" style="margin:12px 16px 0">Margen: lo que puede esperar sin mover tu fecha.</p>
+        <div data-gantt></div>
+      </div><div class="desv"></div></div>
+    </div>
+  </div>
+  <p class="porque"><b>Por qué A:</b> es la única que explica las tres cosas sin texto largo: <b>qué es</b> (fichas en fila, cada una abre la siguiente), <b>qué pasa</b> (todas se corren y la última cae en Jun 2030) y <b>qué hacer</b> (tres filas). B da contexto precioso pero pide entender el plano; C es la más exacta y la más densa: sirve mejor como vista avanzada dentro de «¿Cuándo me gradúo?».</p>
+</section>
+
+<!-- ======================= ACOSTADO ======================= -->
+<section class="bloque">
+  <h2>Acostado · 915 × 412 · índice a la izquierda, detalle a la derecha (opciones A)</h2>
+  <div style="display:flex;flex-direction:column;gap:32px">
+    <div class="tel-h osc" data-indice="proximo">
+      <div class="der">
+        <header class="cab" style="margin-top:4px"><span class="pas azul"><i data-ic="calendar" class="azul"></i></span><h2 class="disp">Ene – Jun 2027</h2></header>
+        <section class="tarjeta pad mt16" style="display:grid;grid-template-columns:auto 1fr auto;column-gap:24px;align-items:center">
+          <div><div class="cifra c40 trim">6<span class="u">materias</span></div><div class="nota mt8"><b>16</b> UC</div></div>
+          <div class="capsulas" data-capsulas="2c|3a,3a,3a,2a|3k" data-ancho="230"></div>
+          <div style="text-align:right"><div class="cifra c24 trim">Dic 2029</div><div class="nota mt8">Te gradúas</div></div>
+        </section>
+        <div class="seccion"><span class="rot azul"><i class="muestra m-cadena"></i>Fija tu fecha</span><span class="rot">2 UC</span></div>
+        <section class="tarjeta">
+          <div class="f c56"><span class="ico azul"><i data-ic="link"></i></span><span class="t"><span class="tt">Sistemas de Costo</span><span class="nota fuerte">No puede esperar</span></span><span class="cifra c20 v">2<span class="u">UC</span></span></div>
+        </section>
+        <div class="seccion"><span class="rot"><i class="muestra m-abre"></i>Te abren camino</span><span class="rot">11 UC</span></div>
+        <section class="tarjeta">
+          <div class="f c56"><span class="ico azul"><i data-ic="lock-open"></i></span><span class="t"><span class="tt">Métodos Numéricos</span><span class="nota">→ Optimización de Operaciones</span></span><span class="cifra c20 v">3<span class="u">UC</span></span></div>
+          <div class="f c56"><span class="ico azul"><i data-ic="lock-open"></i></span><span class="t"><span class="tt">Sistemas de Operación</span><span class="nota">→ Admón. de Base de Datos</span></span><span class="cifra c20 v">3<span class="u">UC</span></span></div>
+        </section>
+        <div class="desv"></div>
+      </div>
+    </div>
+
+    <div class="tel-h osc" data-indice="cadena">
+      <div class="der">
+        <header class="cab" style="margin-top:4px"><span class="pas"><i data-ic="link"></i></span><h2 class="disp">No puedes atrasar</h2></header>
+        <div style="display:grid;grid-template-columns:minmax(0,1fr) 210px;column-gap:16px;margin-top:16px">
+          <section class="tarjeta pad">
+            <p class="cuerpo"><b>6 materias en fila:</b> cada una abre la siguiente.</p>
+            <div class="mt12" data-domino="262"></div>
+          </section>
+          <div>
+            <section class="tarjeta">
+              <div class="f c56" style="padding-right:12px"><span class="pas azul"><i data-ic="calendar-check" class="azul"></i></span><span class="t"><span class="tt">Inscribe Costo</span><span class="nota azul">Ene – Jun 2027</span></span></div>
+              <div class="f c56" style="padding-right:12px"><span class="pas"><i data-ic="rotate-ccw"></i></span><span class="t"><span class="tt">Si repruebas, repite</span><span class="nota">Enseguida</span></span></div>
+              <div class="f c56" style="padding-right:12px"><span class="pas"><i data-ic="hourglass"></i></span><span class="t"><span class="tt">Vigila Métodos</span><span class="nota">1 semestre de margen</span></span></div>
+            </section>
+            <section class="tarjeta mt12" style="display:flex;align-items:center;gap:8px;height:48px;padding:0 12px 0 16px"><i data-ic="map" data-s="16"></i><span class="tt" style="flex:1">Verla en el mapa</span><i data-ic="chevron-right" data-s="16" class="ch"></i></section>
+          </div>
+        </div>
+        <div class="desv"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= EL ALGORITMO ======================= -->
+<section class="bloque">
+  <h2>Cómo piensa · lo que haría falta en logica/ (detalle en docs/reglas-diseno.md)</h2>
+  <div class="algo">
+    <div><h4>1 · Margen</h4><p>Para cada materia que falta: cuántos semestres puede esperar sin mover tu fecha. Se vuelve a correr <code>estimarGraduacion</code> prohibiéndola hasta el período <i>k</i> y se busca el mayor <i>k</i> que no cambia <code>periodoFinal</code>.</p><p>Costo <b>0</b> · Métodos <b>1</b> · Operación, Circuitos, Teoría <b>2</b> · Análisis <b>3</b> · Leyes <b>5</b>.</p></div>
+    <div><h4>2 · Motivo</h4><p>Cada materia del primer período del plan recibe <b>un</b> motivo: <b>Fija tu fecha</b> si su margen es 0; <b>Te abren camino</b> si abre alguna el semestre que viene; si no, <b>Completan tu carga</b>. Lo inscribible fuera del plan va a «También puedes».</p><p>El plan no cambia: se explica el mismo que da tu fecha.</p></div>
+    <div><h4>3 · Dominó</h4><p>Si atrasas una de margen 0, se recalcula con ella un período más tarde y se comparan los planes: cuáles se corren y a qué fecha llegas. Para la cadena: las 6 se corren y llegas a <b>Jun 2030</b>.</p></div>
+    <div><h4>4 · Plan B</h4><p>¿Y con una menos? La de más margen del primer período sale sin mover tu fecha (aquí, Análisis de Decisiones, margen 3). Y con una carga menor en todos los semestres, la fecha de <code>planesPorCarga</code>: a 5, <b>Jun 2030</b>.</p></div>
+  </div>
+</section>
+
+</div>
+
+<script>
+/* ---------- Iconos Lucide (rejilla de 24); el trazo se ajusta para medir 1,5 dp a cualquier tamaño ---------- */
+const IC = {
+  'calendar': '<path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/>',
+  'calendar-check': '<path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="m9 16 2 2 4-4"/>',
+  'link': '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
+  'graduation-cap': '<path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/>',
+  'chevron-right': '<path d="m9 18 6-6-6-6"/>',
+  'chevron-left': '<path d="m15 18-6-6 6-6"/>',
+  'chevron-down': '<path d="m6 9 6 6 6-6"/>',
+  'x': '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
+  'rotate-ccw': '<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>',
+  'lock-open': '<rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/>',
+  'check': '<path d="M20 6 9 17l-5-5"/>',
+  'hourglass': '<path d="M5 22h14"/><path d="M5 2h14"/><path d="M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22"/><path d="M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2"/>',
+  'map': '<path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z"/><path d="M15 5.764v15"/><path d="M9 3.236v15"/>',
+  'book-open': '<path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/>',
+  'wrench': '<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>',
+};
+const f2 = n => +n.toFixed(2);
+
+/* ---------- La cadena real (Sistemas): de Sistemas de Costo a Trabajo de Grado ---------- */
+const CADENA = [
+  ['Sistemas de Costo', 'Ene – Jun 2027'],
+  ['Economía de Empresas', 'Jul – Dic 2027'],
+  ['Prepar., Eval. y Control de Proyectos', 'Ene – Jun 2028'],
+  ['Gestión Empresarial I', 'Jul – Dic 2028'],
+  ['Planificación Estratégica', 'Ene – Jun 2029'],
+  ['Trabajo de Grado', 'Jul – Dic 2029'],
+];
+
+/* ---------- Barra de UC por motivo: "2c|3a,3a|3k" (c cadena, a abre, k carga; | separa grupos) ---------- */
+document.querySelectorAll('[data-capsulas]').forEach(el => {
+  const grupos = el.dataset.capsulas.split('|').map(g => g.split(','));
+  const color = { c: 'var(--azul)', a: 'rgb(var(--a) / .45)', k: 'transparent' };
+  const borde = { k: 'inset 0 0 0 1.5px rgb(var(--a) / .7)' };
+  let html = '';
+  grupos.forEach((g, gi) => g.forEach((m, mi) => {
+    const uc = +m.slice(0, -1), t = m.slice(-1);
+    html += `<b class="${gi > 0 && mi === 0 ? 'g' : ''}" style="flex:${uc};background:${color[t]};box-shadow:${borde[t] || 'none'}"></b>`;
+  }));
+  el.innerHTML = html;
+  if (el.dataset.ancho) el.style.width = el.dataset.ancho + 'px';
+});
+
+/* ---------- Ranuras de UC (B): 28 que deja la UDO, llenas las marcadas ---------- */
+document.querySelectorAll('[data-ranuras]').forEach(el => {
+  const n = +el.dataset.ranuras;
+  el.style.gap = '2px';
+  el.innerHTML = Array.from({ length: 28 }, (_, i) => `<b style="flex:1;background:${i < n ? 'var(--azul)' : 'var(--pend)'}"></b>`).join('');
+});
+
+/* ---------- El dominó: 7 columnas (semestres), dos carriles ---------- */
+function domino(W) {
+  const n = 7, g = 4, cw = (W - g * (n - 1)) / n, th = 28;
+  const x = i => i * (cw + g);
+  const y1 = 22, y2 = 92, ye = 134;
+  const limite = f2(x(6) - g / 2);
+  let s = '';
+  // La línea del grado: lo que cae a la derecha llega tarde
+  [y1, y2].forEach(y => { s += `<line x1="${limite}" y1="${y - 4}" x2="${limite}" y2="${y + th + 4}" style="stroke:rgb(var(--t) / .3);stroke-width:1;stroke-dasharray:2 3"/>`; });
+  // Rótulos de los carriles y sus fechas
+  s += `<text x="0" y="12" style="font:400 13px Inter;fill:var(--tenue)">A tiempo</text>`;
+  s += `<text x="${W}" y="12" text-anchor="end" style="font:300 15px Inter;font-feature-settings:'tnum';fill:var(--tinta)">Dic 2029</text>`;
+  s += `<text x="0" y="${y2 - 10}" style="font:400 13px Inter;fill:var(--tenue)">Si atrasas una</text>`;
+  s += `<text x="${W}" y="${y2 - 10}" text-anchor="end" style="font:500 15px Inter;font-feature-settings:'tnum';fill:var(--rojo)">Jun 2030</text>`;
+  // Carril 1: las 6 caben; la primera, azul (se inscribe ya)
+  for (let i = 0; i < 6; i++) {
+    s += `<rect x="${f2(x(i))}" y="${y1}" width="${f2(cw)}" height="${th}" rx="6" style="fill:${i === 0 ? 'var(--azul)' : 'var(--tinta)'}"/>`;
+    s += `<text x="${f2(x(i) + cw / 2)}" y="${y1 + 18.5}" text-anchor="middle" style="font:500 12px Inter;fill:var(--panel)">${i + 1}</text>`;
+  }
+  // El birrete en la columna 7, sobre la línea
+  s += `<g transform="translate(${f2(x(6) + cw / 2 - 9)} ${y1 + 5})" style="color:var(--tinta)"><svg class="i" width="18" height="18" viewBox="0 0 24 24" style="stroke-width:2">${IC['graduation-cap']}</svg></g>`;
+  // Carril 2: el hueco del semestre perdido y las 6 corridas; la última se sale
+  s += `<rect x="${f2(x(0) + .75)}" y="${y2 + .75}" width="${f2(cw - 1.5)}" height="${th - 1.5}" rx="5.25" style="fill:none;stroke:rgb(var(--t) / .35);stroke-width:1.5;stroke-dasharray:3 3"/>`;
+  for (let i = 0; i < 6; i++) {
+    const fuera = i === 5;
+    s += `<rect x="${f2(x(i + 1))}" y="${y2}" width="${f2(cw)}" height="${th}" rx="6" style="fill:${fuera ? 'var(--rojo)' : 'rgb(var(--t) / .2)'}"/>`;
+    s += `<text x="${f2(x(i + 1) + cw / 2)}" y="${y2 + 18.5}" text-anchor="middle" style="font:500 12px Inter;fill:${fuera ? '#fff' : 'var(--tinta)'}">${i + 1}</text>`;
+  }
+  // Eje: años bajo cada par de semestres
+  s += `<line x1="0" y1="${ye}" x2="${W}" y2="${ye}" style="stroke:var(--hilo);stroke-width:1"/>`;
+  ['2027', '2028', '2029', '2030'].forEach((a, k) => {
+    const cx = k < 3 ? (x(2 * k) + x(2 * k + 1) + cw) / 2 : x(6) + cw / 2;
+    s += `<line x1="${f2(cx)}" y1="${ye}" x2="${f2(cx)}" y2="${ye + 4}" style="stroke:rgb(var(--t) / .3);stroke-width:1"/>`;
+    s += `<text x="${f2(cx)}" y="${ye + 18}" text-anchor="middle" style="font:400 11px Jost;fill:${k === 3 ? 'var(--rojo)' : 'var(--apagada)'}">${a}</text>`;
+  });
+  return `<svg width="${W}" height="${ye + 22}" viewBox="0 0 ${W} ${ye + 22}" style="display:block;overflow:visible">${s}</svg>`;
+}
+document.querySelectorAll('[data-domino]').forEach(el => { el.innerHTML = domino(+el.dataset.domino); });
+
+/* ---------- La lista de la cadena: número (como en el dominó), nombre y período ---------- */
+document.querySelectorAll('[data-lista-cadena]').forEach(el => {
+  const desde = +(el.dataset.listaCadena || 0);
+  el.innerHTML = CADENA.slice(desde).map(([n, p], k) => {
+    const i = k + desde;
+    const primero = i === 0, ultimo = i === CADENA.length - 1;
+    const num = ultimo
+      ? `<span class="ico" style="width:24px;height:24px;margin:0 4px"><i data-ic="graduation-cap" data-s="18"></i></span>`
+      : `<span style="width:24px;height:24px;margin:0 4px;border-radius:12px;display:grid;place-items:center;font:500 12px/1 Inter;${primero ? 'background:var(--azul);color:var(--panel)' : 'box-shadow:inset 0 0 0 1.5px rgb(var(--t) / .35);color:var(--tinta)'}">${i + 1}</span>`;
+    return `<div class="f c56">${num}<span class="t"><span class="tt">${n}</span><span class="nota ${primero ? 'azul' : ''}" style="${primero ? 'font-weight:500' : ''}">${p}</span></span></div>`;
+  }).join('');
+});
+
+/* ---------- Miniatura del mapa: columnas de tarjetas y el cable encendido ---------- */
+function mini(tipo) {
+  const W = 96, H = 64, cols = 6, cw = 11, g = (W - 12 - cols * cw) / (cols - 1);
+  let s = '';
+  const x = c => 6 + c * (cw + g);
+  const filas = [6, 6, 6, 6, 6, 2];
+  const yy = r => 6 + r * 9;
+  // Las tarjetas, tenues
+  filas.forEach((n, c) => { for (let r = 0; r < n; r++) s += `<rect x="${f2(x(c))}" y="${yy(r)}" width="${cw}" height="6" rx="1.5" style="fill:rgb(var(--t) / .14)"/>`; });
+  if (tipo === 'proximo') {
+    // La primera columna, encendida en azul; cables cortos a lo que abre
+    for (let r = 0; r < 6; r++) s += `<rect x="${f2(x(0))}" y="${yy(r)}" width="${cw}" height="6" rx="1.5" style="fill:var(--azul)"/>`;
+    for (let r = 0; r < 5; r++) s += `<path d="M${f2(x(0) + cw)} ${yy(r) + 3} L${f2(x(1))} ${yy(r) + 3}" style="stroke:rgb(var(--a) / .6);stroke-width:1"/>`;
+  } else {
+    // La cadena: una tarjeta por columna y el cable que las une
+    const fila = [0, 2, 1, 3, 1, 0];
+    let d = '';
+    fila.forEach((r, c) => { d += `${c ? 'L' : 'M'}${f2(x(c) + cw / 2)} ${yy(r) + 3} `; });
+    s += `<path d="${d}" style="fill:none;stroke:var(--tinta);stroke-width:1.5;stroke-linejoin:round"/>`;
+    fila.forEach((r, c) => { s += `<rect x="${f2(x(c))}" y="${yy(r)}" width="${cw}" height="6" rx="1.5" style="fill:${c === 0 ? 'var(--azul)' : 'var(--tinta)'}"/>`; });
+  }
+  return `<svg class="mapa" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${s}</svg>`;
+}
+document.querySelectorAll('[data-mini]').forEach(el => { el.insertAdjacentHTML('afterbegin', mini(el.dataset.mini)); });
+
+/* ---------- Grafo de C (Próximo): las 6 y lo que abren, con cables del mapa ---------- */
+document.querySelectorAll('[data-grafo]').forEach(el => {
+  const W = 303, cwI = 132, cwD = 124, h = 44, paso = 57;
+  const izq = [
+    ['0713172', 'Sistemas de Costo', 'cad'], ['0723913', 'Métodos Numéricos', 'ins'], ['0713643', 'Sistemas de Operación', 'ins'],
+    ['0713463', 'Circuitos y Sistemas', 'ins'], ['0713632', 'Teoría de Sistemas', 'ins'], ['0713653', 'Análisis de Decisiones', 'ins'],
+  ];
+  const der = [['0713113', 'Economía de Empresas'], ['0713663', 'Optimización de Operaciones'], ['0713622', 'Admón. de Base de Datos'], ['0723533', 'Electrónica'], ['0713633', 'Enfoque Sistémico'], null];
+  let html = '', cables = '';
+  izq.forEach(([c, n, k], i) => {
+    const y = i * paso;
+    html += `<div class="card ${k}" style="left:0;top:${y}px;width:${cwI}px"><span class="nom">${n}</span></div>`;
+    const d = der[i];
+    if (d) {
+      html += `<div class="card" style="left:${W - cwD}px;top:${y}px;width:${cwD}px"><span class="nom">${d[1]}</span></div>`;
+      const x0 = cwI, x1 = W - cwD, ym = y + h / 2, mid = (x0 + x1) / 2;
+      cables += `<path d="M${x0} ${ym} C ${mid} ${ym}, ${mid} ${ym}, ${x1} ${ym}" style="fill:none;stroke:${k === 'cad' ? 'var(--azul)' : 'rgb(var(--a) / .45)'};stroke-width:${k === 'cad' ? 2 : 1.25}"/>`;
+      cables += `<circle cx="${x1}" cy="${ym}" r="2.5" style="fill:${k === 'cad' ? 'var(--azul)' : 'rgb(var(--a) / .6)'}"/>`;
+    } else {
+      html += `<div class="nota" style="position:absolute;left:${W - cwD + 8}px;top:${y + 14}px">No abre otras</div>`;
+    }
+  });
+  el.innerHTML = `<svg width="${W}" height="${6 * paso}">${cables}</svg>${html}`;
+});
+
+/* ---------- B (Cadena): el plano de metro ---------- */
+document.querySelectorAll('[data-metro]').forEach(el => {
+  // Por período: [meses, año, cuántas mete el plan, ¿pasa la línea de margen 1?, ¿tiene parada de esa línea?]
+  const per = [['Ene – Jun', '2027', 6, true, true], ['Jul – Dic', '2027', 6, true, true], ['Ene – Jun', '2028', 6, true, true], ['Jul – Dic', '2028', 6, true, true], ['Ene – Jun', '2029', 6, true, false], ['Jul – Dic', '2029', 2, false, false]];
+  const alto = 52, yc = 12, paso = 15, cx = i => 8 + i * paso;
+  const linea2 = 'stroke:rgb(var(--t) / .5);stroke-width:1.5;stroke-dasharray:3 3;fill:none';
+  let filas = '';
+  per.forEach(([a, b, n, pasa, parada], k) => {
+    let s = '';
+    const ultima = k === per.length - 1;
+    // La cadena: sólida hasta la fila siguiente
+    if (!ultima) s += `<line x1="${cx(0)}" y1="${yc}" x2="${cx(0)}" y2="${alto + yc}" style="stroke:var(--tinta);stroke-width:2"/>`;
+    // La de Métodos Numéricos (margen 1): punteada; en el último tramo se une a la cadena en el Trabajo de Grado
+    if (pasa && k < per.length - 2) s += `<line x1="${cx(1)}" y1="${yc}" x2="${cx(1)}" y2="${alto + yc}" style="${linea2}"/>`;
+    if (k === per.length - 2) s += `<path d="M${cx(1)} ${yc} C ${cx(1)} ${yc + 34}, ${cx(0)} ${alto - 14}, ${cx(0)} ${alto + yc - 7}" style="${linea2}"/>`;
+    // Paradas: la de la cadena, la de margen 1 (si toca) y las demás del semestre, tenues
+    s += k === 0 ? `<circle cx="${cx(0)}" cy="${yc}" r="10" style="fill:rgb(var(--a) / .18)"/><circle cx="${cx(0)}" cy="${yc}" r="6" style="fill:var(--azul)"/>`
+      : `<circle cx="${cx(0)}" cy="${yc}" r="6" style="fill:var(--tinta)"/>`;
+    if (parada) s += `<circle cx="${cx(1)}" cy="${yc}" r="4.5" style="fill:var(--panel);stroke:rgb(var(--t) / .7);stroke-width:1.5"/>`;
+    const otras = n - 1 - (parada ? 1 : 0);
+    for (let i = 0; i < otras; i++) s += `<circle cx="${cx(2 + i)}" cy="${yc}" r="3.5" style="fill:rgb(var(--t) / .2)"/>`;
+    const [nom] = CADENA[k];
+    filas += `<div class="per ${k === 0 ? 'ya' : ''}">${a}<br>${b}</div>`;
+    filas += `<div style="position:relative;height:${alto}px"><svg width="100" height="${alto + 14}" style="position:absolute;top:0;left:0;overflow:visible">${s}</svg></div>`;
+    filas += `<div class="nom"><div class="tt">${nom}</div>${k === 0 ? '<div class="nota azul">Inscríbela ya</div>' : ''}</div>`;
+  });
+  filas += `<div class="per" style="padding-top:0">Dic 2029</div><div style="position:relative;height:28px"><span style="position:absolute;left:${cx(0) - 9}px;top:-3px;color:var(--tinta)"><svg class="i" width="18" height="18" viewBox="0 0 24 24" style="stroke-width:2">${IC['graduation-cap']}</svg></span></div><div class="tt">Te gradúas</div>`;
+  el.innerHTML = `<div class="metro">${filas}</div>`;
+});
+
+/* ---------- C (Cadena): el margen de todas, en ventanas ---------- */
+document.querySelectorAll('[data-gantt]').forEach(el => {
+  // [nombre, período del plan (0-5), margen]
+  const sin = CADENA.map(([n], i) => [n, i, 0]);
+  const uno = [['Métodos Numéricos', 0, 1], ['Optimización de Op.', 1, 1], ['Modelos de Op. I', 2, 1], ['Modelos de Op. II', 3, 1]];
+  const fila = ([n, p, m], cad) => {
+    let celdas = '';
+    for (let i = 0; i < 6; i++) celdas += `<i class="${i === p ? (cad && p === 0 ? 'az' : 'si') : (i > p && i <= p + m ? 'puede' : '')}"></i>`;
+    return `<div class="gf"><span class="n ${cad ? '' : 'ten'}">${n}</span><span class="pista">${celdas}</span></div>`;
+  };
+  el.innerHTML = `
+    <div class="seccion" style="margin-top:20px"><span class="rot">Sin margen · 6</span><span class="rot">En tu cadena</span></div>
+    <section class="tarjeta gantt" style="padding:8px 0">${sin.map(r => fila(r, true)).join('')}</section>
+    <div class="eje" style="margin-top:6px"><span></span><span class="anios"><span>2027</span><span>2028</span><span>2029</span></span></div>
+    <div class="seccion" style="margin-top:12px"><span class="rot">1 semestre · 6</span></div>
+    <section class="tarjeta gantt" style="padding:8px 0">${uno.map(r => fila(r, false)).join('')}<div class="gf"><span class="n ten" style="color:var(--tenue)">2 más</span><span></span></div></section>
+    <div class="seccion"><span class="rot">2 o más · 12</span></div>`;
+});
+
+/* ---------- Acostado: el índice de la izquierda ---------- */
+document.querySelectorAll('[data-indice]').forEach(el => {
+  const sel = el.dataset.indice;
+  const fila = (ic, t, n, k, azul) => `<div class="f ${k === sel ? 'sel' : ''}"><span class="pas ${azul ? 'azul' : ''}"><i data-ic="${ic}" ${azul ? 'class="azul"' : ''}></i></span><span class="t" style="padding:0"><span class="tt">${t}</span></span>${n ? `<span class="cifra c20 v">${n}</span>` : ''}</div>`;
+  el.insertAdjacentHTML('afterbegin', `
+    <div class="izq">
+      <div style="display:flex;align-items:center;gap:12px"><span class="redondo"><i data-ic="x"></i></span><span class="disp">Tu avance</span></div>
+      <section class="tarjeta pad mt12" style="margin-right:0">
+        <div class="entre"><div class="cifra c40 trim">41<span class="u">%</span></div><div class="cifra c24 trim">Dic 2029</div></div>
+        <div class="entre mt8"><span class="nota"><b>62</b> / 153 UC</span><span class="nota">Te gradúas</span></div>
+      </section>
+      <section class="tarjeta mt12" style="padding:4px 0">
+        ${fila('book-open', 'Este semestre', '2', 'este')}
+        ${fila('calendar', 'Tu próximo semestre', '6', 'proximo', true)}
+        ${fila('link', 'No puedes atrasar', '6', 'cadena')}
+        ${fila('graduation-cap', '¿Cuándo me gradúo?', '', 'grad')}
+        ${fila('wrench', 'Técnicas', '0<span class="u">/15 UC</span>', 'tec')}
+      </section>
+      <div class="desv"></div>
+    </div>
+    <div class="div"></div>`);
+});
+
+/* ---------- Iconos al final: todo lo de arriba ya los puso en el DOM ---------- */
+document.querySelectorAll('i[data-ic]').forEach(el => {
+  const s = +(el.dataset.s || 18);
+  el.outerHTML = `<svg class="i ${el.className}" width="${s}" height="${s}" viewBox="0 0 24 24" style="stroke-width:${f2(1.5 * 24 / s)}" aria-hidden="true">${IC[el.dataset.ic]}</svg>`;
+});
+</script>
+</body>
+</html>

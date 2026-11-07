@@ -48,7 +48,6 @@ import mpensum.componentes.fundidoAbajo
 import mpensum.componentes.margenPantalla
 import mpensum.logica.EstimacionGraduacion
 import mpensum.logica.Periodo
-import mpensum.logica.cursandoDe
 import mpensum.tema.Espacio
 import mpensum.tema.Paleta
 import mpensum.tema.Radio
@@ -108,10 +107,8 @@ internal fun IndiceYDetalle(
     alAbrirCasilla: (String) -> Unit,
 ) {
     val g = estado.graduacion
-    val cursando = remember(estado.marcas) { cursandoDe(estado.pensum, estado.marcas).size }
-    val rapida = rememberRapida(estado, hoy)
     val electivas = remember(estado.marcas) { electivasDe(estado) }
-    val filas = preguntasDe(g, hoy, cursando, rapida) + electivas
+    val filas = rememberPreguntas(estado, hoy) + electivas
     // Siempre hay una elegida: la que se abrió (también de pie, al girar) o la primera
     val elegido = detalle?.takeIf { d -> filas.any { it.detalle == d } } ?: filas.firstOrNull()?.detalle
     val margen = margenPantalla()
@@ -147,7 +144,7 @@ internal fun IndiceYDetalle(
                 } else {
                     AnimatedContent(elegido, transitionSpec = { fadeIn(tween(220, 60)) togetherWith fadeOut(tween(120)) }, label = "panel") { d ->
                         Column(Modifier.fillMaxSize()) {
-                            CabeceraPanel(cabeceraDe(d, estado, g, hoy))
+                            CabeceraPanel(cabeceraDe(d, estado, g, hoy), codigosDelMapa(d, g)?.let { codigos -> { alVerEnMapa(codigos) } })
                             Box(Modifier.weight(1f)) { ContenidoDetalle(d, estado, hoy, alVerEnMapa, alAbrirCasilla) }
                         }
                     }
@@ -157,15 +154,20 @@ internal fun IndiceYDetalle(
     }
 }
 
-/** La cabecera del panel: la pastilla y el título a la altura del «Tu avance» del índice, y el subtítulo alineado con el título */
+/**
+ * La cabecera del panel: la pastilla y el título a la altura del «Tu avance»
+ * del índice; a la derecha, en la misma línea, «Ver en el mapa» si la
+ * pantalla lo tiene; y el subtítulo, si lo hay, alineado con el título.
+ */
 @Composable
-private fun CabeceraPanel(d: DatosCabecera) {
+private fun CabeceraPanel(d: DatosCabecera, alVerEnMapa: (() -> Unit)?) {
     Column(Modifier.fillMaxWidth().padding(top = ARRIBA)) {
-        Row(Modifier.height(ALTO_CABECERA), verticalAlignment = Alignment.CenterVertically) {
+        Row(Modifier.fillMaxWidth().height(ALTO_CABECERA), verticalAlignment = Alignment.CenterVertically) {
             Pastilla(d.icono, d.azul)
-            BasicText(d.titulo, Modifier.padding(start = Espacio.s), style = estiloTitulo(), maxLines = 1, overflow = TextOverflow.Ellipsis)
+            BasicText(d.titulo, Modifier.weight(1f).padding(start = Espacio.s, end = Espacio.s), style = estiloTitulo(), maxLines = 1, overflow = TextOverflow.Ellipsis)
+            if (alVerEnMapa != null) BotonMapa(alVerEnMapa)
         }
-        BasicText(d.subtitulo, Modifier.padding(start = 32.dp + Espacio.s, top = Espacio.hilo), style = estiloCuerpo(), maxLines = 1, overflow = TextOverflow.Ellipsis)
+        if (d.subtitulo != null) BasicText(d.subtitulo, Modifier.padding(start = 32.dp + Espacio.s, top = Espacio.hilo), style = estiloCuerpo(), maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
 }
 
