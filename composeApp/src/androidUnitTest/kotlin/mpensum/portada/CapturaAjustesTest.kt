@@ -83,12 +83,19 @@ class CapturaAjustesTest {
         montar(carreras.first { it.slug == "ingenieria-de-sistemas" })
         regla.onNodeWithText("Personalizar").performClick()
         regla.mainClock.advanceTimeBy(900)
-        // El carrusel de temas es perezoso: Sistema, la última, aparece al arrastrarlo
-        regla.onNodeWithContentDescription("Oscuro").performTouchInput { swipe(Offset(centerX, centerY), Offset(centerX - 900f, centerY), durationMillis = 300) }
-        regla.mainClock.advanceTimeBy(1500)
         regla.onNodeWithText("Sistema").performClick()
         regla.mainClock.advanceTimeBy(500)
         assertEquals(Apariencia.SISTEMA, Preferencias.tema.value)
+    }
+
+    /** Personalizar de pie, con Sistema elegido para que se vea también la fila De día / De noche */
+    @Test
+    fun personalizar() {
+        Preferencias.guardarTema(Apariencia.SISTEMA)
+        montar(carreras.first { it.slug == "ingenieria-de-sistemas" })
+        regla.onNodeWithText("Personalizar").performClick()
+        regla.mainClock.advanceTimeBy(900)
+        regla.onRoot().captureRoboImage("build/capturas/personalizar-1-de-pie.png")
     }
 
     @Test

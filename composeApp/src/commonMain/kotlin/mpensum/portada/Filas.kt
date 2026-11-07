@@ -1,5 +1,6 @@
 package mpensum.portada
 
+import androidx.compose.runtime.remember
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -70,14 +71,23 @@ internal fun FilaCompacta(c: Carrera, modifier: Modifier, alPulsar: (TransformOr
                 huecoFila = (28f / 7f - 2f).dp,
             )
         }
+        val nombre = remember(c.nombreCorto) { partirEnDos(c.nombreCorto) }
         BasicText(
-            c.nombreCorto,
+            nombre,
             Modifier.padding(start = Espacio.s).weight(1f),
             style = estiloEncabezado(),
-            // Los nombres largos («Producción Animal») ganan una segunda línea antes de cortarse
-            maxLines = if (' ' in c.nombreCorto) 2 else 1,
+            // El salto va escrito: si una palabra no cabe entera, sobra una línea y autoSize
+            // baja la letra en vez de partir «Producción» a mitad de palabra
+            maxLines = if ('\n' in nombre) 2 else 1,
             overflow = TextOverflow.Ellipsis,
             autoSize = TextAutoSize.StepBased(13.sp, 17.sp, 1.sp),
         )
     }
+}
+
+/** Parte el nombre en dos renglones por el espacio más cercano al centro; sin espacios, queda igual */
+private fun partirEnDos(nombre: String): String {
+    val centro = nombre.length / 2
+    val corte = nombre.indices.filter { nombre[it] == ' ' }.minByOrNull { kotlin.math.abs(it - centro) } ?: return nombre
+    return nombre.substring(0, corte) + '\n' + nombre.substring(corte + 1)
 }

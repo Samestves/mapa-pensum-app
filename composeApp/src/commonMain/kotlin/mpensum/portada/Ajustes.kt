@@ -54,6 +54,7 @@ import mpensum.carrera.versal
 import mpensum.componentes.IconoTrazo
 import mpensum.componentes.Lucide
 import mpensum.componentes.Silueta
+import mpensum.componentes.VistaPrevia
 import mpensum.componentes.esApaisado
 import mpensum.componentes.pulsable
 import mpensum.datos.Carrera
@@ -138,7 +139,13 @@ fun BoxScope.HojaAjustes(
                 }
                 BotonCerrar(alCerrar)
             }
+            // La vista previa no se desplaza: bajo el título, para ver cada cambio sin subir. Acostado vive en el índice de la página
+            if (actual == PaginaAjustes.PERSONALIZAR && !esApaisado()) {
+                VistaPrevia(propia?.let { colorDe(it.color) } ?: Paleta.azul, propia?.silueta, 176.dp, Modifier.padding(start = margenPantalla(), end = margenPantalla(), bottom = Espacio.xs).fillMaxWidth())
+            }
         },
+        // Acostado, Personalizar reparte su alto en dos columnas y desplaza solo la de la derecha
+        desplazable = !(esApaisado() && actual == PaginaAjustes.PERSONALIZAR),
     ) {
         AnimatedContent(
             targetState = actual,
@@ -155,7 +162,7 @@ fun BoxScope.HojaAjustes(
                     alCerrar()
                 }
             } else if (p == PaginaAjustes.PERSONALIZAR) {
-                Personalizar(propia?.let { colorDe(it.color) } ?: Paleta.azul)
+                Personalizar(propia?.let { colorDe(it.color) } ?: Paleta.azul, propia?.silueta)
             } else {
                 val tuCarrera = { actual = PaginaAjustes.CARRERA }
                 val personalizar = { actual = PaginaAjustes.PERSONALIZAR }
@@ -209,7 +216,7 @@ fun BoxScope.HojaAjustes(
 @Composable
 private fun FilaPersonalizar(alPulsar: () -> Unit) {
     FilaCristal(alPulsar) {
-        MiniVistaTema()
+        TeclaIcono(Lucide.muestrario, Paleta.suave)
         Textos("Personalizar", resumenPersonalizar(), Modifier.padding(start = Espacio.m, end = Espacio.s).weight(1f))
         IconoTrazo(Lucide.siguiente, Paleta.apagada, 16.dp, 1.75f)
     }
@@ -289,13 +296,19 @@ internal fun Textos(titulo: String, texto: String?, modifier: Modifier) {
     }
 }
 
+/** La tecla de siempre: 40×40, radio 12, fondo de tinta al 6 % (o el que se pida) y el icono de 20 con trazo 1,75 */
+@Composable
+private fun TeclaIcono(icono: List<Path>, color: androidx.compose.ui.graphics.Color, fondo: androidx.compose.ui.graphics.Color = Paleta.tinta.copy(alpha = 0.06f)) {
+    Box(Modifier.size(40.dp).clip(RoundedCornerShape(Radio.Chip)).background(fondo), contentAlignment = Alignment.Center) {
+        IconoTrazo(icono, color, 20.dp, 1.75f)
+    }
+}
+
 /** Un renglón: su icono en una tecla, lo que hace y la flecha (› si se queda en la app, ↗ si sale) */
 @Composable
 private fun Renglon(icono: List<Path>, titulo: String, texto: String?, fuera: Boolean = false, alPulsar: () -> Unit) {
     FilaCristal(alPulsar) {
-        Box(Modifier.size(40.dp).clip(RoundedCornerShape(Radio.Chip)).background(Paleta.tinta.copy(alpha = 0.06f)), contentAlignment = Alignment.Center) {
-            IconoTrazo(icono, Paleta.suave, 20.dp, 1.75f)
-        }
+        TeclaIcono(icono, Paleta.suave)
         Textos(titulo, texto, Modifier.padding(start = Espacio.m, end = Espacio.s).weight(1f))
         IconoTrazo(if (fuera) IconosHoja.fuera else Lucide.siguiente, Paleta.apagada, 16.dp, 1.75f)
     }
@@ -308,23 +321,9 @@ private fun Renglon(icono: List<Path>, titulo: String, texto: String?, fuera: Bo
 @Composable
 private fun FilaCarrera(propia: Carrera?, alPulsar: () -> Unit) {
     FilaCristal(alPulsar) {
-        if (propia != null) {
-            Box(Modifier.size(56.dp, 36.dp)) {
-                Silueta(
-                    propia.silueta, colorDe(propia.color),
-                    hechas = propia.silueta,
-                    punto = 2.5.dp,
-                    hueco = (56f / propia.silueta.size - 2.5f).dp,
-                    huecoFila = (36f / 7f - 2.5f).dp,
-                )
-            }
-        } else {
-            Box(Modifier.size(56.dp, 40.dp), contentAlignment = Alignment.CenterStart) {
-                Box(Modifier.size(40.dp).clip(RoundedCornerShape(Radio.Chip)).background(Paleta.tinta.copy(alpha = 0.06f)), contentAlignment = Alignment.Center) {
-                    IconoTrazo(Lucide.birrete, Paleta.suave, 20.dp, 1.75f)
-                }
-            }
-        }
+        // La fachada de columnas: con carrera, teñida con su color; sin ella, la tecla neutra
+        if (propia != null) TeclaIcono(Lucide.universidad, colorDe(propia.color), colorDe(propia.color).copy(alpha = 0.16f))
+        else TeclaIcono(Lucide.universidad, Paleta.suave)
         // La etiqueta arriba y el valor debajo, como una ficha: "Tu carrera / Sistemas"
         Column(Modifier.padding(start = Espacio.m, end = Espacio.s).weight(1f)) {
             BasicText("Tu carrera", style = TextStyle(fontFamily = inter(), fontSize = Tipo.s, lineHeight = 18.sp, color = Paleta.tenue))
