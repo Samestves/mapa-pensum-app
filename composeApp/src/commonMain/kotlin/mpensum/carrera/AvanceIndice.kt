@@ -73,8 +73,8 @@ import kotlin.math.roundToInt
 /** Lo que baja el cuerpo de una pantalla interna bajo su cabecera, dentro del panel */
 internal val ARRIBA_CUERPO_PANEL = Espacio.l
 
-/** Del borde de arriba a las cabeceras de las dos columnas */
-private val ARRIBA = Espacio.m
+/** De lo alto de la hoja a las cabeceras de las dos columnas: con lo que ya baja la hoja, 16 dp */
+private val ARRIBA = Espacio.m - RESPIRO_COMPLETA
 
 /** Las cabeceras: el alto del botón redondo, con el título centrado */
 private val ALTO_CABECERA = 36.dp
@@ -138,7 +138,7 @@ internal fun IndiceYDetalle(
                 BotonReinicio(estado)
             }
             // El hilo entre las dos columnas, a la altura del contenido
-            Box(Modifier.width(SEPARA).fillMaxHeight().padding(vertical = ARRIBA), contentAlignment = Alignment.Center) {
+            Box(Modifier.width(SEPARA).fillMaxHeight().padding(top = ARRIBA, bottom = Espacio.m), contentAlignment = Alignment.Center) {
                 Box(Modifier.width(1.dp).fillMaxHeight().background(Paleta.tinta.copy(alpha = Velo.hilo)))
             }
             Box(Modifier.weight(1f).fillMaxHeight().padding(end = margen)) {

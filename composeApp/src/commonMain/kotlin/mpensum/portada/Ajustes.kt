@@ -114,7 +114,6 @@ fun BoxScope.HojaAjustes(
         abierta = pagina != null,
         alCerrar = alCerrar,
         // Acostado, las dos columnas piden más que los 560 dp de siempre
-        ancho = if (esApaisado()) 840.dp else 560.dp,
         cabecera = {
             // La de la hoja de avance: etiqueta en versales y el título debajo
             Row(Modifier.fillMaxWidth().padding(start = margenPantalla(), end = margenPantalla(), top = Espacio.xxs, bottom = if (esApaisado()) Espacio.xs else Espacio.m), verticalAlignment = Alignment.CenterVertically) {

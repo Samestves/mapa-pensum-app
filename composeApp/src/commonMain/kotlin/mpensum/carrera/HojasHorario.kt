@@ -96,7 +96,6 @@ fun BoxScope.HojasHorario(horario: EstadoHorario, cristal: HazeState?) {
         alCerrar = cerrar,
         cristal = cristal,
         // Acostado, la revisión es más ancha y es su lista la que desplaza: el botón queda fijo abajo
-        ancho = if (apaisado) 840.dp else 560.dp,
         desplazable = !fija,
         cabecera = {
             val (etiqueta, titulo, punto) = when (hoja) {

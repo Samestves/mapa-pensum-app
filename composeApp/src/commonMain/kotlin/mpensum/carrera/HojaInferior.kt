@@ -119,6 +119,8 @@ private const val UMBRAL_VELOCIDAD_DP = 1200f
 private const val GOMA_DP = 40f
 /** Lo más ancha que llega una hoja si no pide otra cosa */
 private val ANCHO_HOJA = 560.dp
+/** Lo que baja el contenido de la hoja a pantalla completa, donde de pie va el asa */
+internal val RESPIRO_COMPLETA = Espacio.xs
 /** Posición de la hoja que no ha entrado: fuera de cualquier pantalla */
 private const val OCULTA = 1e6f
 
@@ -420,7 +422,9 @@ private fun PantallaCompleta(
             .background(Paleta.panel)
             // Se queda con los toques que caen en su fondo (si no, llegarían al velo y la cerrarían), sin volverse un botón
             .pointerInput(Unit) { detectTapGestures {} }
-            .windowInsetsPadding(WindowInsets.safeDrawing),
+            .windowInsetsPadding(WindowInsets.safeDrawing)
+            // Sin asa, la cabecera baja 8 dp: no queda pegada al borde
+            .padding(top = RESPIRO_COMPLETA),
     ) {
         Column(Modifier.testTag("hoja-cabecera")) { cabecera() }
         Column(
