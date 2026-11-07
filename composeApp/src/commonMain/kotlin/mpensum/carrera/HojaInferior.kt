@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.exclude
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
@@ -301,6 +302,12 @@ private fun goma(x: Float, tope: Float) = tope * (1f - exp(-x / tope))
  * falta alto). Sin asa ni tirón para cerrarla, que con columnas que desplazan
  * cerraría sin querer: se cierra con su aspa o con atrás. El contenido se
  * aparta solo de la barra de estado, la cámara y la barra de gestos.
+ *
+ * Con `modal` en falso (la ficha de materia) no hay velo ni desenfoque: el mapa
+ * de debajo sigue vivo, los toques fuera de la hoja le llegan y la separación
+ * es el color del panel con una sombra tenue por encima, pintada una vez. Con
+ * `tope` (fracción del alto de la pantalla) la hoja no crece más y lo que
+ * sobra se desplaza dentro. `alMedir` recibe su alto cada vez que cambia.
  */
 @OptIn(ExperimentalHazeApi::class)
 @Composable
@@ -311,6 +318,9 @@ fun BoxScope.HojaInferior(
     fondo: HazeState? = cristal ?: LocalFondoHoja.current,
     ancho: Dp = ANCHO_HOJA,
     desplazable: Boolean = true,
+    modal: Boolean = true,
+    tope: Float? = null,
+    alMedir: (Dp) -> Unit = {},
     cabecera: @Composable () -> Unit,
     contenido: @Composable ColumnScope.() -> Unit,
 ) {
@@ -346,8 +356,7 @@ fun BoxScope.HojaInferior(
     ManejarAtras(abierta, alCerrar)
     if (!montada) return
 
-    val toque = remember { MutableInteractionSource() }
-    FondoHoja(fondo, hoja, toque, alCerrar)
+    if (modal) FondoHoja(fondo, hoja, remember { MutableInteractionSource() }, alCerrar)
 
     if (completa) {
         PantallaCompleta(hoja, desplazable, cabecera, contenido)
@@ -356,11 +365,12 @@ fun BoxScope.HojaInferior(
 
     val forma = if (flotante) RoundedCornerShape(32.dp) else RoundedCornerShape(topStart = Radio.Hoja, topEnd = Radio.Hoja)
     // Nunca más alta que la pantalla menos 64 (o la barra de estado y 32): arriba siempre asoma lo que hay detrás
-    val tope = maxOf(64.dp, WindowInsets.statusBars.asPaddingValues().calculateTopPadding() + 32.dp)
+    val libreArriba = maxOf(64.dp, WindowInsets.statusBars.asPaddingValues().calculateTopPadding() + 32.dp)
+    val altoMaximo = tope?.let { ventana().alto * it }
     Box(
         Modifier
             .fillMaxSize()
-            .padding(top = tope)
+            .padding(top = libreArriba)
             .windowInsetsPadding(if (flotante) WindowInsets.ime.union(WindowInsets.navigationBars) else WindowInsets.ime)
             .then(if (flotante) Modifier.padding(start = Espacio.xs, end = Espacio.xs, bottom = Espacio.xs) else Modifier),
         contentAlignment = Alignment.BottomCenter,
@@ -370,7 +380,11 @@ fun BoxScope.HojaInferior(
                 // En horizontal la hoja no se estira a todo el ancho: unos 560 dp, centrada
                 .widthIn(max = ancho)
                 .fillMaxWidth()
-                .onSizeChanged { hoja.alto = it.height.toFloat() }
+                .then(if (altoMaximo != null) Modifier.heightIn(max = altoMaximo) else Modifier)
+                .onSizeChanged {
+                    hoja.alto = it.height.toFloat()
+                    alMedir(with(densidad) { it.height.toDp() })
+                }
                 .graphicsLayer {
                     // Antes de medirla, o ya entera fuera, no asoma ni un píxel
                     translationY = minOf(hoja.desp, size.height + hoja.margen())
@@ -379,7 +393,10 @@ fun BoxScope.HojaInferior(
                     // Al estirarla hacia arriba el panel pegado no deja un hueco abajo: el color sigue por debajo, fuera del recorte (el shadow ya recorta, por eso va antes)
                     if (flotante) Modifier else Modifier.drawBehind { drawRect(Paleta.panel, Offset(0f, size.height - 1f), Size(size.width, GOMA_DP.dp.toPx() + 2f)) },
                 )
-                .shadow(24.dp, forma, ambientColor = SOMBRA_FLOTANTE, spotColor = SOMBRA_FLOTANTE)
+                .then(
+                    // Sin velo detrás, la hoja se separa del mapa con un degradado que sube 40 dp, no con una sombra grande
+                    if (modal) Modifier.shadow(24.dp, forma, ambientColor = SOMBRA_FLOTANTE, spotColor = SOMBRA_FLOTANTE) else Modifier.sombraSuave(),
+                )
                 .clip(forma)
                 .then(
                     if (cristal != null) {
@@ -391,7 +408,7 @@ fun BoxScope.HojaInferior(
                 .nestedScroll(hoja.conexion)
                 .pointerInput(Unit) { detectTapGestures {} },
         ) {
-            AsaYCabecera(hoja, abierta, cabecera)
+            AsaYCabecera(hoja, abierta, modal, cabecera)
             Column(
                 (if (desplazable) Modifier.verticalScroll(rememberScrollState()) else Modifier.weight(1f, fill = false))
                     // Pegada abajo, el contenido no queda bajo la barra de gestos; con teclado, sube con él
@@ -459,6 +476,16 @@ private fun FondoHoja(fondo: HazeState?, hoja: Hoja, toque: MutableInteractionSo
     }
 }
 
+/** La separación de la hoja sin velo: un degradado de 40 dp por encima de su borde, pintado una sola vez */
+private fun Modifier.sombraSuave(): Modifier = drawWithCache {
+    val alto = 40.dp.toPx()
+    val brocha = Brush.verticalGradient(
+        listOf(Color.Transparent, Paleta.sombra.copy(alpha = porTema(0.45f, 0.14f))),
+        startY = -alto, endY = 0f,
+    )
+    onDrawBehind { drawRect(brocha, Offset(0f, -alto), Size(size.width, alto)) }
+}
+
 /** El panel pegado abajo: fondo liso y el filo de luz de arriba, sin desenfoque */
 private fun Modifier.panelPegado(): Modifier =
     this
@@ -487,7 +514,7 @@ private fun Modifier.panelPegado(): Modifier =
         }
 
 @Composable
-private fun AsaYCabecera(hoja: Hoja, abierta: Boolean, cabecera: @Composable () -> Unit) {
+private fun AsaYCabecera(hoja: Hoja, abierta: Boolean, modal: Boolean, cabecera: @Composable () -> Unit) {
     // La zona de la que se tira: el asa y la cabecera, una franja entera y no solo la rayita
     Column(
         Modifier
@@ -500,7 +527,8 @@ private fun AsaYCabecera(hoja: Hoja, abierta: Boolean, cabecera: @Composable () 
                 onDragStopped = { hoja.soltar(it) },
             ),
     ) {
-        Box(Modifier.fillMaxWidth().padding(top = 10.dp, bottom = 5.dp), contentAlignment = Alignment.Center) {
+        // La hoja sin velo lleva el asa centrada entre su borde y la cabecera: 8 arriba y 8 abajo
+        Box(Modifier.fillMaxWidth().padding(top = if (modal) 10.dp else 8.dp, bottom = if (modal) 5.dp else 8.dp), contentAlignment = Alignment.Center) {
             Box(Modifier.size(32.dp, 4.dp).clip(RoundedCornerShape(2.dp)).background(Paleta.tinta.copy(alpha = 0.28f)))
         }
         cabecera()

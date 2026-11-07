@@ -65,7 +65,7 @@ class CapturaMapaTest {
                 Box(Modifier.fillMaxSize().hazeSource(cristal)) {
                     MapaCarrera(estado, camara, efectos, elegida, congelado = false, alTocarMateria = {}, alTocarVacio = {}, alAbrirCasilla = {}, alAlternarSemestre = {})
                 }
-                FichaMateria(elegida, estado, 80.dp, alCerrar = {}, alMarcar = { _, _ -> }, alIrA = {}, alCambiarElectiva = {}, alTapar = {}, horizontal = false)
+                FichaMateria(elegida, estado, alCerrar = {}, alMarcar = { _, _ -> }, alIrA = {}, alCambiarElectiva = {}, alEncuadrar = { _, _ -> })
                 BarraCarrera(Vista.MAPA, estado.progreso, cristal, alInicio = {}, alCambiar = {}, alAvance = {}, modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 14.dp), vertical = false)
             }
         }

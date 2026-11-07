@@ -368,7 +368,7 @@ private fun AroSemestre(aprobado: Float, cursado: Float, completo: Boolean) {
 }
 
 /** El icono de estado de una fila; la próxima en gris tenue, como en la maqueta */
-private fun DrawScope.iconoFila(s: Situacion, lado: Float) = iconoEstado(
+internal fun DrawScope.iconoFila(s: Situacion, lado: Float) = iconoEstado(
     s, (size.width - lado) / 2, (size.height - lado) / 2, lado, Paleta.panel,
     color = if (s == Situacion.PROXIMA) Paleta.tenue else colorEstado(s),
 )

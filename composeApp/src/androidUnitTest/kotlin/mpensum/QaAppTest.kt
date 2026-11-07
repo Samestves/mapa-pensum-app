@@ -262,10 +262,10 @@ class QaAppTest {
         regla.onNodeWithContentDescription("Matemáticas I, Puedes inscribirla").performClick()
         regla.waitForIdle()
         correr(900)
-        regla.onNodeWithText("Cursando").performClick()
+        regla.onNodeWithText("La estoy cursando").performClick()
         correr(500)
         assertEquals(Marca.CURSANDO, Guardado.marcas(sistemas())["0081814"])
-        regla.onNodeWithText("Aprobada").performClick()
+        regla.onNodeWithText("Ya la aprobé").performClick()
         correr(500)
         assertEquals(Marca.APROBADA, Guardado.marcas(sistemas())["0081814"])
     }

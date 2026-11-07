@@ -232,7 +232,7 @@ private fun queAbre(abre: List<String>, nombre: (String) -> String): String = wh
 }
 
 /** «Puede esperar 1 semestre», «Puede esperar 3 semestres» */
-private fun puedeEsperar(margen: Int): String = if (margen == 1) "Puede esperar 1 semestre" else "Puede esperar $margen semestres"
+internal fun puedeEsperar(margen: Int): String = if (margen == 1) "Puede esperar 1 semestre" else "Puede esperar $margen semestres"
 
 /**
  * ¿SOLO PUEDES CON 5?: la que puedes dejar sin mover tu fecha (comprobado

@@ -1,6 +1,7 @@
 package mpensum.carrera
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -33,6 +34,7 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
@@ -112,11 +114,8 @@ fun Interior(carrera: Carrera, alVolver: () -> Unit) {
 
     // Una hoja encima (electivas, avance o clase del horario) se cierra con su propio Atrás
     val hojaAbierta = casillaAbierta != null || avanceAbierto || horario?.hoja != null
-    // Atrás, en este orden: la hoja, la materia elegida, la ruta fijada; después sale de la carrera.
-    // Un solo manejador con la prioridad escrita: no depende de quién se registró antes
-    ManejarAtras(!hojaAbierta && (seleccionado != null || efectos.ruta != null)) {
-        if (seleccionado != null) seleccionado = null else efectos.ruta = null
-    }
+    // Atrás, en este orden: la hoja (la de la ficha lleva su propio Atrás), la ruta fijada; después sale de la carrera
+    ManejarAtras(!hojaAbierta && seleccionado == null && efectos.ruta != null) { efectos.ruta = null }
     // Con otra orientación el panel de la ficha cambia de sitio: la materia se vuelve a encuadrar
     LaunchedEffect(horizontal) { encuadrada = null }
     // Cambiar de vista suelta la materia abierta: la ficha es de la vista en la que se pidió
@@ -155,8 +154,6 @@ fun Interior(carrera: Carrera, alVolver: () -> Unit) {
         val tapa = if (horizontal) abajo + Espacio.m else tapaBarra
         val enLista = horizontal && vista == Vista.LISTA
         val reparto = if (enLista) repartoLista(maxWidth, inicio, derecha, arriba) else null
-        // Acostado en el mapa, la ficha también es un panel a la derecha, a alto completo
-        val panelDelMapa = if (horizontal && vista == Vista.MAPA) panelMapa(maxWidth, inicio, derecha, arriba) else null
         CapaVista(
             vista = vista,
             estado = estado,
@@ -175,13 +172,25 @@ fun Interior(carrera: Carrera, alVolver: () -> Unit) {
             alAbrirCasilla = ::abrirCasilla,
         )
 
+        NavegacionCarrera(
+            horizontal = horizontal,
+            vista = vista,
+            estado = estado,
+            cristal = cristal,
+            color = color,
+            izquierda = izquierda,
+            abajo = abajo,
+            alVolver = alVolver,
+            alCambiar = { vista = it },
+            alAvance = { if (estado != null) avanceAbierto = true },
+            oculta = seleccionado != null && vista != Vista.HORARIO,
+        )
+
+        // Encima de la barra: mientras la ficha está abierta la barra se esconde y la hoja ocupa su sitio
         if (estado != null) {
             FichaMateria(
                 codigo = seleccionado.takeIf { vista != Vista.HORARIO },
                 estado = estado,
-                reservaAbajo = if (horizontal) abajo + Espacio.m else abajo + SOBRE_EL_BORDE + ALTO_BARRA + 10.dp,
-                lateral = reparto?.panel ?: panelDelMapa,
-                horizontal = horizontal,
                 alCerrar = { seleccionado = null },
                 alMarcar = { codigo, marca ->
                     // Aprobar enseña lo que abre: el mapa se corre hasta que se vea todo, y entonces descarga.
@@ -202,37 +211,18 @@ fun Interior(carrera: Carrera, alVolver: () -> Unit) {
                     seleccionado = null
                     abrirCasilla(casilla, aprobar = false)
                 },
-                alTapar = { tapa ->
-                    val codigo = seleccionado
-                    if (vista == Vista.MAPA && codigo != null && codigo != encuadrada) {
+                alEncuadrar = { codigo, alto ->
+                    // Solo de pie: acostada la ficha ocupa la pantalla y no hay hueco donde centrar nada
+                    if (vista == Vista.MAPA && !horizontal && codigo == seleccionado && codigo != encuadrada) {
                         estado.cajaDe(listOf(codigo))?.let {
-                            // Con el panel al lado, la materia queda entre el riel y el panel; si no, encima de la ficha
-                            val margenes = if (panelDelMapa != null) Margenes(
-                                arriba = 24f + arriba.value,
-                                abajo = (abajo + Espacio.m).value + 16f,
-                                izq = inicio.value + 20f,
-                                der = (maxWidth - panelDelMapa.inicio).value + 20f,
-                            ) else Margenes(arriba = 24f + arriba.value, abajo = tapa + 16f, izq = 20f, der = 20f)
-                            camara.mostrar(alcance, it, margenes)
+                            // Centrada en el hueco libre: 16 bajo la barra de estado y 16 sobre la hoja
+                            camara.mostrar(alcance, it, Margenes(arriba = arriba.value + 16f, abajo = alto.value + 16f, izq = 20f, der = 20f), centrar = true)
                             encuadrada = codigo
                         }
                     }
                 },
             )
         }
-
-        NavegacionCarrera(
-            horizontal = horizontal,
-            vista = vista,
-            estado = estado,
-            cristal = cristal,
-            color = color,
-            izquierda = izquierda,
-            abajo = abajo,
-            alVolver = alVolver,
-            alCambiar = { vista = it },
-            alAvance = { if (estado != null) avanceAbierto = true },
-        )
 
         HojasCarrera(
             estado = estado,
@@ -353,7 +343,10 @@ private fun BoxScope.NavegacionCarrera(
     alVolver: () -> Unit,
     alCambiar: (Vista) -> Unit,
     alAvance: () -> Unit,
+    /** Con la ficha abierta la barra baja y se funde (solo `graphicsLayer`), y vuelve al cerrarla */
+    oculta: Boolean,
 ) {
+    val fuera by animateFloatAsState(if (oculta) 1f else 0f, tween(200), label = "barra")
     if (horizontal) Box(
         Modifier.align(Alignment.CenterStart).fillMaxHeight().width(ANCHO_VELO).background(
             Brush.horizontalGradient(0.4f to Paleta.lienzo.copy(alpha = 0.92f), 1f to Color.Transparent),
@@ -368,8 +361,12 @@ private fun BoxScope.NavegacionCarrera(
         alCambiar = alCambiar,
         alAvance = alAvance,
         color = color,
-        modifier = if (horizontal) Modifier.align(Alignment.CenterStart).padding(start = izquierda + SEPARA_RIEL)
-        else Modifier.align(Alignment.BottomCenter).padding(bottom = abajo + SOBRE_EL_BORDE),
+        modifier = (if (horizontal) Modifier.align(Alignment.CenterStart).padding(start = izquierda + SEPARA_RIEL)
+        else Modifier.align(Alignment.BottomCenter).padding(bottom = abajo + SOBRE_EL_BORDE))
+            .graphicsLayer {
+                alpha = 1f - fuera
+                if (!horizontal) translationY = 72.dp.toPx() * fuera
+            },
         vertical = horizontal,
     )
 }

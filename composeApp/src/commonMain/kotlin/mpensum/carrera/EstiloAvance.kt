@@ -64,6 +64,7 @@ import mpensum.componentes.Lucide
 import mpensum.componentes.estiloCifra
 import mpensum.componentes.pulsable
 import mpensum.componentes.tamañoUnidad
+import mpensum.tema.Alto
 import mpensum.tema.Espacio
 import mpensum.tema.Paleta
 import mpensum.tema.Radio
@@ -195,14 +196,45 @@ internal fun Chevron(trazos: List<Path> = Lucide.siguiente, modifier: Modifier =
     IconoLucide(trazos, Paleta.apagada, 16.dp, modifier)
 }
 
-/** El círculo de 36 dp de atrás y de cerrar */
+/** El círculo de atrás y de cerrar: 36 dp dibujados dentro de una zona de 44, el toque mínimo, y con su nombre para el lector de pantalla */
 @Composable
 internal fun BotonRedondo(trazos: List<Path>, descripcion: String, alTocar: () -> Unit) {
     Box(
-        Modifier.size(36.dp).clip(CircleShape).background(Paleta.tinta.copy(alpha = Velo.pastilla))
-            .clickable(role = Role.Button, onClick = alTocar).semantics { contentDescription = descripcion },
+        Modifier.size(Alto.toque).clip(CircleShape).clickable(role = Role.Button, onClick = alTocar).semantics { contentDescription = descripcion },
         contentAlignment = Alignment.Center,
-    ) { IconoLucide(trazos, Paleta.suave) }
+    ) {
+        Box(Modifier.size(36.dp).clip(CircleShape).background(Paleta.tinta.copy(alpha = Velo.pastilla)), contentAlignment = Alignment.Center) {
+            IconoLucide(trazos, Paleta.suave)
+        }
+    }
+}
+
+/**
+ * El botón de tinta a lo ancho: 52 dp, radio 26. Con `nota` lleva una segunda
+ * línea pequeña («Se te abre 1»); con `superficie` no es el lleno sino el
+ * de la tinta al 8 %, el que acompaña al paso siguiente.
+ */
+@Composable
+internal fun BotonTinta(
+    texto: String,
+    alTocar: () -> Unit,
+    modifier: Modifier = Modifier,
+    nota: String? = null,
+    colorNota: Color? = null,
+    superficie: Boolean = false,
+) {
+    val lleno = !superficie
+    Column(
+        modifier.fillMaxWidth().heightIn(min = 52.dp).clip(RoundedCornerShape(Radio.Barra))
+            .background(if (lleno) Paleta.tinta else Paleta.tinta.copy(alpha = Velo.pastilla))
+            .clickable(role = Role.Button, onClick = alTocar),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        val centrado = TextAlign.Center
+        BasicText(texto, Modifier.padding(horizontal = Espacio.xs, vertical = if (nota == null) Espacio.xs else 0.dp), style = estiloFila(if (lleno) Paleta.panel else Paleta.tinta).copy(textAlign = centrado))
+        if (nota != null) BasicText(nota, Modifier.padding(horizontal = Espacio.xs), style = estiloNota(colorNota ?: if (lleno) Paleta.panel.copy(alpha = 0.6f) else Paleta.tenue).copy(textAlign = centrado))
+    }
 }
 
 /** El botón de tinta a lo ancho: 52 dp, radio 26 */

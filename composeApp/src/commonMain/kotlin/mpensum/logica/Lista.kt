@@ -51,13 +51,15 @@ data class FilaMateria(
     val tono: Tono,
 ) {
     /** Lo que lee el lector de pantalla: la fila ya no escribe su estado, lo dice el icono */
-    val descripcion: String
-        get() = when (situacion) {
-            Situacion.HECHA -> "$nombre, Aprobada"
-            Situacion.CURSANDO -> "$nombre, Cursando"
-            Situacion.INSCRIBIBLE -> "$nombre, Puedes inscribirla"
-            Situacion.PROXIMA, Situacion.LEJANA -> if (nota.isEmpty()) "$nombre, Bloqueada" else "$nombre, Bloqueada. $nota"
-        }
+    val descripcion: String get() = descripcionDeMateria(nombre, situacion, nota)
+}
+
+/** Cómo se lee una materia: su nombre y su estado, con lo que falta si está bloqueada. La comparten la lista y el mapa */
+fun descripcionDeMateria(nombre: String, situacion: Situacion, nota: String = ""): String = when (situacion) {
+    Situacion.HECHA -> "$nombre, Aprobada"
+    Situacion.CURSANDO -> "$nombre, Cursando"
+    Situacion.INSCRIBIBLE -> "$nombre, Puedes inscribirla"
+    Situacion.PROXIMA, Situacion.LEJANA -> if (nota.isEmpty()) "$nombre, Bloqueada" else "$nombre, Bloqueada. $nota"
 }
 
 /** Una casilla de electiva sin elegir: se toca para elegir */

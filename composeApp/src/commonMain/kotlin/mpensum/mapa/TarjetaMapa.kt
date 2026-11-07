@@ -32,6 +32,11 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
@@ -44,6 +49,7 @@ import mpensum.componentes.aspecto
 import mpensum.componentes.iconoEstado
 import mpensum.datos.Asignatura
 import mpensum.logica.Situacion
+import mpensum.logica.descripcionDeMateria
 import mpensum.tema.PESO_NOMBRE
 import mpensum.tema.Paleta
 import mpensum.tema.Tema
@@ -166,6 +172,12 @@ fun TarjetaMapa(
             alpha = opacidad()
             // En modo ligero, apagada por el foco no se pinta aparte para fundirla: cada trazo baja su alfa
             if (Tema.ligero) compositingStrategy = CompositingStrategy.ModulateAlpha
+        }
+        // Un nodo por tarjeta, no por trazo: el lector de pantalla lee «nombre, estado» y puede pulsarla
+        .semantics(mergeDescendants = true) {
+            contentDescription = if (materia != null && situacion != null) descripcionDeMateria(materia.nombre, situacion) else "Electiva sin elegir, ${nodo.asignatura.nombre}"
+            role = Role.Button
+            onClick { alTocar(); true }
         }
         .toqueYMantener(nodo.codigo, camara, alEmpezarCarga, alSoltarCarga, alTocar, alFijar)
         .drawWithContent {

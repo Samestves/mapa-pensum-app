@@ -46,6 +46,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import mpensum.carrera.BotonCerrar
+import mpensum.carrera.BotonRedondo
 import mpensum.carrera.HojaInferior
 import mpensum.carrera.IconosHoja
 import mpensum.carrera.estiloTitulo
@@ -121,9 +122,7 @@ fun BoxScope.HojaAjustes(
                 // La flecha de volver solo si se llegó desde el menú; abierta directo en la lista, se cierra y ya
                 val conVolver = actual != PaginaAjustes.MENU && ultima == PaginaAjustes.MENU
                 if (conVolver) {
-                    Box(Modifier.padding(end = Espacio.xs).size(36.dp).clip(RoundedCornerShape(Radio.Tarjeta)).pulsable({ actual = PaginaAjustes.MENU }), contentAlignment = Alignment.Center) {
-                        IconoTrazo(Lucide.atras, Paleta.tinta, 20.dp, 2f)
-                    }
+                    Box(Modifier.padding(end = Espacio.xs)) { BotonRedondo(Lucide.atras, "Volver") { actual = PaginaAjustes.MENU } }
                 }
                 Column(Modifier.weight(1f)) {
                     if (actual != PaginaAjustes.MENU) BasicText("AJUSTES", style = versal(Paleta.tenue))

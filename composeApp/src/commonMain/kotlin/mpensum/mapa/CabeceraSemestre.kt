@@ -25,6 +25,10 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.toggleableState
+import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.buildAnnotatedString
@@ -56,6 +60,7 @@ private object Lineas {
 /** La casilla de marcar el semestre, a la izquierda del título; el título corrido lo que ocupa */
 private const val CASILLA_ARRIBA = 2.8f
 private const val SANGRIA_TITULO = 21f
+private const val ALTO_CASILLA = 44f
 
 private val CRECER = CubicBezierEasing(0.32f, 0.72f, 0f, 1f)
 
@@ -134,16 +139,7 @@ fun CabeceraSemestre(datos: DatosCabecera, tipos: TiposMapa, medidor: TextMeasur
         BasicText(pie, Modifier.enBase(0f, Lineas.PIE, 9.5f), style = tipos.pie.copy(color = if (datos.completo) Paleta.verde else Paleta.tenue))
 
         // La casilla: una zona de pulsar amplia que abarca casilla y título; a la escala del mapa entero nadie acierta catorce píxeles
-        datos.casilla?.let { cuenta ->
-            Box(
-                Modifier
-                    .offset((-6).dp, (CASILLA_ARRIBA - 10).dp)
-                    .size(150.dp, 32.dp)
-                    .clickable(remember { MutableInteractionSource() }, indication = null, role = Role.Checkbox, onClick = alAlternar),
-            ) {
-                Canvas(Modifier.offset(6.dp, 10.dp).size(14.dp)) { glifoSemestre(cuenta) }
-            }
-        }
+        datos.casilla?.let { cuenta -> CasillaSemestre(datos.semestre, cuenta, alAlternar) }
     }
 }
 
@@ -184,16 +180,28 @@ private fun CabeceraCompacta(datos: DatosCabecera, tipos: TiposMapa, alAlternar:
             maxLines = 1,
             softWrap = false,
         )
-        datos.casilla?.let { cuenta ->
-            Box(
-                Modifier
-                    .offset((-6).dp, (CASILLA_ARRIBA - 10).dp)
-                    .size(150.dp, 32.dp)
-                    .clickable(remember { MutableInteractionSource() }, indication = null, role = Role.Checkbox, onClick = alAlternar),
-            ) {
-                Canvas(Modifier.offset(6.dp, 10.dp).size(14.dp)) { glifoSemestre(cuenta) }
+        datos.casilla?.let { cuenta -> CasillaSemestre(datos.semestre, cuenta, alAlternar) }
+    }
+}
+
+/**
+ * La casilla de marcar el semestre: una zona de pulsar amplia que abarca casilla y título (44 dp de alto en el
+ * plano, para que con el mapa alejado siga siendo un blanco). La lee el lector de pantalla como una casilla con nombre y estado.
+ */
+@Composable
+private fun CasillaSemestre(semestre: Int, cuenta: CuentaSemestre, alAlternar: () -> Unit) {
+    val completo = cuenta.marca == MarcaSemestre.COMPLETO
+    Box(
+        Modifier
+            .offset((-6).dp, (CASILLA_ARRIBA - 16).dp)
+            .size(150.dp, ALTO_CASILLA.dp)
+            .semantics {
+                contentDescription = if (completo) "Desmarcar el semestre $semestre" else "Aprobar el semestre $semestre"
+                toggleableState = if (completo) ToggleableState.On else ToggleableState.Off
             }
-        }
+            .clickable(remember { MutableInteractionSource() }, indication = null, role = Role.Checkbox, onClick = alAlternar),
+    ) {
+        Canvas(Modifier.offset(6.dp, 16.dp).size(14.dp)) { glifoSemestre(cuenta) }
     }
 }
 

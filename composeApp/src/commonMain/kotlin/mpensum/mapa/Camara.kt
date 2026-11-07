@@ -239,8 +239,9 @@ class Camara(private val clave: String) {
      * Mueve la vista lo justo para que se vea `caja` dentro de los márgenes.
      * Si ya se ve, no se mueve nada; si asoma por un lado, solo se corre ese
      * lado. Si no cabe a esta escala se aleja lo necesario; acercarse, nunca.
+     * Con `centrar`, la caja queda en el centro del hueco libre aunque ya se viera.
      */
-    fun mostrar(alcance: CoroutineScope, caja: Caja, m: Margenes) {
+    fun mostrar(alcance: CoroutineScope, caja: Caja, m: Margenes, centrar: Boolean = false) {
         if (ancho == 0f || alto == 0f) return
         val v = vista
         val libreX = ancho - m.izq - m.der
@@ -255,7 +256,7 @@ class Camara(private val clave: String) {
             val inicio = pos + a * e
             val fin = pos + b * e
             return when {
-                fin - inicio > max - min -> pos + (min + max) / 2 - (inicio + fin) / 2
+                centrar || fin - inicio > max - min -> pos + (min + max) / 2 - (inicio + fin) / 2
                 inicio < min -> pos + min - inicio
                 fin > max -> pos - (fin - max)
                 else -> pos
