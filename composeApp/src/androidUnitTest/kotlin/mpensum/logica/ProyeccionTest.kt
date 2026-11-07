@@ -101,4 +101,17 @@ class ProyeccionTest {
         assertTrue(barra.all { s -> s.capsulas.map { it.estado.ordinal }.zipWithNext().all { (a, b) -> a <= b } })
         assertEquals(1, semestreActual(barra))
     }
+
+    @Test
+    fun elSemestreActualEsElQueCursas() {
+        val sistemas = leerPensum(File("src/commonMain/composeResources/files/carreras/ingenieria-de-sistemas.json").readText())
+        // Del 1 al 4 aprobadas (las casillas de electiva quedan sin elegir) y dos del 5 en curso
+        val marcas = buildMap {
+            sistemas.obligatorias.filter { (it.semestre ?: 99) <= 4 }.forEach { put(it.codigo, Marca.APROBADA) }
+            sistemas.obligatorias.filter { it.semestre == 5 }.take(2).forEach { put(it.codigo, Marca.CURSANDO) }
+        }
+        assertEquals(5, semestreActual(capsulasDe(sistemas, marcas) { null }))
+        // Sin nada en curso, el primero sin completar
+        assertEquals(1, semestreActual(capsulasDe(sistemas, emptyMap()) { null }))
+    }
 }

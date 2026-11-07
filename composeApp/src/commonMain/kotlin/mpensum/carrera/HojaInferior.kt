@@ -8,6 +8,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -24,6 +25,7 @@ import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.widthIn
@@ -57,6 +59,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
@@ -75,6 +78,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import mpensum.componentes.SOMBRA_FLOTANTE
 import mpensum.componentes.Vidrio
+import mpensum.componentes.ventana
 import mpensum.componentes.vidrio
 import mpensum.plataforma.ManejarAtras
 import mpensum.tema.Espacio
@@ -286,10 +290,15 @@ private fun goma(x: Float, tope: Float) = tope * (1f - exp(-x / tope))
  * encima de la hoja; por defecto sale de [LocalFondoHoja]. Sin ninguno, solo
  * hay velo.
  *
- * `ancho` es lo más ancha que llega (centrada); en un teléfono acostado una
- * hoja con dos columnas pide más que los 560 dp de siempre. Con `desplazable`
- * en falso la hoja no desplaza su contenido: lo estira a su alto y cada
- * columna del contenido se desplaza por su cuenta.
+ * `ancho` es lo más ancha que llega (centrada). Con `desplazable` en falso
+ * la hoja no desplaza su contenido: lo estira a su alto y cada columna del
+ * contenido se desplaza por su cuenta.
+ *
+ * Con el teléfono acostado no hay alto para una hoja que deja asomar lo de
+ * detrás: sube igual, pero ocupa la pantalla entera (como en el iPhone cuando
+ * falta alto). Sin asa ni tirón para cerrarla, que con columnas que desplazan
+ * cerraría sin querer: se cierra con su aspa o con atrás. El contenido se
+ * aparta solo de la barra de estado, la cámara y la barra de gestos.
  */
 @OptIn(ExperimentalHazeApi::class)
 @Composable
@@ -307,7 +316,9 @@ fun BoxScope.HojaInferior(
     if (abierta && !montada) montada = true
     val alcance = rememberCoroutineScope()
     val hoja = remember { Hoja(alcance) }
-    val flotante = cristal != null
+    val completa = ventana().apaisado
+    // A pantalla completa no hay hoja flotante: el cristal es para asomar por los bordes, y no hay bordes
+    val flotante = cristal != null && !completa
     val densidad = LocalDensity.current
     hoja.abierta = abierta
     hoja.alCerrar = alCerrar
@@ -335,6 +346,11 @@ fun BoxScope.HojaInferior(
 
     val toque = remember { MutableInteractionSource() }
     FondoHoja(fondo, hoja, toque, alCerrar)
+
+    if (completa) {
+        PantallaCompleta(hoja, desplazable, cabecera, contenido)
+        return
+    }
 
     val forma = if (flotante) RoundedCornerShape(32.dp) else RoundedCornerShape(topStart = Radio.Hoja, topEnd = Radio.Hoja)
     // Nunca más alta que la pantalla menos 64 (o la barra de estado y 32): arriba siempre asoma lo que hay detrás
@@ -381,6 +397,36 @@ fun BoxScope.HojaInferior(
                 content = contenido,
             )
         }
+    }
+}
+
+/**
+ * La hoja acostada: sube como siempre, pero a toda la pantalla y lisa, del
+ * color del panel. El contenido se aparta de la barra de estado, de la cámara
+ * y de la barra de gestos; el fondo del panel sí llega a los bordes.
+ */
+@Composable
+private fun PantallaCompleta(
+    hoja: Hoja,
+    desplazable: Boolean,
+    cabecera: @Composable () -> Unit,
+    contenido: @Composable ColumnScope.() -> Unit,
+) {
+    Column(
+        Modifier
+            .fillMaxSize()
+            .onSizeChanged { hoja.alto = it.height.toFloat() }
+            .graphicsLayer { translationY = minOf(hoja.desp, size.height + hoja.margen()) }
+            .background(Paleta.panel)
+            // Se queda con los toques que caen en su fondo (si no, llegarían al velo y la cerrarían), sin volverse un botón
+            .pointerInput(Unit) { detectTapGestures {} }
+            .windowInsetsPadding(WindowInsets.safeDrawing),
+    ) {
+        Column(Modifier.testTag("hoja-cabecera")) { cabecera() }
+        Column(
+            if (desplazable) Modifier.weight(1f).verticalScroll(rememberScrollState()) else Modifier.weight(1f),
+            content = contenido,
+        )
     }
 }
 

@@ -28,7 +28,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import mpensum.componentes.Lucide
-import mpensum.componentes.esApaisado
 import mpensum.logica.Periodo
 import mpensum.logica.periodosDeCadena
 import mpensum.tema.Espacio
@@ -59,7 +58,6 @@ internal fun DetalleCadena(estado: EstadoCarrera, hoy: Periodo, alVerEnMapa: (Li
     // Si el plan dura más que la cadena, hay margen: atrasar una no mueve la fecha hasta gastarlo
     val holgura = (g.plan.size - cadena.size).coerceAtLeast(0)
     val final = g.periodoFinal
-    val apaisado = esApaisado()
     val boton: @Composable () -> Unit = { BotonTinta("Verla en el mapa", { alVerEnMapa(cadena) }, Modifier.padding(top = Espacio.xl)) }
 
     CuerpoDetalle(
@@ -75,10 +73,9 @@ internal fun DetalleCadena(estado: EstadoCarrera, hoy: Periodo, alVerEnMapa: (Li
                     }
                 })
             }
-            if (apaisado) boton()
         },
         derecha = {
-            Column(Modifier.padding(top = if (apaisado) 0.dp else Espacio.xl)) {
+            Column(Modifier.padding(top = Espacio.xl)) {
                 cadena.forEachIndexed { k, c ->
                     val primera = k == 0
                     val ultima = k == cadena.lastIndex && k > 0
@@ -101,7 +98,7 @@ internal fun DetalleCadena(estado: EstadoCarrera, hoy: Periodo, alVerEnMapa: (Li
                     )
                 }
             }
-            if (!apaisado) boton()
+            boton()
         },
     )
 }

@@ -7,7 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
 import com.github.takahirom.roborazzi.captureRoboImage
@@ -99,7 +99,8 @@ class CapturaHorizontalProgresoTest {
 
     private fun detalle(fila: String, nombre: String) {
         montar(estado())
-        regla.onNodeWithText(fila).performClick()
+        // La fila del índice va antes que el título del panel, que puede decir lo mismo
+        regla.onAllNodesWithText(fila)[0].performClick()
         regla.mainClock.advanceTimeBy(1400)
         foto(nombre)
     }

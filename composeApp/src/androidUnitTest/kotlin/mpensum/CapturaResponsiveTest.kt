@@ -11,6 +11,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.test.junit4.AndroidComposeTestRule
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
@@ -109,7 +110,8 @@ abstract class BaseResponsive(private val tam: String, private val escalaLetra: 
     private fun interior() = montar { Interior(sistemas, alVolver = {}) }
 
     private fun pulsar(texto: String, ms: Long = 1400) {
-        regla.onNodeWithText(texto).performClick()
+        // Acostada, la fila del índice va antes que el título del panel, que puede decir lo mismo
+        regla.onAllNodesWithText(texto)[0].performClick()
         correr(ms)
     }
 

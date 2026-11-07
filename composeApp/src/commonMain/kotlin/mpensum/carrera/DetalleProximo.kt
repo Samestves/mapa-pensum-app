@@ -11,7 +11,6 @@ import mpensum.tema.Espacio
 import mpensum.tema.Paleta
 import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.unit.dp
-import mpensum.componentes.esApaisado
 
 /*
  * «Tu próximo semestre»: qué inscribir. Primero lo que te conviene meter a tu
@@ -44,7 +43,6 @@ internal fun DetalleProximo(estado: EstadoCarrera, hoy: Periodo, alVerEnMapa: (L
         }
     }
 
-    val apaisado = esApaisado()
     val boton: @Composable () -> Unit = { BotonTinta("Verlas en el mapa", { alVerEnMapa(plan) }, Modifier.padding(top = Espacio.xl)) }
 
     CuerpoDetalle(
@@ -64,12 +62,10 @@ internal fun DetalleProximo(estado: EstadoCarrera, hoy: Periodo, alVerEnMapa: (L
                     )
                 }
             }
-            // Acostado el botón queda bajo lo que conviene; de pie, al final de todo
-            if (apaisado) boton()
         },
         derecha = {
             if (tambien.isNotEmpty()) {
-                RotuloSeccion("TAMBIÉN PUEDES · ${tambien.size}", arriba = arribaPrimerRotulo())
+                RotuloSeccion("TAMBIÉN PUEDES · ${tambien.size}")
                 TarjetaLista {
                     FilasPlegables(tambien) { c, primera ->
                         FilaLista(
@@ -82,7 +78,7 @@ internal fun DetalleProximo(estado: EstadoCarrera, hoy: Periodo, alVerEnMapa: (L
                     }
                 }
             }
-            if (!apaisado) boton()
+            boton()
         },
     )
 }

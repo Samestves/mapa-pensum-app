@@ -75,7 +75,7 @@ internal fun DetalleElectivas(estado: EstadoCarrera, clave: String, alElegir: (S
         },
         derecha = {
             if (casillas.isNotEmpty()) {
-                RotuloSeccion("EN TU PLAN", arriba = arribaPrimerRotulo())
+                RotuloSeccion("EN TU PLAN")
                 TarjetaLista {
                     FilasPlegables(casillas.withIndex().toList()) { (k, c), primera ->
                         val puesta = estado.enCasilla(c.codigo)
@@ -103,7 +103,7 @@ internal fun DetalleElectivas(estado: EstadoCarrera, clave: String, alElegir: (S
                     }
                 }
             } else {
-                RotuloSeccion("APROBADAS", arriba = arribaPrimerRotulo())
+                RotuloSeccion("APROBADAS")
                 if (avance.elegidas.isEmpty()) {
                     BasicText("Aún no has aprobado ninguna.", Modifier.padding(horizontal = Espacio.m), style = estiloCuerpo())
                 } else {

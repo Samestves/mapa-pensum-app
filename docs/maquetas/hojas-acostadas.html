@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Hojas acostadas · opciones</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,100..900&family=Jost:wght@100..900&family=IBM+Plex+Mono:wght@300&display=block" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #E6E7E9; color: #050608; font-family: Inter, sans-serif; padding: 48px 40px 64px; -webkit-font-smoothing: antialiased; }
+.pagina { width: 1870px; margin: 0 auto; }
+.portada h1 { font: 300 40px/44px Jost; letter-spacing: -.01em; }
+.portada p { font: 400 15px/22px Inter; color: #34383E; margin-top: 10px; max-width: 1100px; }
+.portada b { font-weight: 500; color: #050608; }
+.op { margin-top: 48px; }
+.op h2 { font: 500 20px/26px Inter; letter-spacing: -.01em; }
+.op h2 span { font: 500 11px/16px Inter; letter-spacing: .08em; text-transform: uppercase; color: #52565C; margin-right: 10px; }
+.op h2 em { font-style: normal; font: 500 11px/16px Inter; letter-spacing: .06em; text-transform: uppercase; color: #1A47C2; margin-left: 10px; }
+.op > p { font: 400 14px/20px Inter; color: #34383E; margin: 6px 0 18px; max-width: 1200px; }
+.par { display: flex; gap: 40px; }
+.par figure figcaption { font: 500 12px/16px Inter; color: #52565C; margin-top: 10px; letter-spacing: .02em; }
+
+/* Paleta Acero, Oscuro */
+.osc { --lienzo:#0B0C0E; --panel:#121316; --tinta:#ECEEF1; --suave:#B6BBC2; --tenue:#858B94; --apagada:#5D636C; --azul:#5B8AF5; --verde:#2EC27E; --rojo:#E5403A;
+  --t: 236 238 241; --a: 91 138 245; --sup: rgb(var(--t) / .05); --hilo: rgb(var(--t) / .09); --pas: rgb(var(--t) / .08); --pend: rgb(var(--t) / .16); --pas-azul: rgb(var(--a) / .16); color: var(--tinta); }
+
+.tel { width: 915px; height: 412px; position: relative; overflow: hidden; border-radius: 36px; background: var(--lienzo); box-shadow: 0 0 0 1px rgb(0 0 0 / .1), 0 30px 60px -28px rgb(0 0 0 / .4); }
+/* El mapa de fondo: columnas de tarjetas */
+.mapa { position: absolute; inset: 0; background:
+  radial-gradient(1200px 300px at 30% -10%, rgb(91 138 245 / .08), transparent 60%),
+  repeating-linear-gradient(90deg, transparent 0 96px, transparent 96px 112px),
+  var(--lienzo); }
+.mapa i { position: absolute; width: 100px; height: 44px; border-radius: 8px; background: rgb(var(--t) / .05); box-shadow: inset 0 0 0 1px rgb(var(--t) / .08); }
+.borroso { filter: blur(10px); opacity: .7; }
+.velo { position: absolute; inset: 0; background: rgb(0 0 0 / .45); }
+
+/* Tipos */
+.rot { font: 500 11px/16px Inter; letter-spacing: .08em; text-transform: uppercase; color: var(--tenue); }
+.disp { font: 300 24px/28px Jost; letter-spacing: -.005em; }
+.tt { font: 500 15px/20px Inter; letter-spacing: -.009em; color: var(--tinta); }
+.cuerpo { font: 400 15px/20px Inter; letter-spacing: -.009em; color: var(--suave); }
+.nota { font: 400 13px/16px Inter; color: var(--tenue); }
+.nota b, .cuerpo b { font-weight: 500; color: var(--tinta); }
+.cifra { font-family: Inter; font-feature-settings: 'tnum'; white-space: nowrap; font-variation-settings: 'opsz' 32; }
+.c64 { font-size: 64px; line-height: 64px; font-weight: 200; letter-spacing: -.02em; }
+.c56 { font-size: 56px; line-height: 56px; font-weight: 200; letter-spacing: -.02em; }
+.c40 { font-size: 40px; line-height: 44px; font-weight: 200; letter-spacing: -.02em; }
+.c24 { font-size: 24px; line-height: 28px; font-weight: 300; letter-spacing: -.015em; }
+.c20 { font-size: 20px; line-height: 24px; font-weight: 300; font-variation-settings: 'opsz' 20; }
+.u { font-weight: 300; color: var(--tenue); letter-spacing: 0; margin-left: 2px; }
+.c64 .u { font-size: 26px; } .c56 .u { font-size: 22px; } .c40 .u { font-size: 16px; } .c24 .u, .c20 .u { font-size: 11px; font-weight: 400; }
+
+svg.i { fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; display: block; flex: none; }
+.redondo { width: 36px; height: 36px; border-radius: 18px; background: var(--pas); color: var(--suave); display: grid; place-items: center; flex: none; }
+.pas { width: 32px; height: 32px; border-radius: 8px; background: var(--pas); color: var(--tinta); display: grid; place-items: center; flex: none; }
+.pas.azul { background: var(--pas-azul); color: var(--azul); }
+.ch { color: var(--apagada); }
+
+/* Piezas compartidas */
+.tarjeta { background: var(--sup); border-radius: 24px; }
+.heroe { padding: 16px; display: flex; flex-direction: column; }
+.heroe .arriba { display: flex; justify-content: space-between; align-items: flex-start; }
+.heroe .fecha { text-align: right; }
+.capsulas { display: flex; gap: 2px; height: 14px; margin-top: 16px; }
+.capsulas b { display: block; height: 14px; border-radius: 2.5px; background: var(--pend); }
+.capsulas b.ap { background: var(--tinta); }
+.capsulas b.cu { background: none; box-shadow: inset 0 0 0 1.5px var(--tinta); }
+.capsulas b.sep { margin-left: 5px; }
+.regla { position: relative; height: 32px; margin-top: 6px; border-top: 1px solid var(--hilo); }
+.regla span { position: absolute; top: 9px; transform: translateX(-50%); font: 400 11px/17px Jost; color: var(--apagada); width: 17px; text-align: center; }
+.regla span.hecho { color: var(--tinta); font-weight: 500; }
+.regla span.ahora { background: var(--tinta); color: var(--panel); border-radius: 50%; font-weight: 500; }
+.regla span::before { content: ''; position: absolute; left: 8px; top: -9px; width: 1px; height: 4px; background: var(--hilo); }
+.regla span.hecho::before, .regla span.ahora::before { background: var(--tinta); }
+
+.lista { background: var(--sup); border-radius: 24px; overflow: hidden; }
+.f { display: flex; align-items: center; gap: 12px; padding: 0 16px; min-height: 56px; position: relative; }
+.f + .f::before { content: ''; position: absolute; left: 60px; right: 0; top: 0; height: 1px; background: var(--hilo); }
+.f .tx { flex: 1; min-width: 0; }
+.f .tx .nota { margin-top: 1px; }
+.f .n { font: 300 20px/24px Inter; font-feature-settings: 'tnum'; color: var(--tinta); }
+.f.sel { background: rgb(var(--t) / .07); }
+.f.sel::before, .f.sel + .f::before { display: none; }
+.boton { height: 44px; border-radius: 22px; background: var(--tinta); color: var(--panel); font: 500 15px/20px Inter; display: grid; place-items: center; padding: 0 20px; }
+
+/* Anillo */
+.anillo { position: relative; }
+.anillo .centro { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; }
+.anillo .centro .rot { margin-top: 2px; }
+.chips { display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; margin-top: 8px; }
+.chips span { height: 36px; border-radius: 8px; background: var(--pas); display: grid; place-items: center; font: 400 15px/20px Inter; color: var(--suave); position: relative; }
+.chips span.si { background: var(--tinta); color: var(--panel); font-weight: 500; }
+.chips span.si::after { content: ''; position: absolute; bottom: 5px; width: 4px; height: 4px; border-radius: 2px; background: var(--panel); }
+.compara { display: grid; grid-template-columns: 1fr 1fr; margin-top: 16px; }
+.compara > div + div { border-left: 1px solid var(--hilo); padding-left: 16px; }
+
+/* ===== Opción A: pantalla completa ===== */
+.A .hoja { position: absolute; inset: 0; background: var(--panel); }
+.A .barra { height: 60px; display: flex; align-items: center; gap: 12px; padding: 0 24px; }
+.A .barra .titulo { flex: 1; display: flex; align-items: baseline; gap: 12px; }
+.A .cuerpoA { position: absolute; top: 60px; left: 24px; right: 24px; bottom: 20px; display: flex; gap: 16px; }
+
+/* ===== Opción B: tarjeta centrada flotante ===== */
+.B .hoja { position: absolute; top: 12px; bottom: 12px; left: 50%; transform: translateX(-50%); width: 760px; background: var(--panel); border-radius: 28px; box-shadow: 0 0 0 1px rgb(var(--t) / .08), 0 24px 60px rgb(0 0 0 / .6); }
+.B .barra { height: 56px; display: flex; align-items: center; gap: 12px; padding: 0 16px 0 20px; }
+.B .cuerpoB { position: absolute; top: 56px; left: 16px; right: 16px; bottom: 16px; display: flex; gap: 12px; }
+
+/* ===== Opción C: maestro-detalle ===== */
+.C .hoja { position: absolute; inset: 0; background: var(--panel); display: flex; }
+.C .izq { width: 330px; flex: none; padding: 14px 0 16px 24px; display: flex; flex-direction: column; }
+.C .der { flex: 1; padding: 14px 24px 16px 24px; position: relative; }
+.C .div { width: 1px; background: var(--hilo); margin: 16px 0; }
+.C .f { min-height: 44px; }
+.C .f + .f::before { left: 56px; }
+</style>
+</head>
+<body>
+<div class="pagina">
+  <div class="portada">
+    <h1>Hojas con el teléfono acostado</h1>
+    <p>Hoy, acostado, cada hoja sube desde abajo igual que de pie: arriba deja 64 dp de mapa, se queda con unos 350 dp y lo de abajo se corta (el anillo, las filas, «por aprobar»). Estas son tres formas de usar <b>todo el alto</b>. Lo que elijas vale para <b>todas las hojas</b> (progreso, ajustes, electivas, horario), porque pasan por la misma pieza. De ejemplo va la hoja de progreso y su anillo.</p>
+  </div>
+
+  <!-- ================= A ================= -->
+  <section class="op">
+    <h2><span>Opción A</span>Pantalla completa<em>Recomendada</em></h2>
+    <p>Acostada, la hoja sube y ocupa la pantalla entera, como en el iPhone cuando falta alto. Arriba, una barra fina con el aspa y el título en la misma línea. Debajo, dos columnas a todo el alto: la tarjeta a la izquierda y las filas a la derecha. Al tocar una fila, su pantalla entra desde la derecha, con la flecha de volver.</p>
+    <div class="par">
+      <figure><div class="tel osc A" id="a1"></div><figcaption>Progreso</figcaption></figure>
+      <figure><div class="tel osc A" id="a2"></div><figcaption>¿Cuándo me gradúo?</figcaption></figure>
+    </div>
+  </section>
+
+  <!-- ================= B ================= -->
+  <section class="op">
+    <h2><span>Opción B</span>Tarjeta flotante centrada</h2>
+    <p>La hoja flota en el centro, separada 12 dp de arriba y de abajo, con el mapa desenfocado a los lados. Es como una hoja de iPad: se nota que es algo encima del mapa y que se cierra tocando fuera. Tiene menos ancho (760 dp), así que las columnas van más justas.</p>
+    <div class="par">
+      <figure><div class="tel osc B" id="b1"></div><figcaption>Progreso</figcaption></figure>
+      <figure><div class="tel osc B" id="b2"></div><figcaption>¿Cuándo me gradúo?</figcaption></figure>
+    </div>
+  </section>
+
+  <!-- ================= C ================= -->
+  <section class="op">
+    <h2><span>Opción C</span>Índice y detalle</h2>
+    <p>Pantalla completa, pero sin ir y volver: a la izquierda, tu avance y las preguntas como un índice; a la derecha, la respuesta de la que esté elegida. Tocas otra pregunta y cambia solo la derecha. Es como los Ajustes del iPad. Es la más cómoda para revisar varias cosas seguidas, pero es una forma de navegar distinta a la de pie.</p>
+    <div class="par">
+      <figure><div class="tel osc C" id="c1"></div><figcaption>Elegida «Este semestre»</figcaption></figure>
+      <figure><div class="tel osc C" id="c2"></div><figcaption>Elegida «¿Cuándo me gradúo?»</figcaption></figure>
+    </div>
+  </section>
+</div>
+
+<script>
+const I = {
+  x: '<path d="M18 6 6 18M6 6l12 12"/>',
+  atras: '<path d="m15 18-6-6 6-6"/>',
+  ch: '<path d="m9 18 6-6-6-6"/>',
+  libro: '<path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/>',
+  cal: '<path d="M8 2v4M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/>',
+  link: '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
+  bir: '<path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/>',
+  llave: '<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>',
+  gente: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>',
+};
+const ico = (n, s = 18) => `<svg class="i" width="${s}" height="${s}" viewBox="0 0 24 24">${I[n]}</svg>`;
+
+// El mapa de fondo
+function mapa(borroso) {
+  let h = '';
+  for (let c = 0; c < 8; c++) for (let r = 0; r < 7; r++) h += `<i style="left:${90 + c * 118}px;top:${18 + r * 56}px"></i>`;
+  return `<div class="mapa ${borroso ? 'borroso' : ''}">${h}</div>`;
+}
+
+// Las cápsulas: 10 semestres de Sistemas
+const sem = [[4,3,3,3,4,2],[4,3,3,4,3,2],[3,3,4,3,3,2],[3,3,3,3,2],[2,2,2,3,2,3,3],[3,3,3,2,3,2],[3,3,3,3,2],[3,2,3,3,2],[2,2,3,3,3],[6]];
+function capsulas(ancho) {
+  const total = sem.flat().reduce((a, b) => a + b, 0);
+  const huecos = sem.flat().length * 2 + sem.length * 5;
+  const k = (ancho - huecos) / total;
+  let h = '', marcas = '', x = 0;
+  sem.forEach((s, i) => {
+    const ini = x;
+    s.forEach((uc, j) => {
+      let cl = i < 4 ? 'ap' : (i === 4 && j < 2 ? 'cu' : '');
+      if (i === 3 && j === 4) cl = '';
+      h += `<b class="${cl} ${j === 0 && i > 0 ? 'sep' : ''}" style="width:${uc * k}px"></b>`;
+      x += uc * k + 2 + (j === 0 && i > 0 ? 5 : 0);
+    });
+    const centro = (ini + x - 2) / 2 + (i > 0 ? 2.5 : 0);
+    const cl = i < 3 ? 'hecho' : i === 4 ? 'ahora' : '';
+    marcas += `<span class="${cl}" style="left:${centro}px">${i + 1}</span>`;
+  });
+  return `<div class="capsulas">${h}</div><div class="regla">${marcas}</div>`;
+}
+
+function heroe(ancho, compacta) {
+  return `<div class="tarjeta heroe" style="width:${ancho}px;${compacta ? '' : 'height:100%'}">
+    <div class="arriba">
+      <div><div class="cifra ${compacta ? 'c56' : 'c64'}">41<span class="u">%</span></div>
+        <div class="nota" style="margin-top:6px"><b class="cifra">62</b> / 153 UC</div></div>
+      <div class="fecha"><div class="cifra c24">Dic 2029</div><div class="nota" style="margin-top:2px">Te gradúas</div></div>
+    </div>
+    ${compacta ? '' : '<div style="flex:1"></div>'}
+    ${capsulas(ancho - 32)}
+    ${compacta ? '' : '<div class="cuerpo" style="margin-top:4px">Si apruebas <b>las 2 que cursas</b>: llegas al <b>43%</b> y se te abre <b>1</b>.</div>'}
+  </div>`;
+}
+
+const filas = [
+  ['libro', 'Este semestre', 'Lo que cursas y qué abre', '2'],
+  ['cal', 'Tu próximo semestre', 'Qué inscribir · Ene – Jun 2027', '6', 'azul'],
+  ['link', 'No puedes atrasar', 'Las que fijan tu fecha', '6'],
+  ['bir', '¿Cuándo me gradúo?', 'Ya vas a lo más rápido', ''],
+  ['llave', 'Electivas técnicas', 'Ya puedes cursar 5', '0/3'],
+];
+function lista(sel, corta) {
+  return `<div class="lista">${filas.map(([i, t, s, n, az], k) => `
+    <div class="f ${sel === k ? 'sel' : ''}" ${corta ? '' : 'style="min-height:59px"'}>
+      <div class="pas ${az ? 'azul' : ''}">${ico(i)}</div>
+      <div class="tx"><div class="tt">${t}</div>${corta ? '' : `<div class="nota">${s}</div>`}</div>
+      ${n ? `<div class="n">${n}</div>` : ''}<span class="ch">${ico('ch', 16)}</span>
+    </div>`).join('')}</div>`;
+}
+
+function anillo(d) {
+  const r = d / 2, n = 64, ini = -150, rango = 300;
+  let h = '';
+  for (let k = 0; k < n; k++) {
+    const a = (ini + rango * k / (n - 1)) * Math.PI / 180;
+    const r1 = r - 26, r2 = r - 8;
+    const f = k / (n - 1);
+    let col = 'rgb(236 238 241 / .16)', w = 3;
+    if (f < .41) col = '#2EC27E';
+    else if (f < .45) { col = '#ECEEF1'; w = 1.5; }
+    const x1 = r + r1 * Math.sin(a), y1 = r - r1 * Math.cos(a), x2 = r + r2 * Math.sin(a), y2 = r - r2 * Math.cos(a);
+    h += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${col}" stroke-width="${w}" stroke-linecap="round"/>`;
+  }
+  return `<div class="anillo" style="width:${d}px;height:${d}px">
+    <svg width="${d}" height="${d}">${h}</svg>
+    <div class="centro"><div>
+      <div style="color:var(--tenue);display:flex;justify-content:center;margin-bottom:6px">${ico('bir', 18)}</div>
+      <div class="cifra c40">41<span class="u">%</span></div>
+      <div class="rot">del título</div>
+      <div class="nota" style="margin-top:10px"><b class="cifra">23</b> aprobadas · <b class="cifra">34</b> por aprobar</div>
+    </div></div>
+  </div>`;
+}
+
+function ritmo() {
+  return `<div class="rot">Materias por semestre</div>
+    <div class="chips">${[1,2,3,4,5,6,7,8].map(n => `<span class="${n === 6 ? 'si' : ''}">${n}</span>`).join('')}</div>
+    <div class="compara">
+      <div><div class="rot">A tu ritmo · 6</div><div class="cifra c24" style="margin-top:4px">Dic 2029</div></div>
+      <div><div class="rot">Lo más rápido · 6</div><div class="cifra c24" style="margin-top:4px">Dic 2029</div><div class="nota" style="margin-top:2px">Ya vas a lo más rápido</div></div>
+    </div>`;
+}
+
+// ===== A =====
+document.getElementById('a1').innerHTML = mapa() + `<div class="hoja">
+  <div class="barra"><div class="titulo"><span class="rot">Tu avance</span><span class="disp">Ingeniería de Sistemas</span></div><div class="redondo">${ico('x')}</div></div>
+  <div class="cuerpoA">${heroe(410)}<div style="flex:1">${lista(-1)}</div></div></div>`;
+document.getElementById('a2').innerHTML = mapa() + `<div class="hoja">
+  <div class="barra"><div class="redondo">${ico('atras')}</div><div class="pas">${ico('bir')}</div><div class="titulo"><span class="disp">¿Cuándo me gradúo?</span><span class="nota">Depende de tu ritmo</span></div><div class="redondo">${ico('x')}</div></div>
+  <div class="cuerpoA" style="align-items:center">
+    <div style="width:410px;display:grid;place-items:center">${anillo(320)}</div>
+    <div style="flex:1"><div class="tarjeta" style="padding:16px">${ritmo()}</div>
+      <div class="nota" style="margin:12px 4px 0">Más de 6 no adelanta: te frena la cadena.</div></div>
+  </div></div>`;
+
+// ===== B =====
+document.getElementById('b1').innerHTML = mapa(true) + `<div class="velo"></div><div class="hoja">
+  <div class="barra"><div style="flex:1;display:flex;align-items:baseline;gap:12px"><span class="rot">Tu avance</span><span class="disp">Ingeniería de Sistemas</span></div><div class="redondo">${ico('x')}</div></div>
+  <div class="cuerpoB">${heroe(360)}<div style="flex:1">${lista(-1)}</div></div></div>`;
+document.getElementById('b2').innerHTML = mapa(true) + `<div class="velo"></div><div class="hoja">
+  <div class="barra"><div class="redondo">${ico('atras')}</div><div class="pas">${ico('bir')}</div><div style="flex:1;display:flex;align-items:baseline;gap:12px"><span class="disp">¿Cuándo me gradúo?</span></div><div class="redondo">${ico('x')}</div></div>
+  <div class="cuerpoB" style="align-items:center">
+    <div style="width:330px;display:grid;place-items:center">${anillo(300)}</div>
+    <div style="flex:1"><div class="tarjeta" style="padding:14px">${ritmo()}</div>
+      <div class="nota" style="margin:10px 4px 0">Más de 6 no adelanta: te frena la cadena.</div></div>
+  </div></div>`;
+
+// ===== C =====
+function izqC(sel) {
+  return `<div class="izq">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px"><div class="redondo">${ico('x')}</div><span class="disp" style="font-size:22px">Tu avance</span></div>
+    <div class="tarjeta" style="padding:12px 16px;display:flex;justify-content:space-between;align-items:flex-end">
+      <div><div class="cifra c40">41<span class="u">%</span></div><div class="nota"><b class="cifra">62</b> / 153 UC</div></div>
+      <div style="text-align:right"><div class="cifra c24">Dic 2029</div><div class="nota">Te gradúas</div></div>
+    </div>
+    <div style="height:10px"></div>
+    ${lista(sel, true)}
+  </div><div class="div"></div>`;
+}
+document.getElementById('c1').innerHTML = mapa() + `<div class="hoja">${izqC(0)}
+  <div class="der">
+    <div class="disp">Este semestre</div><div class="cuerpo" style="margin-top:2px">Qué te abre aprobarlas</div>
+    <div style="display:flex;gap:16px;margin-top:18px">
+      <div class="tarjeta" style="padding:16px;width:190px"><div class="rot">Si apruebas</div><div class="cifra c40" style="margin-top:4px">43<span class="u">%</span></div><div class="nota">+4 UC</div></div>
+      <div class="tarjeta" style="padding:16px;width:190px"><div class="rot azul" style="color:var(--azul)">Se te abren</div><div class="cifra c40" style="margin-top:4px">1 <span class="u" style="font-size:16px">materia</span></div><div class="nota">Ene – Jun 2027</div></div>
+    </div>
+    <div class="rot" style="margin-top:20px;margin-bottom:8px">Cursas</div>
+    <div class="lista">
+      <div class="f"><div class="pas">${ico('libro')}</div><div class="tx"><div class="tt">Estadística II</div><div class="nota">No abre otras · 2 UC</div></div></div>
+      <div class="f"><div class="pas">${ico('libro')}</div><div class="tx"><div class="tt">Inferencia y Diseño de Experimentos</div><div class="nota">Abre <b>Análisis de Decisiones</b> · 2 UC</div></div></div>
+    </div>
+  </div></div>`;
+document.getElementById('c2').innerHTML = mapa() + `<div class="hoja">${izqC(3)}
+  <div class="der">
+    <div class="disp">¿Cuándo me gradúo?</div><div class="cuerpo" style="margin-top:2px">Depende de tu ritmo</div>
+    <div style="display:flex;gap:20px;align-items:center;margin-top:4px">
+      <div style="flex:none">${anillo(290)}</div>
+      <div style="flex:1">${ritmo()}</div>
+    </div>
+  </div></div>`;
+document.querySelectorAll('#c2 .chips').forEach(e => e.style.gridTemplateColumns = 'repeat(4, 1fr)');
+document.querySelectorAll('#c2 .compara').forEach(e => { e.style.gridTemplateColumns = '1fr'; e.style.gap = '12px'; e.children[1].style.borderLeft = 'none'; e.children[1].style.paddingLeft = '0'; });
+</script>
+</body>
+</html>

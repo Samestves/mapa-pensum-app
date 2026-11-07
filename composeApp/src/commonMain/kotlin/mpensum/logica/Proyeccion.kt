@@ -144,5 +144,11 @@ fun capsulasDe(pensum: Pensum, marcas: Map<String, Marca>, enCasilla: (String) -
     }
 }
 
-/** El semestre por el que vas: el primero con materias en curso o pendientes; null si los terminaste todos */
-fun semestreActual(semestres: List<SemestreCapsulas>): Int? = semestres.firstOrNull { !it.completo }?.numero
+/**
+ * El semestre por el que vas: el último donde cursas algo. Sin nada en curso,
+ * el primero que no has completado; null si los terminaste todos. Una
+ * electiva sin elegir del semestre 2 no te devuelve al 2 si ya cursas el 5.
+ */
+fun semestreActual(semestres: List<SemestreCapsulas>): Int? =
+    semestres.lastOrNull { s -> s.capsulas.any { it.estado == EstadoCapsula.CURSANDO } }?.numero
+        ?: semestres.firstOrNull { !it.completo }?.numero

@@ -57,7 +57,7 @@ internal fun DetalleEsteSemestre(estado: EstadoCarrera, hoy: Periodo) {
             })
         },
         derecha = {
-            RotuloSeccion("CURSAS", arriba = arribaPrimerRotulo())
+            RotuloSeccion("CURSAS")
             TarjetaLista {
                 cursando.forEachIndexed { k, c ->
                     val abre = abreAlAprobar(c.codigo, si.seAbren)

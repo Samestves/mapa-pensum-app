@@ -13,6 +13,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -36,6 +39,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import mpensum.componentes.esApaisado
+import mpensum.componentes.fundidoAbajo
 import mpensum.componentes.margenPantalla
 import mpensum.logica.MAX_CARGA
 import mpensum.logica.Periodo
@@ -52,8 +56,9 @@ import kotlin.math.roundToInt
  * tarjeta de materias por semestre. Ocho chips (de 1 a 8): el elegido lleno
  * de tinta y tu ritmo de siempre con un punto. Debajo, tu fecha a tu ritmo
  * frente a la del ritmo elegido (o, si eliges el tuyo, frente a lo más rápido
- * que dejan las prelaciones). Acostado: el anillo a la izquierda, entero y
- * quieto, y la tarjeta a la derecha.
+ * que dejan las prelaciones). Acostado va en el panel del detalle: si cabe,
+ * el anillo a la izquierda, entero y quieto, y la tarjeta a su lado, con los
+ * chips en dos filas de cuatro; si no, uno debajo del otro.
  *
  * Los ocho planes se calculan una sola vez al abrir y solo se recalculan si
  * cambian las marcas o las casillas. Tocar un chip solo elige entre ellos: el
@@ -62,6 +67,9 @@ import kotlin.math.roundToInt
 
 /** El ancho del anillo acostado: lo que piden sus anotaciones a los lados */
 private val ANCHO_ANILLO_APAISADO = 340.dp
+
+/** Lo mínimo que pide la tarjeta del ritmo apilada junto al anillo: cuatro chips de 34 dp y sus márgenes */
+private val ANCHO_RITMO_APILADO = 184.dp
 
 /** La entrada: el anillo se llena en 600 ms, luego salen los rótulos y al final el resto */
 private const val ENTRADA_MS = 1_100
@@ -85,7 +93,7 @@ internal fun DetalleGraduacion(estado: EstadoCarrera, hoy: Periodo) {
         AnilloGraduacion(anillos[elegida - 1], porcentaje, g.periodoFinal?.anio, hoy.anio, { entrada.value }, modifier)
     }
     // El ritmo entra al final, cuando el anillo ya se llenó
-    val ritmo: @Composable () -> Unit = {
+    val ritmo: @Composable (Boolean) -> Unit = { apilada ->
         Column(
             Modifier.graphicsLayer {
                 val o = suavizar((entrada.value - 0.7f) / 0.3f)
@@ -94,6 +102,7 @@ internal fun DetalleGraduacion(estado: EstadoCarrera, hoy: Periodo) {
             },
         ) {
             TarjetaRitmo(
+                apilada = apilada,
                 elegida = elegida,
                 habitual = habitual,
                 rapida = rapida,
@@ -104,21 +113,30 @@ internal fun DetalleGraduacion(estado: EstadoCarrera, hoy: Periodo) {
                 },
             )
             if (rapida < MAX_CARGA) {
-                BasicText("Más de $rapida no adelanta: te frena la cadena.", Modifier.padding(start = Espacio.m, end = Espacio.m, top = Espacio.xs), style = estiloNota())
+                BasicText("Más de $rapida no adelanta: te frena la cadena.", Modifier.padding(start = Espacio.m, end = Espacio.m, top = Espacio.s), style = estiloNota())
             }
         }
     }
 
-    if (esApaisado()) {
-        Row(Modifier.fillMaxSize().padding(start = margenPantalla(), end = margenPantalla()), horizontalArrangement = Arrangement.spacedBy(Espacio.xl)) {
-            // El anillo mide 270 dp: centrado en el alto que hay, sin scroll
-            Box(Modifier.width(ANCHO_ANILLO_APAISADO).fillMaxHeight(), contentAlignment = Alignment.Center) { anillo(Modifier) }
-            Column(Modifier.weight(1f).fillMaxHeight().verticalScroll(rememberScrollState()).padding(top = Espacio.xxs, bottom = Espacio.l)) { ritmo() }
+    if (esApaisado()) BoxWithConstraints(Modifier.fillMaxSize()) {
+        if (maxWidth >= ANCHO_ANILLO_APAISADO + Espacio.m + ANCHO_RITMO_APILADO) {
+            Row(Modifier.fillMaxSize(), horizontalArrangement = Arrangement.spacedBy(Espacio.m)) {
+                // El anillo mide 270 dp: centrado en el alto que hay, sin scroll
+                Box(Modifier.width(ANCHO_ANILLO_APAISADO).fillMaxHeight(), contentAlignment = Alignment.Center) { anillo(Modifier) }
+                val desplazo = rememberScrollState()
+                Column(Modifier.weight(1f).fillMaxHeight().fundidoAbajo(desplazo).verticalScroll(desplazo).padding(top = ARRIBA_CUERPO_PANEL, bottom = Espacio.xl)) { ritmo(true) }
+            }
+        } else {
+            val desplazo = rememberScrollState()
+            Column(Modifier.fillMaxSize().fundidoAbajo(desplazo).verticalScroll(desplazo).padding(top = ARRIBA_CUERPO_PANEL, bottom = Espacio.xl)) {
+                anillo(Modifier)
+                Box(Modifier.padding(top = Espacio.m)) { ritmo(false) }
+            }
         }
     } else {
         Column(Modifier.padding(start = margenPantalla(), end = margenPantalla(), top = Espacio.xl, bottom = Espacio.xxl)) {
             anillo(Modifier)
-            Box(Modifier.padding(top = Espacio.m)) { ritmo() }
+            Box(Modifier.padding(top = Espacio.m)) { ritmo(false) }
         }
     }
 }
@@ -136,7 +154,7 @@ internal fun diferencia(semestres: Int): String {
  * trae, por carga, los semestres que faltan y la fecha.
  */
 @Composable
-private fun TarjetaRitmo(elegida: Int, habitual: Int, rapida: Int, planes: List<Pair<Int, Periodo?>>, alElegir: (Int) -> Unit) {
+private fun TarjetaRitmo(apilada: Boolean, elegida: Int, habitual: Int, rapida: Int, planes: List<Pair<Int, Periodo?>>, alElegir: (Int) -> Unit) {
     // Con tu ritmo elegido, la comparación es contra lo más rápido; si no, contra el elegido
     val contraRapida = elegida == habitual
     val otra = if (contraRapida) rapida else elegida
@@ -144,13 +162,19 @@ private fun TarjetaRitmo(elegida: Int, habitual: Int, rapida: Int, planes: List<
     val (semOtra, fechaOtra) = planes[otra - 1]
     val d = semOtra - semTuyo
     Column(Modifier.fillMaxWidth().superficie().padding(Espacio.m)) {
-        BasicText("MATERIAS POR SEMESTRE", style = estiloRotulo())
-        Row(Modifier.fillMaxWidth().padding(top = Espacio.s), horizontalArrangement = Arrangement.spacedBy(Espacio.xxs)) {
-            for (n in 1..MAX_CARGA) Chip(n, n == elegida, n == habitual, Modifier.weight(1f)) { alElegir(n) }
+        // Junto al anillo no cabe entero en una línea: basta con «por semestre», los chips dicen el resto
+        BasicText(if (apilada) "POR SEMESTRE" else "MATERIAS POR SEMESTRE", style = estiloRotulo(), maxLines = 1)
+        // Junto al anillo acostado, los chips van en dos filas de cuatro y las fechas una debajo de la otra
+        val porFila = if (apilada) MAX_CARGA / 2 else MAX_CARGA
+        Column(Modifier.padding(top = Espacio.s), verticalArrangement = Arrangement.spacedBy(Espacio.xxs)) {
+            (1..MAX_CARGA).chunked(porFila).forEach { fila ->
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Espacio.xxs)) {
+                    for (n in fila) Chip(n, n == elegida, n == habitual, Modifier.weight(1f)) { alElegir(n) }
+                }
+            }
         }
-        Comparacion(Modifier.padding(top = Espacio.l), relleno = 0.dp, izquierda = {
-            ColumnaComparacion("A TU RITMO · $habitual", null) { Fecha(fechaTuya?.mesYAnio() ?: "Ya") }
-        }, derecha = {
+        val tuya: @Composable ColumnScope.() -> Unit = { ColumnaComparacion("A TU RITMO · $habitual", null) { Fecha(fechaTuya?.mesYAnio() ?: "Ya") } }
+        val contra: @Composable ColumnScope.() -> Unit = {
             ColumnaComparacion(
                 if (contraRapida) "LO MÁS RÁPIDO · $otra" else "A $otra",
                 when {
@@ -159,7 +183,14 @@ private fun TarjetaRitmo(elegida: Int, habitual: Int, rapida: Int, planes: List<
                     else -> "${diferencia(d)} después"
                 },
             ) { Fecha(fechaOtra?.mesYAnio() ?: "Ya") }
-        })
+        }
+        if (apilada) {
+            Column(Modifier.padding(top = Espacio.l), content = tuya)
+            Box(Modifier.padding(vertical = Espacio.m).fillMaxWidth().height(1.dp).background(Paleta.tinta.copy(alpha = Velo.hilo)))
+            Column(content = contra)
+        } else {
+            Comparacion(Modifier.padding(top = Espacio.l), relleno = 0.dp, izquierda = tuya, derecha = contra)
+        }
     }
 }
 
