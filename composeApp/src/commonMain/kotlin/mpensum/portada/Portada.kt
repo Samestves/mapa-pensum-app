@@ -147,6 +147,8 @@ fun Portada(
         val izquierda = seguro.calculateLeftPadding(LayoutDirection.Ltr)
         val derecha = seguro.calculateRightPadding(LayoutDirection.Ltr)
         val conTarjeta = suya != null || resumenes != null
+        // La tarjeta acostada: algo más de un tercio del ancho útil, entre 300 y 380 dp; las otras carreras se quedan lo demás
+        val anchoTarjeta = ((maxWidth - izquierda - derecha - Espacio.xl * 3) * 0.42f).coerceIn(300.dp, 380.dp)
         val tarjeta: @Composable (Boolean) -> Unit = { lleno ->
             val resumen = suya?.let { resumenes?.get(it.slug) }
             Box(if (lleno) Modifier.fillMaxSize() else Modifier) {
@@ -168,7 +170,7 @@ fun Portada(
             if (horizontal) {
                 // Las dos columnas nacen y acaban a la misma altura: bajo la cabecera de 48 dp y a 32 del borde
                 Row(Modifier.fillMaxSize().padding(start = izquierda + Espacio.xl, end = derecha + Espacio.xl, top = barra + 60.dp, bottom = Espacio.xxl)) {
-                    Box(Modifier.width(360.dp).fillMaxHeight()) {
+                    Box(Modifier.width(anchoTarjeta).fillMaxHeight()) {
                         if (conTarjeta) tarjeta(true)
                     }
                     Spacer(Modifier.width(24.dp))
@@ -200,7 +202,7 @@ fun Portada(
         // El rótulo comparte fila con la marca y el engranaje, justo sobre la columna de las otras carreras
         if (horizontal) BasicText(
             rotulo,
-            Modifier.padding(start = izquierda + Espacio.xl + 360.dp + Espacio.xl + Espacio.xxs, top = barra + Espacio.xxs + 17.dp).renglon(14.dp, 11.sp).sube(160, 0.dp, 480),
+            Modifier.padding(start = izquierda + Espacio.xl + anchoTarjeta + Espacio.xl + Espacio.xxs, top = barra + Espacio.xxs + 17.dp).renglon(14.dp, 11.sp).sube(160, 0.dp, 480),
             style = etiqueta(Paleta.tenue),
         )
 

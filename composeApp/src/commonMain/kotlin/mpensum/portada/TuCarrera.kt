@@ -9,6 +9,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -60,6 +61,7 @@ import mpensum.componentes.estiloUnidad
 import mpensum.componentes.IconoTrazo
 import mpensum.componentes.Lucide
 import mpensum.componentes.Silueta
+import mpensum.componentes.tamSilueta
 import mpensum.componentes.pulsable
 import mpensum.componentes.renglon
 import mpensum.componentes.ventana
@@ -106,6 +108,11 @@ private val TINTE get() = porTema(Color(0xFF101114).copy(alpha = 0.5f), Color.Wh
  * Al entrar, los puntos aprobados se encienden por columnas y la cifra cuenta
  * hasta tu avance; todo se lee al dibujar, nada recompone por cuadro.
  */
+/** En la tarjeta llena: de dónde arranca la silueta, lo mínimo que la separa del nombre y lo que reserva la cifra a su derecha */
+private val ARRIBA_SILUETA = 28.dp
+private val HUECO_SILUETA = 12.dp
+private val ANCHO_CIFRA = 120.dp
+
 @Composable
 internal fun TuCarrera(
     c: Carrera?,
@@ -133,27 +140,36 @@ internal fun TuCarrera(
             .pulsable({ alPulsar(origen.valor) }, escala = 0.985f)
             .drawBehind { cristalTarjeta(acento, ENFATICA.transform(tramo(300f, 700f)), if (lleno) 28.dp else 24.dp) },
     ) {
-        if (lleno) {
-            if (c != null) {
-                // Los puntos a paso de 16 (de 7 dp): la silueta es la protagonista de la tarjeta
-                Silueta(
-                    c.silueta, acento, Modifier.padding(start = Espacio.xl, top = 28.dp),
-                    hechas = resumen?.hechas ?: emptyList(),
-                    punto = 7.dp,
-                    hueco = 9.dp,
-                    huecoFila = 9.dp,
-                    apagado = 0.22f,
-                    encendido = { col, fila -> ENFATICA.transform(tramo(380f + col * 70f + fila * 12f, 320f)) },
-                )
-                if (resumen != null || !cargando) {
-                    Column(Modifier.align(Alignment.TopEnd).padding(top = 22.dp, end = Espacio.xl), horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Cifra(resumen?.porcentaje ?: 0, 56.sp) { if (resumen != null) ENFATICA.transform(tramo(380f, 900f)) else 1f }
-                        BasicText(if (resumen != null) "APROBADO" else "SIN MARCAS", Modifier.renglon(14.dp, 11.sp), style = etiqueta(Paleta.suave))
+        if (lleno) Column(Modifier.fillMaxSize()) {
+            // Arriba la silueta y la cifra; abajo el nombre. Son dos franjas de una columna: nunca se pisan
+            BoxWithConstraints(Modifier.weight(1f).fillMaxWidth()) {
+                if (c != null) {
+                    // Los puntos a paso de 16 (de 7 dp) si caben; en un teléfono bajito la silueta encoge entera, sin cortarse
+                    val (anchoNatural, altoNatural) = tamSilueta(c.silueta, 7.dp, 9.dp, 9.dp)
+                    val escala = minOf(
+                        1f,
+                        (maxHeight - ARRIBA_SILUETA - HUECO_SILUETA) / altoNatural,
+                        (maxWidth - Espacio.xl * 2 - ANCHO_CIFRA) / anchoNatural,
+                    ).coerceAtLeast(0.4f)
+                    Silueta(
+                        c.silueta, acento, Modifier.padding(start = Espacio.xl, top = ARRIBA_SILUETA),
+                        hechas = resumen?.hechas ?: emptyList(),
+                        punto = 7.dp * escala,
+                        hueco = 9.dp * escala,
+                        huecoFila = 9.dp * escala,
+                        apagado = 0.22f,
+                        encendido = { col, fila -> ENFATICA.transform(tramo(380f + col * 70f + fila * 12f, 320f)) },
+                    )
+                    if (resumen != null || !cargando) {
+                        Column(Modifier.align(Alignment.TopEnd).padding(top = 22.dp, end = Espacio.xl), horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Cifra(resumen?.porcentaje ?: 0, 56.sp) { if (resumen != null) ENFATICA.transform(tramo(380f, 900f)) else 1f }
+                            BasicText(if (resumen != null) "APROBADO" else "SIN MARCAS", Modifier.renglon(14.dp, 11.sp), style = etiqueta(Paleta.suave))
+                        }
                     }
                 }
             }
             // De abajo hacia arriba: la acción, el filete, y el nombre con su tipo sobre él
-            Column(Modifier.align(Alignment.BottomStart).fillMaxWidth().padding(start = Espacio.xl, end = Espacio.xl, bottom = Espacio.l)) {
+            Column(Modifier.fillMaxWidth().padding(start = Espacio.xl, end = Espacio.xl, bottom = Espacio.l)) {
                 BasicText(
                     c?.nombreCorto ?: "Elige tu carrera",
                     Modifier.renglon(38.dp, 32.sp),
@@ -175,8 +191,8 @@ internal fun TuCarrera(
                     }
                 }
             }
-            return@Box
         }
+        if (lleno) return@Box
         if (c != null) {
             // Lo aprobado encendido por columnas, de izquierda a derecha, y dentro de cada una de arriba abajo
             Silueta(
@@ -233,18 +249,14 @@ private fun Dato(c: Carrera, resumen: ResumenPortada?, cargando: Boolean, modifi
     Row(modifier, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Espacio.xs)) {
         when {
             resumen != null -> {
-                Box(Modifier.size(6.dp).background(Paleta.azul, CircleShape))
                 val semestre = resumen.semestreActual(c.silueta)
-                BasicText(
-                    buildAnnotatedString {
-                        append("${resumen.disponibles} por inscribir")
-                        if (semestre != null) {
-                            withStyle(SpanStyle(color = Paleta.apagada)) { append("  ·  ") }
-                            append("Semestre $semestre")
-                        }
-                    },
-                    style = estilo, maxLines = 1, overflow = TextOverflow.Ellipsis,
-                )
+                // El punto va con el primer renglón, no centrado entre los dos
+                Box(Modifier.align(if (semestre != null) Alignment.Top else Alignment.CenterVertically).padding(top = if (semestre != null) 5.dp else 0.dp).size(6.dp).background(Paleta.azul, CircleShape))
+                // En dos renglones: junto a «Continuar» una sola línea con los dos datos se cortaba con «…»
+                Column {
+                    BasicText("${resumen.disponibles} por inscribir", style = estilo, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    if (semestre != null) BasicText("Semestre $semestre", style = estilo.copy(color = Paleta.tenue), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                }
             }
             !cargando -> BasicText("Marca lo que ya aprobaste", style = estilo, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }

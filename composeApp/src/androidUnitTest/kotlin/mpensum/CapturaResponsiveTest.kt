@@ -200,7 +200,6 @@ abstract class BaseResponsive(private val tam: String, private val escalaLetra: 
     fun horarioSemana() {
         interior()
         pulsarIcono("Horario")
-        pulsar("Semana")
         foto("horario-semana")
     }
 
@@ -230,3 +229,15 @@ class CapturaResponsive360Test : BaseResponsive("360")
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 @Config(sdk = [35], qualifiers = "w412dp-h915dp-xxhdpi")
 class CapturaResponsive412Test : BaseResponsive("412-letra13", escalaLetra = 1.3f)
+
+/** Acostado: el teléfono de las maquetas (915 × 412) */
+@RunWith(RobolectricTestRunner::class)
+@GraphicsMode(GraphicsMode.Mode.NATIVE)
+@Config(sdk = [35], qualifiers = "w915dp-h412dp-land-xxhdpi")
+class CapturaResponsiveAcostado915Test : BaseResponsive("acostado-915")
+
+/** Acostado y bajito: un teléfono pequeño (780 × 360), lo que más aprieta el alto */
+@RunWith(RobolectricTestRunner::class)
+@GraphicsMode(GraphicsMode.Mode.NATIVE)
+@Config(sdk = [35], qualifiers = "w780dp-h360dp-land-xxhdpi")
+class CapturaResponsiveAcostado780Test : BaseResponsive("acostado-780")
