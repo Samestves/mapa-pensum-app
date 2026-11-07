@@ -50,7 +50,7 @@ import kotlin.test.assertTrue
  */
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
-@Config(sdk = [35], qualifiers = "w390dp-h844dp-xxhdpi")
+@Config(sdk = [35], qualifiers = "w360dp-h800dp-xxhdpi")
 class CapturaAvanceTest {
 
     @get:Rule
@@ -114,34 +114,34 @@ class CapturaAvanceTest {
 
     private fun foto(nombre: String) = regla.onRoot().captureRoboImage("build/capturas/$nombre.png")
 
-    private fun abrirDetalle(pieza: String = "TE GRADÚAS") {
+    private fun abrirDetalle(pieza: String = "¿Cuándo me gradúo?") {
         regla.onNodeWithText(pieza).performClick()
         regla.mainClock.advanceTimeBy(1400)
     }
 
-    /** Por semestres: un renglón por semestre con su anillo */
+    /** Este semestre: lo que te da aprobar lo que cursas y si reprobar mueve tu fecha */
     @Test
-    fun detallePorSemestres() {
+    fun detalleEsteSemestre() {
         montar(estado())
-        abrirDetalle("LLEVAS")
-        foto("avance-detalle-5-por-semestres")
+        abrirDetalle("Este semestre")
+        foto("avance-detalle-5-este-semestre")
     }
 
-    /** Puedes inscribir: las abiertas, primero las que más destraban */
+    /** Tu próximo semestre: lo que te conviene inscribir y lo demás que puedes */
     @Test
-    fun detalleInscribir() {
+    fun detalleProximo() {
         montar(estado())
-        abrirDetalle("PUEDES INSCRIBIR")
-        foto("avance-detalle-6-inscribir")
+        abrirDetalle("Tu próximo semestre")
+        foto("avance-detalle-6-proximo")
     }
 
     /** Electivas técnicas: la cuota, las casillas del plan y el selector al tocar una */
     @Test
     fun detalleElectivas() {
         montar(estado())
-        abrirDetalle("TÉCNICAS")
+        abrirDetalle("Técnicas")
         foto("avance-detalle-7-electivas")
-        regla.onAllNodesWithText("Elegir ›")[0].performClick()
+        regla.onAllNodesWithText("Elegir")[0].performClick()
         regla.mainClock.advanceTimeBy(1400)
         foto("avance-detalle-8-selector")
     }
@@ -196,31 +196,15 @@ class CapturaAvanceTest {
         foto("avance-detalle-0-cero")
     }
 
-    /** Semestre a semestre, con el próximo abierto y su botón al mapa */
-    @Test
-    fun semestres() {
-        val estado = estado()
-        estado.elegirCarga(6)
-        montar(estado)
-        abrirDetalle()
-        desplazarA("Verlas en el mapa")
-        regla.mainClock.advanceTimeBy(100)
-        foto("avance-detalle-3-semestres")
-    }
-
-    /** La cadena de materias que no puedes atrasar */
+    /** La cadena que no puedes atrasar, en vertical */
     @Test
     fun noAtrasar() {
-        val estado = estado()
-        estado.elegirCarga(6)
-        montar(estado)
-        abrirDetalle()
-        desplazarA("Verlas en el mapa")
-        regla.mainClock.autoAdvance = true
-        regla.onNodeWithText("Verlas en el mapa").performTouchInput { swipeUp(startY = bottom, endY = top - 1500f, durationMillis = 400) }
-        regla.mainClock.autoAdvance = false
-        regla.mainClock.advanceTimeBy(1500)
-                foto("avance-detalle-4-no-atrasar")
+        montar(estado())
+        abrirDetalle("No puedes atrasar")
+        foto("avance-detalle-4-no-atrasar")
+        desplazarA("Verla en el mapa")
+        regla.mainClock.advanceTimeBy(100)
+        foto("avance-detalle-4b-no-atrasar-pie")
     }
 
     /** El tema claro, en la hoja y en el detalle */
@@ -276,21 +260,13 @@ class CapturaAvanceTest {
         foto("avance-hoja-7-terminado")
     }
 
-    /** El pie: la apariencia y reiniciar; elegir Claro se guarda para toda la app */
+    /** El pie: las electivas y reiniciar */
     @Test
-    fun pieYApariencia() {
+    fun pie() {
         montar(estado())
         desplazarA("Reiniciar mi avance")
         regla.mainClock.advanceTimeBy(100)
         foto("avance-hoja-9-pie")
-        // El tema vive en una fila que se despliega y enseña el carrusel
-        regla.onNodeWithText("Tema").performClick()
-        regla.mainClock.advanceTimeBy(500)
-        regla.onNodeWithContentDescription("Claro").performClick()
-        regla.mainClock.advanceTimeBy(500)
-        foto("avance-hoja-10-claro-elegido")
-        assertEquals(Apariencia.CLARO, Preferencias.tema.value)
-        assertEquals("claro", Preferencias.leerTexto("tema"))
     }
 
     /** Reiniciar te deja en cero: sin marcas, sin electivas puestas y con la carga habitual, también al reabrir */

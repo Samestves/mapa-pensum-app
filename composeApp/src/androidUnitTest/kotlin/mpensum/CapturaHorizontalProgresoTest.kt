@@ -97,12 +97,23 @@ class CapturaHorizontalProgresoTest {
         foto("1-hoja")
     }
 
-    @Test
-    fun detalle() {
+    private fun detalle(fila: String, nombre: String) {
         montar(estado())
-        regla.onNodeWithText("TE GRADÚAS").performClick()
+        regla.onNodeWithText(fila).performClick()
         regla.mainClock.advanceTimeBy(1400)
-        foto("2-detalle")
+        foto(nombre)
     }
+
+    @Test
+    fun graduacion() = detalle("¿Cuándo me gradúo?", "2-graduacion")
+
+    @Test
+    fun esteSemestre() = detalle("Este semestre", "3-este-semestre")
+
+    @Test
+    fun proximo() = detalle("Tu próximo semestre", "4-proximo")
+
+    @Test
+    fun cadena() = detalle("No puedes atrasar", "5-cadena")
 }
 

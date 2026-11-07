@@ -1,10 +1,8 @@
 package mpensum.carrera
 
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -14,15 +12,15 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -37,7 +35,6 @@ import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -46,97 +43,77 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.lerp
-import androidx.compose.ui.graphics.vector.PathParser
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
-import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
-import mpensum.componentes.CifraConUnidad
+import mpensum.componentes.Lucide
+import mpensum.componentes.SEPARACION_UNIDAD
 import mpensum.componentes.dibujarCifraConUnidad
+import mpensum.componentes.esApaisado
 import mpensum.componentes.estiloCifra
 import mpensum.componentes.estiloUnidad
-import mpensum.componentes.CarruselTemas
-import mpensum.componentes.IconoTrazo
-import mpensum.componentes.esApaisado
-import mpensum.componentes.pulsable
-import mpensum.componentes.Lucide
-import mpensum.componentes.tarjeta
-import mpensum.datos.Pensum
-import mpensum.logica.AvanceGrupo
-import mpensum.logica.Periodo
-import mpensum.logica.avanceDeGrupos
-import mpensum.plataforma.ManejarAtras
-import mpensum.plataforma.Preferencias
-import mpensum.tema.Espacio
-import mpensum.tema.Radio
-import mpensum.tema.Tipo
-import mpensum.tema.Alto
 import mpensum.componentes.margenPantalla
 import mpensum.componentes.ventana
-import mpensum.tema.Paleta
-import mpensum.tema.Tema
-import mpensum.tema.acentoDe
-import mpensum.tema.colorDe
-import mpensum.tema.inter
-import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.IntrinsicSize
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.text.style.TextAlign
-import mpensum.logica.CuentaSemestre
+import mpensum.datos.Grupo
+import mpensum.datos.Pensum
+import mpensum.logica.AvanceGrupo
+import mpensum.logica.EstadoMateria
 import mpensum.logica.EstimacionGraduacion
+import mpensum.logica.Periodo
+import mpensum.logica.SemestreCapsulas
+import mpensum.logica.SiApruebas
+import mpensum.logica.avanceDeGrupos
+import mpensum.logica.capsulasDe
+import mpensum.logica.cargaMasRapida
+import mpensum.logica.cursandoDe
+import mpensum.logica.planesPorCarga
+import mpensum.logica.siApruebasLoQueCursas
+import mpensum.logica.ucTipicaDe
 import mpensum.mapa.tituloGrupo
+import mpensum.plataforma.ManejarAtras
+import mpensum.tema.Espacio
+import mpensum.tema.Paleta
+import mpensum.tema.Tipo
+import mpensum.tema.inter
 import mpensum.tema.jost
 import kotlin.math.roundToInt
 
 /*
- * La hoja del progreso en el teléfono, en bento (maqueta K1):
+ * La hoja del progreso (docs/maquetas/progreso-refinado.html):
  *
- *   1. Una pieza ancha «LLEVAS»: el porcentaje, las UC y una barra partida con
- *      un segmento por semestre. Abre el detalle por semestres.
- *   2. «TE GRADÚAS» (abre ¿Cuándo me gradúo?), «PUEDES INSCRIBIR» (en azul) y
- *      una pieza por cada grupo de electivas con meta. Cada una abre su detalle.
- *   3. Dos renglones callados, sin tarjeta: el tema y reiniciar.
+ *   1. La tarjeta de arriba: el porcentaje con lo aprobado debajo, la fecha en
+ *      la esquina, la barra de cápsulas con su regla de semestres y una frase
+ *      calculada con lo que te da aprobar lo que cursas.
+ *   2. Tres preguntas y la fecha en filas agrupadas: este semestre, el
+ *      próximo, lo que no puedes atrasar y cuándo te gradúas.
+ *   3. Las electivas con cuota, una fila por grupo.
+ *   4. Reiniciar, callado.
  *
- * Los detalles (DetalleGraduacion, DetalleSemestres, DetalleInscribir y
- * DetalleElectivas) viven dentro de la misma hoja: entran deslizándose desde
- * la derecha y el atrás del sistema vuelve a la hoja. Toda la hoja habla
- * Inter, con las cifras en Light.
- *
- * En un teléfono acostado la hoja se ensancha y la rejilla pasa a tres
- * columnas: «LLEVAS» ocupa la primera a dos filas de alto y las demás piezas
- * van en rejilla de dos a su derecha, con un solo scroll por si no cabe.
+ * Cada fila abre su pantalla interna dentro de la misma hoja: entra
+ * deslizándose desde la derecha y el atrás del sistema vuelve a la hoja.
+ * Acostada, la hoja se parte en dos columnas con su propio scroll: la tarjeta
+ * a la izquierda y las listas a la derecha.
  */
 
-/** Lo más ancha que llega la hoja del progreso acostada, con sus tres columnas */
+/** Lo más ancha que llega la hoja del progreso acostada, con sus dos columnas */
 private val ANCHO_APAISADO = 840.dp
 
-/** El fondo de las piezas del bento: la tinta al 4,5 % */
-private const val VELO_PIEZA = 0.045f
-
-/** El círculo del «›» de cada pieza */
-private val LADO_MAS = 22.dp
+/** Del tope de la cifra héroe a «13 / 153 UC» */
+private val BAJO_CIFRA = 11.dp
 
 /** Los rótulos: mayúsculas semibold de 11 sp con 0,05 em de espaciado */
 @Composable
@@ -162,27 +139,34 @@ fun numeroAnimado(destino: Float): Float {
     return valor.value
 }
 
-/** La pastilla de icono: 32 dp, radio 9, la tinta al 7 % y el icono de 18 dp */
-@Composable
-internal fun Pastilla(trazos: List<Path>, modifier: Modifier = Modifier, color: Color = Paleta.suave) {
-    Box(modifier.size(32.dp).clip(RoundedCornerShape(9.dp)).background(Paleta.tinta.copy(alpha = 0.07f)), contentAlignment = Alignment.Center) {
-        IconoTrazo(trazos, color, 18.dp, 1.9f)
-    }
-}
-
-/** Los detalles a los que lleva cada pieza de la hoja */
+/** Las pantallas internas a las que lleva cada fila de la hoja */
 internal sealed interface DetalleAvance {
+    data object EsteSemestre : DetalleAvance
+    data object Proximo : DetalleAvance
+    data object Cadena : DetalleAvance
     data object Graduacion : DetalleAvance
-    data object Semestres : DetalleAvance
-    data object Inscribir : DetalleAvance
     data class Electivas(val clave: String) : DetalleAvance
 }
 
-private fun tituloDe(detalle: DetalleAvance, estado: EstadoCarrera): String = when (detalle) {
-    DetalleAvance.Graduacion -> "¿Cuándo me gradúo?"
-    DetalleAvance.Semestres -> "Por semestres"
-    DetalleAvance.Inscribir -> "Puedes inscribir"
-    is DetalleAvance.Electivas -> estado.pensum.grupos.firstOrNull { it.clave == detalle.clave }?.let(::tituloGrupo) ?: "Electivas"
+/** La pastilla, el título y el subtítulo de cada pantalla interna */
+private fun cabeceraDe(d: DetalleAvance, estado: EstadoCarrera, g: EstimacionGraduacion, hoy: Periodo): DatosCabecera = when (d) {
+    DetalleAvance.EsteSemestre -> DatosCabecera(IconosHoja.libroAbierto, "Este semestre", "Qué te abre aprobarlas")
+    DetalleAvance.Proximo -> DatosCabecera(
+        IconosHoja.calendario,
+        hoy.mas(1).rango(),
+        g.periodoFinal?.let { "Para graduarte en ${it.mesYAnio()}" } ?: "Qué inscribir",
+        azul = true,
+    )
+    DetalleAvance.Cadena -> DatosCabecera(
+        IconosHoja.eslabon,
+        "No puedes atrasar",
+        g.cuelloDeBotella.size.let { if (it == 1) "1 materia en tu cadena" else "$it materias encadenadas" },
+    )
+    DetalleAvance.Graduacion -> DatosCabecera(Lucide.birrete, "¿Cuándo me gradúo?", "Depende de tu ritmo")
+    is DetalleAvance.Electivas -> {
+        val grupo = estado.pensum.grupos.firstOrNull { it.clave == d.clave }
+        DatosCabecera(grupo?.let(::iconoDeGrupo) ?: IconosHoja.libroAbierto, grupo?.let(::tituloGrupo) ?: "Electivas", "Tú eliges cuáles")
+    }
 }
 
 @Composable
@@ -206,17 +190,18 @@ fun BoxScope.HojaAvance(abierta: Boolean, estado: EstadoCarrera, alCerrar: () ->
         ancho = if (apaisado) ANCHO_APAISADO else 560.dp,
         desplazable = !apaisado,
         cabecera = {
-            val abajo = if (apaisado) Espacio.xs else Espacio.m
             AnimatedContent(detalle, transitionSpec = { fadeIn(tween(220, 60)) togetherWith fadeOut(tween(120)) }, label = "cabecera") { d ->
-                if (d != null) CabeceraDetalle(tituloDe(d, estado), abajo) { detalle = null }
-                else Row(Modifier.fillMaxWidth().padding(start = margenPantalla(), end = margenPantalla(), top = Espacio.xxs, bottom = abajo), verticalAlignment = Alignment.Top) {
-                    Column(Modifier.weight(1f)) {
-                        BasicText("TU AVANCE", style = versal(Paleta.tenue))
-                        // En ventana compacta el título se encoge antes que saltar de línea
-                        if (ventana().compacta) BasicText(estado.pensum.nombre, Modifier.padding(top = Espacio.xxs), style = estilo(Tipo.titulo, Paleta.tinta, FontWeight.Light, 30), maxLines = 1, autoSize = TextAutoSize.StepBased(minFontSize = Tipo.l, maxFontSize = Tipo.titulo))
-                        else BasicText(estado.pensum.nombre, Modifier.padding(top = Espacio.xxs), style = estilo(Tipo.titulo, Paleta.tinta, FontWeight.Light, 30))
+                if (d == null) {
+                    CabeceraHoja(estado.pensum.nombre, alCerrar)
+                } else {
+                    Row(
+                        Modifier.fillMaxWidth().padding(start = margenPantalla(), end = margenPantalla(), top = 7.dp, bottom = if (apaisado) Espacio.s else 0.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        BotonRedondo(Lucide.atras, "Volver") { detalle = null }
+                        // Acostada no sobra alto: el título va junto al botón en vez de debajo
+                        if (apaisado) CabeceraInterna(cabeceraDe(d, estado, estado.graduacion, hoy), Modifier.padding(start = Espacio.m))
                     }
-                    BotonCerrar(alCerrar)
                 }
             }
         },
@@ -236,12 +221,19 @@ fun BoxScope.HojaAvance(abierta: Boolean, estado: EstadoCarrera, alCerrar: () ->
             contentAlignment = Alignment.TopStart,
             label = "detalle",
         ) { d ->
-            when (d) {
-                null -> ContenidoHoja(estado, hoy) { detalle = it }
-                DetalleAvance.Graduacion -> DetalleGraduacion(estado, hoy, alVerEnMapa)
-                DetalleAvance.Semestres -> DetalleSemestres(estado, alVerEnMapa)
-                DetalleAvance.Inscribir -> DetalleInscribir(estado, alVerEnMapa)
-                is DetalleAvance.Electivas -> DetalleElectivas(estado, d.clave) { casilla = it }
+            if (d == null) {
+                ContenidoHoja(estado, hoy) { detalle = it }
+            } else {
+                Column(if (apaisado) Modifier.fillMaxSize() else Modifier) {
+                    if (!apaisado) CabeceraInterna(cabeceraDe(d, estado, estado.graduacion, hoy), Modifier.padding(start = margenPantalla(), end = margenPantalla(), top = Espacio.m))
+                    when (d) {
+                        DetalleAvance.EsteSemestre -> DetalleEsteSemestre(estado, hoy)
+                        DetalleAvance.Proximo -> DetalleProximo(estado, hoy, alVerEnMapa)
+                        DetalleAvance.Cadena -> DetalleCadena(estado, hoy, alVerEnMapa)
+                        DetalleAvance.Graduacion -> DetalleGraduacion(estado, hoy)
+                        is DetalleAvance.Electivas -> DetalleElectivas(estado, d.clave) { casilla = it }
+                    }
+                }
             }
         }
     }
@@ -258,300 +250,259 @@ fun BoxScope.HojaAvance(abierta: Boolean, estado: EstadoCarrera, alCerrar: () ->
     )
 }
 
+/** «TU AVANCE», el nombre de la carrera en Jost Light 28 y el botón de cerrar */
 @Composable
-private fun CabeceraDetalle(titulo: String, abajo: Dp, alVolver: () -> Unit) {
-    Box(Modifier.fillMaxWidth().padding(start = margenPantalla(), end = margenPantalla(), top = Espacio.xxs, bottom = abajo), contentAlignment = Alignment.Center) {
-        Box(
-            Modifier.align(Alignment.CenterStart).size(Alto.icono).clip(RoundedCornerShape(Radio.Opcion)).background(Paleta.tinta.copy(alpha = 0.08f)).clickable(role = Role.Button, onClick = alVolver)
-                .semantics { contentDescription = "Volver" },
-            contentAlignment = Alignment.Center,
-        ) { IconoTrazo(Lucide.atras, Paleta.suave, 18.dp, 2.2f) }
-        // Un título largo («Electivas sociohumanísticas») se encoge antes que chocar con el botón
-        BasicText(
-            titulo,
-            Modifier.padding(horizontal = Alto.icono + Espacio.xs),
-            style = estilo(Tipo.xl, Paleta.tinta, FontWeight.Medium, 22).copy(textAlign = TextAlign.Center),
-            maxLines = 1,
-            autoSize = TextAutoSize.StepBased(minFontSize = Tipo.m, maxFontSize = Tipo.xl),
-        )
+private fun CabeceraHoja(nombre: String, alCerrar: () -> Unit) {
+    Row(Modifier.fillMaxWidth().padding(start = margenPantalla(), end = margenPantalla(), top = 7.dp), verticalAlignment = Alignment.CenterVertically) {
+        Column(Modifier.weight(1f).padding(end = Espacio.s)) {
+            BasicText("TU AVANCE", style = estiloRotulo())
+            // En ventana compacta el título se encoge antes que saltar de línea
+            if (ventana().compacta) {
+                BasicText(nombre, Modifier.padding(top = Espacio.xxs), style = estiloTitulo(), maxLines = 1, autoSize = TextAutoSize.StepBased(minFontSize = Tipo.xl, maxFontSize = 28.sp))
+            } else {
+                BasicText(nombre, Modifier.padding(top = Espacio.xxs), style = estiloTitulo())
+            }
+        }
+        BotonRedondo(Lucide.cerrar, "Cerrar", alCerrar)
     }
 }
 
-/** El contenido de un detalle: de pie, una columna (la hoja desplaza); acostado, dos con su propio scroll cada una */
+/**
+ * El cuerpo de una pantalla interna: de pie, una columna (la hoja desplaza)
+ * que empieza 24 dp bajo la cabecera; acostado, dos con su propio scroll: las
+ * comparaciones a la izquierda y las listas a la derecha.
+ */
 @Composable
 internal fun CuerpoDetalle(izquierda: @Composable ColumnScope.() -> Unit, derecha: @Composable ColumnScope.() -> Unit) {
     if (esApaisado()) {
-        Row(Modifier.fillMaxSize().padding(start = margenPantalla(), end = margenPantalla(), bottom = Espacio.m), horizontalArrangement = Arrangement.spacedBy(Espacio.xl)) {
-            Column(Modifier.weight(1f).fillMaxHeight().verticalScroll(rememberScrollState()), content = izquierda)
-            Column(Modifier.weight(1.3f).fillMaxHeight().verticalScroll(rememberScrollState()), content = derecha)
+        Row(Modifier.fillMaxSize().padding(start = margenPantalla(), end = margenPantalla()), horizontalArrangement = Arrangement.spacedBy(Espacio.xl)) {
+            Column(Modifier.weight(1f).fillMaxHeight().verticalScroll(rememberScrollState()).padding(top = Espacio.xxs, bottom = Espacio.l), content = izquierda)
+            Column(Modifier.weight(1.2f).fillMaxHeight().verticalScroll(rememberScrollState()).padding(top = Espacio.xxs, bottom = Espacio.l), content = derecha)
         }
     } else {
-        Column(Modifier.padding(start = margenPantalla(), end = margenPantalla(), top = Espacio.xs, bottom = Espacio.xxl)) {
+        Column(Modifier.padding(start = margenPantalla(), end = margenPantalla(), top = Espacio.xl, bottom = Espacio.xxl)) {
             izquierda()
             derecha()
         }
     }
 }
 
-/** El hilo de 1 dp que separa los renglones callados */
+/** Lo que separa del techo el primer rótulo de la columna de las listas: acostada va arriba del todo */
 @Composable
-internal fun Hilo(modifier: Modifier = Modifier) {
-    Box(modifier.fillMaxWidth().height(1.dp).background(Paleta.tinta.copy(alpha = 0.08f)))
-}
+internal fun arribaPrimerRotulo() = if (esApaisado()) 0.dp else Espacio.xl
 
 // ─────────────────────────────────── La hoja ──────────────────────────────────
 
 @Composable
 private fun ContenidoHoja(estado: EstadoCarrera, hoy: Periodo, abrir: (DetalleAvance) -> Unit) {
+    val pensum = estado.pensum
     val g = estado.graduacion
-    val cuotas = remember(estado.marcas) { avanceDeGrupos(estado.pensum.grupos, estado.marcas).values.filter { it.meta != null } }
-    val cuentas = remember(estado.marcas, estado.casillas) { cuentasPorSemestre(estado) }
-    val progreso = estado.progreso
-
-    val llevas: @Composable (Modifier) -> Unit = { m -> PiezaLlevas(estado, cuentas, m) { abrir(DetalleAvance.Semestres) } }
-    // Las demás piezas, de dos en dos en la rejilla
-    val demas: List<@Composable (Modifier) -> Unit> = buildList {
-        add { m -> PiezaGraduas(g, m) { abrir(DetalleAvance.Graduacion) } }
-        add { m -> PiezaInscribir(progreso.disponibles, hoy.mas(1), m) { abrir(DetalleAvance.Inscribir) } }
-        cuotas.forEach { c -> add { m -> PiezaCuota(c, m) { abrir(DetalleAvance.Electivas(c.clave)) } } }
+    val semestres = remember(estado.marcas, estado.casillas) { capsulasDe(pensum, estado.marcas, estado::enCasilla) }
+    val cursando = remember(estado.marcas) { cursandoDe(pensum, estado.marcas).size }
+    val si = remember(estado.marcas) { if (cursando > 0) siApruebasLoQueCursas(pensum, estado.marcas) else null }
+    // Lo más rápido que dejan las prelaciones, probando de 1 a 8 materias por semestre
+    val rapida = remember(estado.marcas, estado.casillas, hoy) {
+        val planes = planesPorCarga(pensum, estado.marcas, estado.casillas, hoy)
+        planes[cargaMasRapida(planes) - 1].periodoFinal
     }
-    val callados: @Composable () -> Unit = {
-        Hilo()
-        FilaTema()
-        Hilo()
+
+    val heroe: @Composable () -> Unit = { TarjetaHeroe(estado, g, semestres, si, cursando) }
+    val listas: @Composable () -> Unit = {
+        ListaPreguntas(g, hoy, cursando, rapida, abrir)
+        TarjetaElectivas(estado, abrir)
+        Spacer(Modifier.height(Espacio.xl))
         BotonReinicio(estado)
     }
 
     if (esApaisado()) {
-        Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(start = margenPantalla(), end = margenPantalla(), top = Espacio.xxs, bottom = Espacio.l)) {
-            Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(Espacio.xs)) {
-                llevas(Modifier.weight(1f).fillMaxHeight())
-                Column(Modifier.weight(2f), verticalArrangement = Arrangement.spacedBy(Espacio.xs)) {
-                    demas.chunked(2).forEach { FilaDePiezas(it) }
-                }
-            }
-            Spacer(Modifier.height(Espacio.m))
-            callados()
+        Row(Modifier.fillMaxSize().padding(start = margenPantalla(), end = margenPantalla()), horizontalArrangement = Arrangement.spacedBy(Espacio.m)) {
+            Column(Modifier.weight(1f).fillMaxHeight().verticalScroll(rememberScrollState()).padding(top = Espacio.l, bottom = Espacio.l)) { heroe() }
+            Column(Modifier.weight(1.2f).fillMaxHeight().verticalScroll(rememberScrollState()).padding(top = Espacio.l, bottom = Espacio.l)) { listas() }
         }
     } else {
-        Column(Modifier.padding(start = margenPantalla(), end = margenPantalla(), top = Espacio.xxs, bottom = Espacio.xl), verticalArrangement = Arrangement.spacedBy(Espacio.xs)) {
-            llevas(Modifier.fillMaxWidth())
-            demas.chunked(2).forEach { FilaDePiezas(it) }
+        Column(Modifier.padding(start = margenPantalla(), end = margenPantalla(), top = Espacio.l, bottom = Espacio.xl)) {
+            heroe()
             Spacer(Modifier.height(Espacio.m))
-            callados()
+            listas()
         }
     }
 }
 
-/** Una fila de la rejilla: una o dos piezas del mismo alto; la que va sola ocupa el ancho */
-@Composable
-private fun FilaDePiezas(piezas: List<@Composable (Modifier) -> Unit>) {
-    Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(Espacio.xs)) {
-        piezas.forEach { it(Modifier.weight(1f).fillMaxHeight()) }
-    }
-}
+// ─────────────────────────────────── La tarjeta de arriba ──────────────────────────────────
 
 /**
- * La pieza del bento: fondo de tinta al 4,5 %, radio de bloque, se hunde al
- * tocarla y lleva el circulito «›» arriba a la derecha. El contenido va en una
- * columna con el relleno de la tarjeta.
+ * La cifra a la izquierda con lo aprobado debajo; la fecha arriba a la
+ * derecha, con su tope a la altura del de la cifra, y «Te gradúas» debajo. Si
+ * no caben a lo ancho, la fecha baja bajo la cifra. Luego la barra de
+ * cápsulas y la frase.
  */
 @Composable
-private fun Pieza(alTocar: () -> Unit, modifier: Modifier = Modifier, contenido: @Composable ColumnScope.() -> Unit) {
-    Box(
-        modifier
-            .pulsable(alTocar, escala = 0.985f)
-            .clip(RoundedCornerShape(Radio.Bloque))
-            .background(Paleta.tinta.copy(alpha = VELO_PIEZA))
-            .semantics(mergeDescendants = true) {},
-    ) {
-        Column(Modifier.fillMaxWidth().fillMaxHeight().padding(Espacio.m), content = contenido)
-        Box(
-            Modifier.align(Alignment.TopEnd).padding(Espacio.s).size(LADO_MAS).clip(CircleShape).background(Paleta.tinta.copy(alpha = 0.06f)),
-            contentAlignment = Alignment.Center,
-        ) { IconoTrazo(Lucide.siguiente, Paleta.suave, 12.dp, 2.2f) }
-    }
-}
-
-/** El rótulo de una pieza: deja sitio al «›» y, si es largo, baja a otra línea */
-@Composable
-private fun Rotulo(texto: String, color: Color = Paleta.tenue) {
-    BasicText(texto, Modifier.padding(end = LADO_MAS + Espacio.xxs), style = versal(color), maxLines = 2, overflow = TextOverflow.Ellipsis)
-}
-
-/** «LLEVAS»: el porcentaje, lo aprobado y la barra partida en un segmento por semestre */
-@Composable
-private fun PiezaLlevas(estado: EstadoCarrera, cuentas: List<Pair<Int, CuentaSemestre>>, modifier: Modifier, alTocar: () -> Unit) {
+private fun TarjetaHeroe(estado: EstadoCarrera, g: EstimacionGraduacion, semestres: List<SemestreCapsulas>, si: SiApruebas?, cursando: Int) {
     val progreso = estado.progreso
     val conUc = progreso.porcentaje != null
     val llevas = if (conUc) progreso.ucAprobadas + progreso.ucElectivas else progreso.aprobadas
     val de = if (conUc) progreso.ucTitulo!! else progreso.total
     val porcentaje = progreso.avance.roundToInt()
-    // Acostada la pieza es una columna angosta: los textos van bajo la cifra, como en compactas
-    val apilada = ventana().compacta || ventana().letraGrande || esApaisado()
-    Pieza(alTocar, modifier) {
-        Rotulo("LLEVAS")
-        val textos: @Composable (Modifier) -> Unit = { m ->
-            Column(m) {
-                BasicText(
-                    buildAnnotatedString {
-                        withStyle(SpanStyle(fontWeight = FontWeight.SemiBold, color = Paleta.tinta)) { append("$llevas") }
-                        append(" de $de ${if (conUc) "UC" else "materias"}")
-                    },
-                    style = estilo(Tipo.xs, Paleta.tenue, interlinea = 17),
-                )
-                BasicText(
-                    "${progreso.aprobadas} ${if (progreso.aprobadas == 1) "aprobada" else "aprobadas"} · ${progreso.cursando} cursando",
-                    style = estilo(Tipo.xs, Paleta.tenue, interlinea = 17),
-                )
-            }
-        }
-        Spacer(Modifier.height(Espacio.xs))
-        if (apilada) {
-            CifraDibujada(porcentaje)
-            textos(Modifier.padding(top = Espacio.xxs))
-        } else {
-            val digitos = porcentaje.toString().length
-            Row(verticalAlignment = Alignment.Bottom) {
-                CifraDibujada(porcentaje, Modifier.width((digitos * 40 + 26).dp))
-                textos(Modifier.padding(start = Espacio.xs, bottom = Espacio.xxs))
-            }
-        }
-        if (cuentas.isNotEmpty()) {
-            Spacer(Modifier.height(Espacio.m))
-            Spacer(Modifier.weight(1f))
-            BarraPartida(cuentas.map { it.second })
-            Row(Modifier.fillMaxWidth().padding(top = Espacio.xs)) {
-                BasicText("Semestre ${cuentas.first().first}", Modifier.weight(1f), style = estilo(Tipo.xs, Paleta.tenue, interlinea = 16))
-                BasicText("${cuentas.last().first}", style = estilo(Tipo.xs, Paleta.tenue, interlinea = 16))
-            }
-        }
+    val fuerte = SpanStyle(color = Paleta.tinta, fontWeight = FontWeight.Medium)
+
+    Column(Modifier.fillMaxWidth().superficie().padding(Espacio.m)) {
+        DosALoAncho(
+            hueco = Espacio.m,
+            vertical = Espacio.m,
+            izquierda = {
+                Column {
+                    CifraHeroe(porcentaje)
+                    BasicText(
+                        buildAnnotatedString {
+                            withStyle(fuerte) { append("$llevas") }
+                            append(" / $de ${if (conUc) "UC" else "materias"}")
+                        },
+                        Modifier.padding(top = BAJO_CIFRA),
+                        style = estiloNota(),
+                    )
+                }
+            },
+            derecha = {
+                val final = g.periodoFinal
+                if (!g.terminado && final != null) {
+                    Column(horizontalAlignment = Alignment.End) {
+                        Fecha(final.mesYAnio())
+                        BasicText("Te gradúas", Modifier.padding(top = Espacio.xs), style = estiloNota())
+                    }
+                }
+            },
+        )
+        BarraCapsulas(semestres, Modifier.padding(top = Espacio.l))
+        BasicText(
+            buildAnnotatedString {
+                when {
+                    g.terminado -> append("Completaste la carrera.")
+                    si != null && cursando > 0 -> {
+                        append("Si apruebas ")
+                        withStyle(fuerte) { append(if (cursando == 1) "la que cursas" else "las $cursando que cursas") }
+                        append(":\nllegas al ")
+                        withStyle(fuerte) { append("${si.avance.roundToInt()}%") }
+                        when (val n = si.seAbren.size) {
+                            0 -> append(".")
+                            1 -> {
+                                append(" y se te abre ")
+                                withStyle(fuerte) { append("1") }
+                                append(".")
+                            }
+                            else -> {
+                                append(" y se te abren ")
+                                withStyle(fuerte) { append("$n") }
+                                append(".")
+                            }
+                        }
+                    }
+                    progreso.disponibles > 0 -> {
+                        append("Puedes inscribir ")
+                        withStyle(fuerte) { append("${progreso.disponibles} ${if (progreso.disponibles == 1) "materia" else "materias"}") }
+                        append(" ahora.")
+                    }
+                    else -> append("Por ahora no hay materias que inscribir.")
+                }
+            },
+            Modifier.padding(top = Espacio.m),
+            style = estiloCuerpo(),
+        )
     }
 }
 
 /**
- * Un segmento por semestre, de 6 dp: lo aprobado en tinta y, a continuación,
- * lo que cursas en tinta al 45 %. Se dibuja de una sola vez, sin un nodo por segmento.
+ * El porcentaje héroe (Inter Display 200 a 64 sp) con su % en la línea base,
+ * recortado a sus mayúsculas: su tope es el tope del número. Cuenta al
+ * dibujar, sin recomponer.
  */
 @Composable
-private fun BarraPartida(cuentas: List<CuentaSemestre>) {
-    val tinta = Paleta.tinta
-    Canvas(Modifier.fillMaxWidth().height(6.dp)) {
-        val hueco = 3.dp.toPx()
-        val n = cuentas.size
-        val ancho = (size.width - hueco * (n - 1)) / n
-        val radio = CornerRadius(size.height / 2f)
-        cuentas.forEachIndexed { k, c ->
-            val x = k * (ancho + hueco)
-            drawRoundRect(tinta.copy(alpha = 0.10f), Offset(x, 0f), Size(ancho, size.height), radio)
-            if (c.total > 0) {
-                val cursando = (c.hechas + c.cursando).toFloat() / c.total
-                val hechas = c.hechas.toFloat() / c.total
-                if (cursando > 0f) drawRoundRect(tinta.copy(alpha = 0.45f), Offset(x, 0f), Size(ancho * cursando, size.height), radio)
-                if (hechas > 0f) drawRoundRect(tinta, Offset(x, 0f), Size(ancho * hechas, size.height), radio)
-            }
-        }
-    }
-}
-
-/** «TE GRADÚAS»: la fecha y el ritmo con que se calculó */
-@Composable
-private fun PiezaGraduas(g: EstimacionGraduacion, modifier: Modifier, alTocar: () -> Unit) {
-    Pieza(alTocar, modifier) {
-        Rotulo(if (g.terminado) "TU CARRERA" else "TE GRADÚAS")
-        BasicText(
-            g.periodoFinal?.mesYAnio() ?: "Completa",
-            Modifier.padding(top = Espacio.xs),
-            style = TextStyle(fontFamily = jost(), fontWeight = FontWeight.Light, fontSize = Tipo.titulo, lineHeight = 28.sp, color = Paleta.tinta),
-            maxLines = 1,
-            autoSize = TextAutoSize.StepBased(minFontSize = Tipo.l, maxFontSize = Tipo.titulo),
-        )
-        if (!g.terminado) BasicText("a ${g.carga} ${if (g.carga == 1) "materia" else "materias"} por semestre", Modifier.padding(top = Espacio.xxs), style = estilo(Tipo.xs, Paleta.tenue, interlinea = 16))
-    }
-}
-
-/** «PUEDES INSCRIBIR»: en azul, cuántas materias están abiertas y para qué periodo */
-@Composable
-private fun PiezaInscribir(cuantas: Int, periodo: Periodo, modifier: Modifier, alTocar: () -> Unit) {
-    Pieza(alTocar, modifier) {
-        Rotulo("PUEDES INSCRIBIR", Paleta.azul)
-        if (cuantas == 0) {
-            BasicText("Nada por ahora", Modifier.padding(top = Espacio.xs), style = estilo(Tipo.xl, Paleta.tenue, FontWeight.Light, 24))
-        } else {
-            CifraConUnidad("$cuantas", if (cuantas == 1) "materia" else "materias", Tipo.cifra, Modifier.padding(top = Espacio.xxs), color = Paleta.azul, separacion = Espacio.xxs)
-            BasicText(periodo.rango(), Modifier.padding(top = Espacio.xxs), style = estilo(Tipo.xs, Paleta.tenue, interlinea = 16))
-        }
-    }
-}
-
-/** Una cuota de electivas: su rótulo corto, lo que llevas de lo que pide el título y una barrita */
-@Composable
-private fun PiezaCuota(g: AvanceGrupo, modifier: Modifier, alTocar: () -> Unit) {
-    val meta = g.meta ?: return
-    Pieza(alTocar, modifier) {
-        Rotulo(rotuloCorto(g.titulo))
-        CifraConUnidad("${g.uc}", "/ $meta UC", Tipo.cifra, Modifier.padding(top = Espacio.xxs), separacion = Espacio.xxs)
-        Spacer(Modifier.height(Espacio.s))
-        BarraDeUc(g.uc, meta, 4.dp)
-    }
-}
-
-/** «Electivas técnicas» → «TÉCNICAS»; «Electivas sociohumanísticas» → «SOCIOHUM.» */
-private fun rotuloCorto(titulo: String): String {
-    val resto = titulo.removePrefix("Electivas ").uppercase()
-    return if (resto.startsWith("SOCIO")) "SOCIOHUM." else resto
-}
-
-/** La barrita de lo que llevas de una cuota: tinta sobre tinta al 8 % */
-@Composable
-internal fun BarraDeUc(uc: Int, meta: Int, alto: Dp) {
-    val fraccion = if (meta > 0) (uc.toFloat() / meta).coerceIn(0f, 1f) else 0f
-    Box(Modifier.fillMaxWidth().height(alto).clip(RoundedCornerShape(alto / 2)).background(Paleta.tinta.copy(alpha = 0.08f))) {
-        if (fraccion > 0f) Box(Modifier.fillMaxWidth(fraccion).fillMaxHeight().clip(RoundedCornerShape(alto / 2)).background(Paleta.tinta))
-    }
-}
-
-/** El porcentaje grande y fino (Inter 200) con el signo pequeño en la línea base. Cuenta al dibujar, sin recomponer */
-@Composable
-private fun CifraDibujada(porcentaje: Int, modifier: Modifier = Modifier.fillMaxWidth()) {
+private fun CifraHeroe(porcentaje: Int) {
     val cuenta = remember { Animatable(0f) }
     LaunchedEffect(porcentaje) { cuenta.animateTo(1f, tween(ENTRADA_CIFRA, easing = ENFATICA)) }
     val medidor = rememberTextMeasurer()
-    val numero = estiloCifra(64.sp)
+    val numero = estiloCifra(64.sp, interlinea = 64.sp)
     val signo = estiloUnidad(64.sp)
-    Canvas(modifier.height(60.dp).semantics { contentDescription = "$porcentaje por ciento aprobado" }) {
+    val densidad = LocalDensity.current
+    val (ancho, alto) = with(densidad) {
+        val final = medidor.measure("$porcentaje", numero)
+        val por = medidor.measure("%", signo)
+        (final.size.width + SEPARACION_UNIDAD.toPx() + por.size.width).toDp() to altoMayuscula(64.sp.toPx()).toDp()
+    }
+    Canvas(Modifier.size(ancho, alto).semantics { contentDescription = "$porcentaje por ciento aprobado" }) {
         val cifra = medidor.measure("${(porcentaje * cuenta.value).roundToInt()}", numero)
         val por = medidor.measure("%", signo)
-        val base = size.height - 6.dp.toPx()
-        dibujarCifraConUnidad(cifra, por, -3.dp.toPx(), base)
+        dibujarCifraConUnidad(cifra, por, 0f, size.height)
     }
 }
 
-/**
- * El tema: «Tema» y el nombre del que tienes, con la flecha. Tocarla abre
- * debajo el mismo carrusel de mini portadas de Personalizar, y elegir uno
- * cambia la app en el acto (Preferencias.tema, la misma de Ajustes).
- */
+// ─────────────────────────────────── Las filas ──────────────────────────────────
+
+/** Las preguntas de la hoja: solo las que tienen algo que decir */
 @Composable
-private fun FilaTema() {
-    val actual by Preferencias.tema.collectAsState()
-    var abierto by remember { mutableStateOf(false) }
-    val giro by animateFloatAsState(if (abierto) 90f else 0f, tween(if (Tema.movimiento) 0 else 240, easing = ENFATICA), label = "giro")
-    Column(Modifier.fillMaxWidth()) {
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .pulsable({ abierto = !abierto }, escala = 0.99f)
-                .heightIn(min = Alto.fila)
-                .padding(horizontal = Espacio.xxs),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            BasicText("Tema", Modifier.weight(1f), style = estilo(Tipo.l, Paleta.tinta))
-            BasicText(actual.nombre, style = estilo(Tipo.m, Paleta.tenue))
-            IconoTrazo(Lucide.siguiente, Paleta.tenue, 16.dp, 2.2f, Modifier.padding(start = Espacio.xs).graphicsLayer { rotationZ = giro })
+private fun ListaPreguntas(g: EstimacionGraduacion, hoy: Periodo, cursando: Int, rapida: Periodo?, abrir: (DetalleAvance) -> Unit) {
+    class Fila(val icono: List<Path>, val azul: Boolean, val titulo: String, val nota: String, val numero: Int?, val detalle: DetalleAvance)
+    val filas = buildList {
+        if (cursando > 0) add(Fila(IconosHoja.libroAbierto, false, "Este semestre", "Lo que cursas y qué abre", cursando, DetalleAvance.EsteSemestre))
+        g.plan.firstOrNull()?.let { add(Fila(IconosHoja.calendario, true, "Tu próximo semestre", "Qué inscribir · ${hoy.mas(1).rango()}", it.size, DetalleAvance.Proximo)) }
+        if (g.cuelloDeBotella.isNotEmpty()) add(Fila(IconosHoja.eslabon, false, "No puedes atrasar", "Las que fijan tu fecha", g.cuelloDeBotella.size, DetalleAvance.Cadena))
+        if (!g.terminado) add(Fila(Lucide.birrete, false, "¿Cuándo me gradúo?", rapida?.let {
+            // Si tu fecha ya es la más rápida posible, decirlo en vez de repetirla
+            if (it == g.periodoFinal) "Ya vas a lo más rápido" else "Lo más rápido: ${it.mesYAnio()}"
+        } ?: "Depende de tu ritmo", null, DetalleAvance.Graduacion))
+    }
+    if (filas.isEmpty()) return
+    TarjetaLista {
+        filas.forEachIndexed { k, f ->
+            FilaLista(
+                titulo = f.titulo,
+                nota = nota(f.nota),
+                primera = k == 0,
+                icono = { Pastilla(f.icono, f.azul) },
+                chevron = Lucide.siguiente,
+                alTocar = { abrir(f.detalle) },
+                valor = f.numero?.let { n -> { CifraFila("$n") } },
+            )
         }
-        AnimatedVisibility(abierto) {
-            CarruselTemas(Modifier.padding(bottom = Espacio.s), PaddingValues(horizontal = Espacio.xxs))
+    }
+}
+
+/** El icono de un grupo de electivas: la llave para las técnicas, las personas para las sociohumanísticas y el libro para las demás */
+internal fun iconoDeGrupo(g: Grupo): List<Path> = when {
+    g.clave == "tecnica" || g.titulo.contains("Técnica", ignoreCase = true) -> IconosHoja.llave
+    g.clave == "humanistica" || g.titulo.contains("Sociohuman", ignoreCase = true) -> IconosHoja.usuarios
+    else -> IconosHoja.libroAbierto
+}
+
+/** «Electivas Técnicas» → «Técnicas» */
+private fun nombreCorto(titulo: String): String = titulo.removePrefix("Electivas ").replaceFirstChar { it.uppercase() }
+
+/** Lo útil de un grupo: si ya cubres su cuota, cuántas puedes cursar ya o desde qué semestre se abren */
+private fun subtituloDeGrupo(estado: EstadoCarrera, grupo: Grupo, avance: AvanceGrupo): String {
+    if (avance.completa) return "Ya cubres las ${avance.meta} UC"
+    val abiertas = grupo.asignaturas.count { estado.estados[it.codigo] == EstadoMateria.DISPONIBLE }
+    if (abiertas > 0) return "Ya puedes cursar $abiertas"
+    val desde = estado.pensum.asignaturas.filter { it.esHueco && it.grupo == grupo.clave }.mapNotNull { it.semestre }.minOrNull()
+    return if (desde != null) "Desde el semestre $desde" else "Aún no se abre ninguna"
+}
+
+/** ELECTIVAS: una fila por grupo con cuota, con lo que llevas de lo que pide el título */
+@Composable
+private fun TarjetaElectivas(estado: EstadoCarrera, abrir: (DetalleAvance) -> Unit) {
+    val cuotas = remember(estado.marcas) { avanceDeGrupos(estado.pensum.grupos, estado.marcas).values.filter { it.meta != null } }
+    if (cuotas.isEmpty()) return
+    RotuloSeccion("ELECTIVAS")
+    TarjetaLista {
+        cuotas.forEachIndexed { k, c ->
+            val grupo = estado.pensum.grupos.first { it.clave == c.clave }
+            FilaLista(
+                titulo = nombreCorto(c.titulo),
+                nota = nota(subtituloDeGrupo(estado, grupo, c)),
+                primera = k == 0,
+                icono = { Pastilla(iconoDeGrupo(grupo)) },
+                chevron = Lucide.siguiente,
+                alTocar = { abrir(DetalleAvance.Electivas(c.clave)) },
+                valor = { CifraFila("${c.uc}", "/${c.meta} UC") },
+            )
         }
     }
 }
@@ -567,33 +518,20 @@ internal fun nombresDelPlan(pensum: Pensum): (String) -> String {
     }
 }
 
-
-/**
- * Los trazos Lucide que solo usan esta hoja y Ajustes (sun, moon, smartphone,
- * rotate-ccw, arrow-up-right), en la rejilla de 24 de IconoTrazo.
- */
-internal object IconosHoja {
-    private fun trazo(d: String): Path = PathParser().parsePathString(d).toPath()
-
-    val sol = listOf(
-        trazo("M8 12a4 4 0 1 0 8 0a4 4 0 1 0-8 0z"),
-        trazo("M12 2v2"), trazo("M12 20v2"), trazo("m4.93 4.93 1.41 1.41"), trazo("m17.66 17.66 1.41 1.41"),
-        trazo("M2 12h2"), trazo("M20 12h2"), trazo("m6.34 17.66-1.41 1.41"), trazo("m19.07 4.93-1.41 1.41"),
-    )
-    val luna = listOf(trazo("M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"))
-    val telefono = listOf(trazo("M7 2h10a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"), trazo("M12 18h.01"))
-    val reiniciar = listOf(trazo("M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"), trazo("M3 3v5h5"))
-    val mitad = listOf(trazo("M12 2a10 10 0 1 0 0 20a10 10 0 1 0 0-20z"), trazo("M12 2a10 10 0 0 1 0 20z"))
-    val libroAbierto = listOf(trazo("M12 7v14"), trazo("M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"))
-    val usuarios = listOf(trazo("M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"), trazo("M5 7a4 4 0 1 0 8 0a4 4 0 1 0-8 0z"), trazo("M22 21v-2a4 4 0 0 0-3-3.87"), trazo("M16 3.13a4 4 0 0 1 0 7.75"))
-    val eslabon = listOf(trazo("M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"), trazo("M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"))
-    val candado = listOf(trazo("M5 11h14a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2z"), trazo("M7 11V7a5 5 0 0 1 10 0v4"))
-    val candadoAbierto = listOf(trazo("M5 11h14a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2z"), trazo("M7 11V7a5 5 0 0 1 9.9-1"))
-    val flechaAbajo = listOf(trazo("M12 5v14"), trazo("m19 12-7 7-7-7"))
-    val fuera = listOf(trazo("M7 7h10v10"), trazo("M7 17 17 7"))
+/** Las UC de cada código del plan: las de la materia o, en una casilla sin elegir, las típicas de su grupo */
+internal fun ucsDelPlan(pensum: Pensum): (String) -> Int {
+    val porCodigo = (pensum.asignaturas + pensum.grupos.flatMap { it.asignaturas }).associateBy { it.codigo }
+    val tipicas = pensum.grupos.associate { it.clave to ucTipicaDe(it) }
+    return { codigo -> porCodigo[codigo]?.uc ?: tipicas[porCodigo[codigo]?.grupo ?: codigo.substringBefore('#')] ?: 0 }
 }
 
-// ──────────────────────────────── 6. Reiniciar ───────────────────────────────
+/** Si un código del plan es una casilla de electiva sin elegir */
+internal fun esCasillaDelPlan(pensum: Pensum): (String) -> Boolean {
+    val casillas = pensum.asignaturas.filter { it.esHueco }.map { it.codigo }.toSet()
+    return { codigo -> codigo in casillas || '#' in codigo }
+}
+
+// ──────────────────────────────── Reiniciar ───────────────────────────────
 
 /**
  * Reiniciar el avance de la carrera: lo único de la hoja que no se deshace, y
@@ -604,39 +542,39 @@ internal object IconosHoja {
  */
 @Composable
 private fun BotonReinicio(estado: EstadoCarrera) {
-    val i = inter()
     val hay = estado.hayAvance
     var confirmando by remember { mutableStateOf(false) }
     if (!confirmando || !hay) {
         val color = Paleta.suave.copy(alpha = if (hay) 1f else 0.5f)
         Row(
-            Modifier.fillMaxWidth().heightIn(min = Alto.fila).clickable(enabled = hay, role = Role.Button) { confirmando = true }.padding(horizontal = Espacio.xxs),
+            Modifier.fillMaxWidth().heightIn(min = 48.dp).superficie(24.dp).clickable(enabled = hay, role = Role.Button) { confirmando = true }.padding(horizontal = Espacio.m),
+            horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            BasicText(if (hay) "Reiniciar mi avance" else "Nada que reiniciar todavía", Modifier.weight(1f), style = estilo(Tipo.l, color))
-            if (hay) IconoTrazo(IconosHoja.reiniciar, color, 16.dp, 2f)
+            if (hay) IconoLucide(IconosHoja.reiniciar, color, 16.dp, Modifier.padding(end = Espacio.xs))
+            BasicText(if (hay) "Reiniciar mi avance" else "Nada que reiniciar todavía", style = estiloFila(color))
         }
         return
     }
-    Column(Modifier.padding(vertical = Espacio.s, horizontal = Espacio.xxs)) {
-        BasicText("¿Empezar de cero?", style = TextStyle(fontFamily = i, fontWeight = FontWeight.SemiBold, fontSize = Tipo.m, lineHeight = 20.sp, color = Paleta.tinta))
+    Column(Modifier.fillMaxWidth().superficie().padding(Espacio.m)) {
+        BasicText("¿Empezar de cero?", style = estiloFila())
         BasicText(
-            "Se borra${loQueSeBorra(estado)} en esta carrera. Vuelves al 0 % y no se puede deshacer.",
+            "Se borra${loQueSeBorra(estado)} en esta carrera. Vuelves al 0% y no se puede deshacer.",
             Modifier.padding(top = Espacio.xxs),
-            style = TextStyle(fontFamily = i, fontSize = Tipo.s, lineHeight = 18.sp, color = Paleta.suave),
+            style = estiloNota(Paleta.suave).copy(lineHeight = 18.sp),
         )
         Row(Modifier.padding(top = Espacio.m), horizontalArrangement = Arrangement.spacedBy(Espacio.xs)) {
             Box(
-                Modifier.weight(1f).heightIn(min = Alto.toque).clip(RoundedCornerShape(Radio.Bloque)).background(Paleta.tinta.copy(alpha = 0.08f)).clickable(role = Role.Button) { confirmando = false },
+                Modifier.weight(1f).heightIn(min = 48.dp).clip(RoundedCornerShape(24.dp)).background(Paleta.tinta.copy(alpha = Velo.pastilla)).clickable(role = Role.Button) { confirmando = false },
                 contentAlignment = Alignment.Center,
-            ) { BasicText("Cancelar", style = TextStyle(fontFamily = i, fontWeight = FontWeight.SemiBold, fontSize = Tipo.s, color = Paleta.tinta)) }
+            ) { BasicText("Cancelar", style = estiloFila()) }
             Box(
-                Modifier.weight(1f).heightIn(min = Alto.toque).clip(RoundedCornerShape(Radio.Bloque)).background(Paleta.rojo.copy(alpha = 0.16f)).clickable(role = Role.Button) {
+                Modifier.weight(1f).heightIn(min = 48.dp).clip(RoundedCornerShape(24.dp)).background(Paleta.rojo.copy(alpha = 0.16f)).clickable(role = Role.Button) {
                     estado.reiniciar()
                     confirmando = false
                 },
                 contentAlignment = Alignment.Center,
-            ) { BasicText("Borrar todo", style = TextStyle(fontFamily = i, fontWeight = FontWeight.SemiBold, fontSize = Tipo.s, color = ROJO_LETRA)) }
+            ) { BasicText("Borrar todo", style = estiloFila(ROJO_LETRA)) }
         }
     }
 }
