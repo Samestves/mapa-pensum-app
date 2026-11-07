@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Ficha de la materia en el mapa · opciones</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,100..900&family=Jost:wght@100..900&family=IBM+Plex+Mono:wght@300&display=block" rel="stylesheet">
+<style>
+/* ============ La página (presentación; no es la app) ============ */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #E6E7E9; color: #050608; font-family: Inter, sans-serif; font-optical-sizing: none; padding: 56px 40px 80px; -webkit-font-smoothing: antialiased; }
+.pagina { width: 1620px; margin: 0 auto; }
+.portada h1 { font: 300 40px/44px Jost; letter-spacing: -.01em; }
+.portada p { font: 400 15px/22px Inter; letter-spacing: -.009em; color: #34383E; margin-top: 12px; max-width: 1060px; }
+.portada b, .porque b, .texto b { font-weight: 500; color: #050608; }
+.bloque { margin-top: 64px; }
+.bloque > h2 { font: 500 11px/16px Inter; letter-spacing: .08em; text-transform: uppercase; color: #52565C; margin-bottom: 20px; }
+.fila { display: flex; gap: 40px; align-items: flex-start; }
+.op { width: 375px; flex: none; }
+.op > h3 { font: 500 15px/20px Inter; letter-spacing: -.009em; display: flex; align-items: center; gap: 8px; }
+.op > p { font: 400 13px/18px Inter; color: #34383E; margin: 4px 0 16px; min-height: 72px; }
+.op > p b { font-weight: 500; color: #050608; }
+.sello { font: 500 11px/16px Inter; letter-spacing: .08em; text-transform: uppercase; color: #fff; background: #1A47C2; border-radius: 10px; padding: 2px 8px; }
+.porque { margin-top: 28px; font: 400 15px/22px Inter; letter-spacing: -.009em; color: #1C1F23; max-width: 1240px; }
+.medida { position: absolute; z-index: 9; font: 500 11px/14px Inter; letter-spacing: .02em; color: #fff; background: #1A47C2; border-radius: 6px; padding: 3px 7px; white-space: nowrap; }
+.guia { position: absolute; z-index: 9; border: 0 dashed rgb(26 71 194 / .9); }
+
+/* ============ Paleta Acero · Oscuro ============ */
+.osc { --lienzo:#0B0C0E; --panel:#121316; --tinta:#ECEEF1; --suave:#B6BBC2; --tenue:#858B94; --apagada:#5D636C; --azul:#5B8AF5; --verde:#2EC27E; --rojo:#E5403A;
+       --t: 236 238 241; --a: 91 138 245; --r: 229 64 58;
+       --sup: rgb(var(--t) / .05); --hilo: rgb(var(--t) / .09); --pas: rgb(var(--t) / .08); --pend: rgb(var(--t) / .16); --pas-azul: rgb(var(--a) / .16);
+       color: var(--tinta); }
+
+/* ============ El teléfono ============ */
+.tel { width: 375px; height: 812px; position: relative; overflow: hidden; border-radius: 44px; background: var(--lienzo); box-shadow: 0 0 0 1px rgb(0 0 0 / .07), 0 32px 64px -28px rgb(0 0 0 / .32); }
+.tel-h { width: 915px; height: 412px; position: relative; overflow: hidden; border-radius: 36px; background: var(--lienzo); box-shadow: 0 0 0 1px rgb(0 0 0 / .1), 0 30px 60px -28px rgb(0 0 0 / .4); }
+svg.mapa { position: absolute; inset: 0; display: block; }
+.sis { position: absolute; top: 0; left: 0; right: 0; height: 32px; display: flex; align-items: center; justify-content: space-between; padding: 0 24px 0 28px; font: 500 13px/1 Inter; color: var(--tinta); z-index: 6; font-feature-settings: 'tnum'; }
+.sis .der { display: flex; gap: 6px; align-items: center; }
+.velo-sis { position: absolute; top: 0; left: 0; right: 0; height: 64px; background: linear-gradient(rgb(11 12 14 / .9), rgb(11 12 14 / 0)); z-index: 5; pointer-events: none; }
+.gestos { position: absolute; bottom: 8px; left: 50%; width: 108px; height: 4px; margin-left: -54px; border-radius: 2px; background: rgb(var(--t) / .55); z-index: 8; }
+.tel-h .gestos { width: 96px; margin-left: -48px; bottom: 6px; }
+
+/* ============ Escala tipográfica (roles de docs/reglas-diseno.md) ============ */
+.rot { font: 500 11px/16px Inter; letter-spacing: .08em; text-transform: uppercase; color: var(--tenue); font-feature-settings: 'tnum'; }
+.disp { font: 300 28px/32px Jost; letter-spacing: -.005em; color: var(--tinta); }
+.tt { font: 500 15px/20px Inter; letter-spacing: -.009em; color: var(--tinta); }
+.cuerpo { font: 400 15px/20px Inter; letter-spacing: -.009em; color: var(--suave); }
+.nota { font: 400 13px/16px Inter; letter-spacing: -.003em; color: var(--tenue); font-feature-settings: 'tnum'; }
+.nota b, .cuerpo b { font-weight: 500; color: var(--tinta); }
+.cod { font: 300 11px/16px 'IBM Plex Mono'; color: var(--tenue); letter-spacing: .02em; }
+.cifra { font-family: Inter; font-feature-settings: 'tnum'; color: var(--tinta); white-space: nowrap; }
+.c24 { font-size: 24px; line-height: 28px; font-weight: 300; letter-spacing: -.015em; font-variation-settings: 'opsz' 32; }
+.c20 { font-size: 20px; line-height: 24px; font-weight: 300; letter-spacing: -.01em; font-variation-settings: 'opsz' 20; }
+.u { font-weight: 400; color: var(--tenue); letter-spacing: 0; margin-left: 2px; font-size: 11px; font-variation-settings: 'opsz' 14; }
+.azul { color: var(--azul) !important; }
+.rojo { color: var(--rojo) !important; }
+.mt4 { margin-top: 4px; } .mt8 { margin-top: 8px; } .mt12 { margin-top: 12px; } .mt16 { margin-top: 16px; } .mt20 { margin-top: 20px; } .mt24 { margin-top: 24px; }
+
+/* ============ Iconos ============ */
+svg.i { fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; flex: none; display: block; }
+svg.est { flex: none; display: block; }
+.redondo { width: 36px; height: 36px; border-radius: 18px; background: var(--pas); color: var(--suave); display: grid; place-items: center; flex: none; }
+.pas { width: 32px; height: 32px; border-radius: 8px; background: var(--pas); color: var(--tinta); display: grid; place-items: center; flex: none; }
+.pas.azul { background: var(--pas-azul); }
+
+/* ============ Piezas comunes de la hoja ============ */
+.tarjeta { background: var(--sup); border-radius: 24px; }
+.f { display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 0 16px; position: relative; }
+.f.c56 { min-height: 56px; }
+.f.c48 { min-height: 48px; }
+.f + .f::before { content: ''; position: absolute; top: 0; left: 60px; right: 0; height: 1px; background: var(--hilo); }
+.f .t { flex: 1; min-width: 0; padding: 10px 0; }
+.f .t > span { display: block; }
+.ch { color: var(--apagada); }
+
+/* ============ La ficha: hoja pegada abajo, a todo el ancho ============ */
+.hojaF { position: absolute; left: 0; right: 0; bottom: 0; z-index: 7; background: var(--panel); border-radius: 28px 28px 0 0; padding: 0 20px 36px;
+         box-shadow: inset 0 1px 0 rgb(var(--t) / .12); }
+.hojaF::before { content: ''; position: absolute; left: 0; right: 0; top: -40px; height: 40px; background: linear-gradient(rgb(0 0 0 / 0), rgb(0 0 0 / .32)); pointer-events: none; }
+.hojaF .asa { width: 32px; height: 4px; border-radius: 2px; background: rgb(var(--t) / .28); margin: 8px auto 8px; }
+.fcab { display: flex; align-items: center; justify-content: space-between; height: 36px; }
+.fcab-t { display: flex; align-items: baseline; gap: 8px; }
+.ftit { font: 300 28px/32px Jost; letter-spacing: -.005em; color: var(--tinta); margin-top: 2px; text-wrap: balance; }
+.fmeta { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 10px; min-height: 24px; }
+.pildora { display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 9px 0 6px; border-radius: 6px; background: var(--pas); font: 500 11px/16px Inter; letter-spacing: .08em; text-transform: uppercase; color: var(--suave); flex: none; }
+.pildora.D { background: var(--pas-azul); color: var(--azul); }
+.pildora.C { background: none; box-shadow: inset 0 0 0 1.5px var(--tinta); color: var(--tinta); }
+.pildora.H { color: var(--tinta); }
+.pildora.E { background: none; border: 1.5px dashed rgb(var(--t) / .3); padding: 0 8px 0 5px; color: var(--suave); }
+
+/* Pide y Abre: una fila por materia, el rótulo solo en la primera de cada grupo; tocarla lleva a ella */
+.rel { padding: 2px 0; }
+.rel .r { display: grid; grid-template-columns: 36px 16px minmax(0, 1fr) 16px; column-gap: 10px; align-items: center; min-height: 48px; padding: 6px 12px 6px 16px; position: relative; }
+.rel .r.grupo::before { content: ''; position: absolute; top: 0; left: 16px; right: 0; height: 1px; background: var(--hilo); }
+.rel .r .tt { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.rel .r .tt.ten { color: var(--suave); font-weight: 400; }
+
+/* Botones: 52 dp, radio 26; uno lleno (el siguiente paso) y otro de superficie */
+.botones { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 16px; }
+.botones.uno { grid-template-columns: 1fr; }
+.btn { height: 52px; border-radius: 26px; display: flex; flex-direction: column; align-items: center; justify-content: center; font: 500 15px/20px Inter; letter-spacing: -.009em; white-space: nowrap; }
+.btn .sub { font: 400 13px/16px Inter; letter-spacing: -.003em; font-feature-settings: 'tnum'; }
+.btn.prim { background: var(--tinta); color: var(--panel); }
+.btn.prim .sub { color: rgb(18 19 22 / .6); }
+.btn.sec { background: var(--pas); color: var(--tinta); }
+.btn.sec .sub { color: var(--azul); }
+
+/* B · el selector de tres: pista 52 r26, lente 44 r22 (concéntricos) */
+.seg { position: relative; height: 52px; border-radius: 26px; background: var(--sup); display: grid; grid-template-columns: repeat(3, 1fr); padding: 4px; margin-top: 12px; }
+.seg .lente { position: absolute; top: 4px; bottom: 4px; left: 4px; width: calc((100% - 8px) / 3); border-radius: 22px; background: rgb(var(--t) / .1); box-shadow: inset 0 0 0 1px rgb(var(--t) / .14); }
+.seg .o { position: relative; display: flex; align-items: center; justify-content: center; gap: 6px; font: 500 15px/20px Inter; letter-spacing: -.009em; color: var(--suave); }
+.seg .o.act { color: var(--tinta); }
+.efecto { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 16px; }
+
+/* C · la línea de estado: tres paradas */
+.linea3 { position: relative; display: grid; grid-template-columns: repeat(3, 1fr); margin-top: 18px; }
+.linea3::before { content: ''; position: absolute; top: 21px; left: 16.66%; right: 16.66%; height: 1.5px; background: rgb(var(--t) / .16); }
+.linea3 .p { position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.linea3 .n { width: 44px; height: 44px; border-radius: 22px; display: grid; place-items: center; background: var(--panel); }
+.linea3 .n i { width: 28px; height: 28px; border-radius: 14px; display: grid; place-items: center; box-shadow: inset 0 0 0 1.5px rgb(var(--t) / .22); background: var(--panel); }
+.linea3 .p.act .n i { box-shadow: none; background: rgb(var(--t) / .12); }
+.linea3 .p .nota { color: var(--tenue); }
+.linea3 .p.act .nota { color: var(--tinta); font-weight: 500; }
+.camino { position: relative; }
+.camino .f { min-height: 48px; }
+.camino .f + .f::before { display: none; }
+.camino .via { position: absolute; left: 31px; top: 24px; bottom: 24px; width: 1.5px; background: rgb(var(--t) / .2); }
+.camino .nodo { width: 32px; height: 32px; display: grid; place-items: center; flex: none; position: relative; z-index: 1; }
+.camino .nodo i { width: 12px; height: 12px; border-radius: 6px; box-shadow: inset 0 0 0 1.5px rgb(var(--t) / .5); background: var(--panel); display: block; }
+.camino .nodo.az i { width: 14px; height: 14px; border-radius: 7px; background: var(--azul); box-shadow: 0 0 0 4px rgb(var(--a) / .2); }
+.camino .per { font: 400 13px/16px Inter; color: var(--tenue); font-feature-settings: 'tnum'; white-space: nowrap; }
+
+/* Casilla: la hoja es el selector */
+.radio { width: 22px; height: 22px; border-radius: 11px; box-shadow: inset 0 0 0 1.5px rgb(var(--t) / .3); flex: none; margin: 0 5px; }
+.buscar { height: 44px; border-radius: 22px; background: var(--sup); display: flex; align-items: center; gap: 8px; padding: 0 16px; color: var(--tenue); }
+.desv { position: absolute; left: 0; right: 0; bottom: 0; height: 72px; background: linear-gradient(rgb(18 19 22 / 0), var(--panel) 70%); pointer-events: none; z-index: 2; }
+
+/* ============ Acostado ============ */
+.franja { position: absolute; left: 0; right: 0; bottom: 0; z-index: 7; background: var(--panel); border-radius: 28px 28px 0 0; box-shadow: inset 0 1px 0 rgb(var(--t) / .12); padding: 0 28px 22px; }
+.franja::before { content: ''; position: absolute; left: 0; right: 0; top: -36px; height: 36px; background: linear-gradient(rgb(0 0 0 / 0), rgb(0 0 0 / .3)); pointer-events: none; }
+.franja .asa { width: 32px; height: 4px; border-radius: 2px; background: rgb(var(--t) / .28); margin: 8px auto 8px; }
+.franja .g { display: grid; grid-template-columns: 276px 1px minmax(0, 1fr) 232px; column-gap: 24px; align-items: stretch; }
+.franja .sep { background: var(--hilo); margin: 2px 0; }
+.franja .ftit { font-size: 24px; line-height: 28px; }
+.franja .botones { grid-template-columns: 1fr; margin-top: 0; }
+.pantallaC { position: absolute; inset: 0; background: var(--panel); padding: 20px 28px 0; z-index: 4; }
+.carril { position: relative; }
+
+/* ============ Panel de texto (cámara, movimiento, rendimiento) ============ */
+.algo { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+.algo > div { background: #fff; border-radius: 24px; padding: 22px 24px; box-shadow: 0 0 0 1px rgb(0 0 0 / .07); }
+.algo h4 { font: 300 22px/26px Jost; margin-bottom: 8px; }
+.algo p, .texto p { font: 400 13px/19px Inter; color: #34383E; }
+.algo p + p { margin-top: 8px; }
+.algo b { font-weight: 500; color: #050608; }
+.algo code { font: 300 12px/18px 'IBM Plex Mono'; color: #050608; background: #EEF0F2; border-radius: 4px; padding: 1px 4px; }
+.texto { width: 665px; flex: none; }
+.texto h3 { font: 500 20px/26px Inter; letter-spacing: -.01em; display: flex; align-items: center; gap: 10px; }
+.texto p { margin-top: 10px; font-size: 14px; line-height: 21px; }
+.texto ul { margin: 10px 0 0 18px; font: 400 14px/21px Inter; color: #34383E; }
+.texto li + li { margin-top: 4px; }
+
+/* Modelos de botones */
+.muestras { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; }
+.muestra { background: var(--panel); border-radius: 28px; padding: 20px 20px 22px; }
+.muestra h4 { font: 500 15px/20px Inter; color: var(--tinta); display: flex; align-items: center; gap: 8px; }
+.muestra .estado { display: flex; align-items: center; gap: 8px; margin-top: 18px; }
+.muestra .botones { margin-top: 8px; }
+</style>
+</head>
+<body>
+<div class="pagina">
+
+<header class="portada">
+  <h1>La ficha de la materia, en el mapa</h1>
+  <p>Hoy la ficha flota sobre la barra y no llega al borde; acostada es una tarjeta suelta a un lado. Aquí pasa a ser <b>una hoja pegada abajo, a todo el ancho</b>, con su asa y radio 28 arriba, que tapa la barra Núcleo mientras está abierta y deja el mapa sin velo arriba, con la materia centrada en el hueco libre. Datos reales de <b>Ingeniería de Sistemas</b>: semestres 1 a 4 aprobados, cursando Estadística II e Inferencia y Diseño de Experimentos, grado en <b>Dic 2029</b>. Cada respuesta sale de lo que la app ya calcula: <b>seAbrenAlAprobar</b>, el <b>Simulador</b> (margen y «si la atrasas»), <b>fechaSiRepruebas</b> y el plan de <b>estimarGraduacion</b>.</p>
+</header>
+
+<!-- ======================= DE PIE · TRES MODELOS ======================= -->
+<section class="bloque">
+  <h2>De pie · 375 × 812 · tres modelos de hoja y de botones · Sistemas de Costo (disponible)</h2>
+  <div class="fila">
+    <div class="op">
+      <h3>A · Siguiente paso <span class="sello">Recomendada</span></h3>
+      <p>Dos botones con verbo: el lleno es el paso que toca, el otro la alternativa. El efecto va <b>en el botón</b> («Se te abre 1») y arriba la única frase que importa para tu fecha. Debajo, lo que pide y lo que abre, cada una con su estado: tocarla lleva a ella.</p>
+      <div class="tel osc" data-tel="A-D"></div>
+    </div>
+    <div class="op">
+      <h3>B · Tres marcas</h3>
+      <p>El selector de siempre, rehecho: pista de 52 y lente de 44 (radios 26 y 22). Las tres marcas se ven siempre en el mismo sitio; el efecto de aprobar, encima, en una línea. Pide y abre en filas con su estado.</p>
+      <div class="tel osc" data-tel="B-D"></div>
+    </div>
+    <div class="op">
+      <h3>C · Asoma y crece · asomada</h3>
+      <p>Dos alturas. Al tocar asoma baja (31 %): nombre, estado y una línea de tres paradas para marcar. El mapa queda casi entero a la vista.</p>
+      <div class="tel osc" data-tel="C-D"></div>
+    </div>
+    <div class="op">
+      <h3>C · Asoma y crece · subida</h3>
+      <p>Al subirla se ve <b>su camino</b>: lo que pide, ella y todo lo que arrastra hasta el grado, con el período del plan. Es la cadena de «No puedes atrasar», pero de esta materia.</p>
+      <div class="tel osc" data-tel="C-D2"></div>
+    </div>
+  </div>
+  <p class="porque"><b>Por qué A:</b> responde en una mirada qué hago con ella (un verbo lleno), qué pasa si lo hago («Se te abre 1» en el mismo botón) y si importa para mi fecha, sin repetir el estado ni enseñar opciones que no tocan. B es más directa para saltar de estado, pero no dice nada antes de tocar. C luce más, pero pide dos alturas y gestos anidados, y su camino ya vive en «No puedes atrasar».</p>
+</section>
+
+<!-- ======================= A EN SUS ESTADOS ======================= -->
+<section class="bloque">
+  <h2>A · los otros tres estados y la casilla de electiva · la misma estructura, cambia lo que se pregunta</h2>
+  <div class="fila">
+    <div class="op">
+      <h3>Cursando · Inferencia y Diseño de Exp.</h3>
+      <p>El paso que toca es aprobarla. La frase de arriba dice qué pasa <b>si la repruebas</b>: aquí nada, sigues en Dic 2029. «Desmarcar» vuelve a sin cursar.</p>
+      <div class="tel osc" data-tel="A-C"></div>
+    </div>
+    <div class="op">
+      <h3>Aprobada · Estadística I</h3>
+      <p>No hay nada que decidir: solo lo que pide y lo que te abrió, y un botón de superficie para corregir. La hoja es más baja y se ve más mapa.</p>
+      <div class="tel osc" data-tel="A-H"></div>
+    </div>
+    <div class="op">
+      <h3>Bloqueada · Economía de Empresas</h3>
+      <p>Lo que falta va en «Pide», con su estado: Sistemas de Costo ya se puede inscribir. Arriba, cuándo la pone tu plan. Los dos botones van de superficie: marcarla es la excepción.</p>
+      <div class="tel osc" data-tel="A-L"></div>
+    </div>
+    <div class="op">
+      <h3>Casilla · Electiva Sociohumanística</h3>
+      <p>Una casilla vacía no tiene estado que marcar: la hoja <b>es el selector</b>. Mismo encabezado, la cuota del grupo y las electivas que puedes cursar ya; tocar una la pone en el mapa.</p>
+      <div class="tel osc" data-tel="A-E"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= ALTO Y CÁMARA ======================= -->
+<section class="bloque">
+  <h2>A · cuánto alto ocupa y cómo se mueve la cámara</h2>
+  <div class="fila">
+    <div class="op" style="width:375px">
+      <div class="tel osc" data-tel="A-D" data-medidas="1"></div>
+    </div>
+    <div style="flex:1;min-width:0">
+      <div class="algo">
+        <div><h4>Alto</h4><p>La hoja mide lo que su contenido, con tope en el <b>60 %</b> de la pantalla (lo que no cabe se desplaza). En 812 dp: disponible <b data-alto="A-D">—</b>, cursando <b data-alto="A-C">—</b>, aprobada <b data-alto="A-H">—</b>, bloqueada <b data-alto="A-L">—</b>. La casilla, que es un selector, llega al tope.</p><p>Tapa la barra Núcleo: la barra baja 72 dp y se funde (200 ms) al abrirse y vuelve al cerrarse. Sin velo ni desenfoque sobre el mapa: el mapa es lo que la ficha explica.</p></div>
+        <div><h4>Cámara</h4><p>Al abrir, la cámara se desliza para dejar la tarjeta <b>centrada en el hueco libre</b>: 16 dp bajo la barra de estado y 16 dp sobre la hoja, en horizontal en el centro. No acerca nunca; solo aleja si la tarjeta no cabe. Es <code>camara.mostrar(caja, Margenes(abajo = altoHoja + 16))</code>, la llamada que ya existe, pero con el alto medido de la hoja.</p><p>Se encuadra <b>una vez por materia</b> (la guarda <code>encuadrada</code> ya existe): si la hoja cambia de alto al marcar, no empuja el mapa.</p></div>
+        <div><h4>Movimiento</h4><p>Entra con el resorte de <code>HojaInferior</code> (sin rebote, ~350 ms) y la cámara con la misma curva, a la vez. Tocar otra tarjeta, o una fila de «Pide» o «Abre», cambia el contenido con un fundido de 150 ms sin bajar la hoja; la cámara viaja a la nueva. Se cierra con el asa, la X, Atrás o tocando el mapa vacío.</p><p>«Ya la aprobé» cierra la hoja y la cámara encuadra la materia con lo que se abre: la descarga de luz que ya existe hace el resto.</p></div>
+        <div><h4>Rendimiento en gama baja</h4><p>Solo se anima la capa: <code>translationY</code> de la hoja y de la barra, <code>alpha</code> del contenido al cambiar de materia. Nada de desenfoque ni sombra grande: la separación es el color del panel, el filo de 1 dp y un degradado de 40 dp encima, dibujado en <code>drawBehind</code>. En modo ligero, igual; el mapa de detrás se congela mientras la hoja se mueve, como con las demás hojas.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= MODELOS DE BOTONES ======================= -->
+<section class="bloque">
+  <h2>Los botones para marcar · qué enseña cada modelo en cada estado</h2>
+  <div class="muestras osc" id="muestras"></div>
+  <p class="porque"><b>Reglas de A:</b> el botón lleno es siempre el siguiente paso (sin cursar → cursando → aprobada); el de superficie, la otra opción. Si un paso abre materias, lo dice debajo en azul («Se te abre 1»): es el único azul de la hoja, porque es lo que se vuelve inscribible. Bloqueada no tiene paso que tocar: los dos van de superficie. Al marcar, los textos cambian con un fundido de 150 ms y la píldora de estado con él; nada cambia de sitio.</p>
+</section>
+
+<!-- ======================= ACOSTADO ======================= -->
+<section class="bloque">
+  <h2>Acostado · 915 × 412 · dos opciones</h2>
+  <div class="fila">
+    <div class="tel-h osc" data-tel="H-A"></div>
+    <div class="texto">
+      <h3>A · Franja <span class="sello">Recomendada</span></h3>
+      <p><b>La misma hoja que de pie, baja y ancha</b> (unos 150 dp, el 37 % del alto), pegada abajo y a todo el ancho; el riel se aparta a la izquierda mientras está abierta. Arriba queda una banda de mapa de 220 dp donde, acostado, sí cabe el vecindario entero: <b>lo que pide, la materia y lo que abre, con sus cables encendidos</b>. La cámara encuadra esa caja sin acercar.</p>
+      <ul>
+        <li>Tres columnas: quién es · la frase, lo que pide y lo que abre · los dos botones apilados (52 dp).</li>
+        <li>Mismos textos y mismos botones que de pie: una sola pieza que cambia de proporción, no otra pantalla.</li>
+        <li>Sin X: se cierra con el asa, Atrás o tocando el mapa.</li>
+      </ul>
+      <p><b>Por qué A:</b> es la única en la que el mapa, con la materia y sus cables, sigue siendo lo principal, y no hay nada pegado al lado de nada.</p>
+    </div>
+  </div>
+  <div class="fila" style="margin-top:40px">
+    <div class="tel-h osc" data-tel="H-B"></div>
+    <div class="texto">
+      <h3>B · Camino a pantalla completa</h3>
+      <p>Como las demás hojas acostadas, ocupa toda la pantalla. A cambio del mapa enseña <b>lo que el mapa no puede enseñar legible</b>: la materia en fila con todo lo que arrastra hasta el grado, con el período de cada una, y debajo qué pasa si la atrasas (el dominó, solo de esta materia).</p>
+      <ul>
+        <li>Arriba: quién es; abajo, la frase y los mismos dos botones.</li>
+        <li>«Ver en el mapa» cierra y enciende el cable de la fila entera.</li>
+        <li>Si la materia tiene margen, el segundo carril dice «Sigues en Dic 2029» y no lleva rojo.</li>
+      </ul>
+      <p><b>Riesgo:</b> pierde el mapa justo donde más cabe, y para una materia sin cadena (Estadística II) la fila queda corta y vacía.</p>
+    </div>
+  </div>
+</section>
+
+</div>
+
+<script>
+/* ---------- Iconos Lucide (rejilla de 24); el trazo se ajusta para medir 1,5 dp ---------- */
+const IC = {
+  'x': '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
+  'link': '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
+  'rotate-ccw': '<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>',
+  'calendar': '<path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/>',
+  'hourglass': '<path d="M5 22h14"/><path d="M5 2h14"/><path d="M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22"/><path d="M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2"/>',
+  'graduation-cap': '<path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/>',
+  'users': '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+  'search': '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
+  'map': '<path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z"/><path d="M15 5.764v15"/><path d="M9 3.236v15"/>',
+  'chevron-right': '<path d="m9 18 6-6-6-6"/>',
+  'chevron-up': '<path d="m18 15-6-6-6 6"/>',
+  'arrow-right': '<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>',
+};
+const f2 = n => +(+n).toFixed(2);
+const ico = (n, s = 18, cls = '') => `<svg class="i ${cls}" width="${s}" height="${s}" viewBox="0 0 24 24" style="stroke-width:${f2(1.5 * 24 / s)}" aria-hidden="true">${IC[n]}</svg>`;
+
+/* ---------- Iconos de estado (Iconos.kt, rejilla de 20) ---------- */
+const LIBRO = 'M10 6.1C8.3 4.85 6.3 4.35 4 4.5v9.9c2.3-.15 4.3.35 6 1.6 1.7-1.25 3.7-1.75 6-1.6V4.5c-2.3-.15-4.3.35-6 1.6z';
+const CUERPO = 'M6.5 9h7a2.25 2.25 0 0 1 2.25 2.25v3.75a2.25 2.25 0 0 1-2.25 2.25h-7a2.25 2.25 0 0 1-2.25-2.25v-3.75a2.25 2.25 0 0 1 2.25-2.25z';
+const RELOJ = 'M6 3.25h8M6 16.75h8M7 3.25v2.3c0 1.9 3 2.5 3 4.45s-3 2.55-3 4.45v2.3M13 3.25v2.3c0 1.9-3 2.5-3 4.45s3 2.55 3 4.45v2.3';
+const COLOR_EST = { H: 'var(--verde)', C: 'var(--tinta)', D: 'var(--azul)', P: 'var(--suave)', L: 'var(--rojo)', E: 'var(--tenue)', N: 'var(--suave)' };
+function est(s, tam = 20, sobre = 'var(--panel)', color) {
+  const c = color || COLOR_EST[s];
+  let g = '';
+  if (s === 'H') g = `<circle cx="10" cy="10" r="7.5" fill="${c}"/><path d="M6.6 10.3l2.3 2.3 4.5-4.9" fill="none" stroke="${sobre}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>`;
+  else if (s === 'C') g = `<path d="${LIBRO}" fill="${c}" fill-opacity=".14" stroke="${c}" stroke-width="1.5" stroke-linejoin="round"/><path d="M10 6.1V16" stroke="${c}" stroke-width="1.5" stroke-linecap="round"/>`;
+  else if (s === 'P') g = `<path d="${RELOJ}" fill="none" stroke="${c}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>`;
+  else if (s === 'D' || s === 'L') g = `<path d="${CUERPO}" fill="${c}" stroke="${c}" stroke-width="1.5"/><path d="M6.75 9V6.75a3.25 3.25 0 0 1 6.5 0V9" fill="none" stroke="${c}" stroke-width="1.5" stroke-linecap="round" ${s === 'D' ? 'transform="rotate(40 13.25 9)"' : ''}/><path d="M10 12.3v1.7" stroke="${sobre}" stroke-width="1.8" stroke-linecap="round"/>`;
+  else if (s === 'E') g = `<circle cx="10" cy="10" r="7.25" fill="none" stroke="${c}" stroke-width="1.5" stroke-dasharray="2.6 2.6"/>`;
+  else if (s === 'N') g = `<circle cx="10" cy="10" r="5.6" fill="none" stroke="${c}" stroke-width="1.5"/>`;
+  return `<svg class="est" width="${tam}" height="${tam}" viewBox="0 0 20 20" aria-hidden="true">${g}</svg>`;
+}
+const PALABRA = { H: 'Aprobada', C: 'Cursando', D: 'Disponible', P: 'Próxima', L: 'Bloqueada', E: 'Por elegir' };
+const pildora = s => `<span class="pildora ${s}">${est(s, 14)}${PALABRA[s]}</span>`;
+
+/* ---------- El pensum real de Sistemas (lo que pinta el mapa) ---------- */
+const AREA = { 'generales': '#8B9199', 'ciencias-basicas': '#5BC0EB', 'estadistica': '#A78BFA', 'computacion': '#3CCFA8', 'electronica': '#F2A65A', 'sistemas': '#5B8AF5', 'gestion': '#F0739B', 'tesis': '#E8CF4F' };
+const PENSUM = [
+  [1, '0021111', 'Extraacadémica', 1, 'generales', []], [1, '0061013', 'Comprensión y Expresión Lingüística I', 3, 'generales', []], [1, '0071823', 'Inglés Instrumental', 3, 'generales', []], [1, '0081814', 'Matemáticas I', 4, 'ciencias-basicas', []], [1, '0091012', 'Desarrollo de Destrezas para el Aprendizaje', 2, 'generales', []], [1, '0101214', 'Química General', 4, 'ciencias-basicas', []],
+  [2, '0051324', 'Física I', 4, 'ciencias-basicas', ['0081814']], [2, '0061023', 'Comprensión y Expresión Lingüística II', 3, 'generales', ['0061013']], [2, '0071121', 'Inglés Técnico I', 1, 'generales', ['0071823']], [2, '0081824', 'Matemáticas II', 4, 'ciencias-basicas', ['0081814']], [2, '0721162', 'Intr. a la Lógica Formal y Algoritmos', 2, 'computacion', []], [2, 'cas-h1', 'Electiva Sociohumanística', null, null, [], true],
+  [3, '0052131', 'Laboratorio de Física I', 1, 'ciencias-basicas', ['0051324']], [3, '0052134', 'Física II', 4, 'ciencias-basicas', ['0051324']], [3, '0082814', 'Matemáticas III', 4, 'ciencias-basicas', ['0081824']], [3, '0712642', 'Introducción a la Ingeniería de Sistemas', 2, 'sistemas', []], [3, '0722103', 'Programación Orientada a Objetos', 3, 'computacion', ['0081824', '0721162']], [3, '0722111', 'Taller de Program. Orientada a Objetos', 1, 'computacion', ['0721162']], [3, 'cas-h2', 'Electiva Sociohumanística', null, null, [], true],
+  [4, '0073023', 'Metodología de la Investigación', 3, 'generales', []], [4, '0082824', 'Matemáticas IV', 4, 'ciencias-basicas', ['0082814']], [4, '0623313', 'Estadística I', 3, 'estadistica', ['0082814']], [4, '0712142', 'Introducción a la Economía', 2, 'gestion', []], [4, '0722123', 'Objetos y Abstracción de Datos', 3, 'computacion', ['0722103', '0722111']], [4, '0722131', 'Taller de Objet. y Abstracción de Datos', 1, 'computacion', ['0722111']], [4, 'cas-h3', 'Electiva Sociohumanística', null, null, [], true],
+  [5, '0624622', 'Estadística II', 2, 'estadistica', ['0623313']], [5, '0713122', 'Inferencia y Diseño de Experimentos', 2, 'estadistica', ['0623313']], [5, '0713172', 'Sistemas de Costo', 2, 'gestion', ['0712142']], [5, '0713463', 'Circuitos y Sistemas', 3, 'electronica', ['0052134', '0082824']], [5, '0713632', 'Teoría de Sistemas', 2, 'sistemas', ['0712642']], [5, '0713643', 'Sistemas de Operación', 3, 'computacion', ['0722123']], [5, '0723913', 'Métodos Numéricos', 3, 'ciencias-basicas', ['0082824', '0722103']],
+  [6, '0713113', 'Economía de Empresas', 3, 'gestion', ['0713172']], [6, '0713622', 'Admón. de Stmas. de Base de Datos', 2, 'computacion', ['0713643']], [6, '0713633', 'Enfoque Sistémico', 3, 'sistemas', ['0713632']], [6, '0713653', 'Análisis de Decisiones', 3, 'sistemas', ['0713122']], [6, '0713663', 'Optimización de Operaciones', 3, 'sistemas', ['0723913']], [6, '0723533', 'Electrónica', 3, 'electronica', ['0713463']],
+  [7, '0714153', 'Prepar., Eval. y Control de Proyectos', 3, 'gestion', ['0713113']], [7, '0714323', 'Anál. y Diseño de Stms. de Información', 3, 'computacion', ['0713622']], [7, '0714633', 'Modelos de Operaciones I', 3, 'sistemas', ['0713663']], [7, '0714643', 'Sistemas Dinámicos', 3, 'sistemas', ['0723533']], [7, '0724641', 'Laboratorio de Circuitos y Electrónica', 1, 'electronica', ['0723533']], [7, 'cas-t4', 'Electiva Técnica', null, null, [], true],
+  [8, '0625613', 'Administración Financiera de Empresas', 3, 'gestion', ['0713113']], [8, '0714123', 'Gestión Empresarial I', 3, 'gestion', ['0714153']], [8, '0714133', 'Modelos de Operaciones II', 3, 'sistemas', ['0714633']], [8, '0714612', 'Aplicación y Audit. de Stmas. de Inform.', 2, 'computacion', ['0714323']], [8, '0714642', 'Sistemas de Comunicación Industrial', 2, 'electronica', ['0713622']], [8, 'cas-t5', 'Electiva Técnica', null, null, [], true],
+  [9, '0625822', 'Leyes y Deontología', 2, 'generales', []], [9, '0715112', 'Planificación Estratégica', 2, 'gestion', ['0714123']], [9, 'cas-t6', 'Electiva Técnica', null, null, [], true], [9, 'cas-t7', 'Electiva Técnica', null, null, [], true], [9, 'cas-t8', 'Electiva Técnica', null, null, [], true],
+  [10, '0715116', 'Trabajo de Grado', 6, 'tesis', ['0714133', '0715112']],
+];
+const POR = {}, ADEL = {}, TODAS = [];
+const filas = {};
+PENSUM.forEach(([sem, cod, nom, uc, area, pre, casilla]) => {
+  const fila = filas[sem] = (filas[sem] ?? -1) + 1;
+  const m = { sem, cod, nom, uc, area, pre, casilla: !!casilla, fila, x: (sem - 1) * 374, y: fila * 122 };
+  POR[cod] = m; TODAS.push(m);
+  pre.forEach(p => (ADEL[p] = ADEL[p] || []).push(cod));
+});
+/* Las marcas del caso: 1 a 4 aprobadas, cursando Estadística II e Inferencia; lo demás se deduce como en estadosDe */
+TODAS.forEach(m => {
+  if (m.casilla) m.e = 'E';
+  else if (m.sem <= 4) m.e = 'H';
+  else if (m.cod === '0624622' || m.cod === '0713122') m.e = 'C';
+});
+TODAS.forEach(m => {
+  if (m.e) return;
+  if (m.pre.every(p => POR[p].e === 'H')) m.e = 'D';
+  else if (m.pre.every(p => POR[p].e === 'H' || POR[p].e === 'C')) m.e = 'P';
+  else m.e = 'L';
+});
+const porSem = {};
+TODAS.forEach(m => (porSem[m.sem] = porSem[m.sem] || []).push(m));
+
+/* ---------- Medir texto (para partir los nombres de las tarjetas como el mapa) ---------- */
+const lienzo = document.createElement('canvas').getContext('2d');
+function partir(texto, fuente, ancho, max) {
+  lienzo.font = fuente;
+  const lineas = []; let actual = '';
+  for (const p of texto.split(' ')) {
+    const prueba = actual ? actual + ' ' + p : p;
+    if (!actual || lienzo.measureText(prueba).width <= ancho) actual = prueba;
+    else { lineas.push(actual); actual = p; }
+  }
+  if (actual) lineas.push(actual);
+  if (lineas.length > max) { const l = lineas.slice(0, max); l[max - 1] += '…'; return l; }
+  return lineas;
+}
+
+/* ---------- El mapa: tarjetas 224×96 en el plano, columnas a 374 y filas a 122 (Geometria.kt) ---------- */
+const CARA = {
+  H: { f: 'rgb(236 238 241 / .045)', b: 'rgb(236 238 241 / .10)', w: 1, n: 'var(--suave)' },
+  C: { f: 'rgb(236 238 241 / .03)', b: 'var(--tinta)', w: 1.5, n: 'var(--tinta)' },
+  D: { f: 'rgb(236 238 241 / .085)', b: 'rgb(236 238 241 / .16)', w: 1, n: 'var(--tinta)' },
+  P: { f: 'rgb(236 238 241 / .03)', b: 'rgb(236 238 241 / .08)', w: 1, n: 'var(--tenue)' },
+  L: { f: 'rgb(236 238 241 / .022)', b: 'rgb(236 238 241 / .06)', w: 1, n: 'var(--tenue)' },
+};
+function mapa(o) {
+  const { w, h, s } = o;
+  let cx, cy;
+  if (o.caja) { cx = o.caja[0]; cy = o.caja[1]; } else { const a = POR[o.ancla]; cx = a.x + 112; cy = a.y + 48; }
+  const X = x => (x - cx) * s + o.punto[0], Y = y => (y - cy) * s + o.punto[1];
+  const foco = new Set();
+  if (o.sel) { foco.add(o.sel); POR[o.sel].pre.forEach(c => foco.add(c)); (ADEL[o.sel] || []).forEach(c => foco.add(c)); }
+  const apagar = c => o.sel && !foco.has(c);
+  let rej = '', cab = '', cables = '', cartas = '';
+  // La rejilla del fondo, muy tenue
+  for (let gx = ((o.punto[0] - cx * s) % 40 + 40) % 40; gx < w; gx += 40) rej += `<line x1="${f2(gx)}" y1="0" x2="${f2(gx)}" y2="${h}" stroke="rgb(255 255 255 / .022)"/>`;
+  for (let gy = ((o.punto[1] - cy * s) % 40 + 40) % 40; gy < h; gy += 40) rej += `<line x1="0" y1="${f2(gy)}" x2="${w}" y2="${f2(gy)}" stroke="rgb(255 255 255 / .022)"/>`;
+  // Cables: de la derecha de lo que pide a la izquierda de lo que abre
+  const puertoSal = (p, dest) => { const l = (ADEL[p.cod] || []).slice().sort((a, b) => POR[a].y - POR[b].y); const i = l.indexOf(dest); return (i - (l.length - 1) / 2) * 12; };
+  const puertoEnt = (m, ori) => { const l = m.pre.slice().sort((a, b) => POR[a].y - POR[b].y); const i = l.indexOf(ori); return (i - (l.length - 1) / 2) * 12; };
+  const encendidos = [];
+  TODAS.forEach(m => m.pre.forEach(p => {
+    const q = POR[p];
+    const x1 = X(q.x + 224), y1 = Y(q.y + 48 + puertoSal(q, m.cod)), x2 = X(m.x), y2 = Y(m.y + 48 + puertoEnt(m, p));
+    if (Math.max(x1, x2) < -60 || Math.min(x1, x2) > w + 60) return;
+    const t = Math.max(44, (x2 - x1) * .45);
+    const d = `M${f2(x1)} ${f2(y1)} C ${f2(x1 + t)} ${f2(y1)}, ${f2(x2 - t)} ${f2(y2)}, ${f2(x2)} ${f2(y2)}`;
+    const col = AREA[q.area];
+    const vivo = o.sel && (m.cod === o.sel || p === o.sel);
+    if (vivo) encendidos.push(`<path d="${d}" fill="none" stroke="${col}" stroke-width="1.75" stroke-opacity=".95"/><path d="${d}" fill="none" stroke="#fff" stroke-width=".75" stroke-opacity=".45"/>`);
+    else cables += `<path d="${d}" fill="none" stroke="${col}" stroke-width="1" stroke-opacity="${o.sel ? .1 : .32}"/>`;
+  }));
+  cables += encendidos.join('');
+  // Cabeceras de semestre (las del mapa: Jost espaciado, con su cifra)
+  Object.keys(porSem).forEach(sem => {
+    const l = porSem[sem], x0 = X((sem - 1) * 374), yb = Y(-24);
+    if (x0 > w || x0 + 224 * s < 0 || yb < -10) return;
+    const hechas = l.filter(m => m.e === 'H').length, ucs = l.reduce((a, m) => a + (m.uc || 0), 0);
+    const op = o.sel ? .4 : 1;
+    cab += `<g opacity="${op}"><text x="${f2(x0)}" y="${f2(Y(-66))}" style="font:500 ${f2(11.5 * s)}px Jost;letter-spacing:.3em;fill:var(--tinta)">SEMESTRE ${String(sem).padStart(2, '0')}</text>`;
+    cab += `<text x="${f2(x0)}" y="${f2(Y(-50))}" style="font:300 ${f2(10 * s)}px 'IBM Plex Mono';fill:var(--tenue)">${ucs} UC · ${l.length} MATERIAS</text>`;
+    cab += `<text x="${f2(x0 + 224 * s)}" y="${f2(Y(-46))}" text-anchor="end" style="font:200 ${f2(32 * s)}px Jost;fill:var(--tinta)">${Math.round(100 * hechas / l.length)}<tspan style="font-size:${f2(14 * s)}px;fill:var(--tenue)">%</tspan></text>`;
+    cab += `<rect x="${f2(x0)}" y="${f2(Y(-38))}" width="${f2(224 * s)}" height="1" fill="rgb(236 238 241 / .12)"/><rect x="${f2(x0)}" y="${f2(Y(-38))}" width="${f2(224 * s * hechas / l.length)}" height="1" fill="var(--tinta)"/></g>`;
+  });
+  // Tarjetas
+  TODAS.forEach(m => {
+    const x = X(m.x), y = Y(m.y), cw = 224 * s, ch = 96 * s, r = 7 * s;
+    if (x > w + 10 || x + cw < -10 || y > h + 10 || y + ch < -10) return;
+    const sel = m.cod === o.sel, dim = apagar(m.cod);
+    let g = `<g opacity="${dim ? .28 : 1}">`;
+    if (m.casilla) {
+      g += `<rect x="${f2(x + .75)}" y="${f2(y + .75)}" width="${f2(cw - 1.5)}" height="${f2(ch - 1.5)}" rx="${f2(r)}" fill="${sel ? 'rgb(236 238 241 / .06)' : 'none'}" stroke="${sel ? 'var(--tinta)' : 'rgb(236 238 241 / .22)'}" stroke-width="${sel ? 1.5 : 1}" stroke-dasharray="${f2(5 * s)} ${f2(4 * s)}"/>`;
+      g += `<rect x="${f2(x + cw / 2 - 11 * s)}" y="${f2(y + 22 * s)}" width="${f2(22 * s)}" height="${f2(22 * s)}" rx="${f2(4 * s)}" fill="none" stroke="rgb(236 238 241 / .35)" stroke-width="1"/><path d="M${f2(x + cw / 2)} ${f2(y + 28 * s)}v${f2(10 * s)}M${f2(x + cw / 2 - 5 * s)} ${f2(y + 33 * s)}h${f2(10 * s)}" stroke="var(--suave)" stroke-width="1"/>`;
+      g += `<text x="${f2(x + cw / 2)}" y="${f2(y + 66 * s)}" text-anchor="middle" style="font:380 ${f2(14 * s)}px Jost;fill:var(--tenue)">${m.nom}</text>`;
+    } else {
+      const c = CARA[m.e];
+      g += `<rect x="${f2(x + c.w / 2)}" y="${f2(y + c.w / 2)}" width="${f2(cw - c.w)}" height="${f2(ch - c.w)}" rx="${f2(r)}" fill="${sel ? 'rgb(236 238 241 / .1)' : c.f}" stroke="${sel ? 'var(--tinta)' : c.b}" stroke-width="${sel ? 1.5 : c.w}"/>`;
+      g += `<text x="${f2(x + 18 * s)}" y="${f2(y + 24 * s)}" style="font:300 ${f2(10 * s)}px 'IBM Plex Mono';letter-spacing:.04em;fill:var(--tenue)">${m.cod}</text>`;
+      const l = partir(m.nom, '380 14px Jost', 190, 3);
+      const y0 = 55 - (l.length - 1) * 16.5 / 2 + 5;
+      l.forEach((t, i) => { g += `<text x="${f2(x + 18 * s)}" y="${f2(y + (y0 + i * 16.5) * s)}" style="font:380 ${f2(14 * s)}px Jost;fill:${c.n}">${t}</text>`; });
+      g += `<circle cx="${f2(x + 21 * s)}" cy="${f2(y + 81 * s)}" r="${f2(3 * s)}" fill="${AREA[m.area]}"/><text x="${f2(x + 29 * s)}" y="${f2(y + 84.5 * s)}" style="font:300 ${f2(10 * s)}px 'IBM Plex Mono';fill:var(--tenue)">${m.uc} UC</text>`;
+    }
+    if (sel) g += `<rect x="${f2(x - 4)}" y="${f2(y - 4)}" width="${f2(cw + 8)}" height="${f2(ch + 8)}" rx="${f2(r + 4)}" fill="none" stroke="rgb(236 238 241 / .3)" stroke-width="1"/>`;
+    cartas += g + '</g>';
+  });
+  return `<svg class="mapa" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">${rej}${cab}${cables}${cartas}</svg>`;
+}
+
+/* ---------- Barra de estado y gestos ---------- */
+const BATERIA = `<svg width="22" height="11" viewBox="0 0 22 11"><rect x=".5" y=".5" width="18" height="10" rx="2.5" fill="none" stroke="currentColor" stroke-opacity=".5"/><rect x="2" y="2" width="12" height="7" rx="1.2" fill="currentColor"/><rect x="19.5" y="3.5" width="1.5" height="4" rx=".6" fill="currentColor" fill-opacity=".5"/></svg>`;
+const SENAL = `<svg width="15" height="11" viewBox="0 0 15 11"><path d="M1 10h2V7H1zM5 10h2V5H5zM9 10h2V3H9zM13 10h2V1h-2z" fill="currentColor"/></svg>`;
+const sis = () => `<div class="velo-sis"></div><div class="sis"><span>9:41</span><span class="der">${SENAL}${BATERIA}</span></div>`;
+
+/* ---------- Piezas de la hoja ---------- */
+const filaResp = r => `<div class="f ${r.corta ? 'c56' : ''}"><span class="pas ${r.azul ? 'azul' : ''}">${ico(r.ico, 18, r.azul ? 'azul' : '')}</span><span class="t"><span class="tt">${r.fila}</span>${r.nota ? `<span class="nota">${r.nota}</span>` : ''}</span>${r.ch ? ico('chevron-right', 16, 'ch') : ''}</div>`;
+/* Pide y Abre: el rótulo en la primera fila de cada grupo; «Ninguna» si no hay */
+const filaRel = (rot, it, grupo) => `<div class="r ${grupo ? 'grupo' : ''}"><span class="rot">${rot}</span>${it ? est(it.s, 16) : '<span></span>'}<span class="tt ${!it || it.s === 'H' ? 'ten' : ''}">${it ? it.n : 'Ninguna'}</span>${it ? ico('chevron-right', 16, 'ch') : '<span></span>'}</div>`;
+const grupoRel = (rot, l, primero) => l.length ? l.map((it, i) => filaRel(i ? '' : rot, it, !primero && i === 0)).join('') : filaRel(rot, null, !primero);
+const puente = p => `<section class="tarjeta rel mt12">${grupoRel('Pide', p.pide, true)}${grupoRel('Abre', p.abre, false)}</section>`;
+const boton = b => `<div class="btn ${b.tipo}"><span>${b.t}</span>${b.sub ? `<span class="sub">${b.sub}</span>` : ''}</div>`;
+const botones = l => `<div class="botones ${l.length === 1 ? 'uno' : ''}">${l.map(boton).join('')}</div>`;
+const cabecera = d => `
+  <div class="asa"></div>
+  <div class="fcab"><span class="fcab-t"><span class="rot">${d.rot}</span>${d.cod ? `<span class="cod">${d.cod}</span>` : ''}</span><span class="redondo">${ico('x')}</span></div>
+  <h2 class="ftit">${d.titulo}</h2>
+  <div class="fmeta"><span class="nota">${d.meta}</span>${pildora(d.e)}</div>`;
+
+/* ---------- Las fichas del caso ---------- */
+const FICHAS = {
+  costo: { cod: '0713172', rot: 'Semestre 5', titulo: 'Sistemas de Costo', meta: '2 UC · Gestión', e: 'D',
+    resp: [{ ico: 'link', azul: true, fila: 'No puede esperar', nota: 'Si la atrasas, te gradúas en <b class="rojo">Jun 2030</b>' }],
+    puente: { pide: [{ s: 'H', n: 'Introducción a la Economía' }], abre: [{ s: 'L', n: 'Economía de Empresas' }] },
+    botones: [{ t: 'La estoy cursando', tipo: 'prim' }, { t: 'Ya la aprobé', sub: 'Se te abre 1', tipo: 'sec' }] },
+  inferencia: { cod: '0713122', rot: 'Semestre 5', titulo: 'Inferencia y Diseño de Experimentos', meta: '2 UC · Estadística', e: 'C',
+    resp: [{ ico: 'rotate-ccw', fila: 'Si la repruebas', nota: 'Sigues en <b>Dic 2029</b>' }],
+    puente: { pide: [{ s: 'H', n: 'Estadística I' }], abre: [{ s: 'P', n: 'Análisis de Decisiones' }] },
+    botones: [{ t: 'Ya la aprobé', sub: 'Se te abre 1', tipo: 'prim' }, { t: 'Desmarcar', tipo: 'sec' }] },
+  estadistica: { cod: '0623313', rot: 'Semestre 4', titulo: 'Estadística I', meta: '3 UC · Estadística', e: 'H',
+    resp: [],
+    puente: { pide: [{ s: 'H', n: 'Matemáticas III' }], abre: [{ s: 'C', n: 'Estadística II' }, { s: 'C', n: 'Inferencia y Diseño de Experimentos' }] },
+    botones: [{ t: 'Desmarcar', tipo: 'sec' }] },
+  economia: { cod: '0713113', rot: 'Semestre 6', titulo: 'Economía de Empresas', meta: '3 UC · Gestión', e: 'L',
+    resp: [{ ico: 'link', fila: 'En tu plan, Jul – Dic 2027', nota: 'No puede esperar' }],
+    puente: { pide: [{ s: 'D', n: 'Sistemas de Costo' }], abre: [{ s: 'L', n: 'Prepar., Eval. y Control de Proyectos' }, { s: 'L', n: 'Administración Financiera de Empresas' }] },
+    botones: [{ t: 'La estoy cursando', tipo: 'sec' }, { t: 'Ya la aprobé', sub: 'Se te abren 2', tipo: 'sec' }] },
+};
+function hojaA(d) {
+  return `<div class="hojaF">${cabecera(d)}
+    ${d.resp.length ? `<section class="tarjeta mt16">${d.resp.map(filaResp).join('')}</section>` : ''}
+    ${puente(d.puente).replace('mt12', d.resp.length ? 'mt12' : 'mt16')}
+    ${botones(d.botones)}</div>`;
+}
+function hojaB(d) {
+  const filaRel = (it, nota) => `<div class="f c56">${est(it.s, 20)}<span class="t" style="margin-left:6px"><span class="tt">${it.n}</span>${nota ? `<span class="nota">${nota}</span>` : ''}</span>${ico('chevron-right', 16, 'ch')}</div>`;
+  return `<div class="hojaF">${cabecera(d)}
+    <div class="rot mt20" style="margin-left:16px;margin-bottom:8px">Pide</div>
+    <section class="tarjeta">${filaRel(d.puente.pide[0], 'Semestre 4')}</section>
+    <div class="rot mt16" style="margin-left:16px;margin-bottom:8px">Abre</div>
+    <section class="tarjeta">${filaRel(d.puente.abre[0], 'Jul – Dic 2027 en tu plan')}</section>
+    <div class="efecto"><span class="nota">Si la apruebas</span>${ico('arrow-right', 14, 'ch')}<span class="nota azul" style="font-weight:500">se te abre Economía de Empresas</span></div>
+    <div class="seg"><span class="lente"></span>
+      <span class="o act">${est('N', 18, 'var(--panel)', 'var(--tinta)')}Sin cursar</span>
+      <span class="o">${est('C', 18, 'var(--panel)', 'var(--suave)')}Cursando</span>
+      <span class="o">${est('H', 18)}Aprobada</span></div></div>`;
+}
+const lineaEstado = act => `<div class="linea3">
+    <div class="p ${act === 0 ? 'act' : ''}"><span class="n"><i>${est('N', 16, 'var(--panel)', act === 0 ? 'var(--tinta)' : 'var(--apagada)')}</i></span><span class="nota">Sin cursar</span></div>
+    <div class="p ${act === 1 ? 'act' : ''}"><span class="n"><i>${est('C', 16, 'var(--panel)', act === 1 ? 'var(--tinta)' : 'var(--apagada)')}</i></span><span class="nota">Cursando</span></div>
+    <div class="p ${act === 2 ? 'act' : ''}"><span class="n"><i>${est('H', 16, 'var(--panel)', act === 2 ? 'var(--verde)' : 'var(--apagada)')}</i></span><span class="nota">Aprobada</span></div></div>`;
+function hojaC(d, subida) {
+  if (!subida) return `<div class="hojaF">${cabecera(d)}${lineaEstado(0)}</div>`;
+  const camino = [
+    ['H', 'Introducción a la Economía', 'Pide'], ['yo', 'Sistemas de Costo', 'Ene – Jun 2027'], ['L', 'Economía de Empresas', 'Jul – Dic 2027'],
+    ['L', 'Prepar., Eval. y Control de Proyectos', 'Ene – Jun 2028'], ['L', 'Gestión Empresarial I', 'Jul – Dic 2028'], ['L', 'Planificación Estratégica', 'Ene – Jun 2029'], ['G', 'Trabajo de Grado', 'Jul – Dic 2029'],
+  ];
+  const nodo = k => k === 'yo' ? '<span class="nodo az"><i></i></span>' : k === 'H' ? `<span class="nodo">${est('H', 16)}</span>` : k === 'G' ? `<span class="nodo" style="color:var(--tinta)">${ico('graduation-cap', 18)}</span>` : '<span class="nodo"><i></i></span>';
+  return `<div class="hojaF">${cabecera(d)}${lineaEstado(0)}
+    <div style="display:flex;justify-content:space-between;margin:24px 16px 8px"><span class="rot">Su camino</span><span class="rot">6 semestres</span></div>
+    <section class="tarjeta camino" style="padding:4px 0"><span class="via"></span>
+      ${camino.map(([k, n, p]) => `<div class="f">${nodo(k)}<span class="t" style="padding:6px 0"><span class="tt" style="${k === 'H' ? 'color:var(--suave);font-weight:400' : ''}">${n}</span></span><span class="per ${k === 'yo' ? 'azul' : ''}" style="${k === 'yo' ? 'font-weight:500' : ''}">${p}</span></div>`).join('')}
+    </section>
+    <section class="tarjeta mt12">${filaResp({ ico: 'link', azul: true, fila: 'No puede esperar', nota: 'Si la atrasas, te gradúas en <b class="rojo">Jun 2030</b>' })}</section></div>`;
+}
+/* La casilla vacía: la hoja es el selector */
+const HUMANISTICAS = [['Comunicación y Sociedad', 2], ['Dinámica de Grupos', 2], ['Dirección de Reuniones', 3], ['Educación Ambiental', 2], ['Ética', 3], ['Expresión Escrita', 2], ['Expresión Oral y Escrita', 2]];
+function hojaCasilla() {
+  const d = { rot: 'Semestre 4 · Electiva', titulo: 'Electiva Sociohumanística', meta: 'Elige 1 de 14 · llevas 0 de 6 UC', e: 'E' };
+  return `<div class="hojaF" style="height:60%;overflow:hidden">${cabecera(d)}
+    <div class="buscar mt20">${ico('search', 18)}<span class="cuerpo" style="color:var(--tenue)">Buscar por nombre o código</span></div>
+    <div style="display:flex;justify-content:space-between;margin:20px 16px 8px"><span class="rot">Puedes cursarlas ya</span><span class="rot">13</span></div>
+    <section class="tarjeta">${HUMANISTICAS.map(([n, uc]) => `<div class="f c56"><span class="radio"></span><span class="t"><span class="tt">${n}</span></span><span class="cifra c20">${uc}<span class="u">UC</span></span></div>`).join('')}</section>
+    <div class="desv"></div></div>`;
+}
+
+/* ---------- Un teléfono: hoja primero, se mide, y el mapa se encuadra en el hueco que deja ---------- */
+const ARRIBA = 32;
+function telefono(el) {
+  const k = el.dataset.tel;
+  let hoja = '', sel = null, escala = .62;
+  if (k === 'A-D') { hoja = hojaA(FICHAS.costo); sel = '0713172'; }
+  if (k === 'B-D') { hoja = hojaB(FICHAS.costo); sel = '0713172'; }
+  if (k === 'C-D') { hoja = hojaC(FICHAS.costo, false); sel = '0713172'; }
+  if (k === 'C-D2') { hoja = hojaC(FICHAS.costo, true); sel = '0713172'; }
+  if (k === 'A-C') { hoja = hojaA(FICHAS.inferencia); sel = '0713122'; }
+  if (k === 'A-H') { hoja = hojaA(FICHAS.estadistica); sel = '0623313'; }
+  if (k === 'A-L') { hoja = hojaA(FICHAS.economia); sel = '0713113'; }
+  if (k === 'A-E') { hoja = hojaCasilla(); sel = 'cas-h3'; }
+  el.innerHTML = hoja + '<div class="gestos"></div>';
+  const alto = el.querySelector('.hojaF').offsetHeight;
+  const libre = 812 - alto;
+  const punto = [187.5, (ARRIBA + 16 + libre - 16) / 2];
+  el.insertAdjacentHTML('afterbegin', mapa({ w: 375, h: 812, s: escala, ancla: sel, punto, sel }) + sis());
+  el.dataset.altoHoja = alto;
+  document.querySelectorAll(`[data-alto="${k}"]`).forEach(b => { b.textContent = `${alto} dp (${Math.round(100 * alto / 812)} %)`; });
+  if (el.dataset.medidas) medidas(el, alto, punto);
+}
+/* Las cotas sobre el teléfono del bloque «alto y cámara» */
+function medidas(el, alto, punto) {
+  const libre = 812 - alto;
+  el.insertAdjacentHTML('beforeend', `
+    <div class="guia" style="left:10px;top:${ARRIBA}px;height:${libre - ARRIBA}px;border-left-width:1.5px"></div>
+    <div class="medida" style="left:16px;top:${ARRIBA + (libre - ARRIBA) / 2 - 10}px">Mapa libre · ${libre - ARRIBA} dp</div>
+    <div class="guia" style="left:10px;top:${libre}px;height:${alto}px;border-left-width:1.5px;border-color:rgb(26 71 194 / .5)"></div>
+    <div class="guia" style="left:0;right:0;top:${punto[1]}px;border-top-width:1px"></div>
+    <div class="medida" style="right:12px;top:${punto[1] - 26}px">centro del hueco</div>`);
+  el.querySelector('.hojaF').insertAdjacentHTML('beforeend', `<div class="medida" style="right:12px;top:10px">Hoja · ${alto} dp · ${Math.round(100 * alto / 812)} %</div>`);
+}
+
+/* ---------- Acostado ---------- */
+function acostadoA(el) {
+  const d = FICHAS.costo;
+  el.innerHTML = `<div class="franja"><div class="asa"></div><div class="g">
+    <div>
+      <div class="fcab-t" style="height:20px;align-items:center"><span class="rot">${d.rot}</span><span class="cod">${d.cod}</span></div>
+      <h2 class="ftit mt4">${d.titulo}</h2>
+      <div class="fmeta" style="justify-content:flex-start;gap:12px"><span class="nota">${d.meta}</span>${pildora('D')}</div>
+    </div>
+    <div class="sep"></div>
+    <div>
+      <div style="display:flex;gap:12px;align-items:center">${`<span class="pas azul">${ico('link', 18, 'azul')}</span>`}<span><span class="tt" style="display:block">No puede esperar</span><span class="nota">Si la atrasas, te gradúas en <b class="rojo">Jun 2030</b></span></span></div>
+      <div style="display:grid;grid-template-columns:44px 1fr;row-gap:6px;margin-top:14px;align-items:center">
+        <span class="rot">Pide</span><span style="display:flex;gap:8px;align-items:center">${est('H', 16)}<span class="nota" style="color:var(--suave)">Introducción a la Economía</span></span>
+        <span class="rot">Abre</span><span style="display:flex;gap:8px;align-items:center">${est('L', 16)}<span class="nota" style="color:var(--tinta);font-weight:500">Economía de Empresas</span></span>
+      </div>
+    </div>
+    <div>${botones(d.botones)}</div>
+  </div></div><div class="gestos"></div>`;
+  const alto = el.querySelector('.franja').offsetHeight;
+  // La caja del vecindario: lo que pide, la materia y lo que abre
+  const v = ['0712142', '0713172', '0713113'].map(c => POR[c]);
+  const x0 = Math.min(...v.map(m => m.x)), x1 = Math.max(...v.map(m => m.x + 224)), y0 = Math.min(...v.map(m => m.y)), y1 = Math.max(...v.map(m => m.y + 96));
+  const libre = 412 - alto;
+  el.insertAdjacentHTML('afterbegin', mapa({ w: 915, h: 412, s: .46, caja: [(x0 + x1) / 2, (y0 + y1) / 2], punto: [457.5, (24 + libre) / 2], sel: '0713172' }) +
+    `<div class="velo-sis" style="height:44px"></div><div class="sis" style="height:24px;padding:0 28px;font-size:12px"><span>9:41</span><span class="der">${SENAL}${BATERIA}</span></div>`);
+  el.querySelector('.franja').insertAdjacentHTML('beforeend', `<div class="medida" style="right:24px;top:-30px">Franja · ${alto} dp · ${Math.round(100 * alto / 412)} %</div>`);
+}
+function acostadoB(el) {
+  const d = FICHAS.costo;
+  const W = 859, n = 8, g = 8, cw = (W - g * (n - 1)) / n, xs = i => f2(i * (cw + g));
+  const nodos = [['H', 'Introducción a la Economía'], ['yo', 'Sistemas de Costo'], ['L', 'Economía de Empresas'], ['L', 'Prepar., Eval. y Control de Proyectos'], ['L', 'Gestión Empresarial I'], ['L', 'Planificación Estratégica'], ['G', 'Trabajo de Grado']];
+  const pers = ['Aprobada', 'Ene – Jun 2027', 'Jul – Dic 2027', 'Ene – Jun 2028', 'Jul – Dic 2028', 'Ene – Jun 2029', 'Jul – Dic 2029', 'Ene – Jun 2030'];
+  const carta = (k, nom, i, carril) => {
+    const fuera = carril === 2 && i === 7;
+    const st = k === 'yo' ? (carril === 1 ? 'background:var(--azul);color:var(--panel)' : 'background:rgb(var(--t) / .14);color:var(--tinta)')
+      : k === 'H' ? 'background:var(--sup);color:var(--suave)'
+      : fuera ? 'background:var(--rojo);color:#fff' : 'background:none;box-shadow:inset 0 0 0 1.5px rgb(var(--t) / .28);color:var(--tinta)';
+    return `<div style="position:absolute;left:${xs(i)}px;top:0;width:${f2(cw)}px;height:60px;border-radius:12px;padding:8px;${st};font:500 12px/15px Inter;letter-spacing:-.003em;display:flex;flex-direction:column;align-items:flex-start;gap:4px"><span style="display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden">${nom}</span></div>`;
+  };
+  let c1 = '', c2 = '', p1 = '', p2 = '';
+  nodos.forEach(([k, nom], i) => { c1 += carta(k, nom, i, 1); p1 += `<span style="position:absolute;left:${xs(i)}px;width:${f2(cw)}px;font:400 12px/16px Inter;display:flex;gap:4px;align-items:center;color:${k === 'yo' ? 'var(--azul)' : 'var(--tenue)'};${k === 'yo' ? 'font-weight:500' : ''}">${k === 'H' ? est('H', 12) : ''}${k === 'G' ? ico('graduation-cap', 13) : ''}${pers[i]}</span>`; });
+  nodos.forEach(([k, nom], i) => {
+    if (k === 'H') { c2 += carta(k, nom, 0, 2); p2 += `<span style="position:absolute;left:0;width:${f2(cw)}px;font:400 12px/16px Inter;display:flex;gap:4px;align-items:center;color:var(--tenue)">${est('H', 12)}Aprobada</span>`; return; }
+    if (i === 1) c2 += `<div style="position:absolute;left:${xs(1)}px;top:0;width:${f2(cw)}px;height:60px;border-radius:12px;box-shadow:inset 0 0 0 1.5px rgb(var(--t) / .2);background:repeating-linear-gradient(135deg, transparent 0 6px, rgb(var(--t) / .05) 6px 7px)"></div>`;
+    c2 += carta(k, nom, i + 1, 2);
+    p2 += `<span style="position:absolute;left:${xs(i + 1)}px;width:${f2(cw)}px;font:400 12px/16px Inter;display:flex;gap:4px;align-items:center;color:${i + 1 === 7 ? 'var(--rojo)' : 'var(--tenue)'};${i + 1 === 7 ? 'font-weight:500' : ''}">${pers[i + 1]}</span>`;
+  });
+  const linea = `<div style="position:absolute;left:${f2(7 * (cw + g) - g / 2)}px;top:-6px;height:72px;border-left:1px dashed rgb(var(--t) / .35)"></div>`;
+  el.innerHTML = `<div class="pantallaC">
+    <div style="display:flex;align-items:center;gap:12px">
+      <span class="redondo">${ico('x')}</span>
+      <div style="flex:1;min-width:0"><div class="fcab-t"><span class="rot">${d.rot}</span><span class="cod">${d.cod}</span></div><h2 class="ftit" style="font-size:24px;line-height:28px;margin:0">${d.titulo}</h2></div>
+      ${pildora('D')}
+      <span style="height:36px;border-radius:18px;background:var(--pas);display:flex;align-items:center;gap:8px;padding:0 14px 0 12px">${ico('map', 16)}<span class="nota" style="color:var(--tinta);font-weight:500">Ver en el mapa</span></span>
+    </div>
+    <div style="display:flex;justify-content:space-between;margin-top:18px"><span class="nota">A tiempo</span><span class="cifra" style="font:300 15px/20px Inter">Dic 2029</span></div>
+    <div class="carril mt8" style="height:60px">${c1}${linea}</div>
+    <div class="carril mt4" style="height:16px">${p1}</div>
+    <div style="display:flex;justify-content:space-between;margin-top:14px"><span class="nota">Si la atrasas</span><span class="cifra rojo" style="font:500 15px/20px Inter">Jun 2030</span></div>
+    <div class="carril mt8" style="height:60px">${c2}${linea}</div>
+    <div class="carril mt4" style="height:16px">${p2}</div>
+    <div style="display:flex;align-items:center;gap:16px;margin-top:18px">
+      <span class="pas azul">${ico('link', 18, 'azul')}</span><span style="flex:1"><span class="tt" style="display:block">No puede esperar</span><span class="nota">Cada materia de la fila abre la siguiente</span></span>
+      <div class="botones" style="margin:0;width:420px">${d.botones.map(boton).join('')}</div>
+    </div>
+  </div><div class="gestos"></div>
+  <div class="velo-sis" style="height:20px;background:none"></div>`;
+}
+
+/* ---------- Los modelos de botones ---------- */
+function muestras() {
+  const A = [['D', 'Disponible', FICHAS.costo.botones], ['C', 'Cursando', FICHAS.inferencia.botones], ['L', 'Bloqueada', FICHAS.economia.botones], ['H', 'Aprobada', FICHAS.estadistica.botones]];
+  const seg = act => `<div class="seg" style="margin-top:8px"><span class="lente" style="left:calc(4px + ${act} * (100% - 8px) / 3)"></span>
+      <span class="o ${act === 0 ? 'act' : ''}">${est('N', 18, 'var(--panel)', act === 0 ? 'var(--tinta)' : 'var(--suave)')}Sin cursar</span>
+      <span class="o ${act === 1 ? 'act' : ''}">${est('C', 18, 'var(--panel)', act === 1 ? 'var(--tinta)' : 'var(--suave)')}Cursando</span>
+      <span class="o ${act === 2 ? 'act' : ''}">${est('H', 18)}Aprobada</span></div>`;
+  document.getElementById('muestras').innerHTML = `
+    <div class="muestra"><h4>A · Siguiente paso <span class="sello">Recomendada</span></h4>
+      ${A.map(([s, nom, b]) => `<div class="estado">${est(s, 16)}<span class="rot">${nom}</span></div>${botones(b)}`).join('')}</div>
+    <div class="muestra"><h4>B · Tres marcas</h4>
+      ${[['N', 'Disponible · Sin cursar', 0], ['C', 'Cursando', 1], ['L', 'Bloqueada · Sin cursar', 0], ['H', 'Aprobada', 2]].map(([s, nom, act]) => `<div class="estado">${est(s === 'N' ? 'D' : s, 16)}<span class="rot">${nom}</span></div>${seg(act)}`).join('')}
+      <p class="nota" style="margin-top:16px">Siempre las tres, siempre en su sitio. El efecto de aprobar va en una línea encima, no en el control.</p></div>
+    <div class="muestra"><h4>C · Línea de tres paradas</h4>
+      ${[['D', 'Disponible', 0], ['C', 'Cursando', 1], ['H', 'Aprobada', 2]].map(([s, nom, act]) => `<div class="estado">${est(s, 16)}<span class="rot">${nom}</span></div>${lineaEstado(act).replace('margin-top:18px', '')}`).join('')}
+      <p class="nota" style="margin-top:16px">Se lee como un avance: lo hecho queda a la izquierda. Ocupa 66 dp y cabe en la hoja asomada.</p></div>`;
+  document.querySelectorAll('#muestras .linea3').forEach(e => e.style.marginTop = '6px');
+}
+
+/* ---------- Montaje: cuando las fuentes ya están, para medir bien ---------- */
+Promise.all(['380 14px Jost', '300 28px Jost', '500 15px Inter', '400 13px Inter', '500 11px Inter', "300 11px 'IBM Plex Mono'"].map(f => document.fonts.load(f))).then(() => {
+  document.querySelectorAll('[data-tel]').forEach(el => {
+    if (el.dataset.tel === 'H-A') acostadoA(el);
+    else if (el.dataset.tel === 'H-B') acostadoB(el);
+    else telefono(el);
+  });
+  // Las cifras del bloque «alto» salen de los teléfonos de arriba
+  document.querySelectorAll('[data-alto]').forEach(b => {
+    const t = document.querySelector(`[data-tel="${b.dataset.alto}"]`);
+    if (t && t.dataset.altoHoja) b.textContent = `${t.dataset.altoHoja} dp (${Math.round(100 * t.dataset.altoHoja / 812)} %)`;
+  });
+  muestras();
+  document.body.dataset.listo = '1';
+});
+</script>
+</body>
+</html>

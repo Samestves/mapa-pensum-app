@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>La lista · opciones</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,100..900&family=Jost:wght@100..900&family=IBM+Plex+Mono:wght@300&display=block" rel="stylesheet">
+<style>
+/* ============ La página (presentación; no es la app) ============ */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #E6E7E9; color: #050608; font-family: Inter, sans-serif; font-optical-sizing: none; padding: 56px 40px 80px; -webkit-font-smoothing: antialiased; }
+.pagina { width: 1620px; margin: 0 auto; }
+.portada h1 { font: 300 40px/44px Jost; letter-spacing: -.01em; }
+.portada p { font: 400 15px/22px Inter; letter-spacing: -.009em; color: #34383E; margin-top: 12px; max-width: 1060px; }
+.portada b, .porque b, .texto b { font-weight: 500; color: #050608; }
+.bloque { margin-top: 64px; }
+.bloque > h2 { font: 500 11px/16px Inter; letter-spacing: .08em; text-transform: uppercase; color: #52565C; margin-bottom: 20px; }
+.fila { display: flex; gap: 40px; align-items: flex-start; }
+.op { width: 375px; flex: none; }
+.op > h3 { font: 500 15px/20px Inter; letter-spacing: -.009em; display: flex; align-items: center; gap: 8px; }
+.op > p { font: 400 13px/18px Inter; color: #34383E; margin: 4px 0 16px; min-height: 72px; }
+.op > p b { font-weight: 500; color: #050608; }
+.sello { font: 500 11px/16px Inter; letter-spacing: .08em; text-transform: uppercase; color: #fff; background: #1A47C2; border-radius: 10px; padding: 2px 8px; }
+.porque { margin-top: 28px; font: 400 15px/22px Inter; letter-spacing: -.009em; color: #1C1F23; max-width: 1240px; }
+.texto { width: 665px; flex: none; }
+.texto h3 { font: 500 20px/26px Inter; letter-spacing: -.01em; display: flex; align-items: center; gap: 10px; }
+.texto p { margin-top: 10px; font: 400 14px/21px Inter; color: #34383E; }
+.texto ul { margin: 10px 0 0 18px; font: 400 14px/21px Inter; color: #34383E; }
+.texto li + li { margin-top: 4px; }
+.cuenta { margin-top: 12px; font: 400 13px/18px Inter; color: #34383E; }
+.cuenta b { font-weight: 500; color: #050608; }
+.decision { background: #fff; border-radius: 24px; padding: 24px 28px; box-shadow: 0 0 0 1px rgb(0 0 0 / .07); }
+.decision h4 { font: 300 24px/28px Jost; }
+.decision p { font: 400 14px/21px Inter; color: #34383E; margin-top: 10px; }
+.decision b { font-weight: 500; color: #050608; }
+.decision table { border-collapse: collapse; margin-top: 16px; width: 100%; font: 400 13px/18px Inter; color: #34383E; }
+.decision td, .decision th { padding: 7px 0; border-top: 1px solid #E6E7E9; text-align: left; vertical-align: top; }
+.decision th { font: 500 11px/16px Inter; letter-spacing: .08em; text-transform: uppercase; color: #52565C; border-top: 0; }
+.decision td:first-child { width: 150px; color: #050608; font-weight: 500; }
+
+/* ============ Paleta Acero · Oscuro ============ */
+.osc { --lienzo:#0B0C0E; --panel:#121316; --tinta:#ECEEF1; --suave:#B6BBC2; --tenue:#858B94; --apagada:#5D636C; --azul:#5B8AF5; --verde:#2EC27E; --rojo:#E5403A;
+       --t: 236 238 241; --a: 91 138 245;
+       --sup: rgb(var(--t) / .05); --hilo: rgb(var(--t) / .09); --pas: rgb(var(--t) / .08); --pas-azul: rgb(var(--a) / .16);
+       color: var(--tinta); }
+
+/* ============ Teléfono ============ */
+.tel { width: 375px; height: 812px; position: relative; overflow: hidden; border-radius: 44px; box-shadow: 0 0 0 1px rgb(0 0 0 / .07), 0 32px 64px -28px rgb(0 0 0 / .32); }
+.tel-h { width: 915px; height: 412px; position: relative; overflow: hidden; border-radius: 36px; box-shadow: 0 0 0 1px rgb(0 0 0 / .1), 0 30px 60px -28px rgb(0 0 0 / .4); }
+.fondo { position: absolute; inset: 0; background: radial-gradient(circle at 15% -9%, rgb(96 148 255 / .14), rgb(96 148 255 / 0) 63%), var(--lienzo); }
+.tel-h .fondo { background: radial-gradient(circle at 12% -30%, rgb(96 148 255 / .12), rgb(96 148 255 / 0) 55%), var(--lienzo); }
+.sis { position: absolute; top: 0; left: 0; right: 0; height: 32px; display: flex; align-items: center; justify-content: space-between; padding: 0 24px 0 28px; font: 500 13px/1 Inter; color: var(--tinta); z-index: 9; }
+.sis .der { display: flex; gap: 6px; align-items: center; }
+.gestos { position: absolute; bottom: 8px; left: 50%; width: 108px; height: 4px; margin-left: -54px; border-radius: 2px; background: rgb(var(--t) / .55); z-index: 9; }
+.tel-h .gestos { width: 96px; margin-left: -48px; bottom: 6px; }
+
+/* ============ Roles de texto ============ */
+.rot { font: 500 11px/16px Inter; letter-spacing: .08em; text-transform: uppercase; color: var(--tenue); font-feature-settings: 'tnum'; }
+.tt { font: 500 15px/20px Inter; letter-spacing: -.009em; color: var(--tinta); }
+.nota { font: 400 13px/16px Inter; letter-spacing: -.003em; color: var(--tenue); font-feature-settings: 'tnum'; }
+.nota b { font-weight: 500; color: var(--tinta); }
+.enc { font: 300 17px/22px Jost; letter-spacing: -.01em; color: var(--tinta); }
+.cifra { font-family: Inter; font-feature-settings: 'tnum'; color: var(--tinta); white-space: nowrap; }
+.c20 { font-size: 20px; line-height: 24px; font-weight: 300; letter-spacing: -.01em; font-variation-settings: 'opsz' 20; }
+.u { font-weight: 400; color: var(--tenue); letter-spacing: 0; margin-left: 2px; font-size: 11px; }
+.azul { color: var(--azul) !important; }
+svg.i { fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; flex: none; display: block; }
+svg.est { flex: none; display: block; }
+.ch { color: var(--apagada); }
+.redondo { width: 36px; height: 36px; border-radius: 18px; background: var(--pas); color: var(--suave); display: grid; place-items: center; flex: none; }
+
+/* ============ La lista ============ */
+.filtros { position: absolute; top: 32px; left: 0; right: 0; height: 68px; padding: 12px 16px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; z-index: 6;
+           background: linear-gradient(rgb(11 12 14 / .96) 70%, rgb(11 12 14 / 0)); }
+.pastilla { height: 44px; border-radius: 22px; background: rgb(var(--t) / .055); box-shadow: inset 0 0 0 1px rgb(var(--t) / .08); display: flex; align-items: center; justify-content: center; gap: 8px; }
+.pastilla .n { font: 300 20px/24px Inter; font-variation-settings: 'opsz' 20; font-feature-settings: 'tnum'; color: var(--tinta); letter-spacing: -.01em; }
+.contenido { position: absolute; left: 16px; right: 16px; display: flex; flex-direction: column; gap: 8px; }
+.grupo { background: var(--sup); border-radius: 24px; overflow: hidden; position: relative; }
+.gcab { display: flex; align-items: center; min-height: 60px; padding: 0 12px 0 16px; gap: 12px; }
+.gcab .caja { width: 32px; display: grid; place-items: center; flex: none; }
+.gcab .tx { flex: 1; min-width: 0; }
+.gcab .nota { display: block; margin-top: 2px; }
+.cols { display: flex; flex: none; }
+.cols span { width: 44px; display: grid; place-items: center; color: var(--tenue); }
+.fl.pl + .fl.pl::before { left: 20px; }
+.hilo-cab { height: 1px; background: var(--hilo); }
+.fl { display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 8px 16px; position: relative; }
+.fl + .fl::before, .fl + .abierta::before, .abierta + .fl::before { content: ''; position: absolute; top: 0; left: 60px; right: 0; height: 1px; background: var(--hilo); }
+.fl .caja { width: 32px; display: grid; place-items: center; flex: none; }
+.fl .tx { flex: 1; min-width: 0; }
+.nom { display: block; }
+.nom.inter { font: 500 15px/20px Inter; letter-spacing: -.009em; }
+.nom.jost { font: 400 17px/22px Jost; letter-spacing: -.01em; }
+.fl .nota { display: block; margin-top: 2px; }
+
+/* A · la fila que se abre en su sitio */
+.abierta { margin: 4px 8px; padding: 12px 8px 12px 8px; border-radius: 16px; background: rgb(var(--t) / .055); box-shadow: inset 0 0 0 1px rgb(var(--t) / .07); position: relative; }
+.abierta .arriba { display: flex; align-items: flex-start; gap: 12px; }
+.abierta .rel { display: grid; grid-template-columns: 36px 14px minmax(0, 1fr); column-gap: 8px; row-gap: 6px; align-items: center; margin: 10px 0 0 44px; }
+.abierta .rel .n { font: 500 13px/16px Inter; letter-spacing: -.003em; color: var(--tinta); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.abierta .rel .n.ten { color: var(--suave); font-weight: 400; }
+.seg { position: relative; height: 44px; border-radius: 22px; background: rgb(var(--t) / .06); display: grid; grid-template-columns: repeat(3, 1fr); padding: 4px; margin-top: 12px; }
+.seg .lente { position: absolute; top: 4px; bottom: 4px; border-radius: 18px; background: rgb(var(--t) / .12); box-shadow: inset 0 0 0 1px rgb(var(--t) / .16); }
+.seg .o { position: relative; display: flex; align-items: center; justify-content: center; gap: 6px; font: 500 13px/16px Inter; letter-spacing: -.003em; color: var(--suave); }
+.seg .o.act { color: var(--tinta); }
+
+/* B · la planilla: dos columnas de marca */
+.tg { width: 44px; height: 44px; display: grid; place-items: center; flex: none; }
+.tg i { width: 24px; height: 24px; border-radius: 12px; box-shadow: inset 0 0 0 1.5px rgb(var(--t) / .26); display: grid; place-items: center; }
+.tg i.on { box-shadow: inset 0 0 0 1.5px var(--tinta); background: rgb(var(--t) / .1); }
+.tg i.ok { box-shadow: none; }
+
+/* C · deslizar */
+.desliza { position: relative; overflow: hidden; }
+.desliza .fondo-ac { position: absolute; inset: 0; background: rgb(var(--t) / .1); display: flex; align-items: center; gap: 8px; padding-left: 20px; }
+.desliza .mov { position: relative; background: #17181B; transform: translateX(132px); box-shadow: -1px 0 0 rgb(var(--t) / .1); }
+
+/* La barra Núcleo */
+.nucleo { position: absolute; left: 50%; bottom: 28px; width: 292px; height: 58px; margin-left: -146px; border-radius: 29px; z-index: 8;
+          background: rgb(22 24 27 / .88); box-shadow: inset 0 0 0 1px rgb(255 255 255 / .07), inset 0 1px 0 rgb(255 255 255 / .1), 0 12px 24px -12px rgb(0 0 0 / .6);
+          display: flex; align-items: center; justify-content: center; }
+.nucleo .p { width: 56px; height: 58px; display: grid; place-items: center; color: var(--tenue); }
+.nucleo .p.act { color: var(--tinta); filter: drop-shadow(0 0 6px rgb(255 255 255 / .35)); }
+.nucleo .c { width: 60px; height: 58px; display: grid; place-items: center; }
+.velo-bajo { position: absolute; left: 0; right: 0; bottom: 0; height: 140px; background: linear-gradient(rgb(11 12 14 / 0), rgb(11 12 14 / .9)); z-index: 7; pointer-events: none; }
+
+/* ============ Acostada ============ */
+.riel { position: absolute; left: 14px; top: 50%; margin-top: -120px; width: 52px; height: 240px; border-radius: 26px; z-index: 8;
+        background: rgb(22 24 27 / .88); box-shadow: inset 0 0 0 1px rgb(255 255 255 / .07), inset 0 1px 0 rgb(255 255 255 / .1);
+        display: flex; flex-direction: column; align-items: center; justify-content: space-evenly; color: var(--tenue); }
+.riel .act { color: var(--tinta); filter: drop-shadow(0 0 6px rgb(255 255 255 / .35)); }
+.zona { position: absolute; left: 84px; right: 16px; top: 28px; bottom: 0; }
+.barra-f { display: flex; align-items: center; gap: 8px; height: 44px; }
+.barra-f .pastilla { height: 36px; border-radius: 18px; padding: 0 14px; }
+.barra-f .pastilla .n { font-size: 17px; line-height: 20px; }
+.tabla { margin-top: 8px; background: var(--sup); border-radius: 24px; overflow: hidden; position: relative; height: 336px; }
+.tcols, .tfila { display: grid; grid-template-columns: 32px minmax(0, 1fr) 44px 156px 156px 132px; column-gap: 12px; align-items: center; padding: 0 16px; }
+.tcols { height: 32px; border-bottom: 1px solid var(--hilo); }
+.tcols .rot { font-size: 11px; }
+.tfila { min-height: 52px; position: relative; }
+.tfila + .tfila::before { content: ''; position: absolute; top: 0; left: 60px; right: 0; height: 1px; background: var(--hilo); }
+.tfila .rel1 { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.tfila .rel1 { align-items: flex-start; }
+.tfila .rel1 svg.est { margin-top: 1px; }
+.tfila .rel1 .nota { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; color: var(--suave); }
+.tsem { display: flex; align-items: center; gap: 12px; height: 52px; padding: 0 12px 0 16px; background: rgb(var(--t) / .03); border-bottom: 1px solid var(--hilo); }
+.segi { position: relative; height: 36px; border-radius: 18px; background: rgb(var(--t) / .06); display: grid; grid-template-columns: repeat(3, 1fr); padding: 4px; }
+.segi .lente { position: absolute; top: 4px; bottom: 4px; width: 36px; border-radius: 14px; background: rgb(var(--t) / .12); box-shadow: inset 0 0 0 1px rgb(var(--t) / .16); }
+.segi .o { position: relative; display: grid; place-items: center; }
+.desv { position: absolute; left: 0; right: 0; bottom: 0; height: 64px; background: linear-gradient(rgb(17 18 21 / 0), #111215); pointer-events: none; }
+.cols-sem { display: flex; gap: 12px; margin-top: 8px; height: 336px; }
+.col { width: 252px; flex: none; background: var(--sup); border-radius: 24px; overflow: hidden; position: relative; }
+.col .gcab { min-height: 56px; }
+.col .fl { min-height: 56px; padding: 6px 12px; gap: 10px; }
+.col .fl + .fl::before { left: 52px; }
+.col .abierta { margin: 4px 6px; padding: 10px 6px; }
+.col .abierta .rel { margin-left: 38px; grid-template-columns: 32px 14px minmax(0, 1fr); align-items: start; }
+.col .abierta .rel .n { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.col .abierta .rel svg.est { margin-top: 1px; }
+</style>
+</head>
+<body>
+<div class="pagina">
+
+<header class="portada">
+  <h1>La lista: su propia forma de marcar</h1>
+  <p>La lista es la otra forma de ver el mapa: los semestres plegables con sus materias. Hoy cada toque abre la misma ficha del mapa. Aquí <b>marca en la propia fila</b>, sin abrir hojas, y acostada <b>usa el ancho de verdad</b>. Datos reales de <b>Ingeniería de Sistemas</b>: semestres 1 a 4 aprobados (falta la electiva del 4), cursando Estadística II e Inferencia y Diseño de Experimentos; disponibles Sistemas de Costo, Circuitos y Sistemas, Teoría de Sistemas, Sistemas de Operación, Métodos Numéricos y Leyes y Deontología (que no pide nada); 18 bloqueadas. Las notas son las que ya escribe <b>logica/Lista.kt</b>: «2 UC · Abre 1» (azul), «Pide Sistemas de Costo», sin repetir el estado.</p>
+</header>
+
+<!-- ======================= LA LETRA ======================= -->
+<section class="bloque">
+  <h2>La letra de las filas · Jost 17 (hoy) frente a Inter 15/500 (rol «Fila») · solo cambia el nombre</h2>
+  <div class="fila">
+    <div class="op">
+      <h3>Hoy · Jost 17</h3>
+      <p>El nombre tiene la misma letra y el mismo tamaño que la cabecera «Semestre 5»: la fila y su grupo se leen al mismo nivel.</p>
+      <div class="tel osc" data-tel="jost"></div>
+      <p class="cuenta" data-cuenta="jost"></p>
+    </div>
+    <div class="op">
+      <h3>Propuesta · Inter 15/500 <span class="sello">Recomendada</span></h3>
+      <p>La cabecera queda en Jost (Encabezado, la voz de la marca) y las materias en Inter, como cada fila de la app. Se ve el escalón: semestre arriba, materias debajo.</p>
+      <div class="tel osc" data-tel="inter"></div>
+      <p class="cuenta" data-cuenta="inter"></p>
+    </div>
+    <div style="flex:1;min-width:0;padding-top:96px">
+      <div class="decision">
+        <h4>Inter 15/500 en las filas, Jost en las cabeceras</h4>
+        <p>Es la regla «Fila» de <b>reglas-diseno.md</b> y lo que ya usan la hoja de progreso, Ajustes y la ficha: la lista deja de ser la excepción. Jost se queda donde es marca: «Semestre 5», los títulos y el mapa.</p>
+        <table>
+          <tr><th>Qué cambia</th><th>Jost 17 (hoy)</th><th>Inter 15/500</th></tr>
+          <tr><td>Jerarquía</td><td>fila = cabecera (Jost 17 las dos)</td><td>cabecera Jost 17 sobre filas Inter 15</td></tr>
+          <tr><td>Nombres largos</td><td data-lineas="jost">—</td><td data-lineas="inter">—</td></tr>
+          <tr><td>Ancho medio</td><td data-ancho="jost">—</td><td data-ancho="inter">—</td></tr>
+          <tr><td>Cifras</td><td>«2 UC» en Plex Mono</td><td>«2 UC · Abre 1» en Inter con cifras tabulares</td></tr>
+          <tr><td>Alto de fila</td><td>64 dp; 78 con dos líneas</td><td>64 dp; 74 con dos líneas</td></tr>
+          <tr><td>Peso visual</td><td>400 a 17: el trazo claro se derrama sobre oscuro</td><td>500 a 15: más firme, en el mismo ancho</td></tr>
+        </table>
+        <p><b>Riesgo:</b> cambia la cara de la lista; por eso va lado a lado antes de tocarla. El mapa no cambia: sus tarjetas siguen en Jost.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= DE PIE · MODELOS ======================= -->
+<section class="bloque">
+  <h2>De pie · 375 × 812 · tres formas de marcar en la lista</h2>
+  <div class="fila">
+    <div class="op">
+      <h3>A · Se abre en su sitio <span class="sello">Recomendada</span></h3>
+      <p>Tocar la fila la abre ahí mismo: lo que pide, lo que abre, las tres marcas y el mapa a un toque. Una abierta a la vez; tocar otra cierra la anterior. <b>Nunca abre la hoja del mapa.</b></p>
+      <div class="tel osc" data-tel="A1"></div>
+    </div>
+    <div class="op">
+      <h3>A · al marcar</h3>
+      <p>Tocas «Cursando»: la lente se desliza, el icono pasa a libro, el aro y la nota del semestre cambian («3 cursando») y las pastillas cuentan. La fila sigue abierta: tocar otra marca deshace.</p>
+      <div class="tel osc" data-tel="A2"></div>
+    </div>
+    <div class="op">
+      <h3>B · Planilla</h3>
+      <p>Dos columnas en cada fila: «la estoy cursando» y «la aprobé». Un toque y listo, sin abrir nada: lo más rápido para poner al día una carrera. Pierde el icono de estado y el contexto.</p>
+      <div class="tel osc" data-tel="B"></div>
+    </div>
+    <div class="op">
+      <h3>C · Desliza</h3>
+      <p>Hacia la derecha, aprobada; hacia la izquierda, cursando. Tocar abre la fila como en A. Es lo más rápido para quien lo sabe, pero no se ve: hace falta enseñarlo una vez.</p>
+      <div class="tel osc" data-tel="C"></div>
+    </div>
+  </div>
+  <p class="porque"><b>Por qué A:</b> es la única que se entiende sin pensar (se toca una fila, como un semestre), deja ver por qué marcar (lo que pide y lo que abre) y usa el mismo control de tres marcas que la tabla acostada. Marcar cuesta dos toques, pero la fila queda abierta para corregir. B es la herramienta para poner al día muchas a la vez: podría vivir como modo «Marcar» dentro de A.</p>
+</section>
+
+<!-- ======================= ACOSTADA ======================= -->
+<section class="bloque">
+  <h2>Acostada · 915 × 412 · dos opciones adaptadas</h2>
+  <div class="fila">
+    <div class="tel-h osc" data-tel="H-A"></div>
+    <div class="texto">
+      <h3>A · Tabla <span class="sello">Recomendada</span></h3>
+      <p>Acostada sobra ancho, así que lo que de pie hay que abrir aquí <b>está a la vista</b>: una tabla por semestre con <b>Materia · UC · Pide · Abre · Marca</b>. La marca es el mismo control de tres, en iconos: un toque, sin abrir nada. La cabecera del semestre se queda fija arriba mientras pasan sus filas.</p>
+      <ul>
+        <li>Filas de 52 dp; nombres en Inter 15/500 a dos líneas como mucho.</li>
+        <li>«Pide» y «Abre» con el icono de estado de esa materia; tocarlas lleva a su fila.</li>
+        <li>Las pastillas de filtro van en la barra de arriba, a la altura del riel.</li>
+      </ul>
+      <p><b>Por qué A:</b> enseña lo que el mapa acostado no deja leer (cada materia con lo que pide y abre, legible) y marca en un toque. Las columnas de B repiten la forma del mapa sin sus cables.</p>
+    </div>
+  </div>
+  <div class="fila" style="margin-top:40px">
+    <div class="tel-h osc" data-tel="H-B"></div>
+    <div class="texto">
+      <h3>B · Columnas por semestre</h3>
+      <p>Cada semestre es una columna de 252 dp, como un tablero; caben tres y media y se pasan de lado. Dentro, las filas de siempre, y la que tocas se abre en su sitio con las tres marcas en iconos.</p>
+      <ul>
+        <li>Se ven unas quince materias a la vez, contra cinco de la tabla.</li>
+        <li>Cada columna se desplaza por su lado; la del semestre actual entra en el centro.</li>
+      </ul>
+      <p><b>Riesgo:</b> es el mapa sin cables. Acostado el mapa ya enseña los semestres en columnas, así que la lista pierde su razón de ser.</p>
+    </div>
+  </div>
+</section>
+
+</div>
+
+<script>
+/* ---------- Iconos Lucide ---------- */
+const IC = {
+  'map': '<path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z"/><path d="M15 5.764v15"/><path d="M9 3.236v15"/>',
+  'chevron-right': '<path d="m9 18 6-6-6-6"/>',
+  'chevron-down': '<path d="m6 9 6 6 6-6"/>',
+};
+const f2 = n => +(+n).toFixed(2);
+const ico = (n, s = 18, cls = '') => `<svg class="i ${cls}" width="${s}" height="${s}" viewBox="0 0 24 24" style="stroke-width:${f2(1.5 * 24 / s)}" aria-hidden="true">${IC[n]}</svg>`;
+
+/* ---------- Iconos de estado (Iconos.kt, rejilla de 20) ---------- */
+const LIBRO = 'M10 6.1C8.3 4.85 6.3 4.35 4 4.5v9.9c2.3-.15 4.3.35 6 1.6 1.7-1.25 3.7-1.75 6-1.6V4.5c-2.3-.15-4.3.35-6 1.6z';
+const CUERPO = 'M6.5 9h7a2.25 2.25 0 0 1 2.25 2.25v3.75a2.25 2.25 0 0 1-2.25 2.25h-7a2.25 2.25 0 0 1-2.25-2.25v-3.75a2.25 2.25 0 0 1 2.25-2.25z';
+const RELOJ = 'M6 3.25h8M6 16.75h8M7 3.25v2.3c0 1.9 3 2.5 3 4.45s-3 2.55-3 4.45v2.3M13 3.25v2.3c0 1.9-3 2.5-3 4.45s3 2.55 3 4.45v2.3';
+const COLOR_EST = { H: 'var(--verde)', C: 'var(--tinta)', D: 'var(--azul)', P: 'var(--tenue)', L: 'var(--rojo)', E: 'var(--tenue)', N: 'var(--suave)' };
+function est(s, tam = 20, sobre = 'var(--panel)', color) {
+  const c = color || COLOR_EST[s];
+  let g = '';
+  if (s === 'H') g = `<circle cx="10" cy="10" r="7.5" fill="${c}"/><path d="M6.6 10.3l2.3 2.3 4.5-4.9" fill="none" stroke="${sobre}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>`;
+  else if (s === 'C') g = `<path d="${LIBRO}" fill="${c}" fill-opacity=".14" stroke="${c}" stroke-width="1.5" stroke-linejoin="round"/><path d="M10 6.1V16" stroke="${c}" stroke-width="1.5" stroke-linecap="round"/>`;
+  else if (s === 'P') g = `<path d="${RELOJ}" fill="none" stroke="${c}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>`;
+  else if (s === 'D' || s === 'L') g = `<path d="${CUERPO}" fill="${c}" stroke="${c}" stroke-width="1.5"/><path d="M6.75 9V6.75a3.25 3.25 0 0 1 6.5 0V9" fill="none" stroke="${c}" stroke-width="1.5" stroke-linecap="round" ${s === 'D' ? 'transform="rotate(40 13.25 9)"' : ''}/><path d="M10 12.3v1.7" stroke="${sobre}" stroke-width="1.8" stroke-linecap="round"/>`;
+  else if (s === 'E') g = `<circle cx="10" cy="10" r="7.25" fill="none" stroke="${c}" stroke-width="1.5" stroke-dasharray="2.6 2.6"/>`;
+  else if (s === 'N') g = `<circle cx="10" cy="10" r="5.6" fill="none" stroke="${c}" stroke-width="1.5"/>`;
+  return `<svg class="est" width="${tam}" height="${tam}" viewBox="0 0 20 20" aria-hidden="true">${g}</svg>`;
+}
+
+/* ---------- Phosphor de la barra (rejilla de 256) ---------- */
+const PH = {
+  inicio: 'M219.31,108.68l-80-80a16,16,0,0,0-22.62,0l-80,80A15.87,15.87,0,0,0,32,120v96a8,8,0,0,0,8,8h64a8,8,0,0,0,8-8V160h32v56a8,8,0,0,0,8,8h64a8,8,0,0,0,8-8V120A15.87,15.87,0,0,0,219.31,108.68ZM208,208H160V152a8,8,0,0,0-8-8H104a8,8,0,0,0-8,8v56H48V120l80-80,80,80Z',
+  mapa: 'M228.92,49.69a8,8,0,0,0-6.86-1.45L160.93,63.52,99.58,32.84a8,8,0,0,0-5.52-.6l-64,16A8,8,0,0,0,24,56V200a8,8,0,0,0,9.94,7.76l61.13-15.28,61.35,30.68A8.15,8.15,0,0,0,160,224a8,8,0,0,0,1.94-.24l64-16A8,8,0,0,0,232,200V56A8,8,0,0,0,228.92,49.69ZM104,52.94l48,24V203.06l-48-24ZM40,62.25l48-12v127.5l-48,12Zm176,131.5-48,12V78.25l48-12Z',
+  lista: 'M80,64a8,8,0,0,1,8-8H216a8,8,0,0,1,0,16H88A8,8,0,0,1,80,64Zm136,56H88a8,8,0,0,0,0,16H216a8,8,0,0,0,0-16Zm0,64H88a8,8,0,0,0,0,16H216a8,8,0,0,0,0-16ZM44,52A12,12,0,1,0,56,64,12,12,0,0,0,44,52Zm0,64a12,12,0,1,0,12,12A12,12,0,0,0,44,116Zm0,64a12,12,0,1,0,12,12A12,12,0,0,0,44,180Z',
+  horario: 'M208,32H184V24a8,8,0,0,0-16,0v8H88V24a8,8,0,0,0-16,0v8H48A16,16,0,0,0,32,48V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V48A16,16,0,0,0,208,32ZM72,48v8a8,8,0,0,0,16,0V48h80v8a8,8,0,0,0,16,0V48h24V80H48V48ZM208,208H48V96H208V208Zm-68-76a12,12,0,1,1-12-12A12,12,0,0,1,140,132Zm44,0a12,12,0,1,1-12-12A12,12,0,0,1,184,132ZM96,172a12,12,0,1,1-12-12A12,12,0,0,1,96,172Zm44,0a12,12,0,1,1-12-12A12,12,0,0,1,140,172Zm44,0a12,12,0,1,1-12-12A12,12,0,0,1,184,172Z',
+};
+const ph = (n, s = 22) => `<svg width="${s}" height="${s}" viewBox="0 0 256 256" aria-hidden="true"><path d="${PH[n]}" fill="currentColor"/></svg>`;
+function anillo(d = 40) {
+  const r = d / 2 - 1.5, c = 2 * Math.PI * r, p = .41;
+  return `<svg width="${d}" height="${d}" viewBox="0 0 ${d} ${d}"><circle cx="${d / 2}" cy="${d / 2}" r="${r}" fill="none" stroke="rgb(236 238 241 / .16)" stroke-width="1.5"/>
+    <circle cx="${d / 2}" cy="${d / 2}" r="${r}" fill="none" stroke="#6094FF" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="${f2(c * p)} ${f2(c)}" transform="rotate(-90 ${d / 2} ${d / 2})"/>
+    <text x="${d / 2}" y="${d / 2 + 4}" text-anchor="middle" style="font:500 ${d > 38 ? 12 : 11}px Inter;fill:var(--tinta);font-feature-settings:'tnum'">41<tspan style="font-size:8px;fill:var(--tenue)">%</tspan></text></svg>`;
+}
+const nucleo = () => `<div class="velo-bajo"></div><div class="nucleo"><span class="p">${ph('inicio')}</span><span class="p">${ph('mapa')}</span><span class="c">${anillo(40)}</span><span class="p act">${ph('lista')}</span><span class="p">${ph('horario')}</span></div>`;
+const riel = () => `<div class="riel"><span>${ph('inicio', 20)}</span><span>${ph('mapa', 20)}</span><span>${anillo(36)}</span><span class="act">${ph('lista', 20)}</span><span>${ph('horario', 20)}</span></div>`;
+const BATERIA = `<svg width="22" height="11" viewBox="0 0 22 11"><rect x=".5" y=".5" width="18" height="10" rx="2.5" fill="none" stroke="currentColor" stroke-opacity=".5"/><rect x="2" y="2" width="12" height="7" rx="1.2" fill="currentColor"/><rect x="19.5" y="3.5" width="1.5" height="4" rx=".6" fill="currentColor" fill-opacity=".5"/></svg>`;
+const SENAL = `<svg width="15" height="11" viewBox="0 0 15 11"><path d="M1 10h2V7H1zM5 10h2V5H5zM9 10h2V3H9zM13 10h2V1h-2z" fill="currentColor"/></svg>`;
+const sis = (h = 32) => `<div class="sis" style="height:${h}px;${h < 30 ? 'font-size:12px' : ''}"><span>9:41</span><span class="der">${SENAL}${BATERIA}</span></div>`;
+
+/* ---------- El pensum real (lo mismo que pinta el mapa) ---------- */
+const PENSUM = [
+  [1, '0021111', 'Extraacadémica', 1, []], [1, '0061013', 'Comprensión y Expresión Lingüística I', 3, []], [1, '0071823', 'Inglés Instrumental', 3, []], [1, '0081814', 'Matemáticas I', 4, []], [1, '0091012', 'Desarrollo de Destrezas para el Aprendizaje', 2, []], [1, '0101214', 'Química General', 4, []],
+  [2, '0051324', 'Física I', 4, ['0081814']], [2, '0061023', 'Comprensión y Expresión Lingüística II', 3, ['0061013']], [2, '0071121', 'Inglés Técnico I', 1, ['0071823']], [2, '0081824', 'Matemáticas II', 4, ['0081814']], [2, '0721162', 'Intr. a la Lógica Formal y Algoritmos', 2, []],
+  [3, '0052131', 'Laboratorio de Física I', 1, ['0051324']], [3, '0052134', 'Física II', 4, ['0051324']], [3, '0082814', 'Matemáticas III', 4, ['0081824']], [3, '0712642', 'Introducción a la Ingeniería de Sistemas', 2, []], [3, '0722103', 'Programación Orientada a Objetos', 3, ['0081824', '0721162']], [3, '0722111', 'Taller de Program. Orientada a Objetos', 1, ['0721162']],
+  [4, '0073023', 'Metodología de la Investigación', 3, []], [4, '0082824', 'Matemáticas IV', 4, ['0082814']], [4, '0623313', 'Estadística I', 3, ['0082814']], [4, '0712142', 'Introducción a la Economía', 2, []], [4, '0722123', 'Objetos y Abstracción de Datos', 3, ['0722103', '0722111']], [4, '0722131', 'Taller de Objet. y Abstracción de Datos', 1, ['0722111']],
+  [5, '0624622', 'Estadística II', 2, ['0623313']], [5, '0713122', 'Inferencia y Diseño de Experimentos', 2, ['0623313']], [5, '0713172', 'Sistemas de Costo', 2, ['0712142']], [5, '0713463', 'Circuitos y Sistemas', 3, ['0052134', '0082824']], [5, '0713632', 'Teoría de Sistemas', 2, ['0712642']], [5, '0713643', 'Sistemas de Operación', 3, ['0722123']], [5, '0723913', 'Métodos Numéricos', 3, ['0082824', '0722103']],
+  [6, '0713113', 'Economía de Empresas', 3, ['0713172']], [6, '0713622', 'Admón. de Stmas. de Base de Datos', 2, ['0713643']], [6, '0713633', 'Enfoque Sistémico', 3, ['0713632']], [6, '0713653', 'Análisis de Decisiones', 3, ['0713122']], [6, '0713663', 'Optimización de Operaciones', 3, ['0723913']], [6, '0723533', 'Electrónica', 3, ['0713463']],
+  [7, '0714153', 'Prepar., Eval. y Control de Proyectos', 3, ['0713113']], [7, '0714323', 'Anál. y Diseño de Stms. de Información', 3, ['0713622']], [7, '0714633', 'Modelos de Operaciones I', 3, ['0713663']], [7, '0714643', 'Sistemas Dinámicos', 3, ['0723533']], [7, '0724641', 'Laboratorio de Circuitos y Electrónica', 1, ['0723533']],
+  [8, '0625613', 'Administración Financiera de Empresas', 3, ['0713113']], [8, '0714123', 'Gestión Empresarial I', 3, ['0714153']], [8, '0714133', 'Modelos de Operaciones II', 3, ['0714633']], [8, '0714612', 'Aplicación y Audit. de Stmas. de Inform.', 2, ['0714323']], [8, '0714642', 'Sistemas de Comunicación Industrial', 2, ['0713622']],
+  [9, '0625822', 'Leyes y Deontología', 2, []], [9, '0715112', 'Planificación Estratégica', 2, ['0714123']],
+  [10, '0715116', 'Trabajo de Grado', 6, ['0714133', '0715112']],
+];
+const POR = {}, ADEL = {}, TODAS = [];
+PENSUM.forEach(([sem, cod, nom, uc, pre]) => { const m = { sem, cod, nom, uc, pre }; POR[cod] = m; TODAS.push(m); pre.forEach(p => (ADEL[p] = ADEL[p] || []).push(cod)); });
+function estados(cursando) {
+  const e = {};
+  TODAS.forEach(m => { if (m.sem <= 4) e[m.cod] = 'H'; else if (cursando.includes(m.cod)) e[m.cod] = 'C'; });
+  TODAS.forEach(m => {
+    if (e[m.cod]) return;
+    if (m.pre.every(p => e[p] === 'H')) e[m.cod] = 'D';
+    else if (m.pre.every(p => e[p] === 'H' || e[p] === 'C')) e[m.cod] = 'P';
+    else e[m.cod] = 'L';
+  });
+  return e;
+}
+const BASE = estados(['0624622', '0713122']);
+const TRAS = estados(['0624622', '0713122', '0713172']);
+const cuentas = e => ['H', 'C', 'D', 'L'].map(k => Object.values(e).filter(v => k === 'L' ? (v === 'L' || v === 'P') : v === k).length);
+/* La nota de cada fila, ya con las reglas: sin repetir el estado */
+function notaDe(m, e) {
+  const s = e[m.cod];
+  if (s === 'H' || s === 'C') return `${m.uc} UC`;
+  if (s === 'D') { const n = (ADEL[m.cod] || []).length; return n ? `${m.uc} UC · <span class="azul">Abre ${n}</span>` : `${m.uc} UC`; }
+  const faltan = m.pre.filter(p => e[p] !== 'H');
+  if (!faltan.length) return s === 'P' ? `${m.uc} UC · El próximo semestre` : `${m.uc} UC`;
+  return `${m.uc} UC · Pide ${POR[faltan[0]].nom}${faltan.length > 1 ? ` y ${faltan.length - 1} más` : ''}`;
+}
+const colorNombre = s => ({ H: 'var(--suave)', P: 'var(--suave)', C: 'var(--tinta)', D: 'var(--tinta)', L: 'var(--tenue)' })[s];
+
+/* ---------- Piezas ---------- */
+function aro(aprobado, cursado, completo, tam = 24) {
+  if (completo) return est('H', tam, 'var(--lienzo)');
+  const r = 9.25, c = 2 * Math.PI * r;
+  return `<svg width="${tam}" height="${tam}" viewBox="0 0 24 24"><circle cx="12" cy="12" r="${r}" fill="none" stroke="rgb(236 238 241 / .16)" stroke-width="1.5"/>
+    ${aprobado > 0 ? `<circle cx="12" cy="12" r="${r}" fill="none" stroke="var(--verde)" stroke-width="1.5" stroke-dasharray="${f2(c * aprobado)} ${f2(c)}" transform="rotate(-90 12 12)"/>` : ''}
+    ${cursado > 0 ? `<circle cx="12" cy="12" r="${r}" fill="none" stroke="rgb(236 238 241 / .45)" stroke-width="1.5" stroke-dasharray="${f2(c * cursado)} ${f2(c)}" transform="rotate(${f2(-90 + 360 * aprobado)} 12 12)"/>` : ''}</svg>`;
+}
+const pastillas = e => {
+  const [h, c, d, l] = cuentas(e);
+  return `<div class="filtros">${[['H', h], ['C', c], ['D', d], ['L', l]].map(([s, n]) => `<div class="pastilla">${est(s, 18)}<span class="n">${n}</span></div>`).join('')}</div>`;
+};
+function cabSem(sem, e, abierto, extra = '', corto = false) {
+  const l = TODAS.filter(m => m.sem === sem);
+  const casilla = [2, 3, 4, 7, 8].includes(sem) ? 1 : sem === 9 ? 3 : 0;
+  const total = l.length + casilla, hechas = l.filter(m => e[m.cod] === 'H').length, curs = l.filter(m => e[m.cod] === 'C').length;
+  let resumen;
+  if (hechas === total) resumen = 'Completo';
+  else if (casilla && hechas + casilla === total) resumen = casilla > 1 ? `Faltan ${casilla} electivas` : 'Falta la electiva';
+  else resumen = `${hechas} de ${total}${corto ? '' : ' aprobadas'}${curs ? ` · <b>${curs} cursando</b>` : ''}`;
+  return `<div class="gcab"><span class="caja">${aro(hechas / total, curs / total, hechas === total)}</span><span class="tx"><span class="enc">Semestre ${sem}</span><span class="nota">${resumen}</span></span>${extra}<span class="ch" style="transform:rotate(${abierto ? 90 : 0}deg);width:44px;display:grid;place-items:center">${ico('chevron-right', 16)}</span></div>`;
+}
+const filaMat = (m, e, letra = 'inter') => `<div class="fl"><span class="caja">${est(e[m.cod], 20)}</span><span class="tx"><span class="nom ${letra}" style="color:${colorNombre(e[m.cod])};${letra === 'inter' && e[m.cod] === 'H' ? 'font-weight:400' : ''}">${m.nom}</span><span class="nota">${notaDe(m, e)}</span></span></div>`;
+const segmento = (act, alto = 44) => {
+  const ops = [['N', 'Sin cursar'], ['C', 'Cursando'], ['H', 'Aprobada']];
+  return `<div class="seg"><span class="lente" style="left:calc(4px + ${act} * (100% - 8px) / 3);width:calc((100% - 8px) / 3)"></span>${ops.map(([s, t], i) => `<span class="o ${i === act ? 'act' : ''}">${est(s, 16, 'var(--panel)', i === act ? (s === 'H' ? 'var(--verde)' : 'var(--tinta)') : 'var(--apagada)')}${t}</span>`).join('')}</div>`;
+};
+const relDe = (m, e) => {
+  const pide = m.pre.map(c => POR[c]), abre = (ADEL[m.cod] || []).map(c => POR[c]);
+  const linea = (rot, l) => `<span class="rot">${rot}</span>${l.length ? est(e[l[0].cod], 14) : '<span></span>'}<span class="n ${!l.length || e[l[0].cod] === 'H' ? 'ten' : ''}">${l.length ? l[0].nom + (l.length > 1 ? ` y ${l.length - 1} más` : '') : 'Ninguna'}</span>`;
+  return `<div class="rel">${linea('Pide', pide)}${linea('Abre', abre)}</div>`;
+};
+const filaAbierta = (m, e, act) => `<div class="abierta"><div class="arriba"><span class="caja" style="width:32px;display:grid;place-items:center;height:20px">${est(e[m.cod], 20)}</span><span class="tx" style="flex:1;min-width:0"><span class="nom inter" style="color:var(--tinta)">${m.nom}</span><span class="nota" style="display:block;margin-top:2px">${m.uc} UC · Gestión</span></span><span class="redondo" style="margin:-8px -2px 0 0">${ico('map', 16)}</span></div>
+    ${relDe(m, e)}${segmento(act)}</div>`;
+
+/* ---------- Teléfonos de pie ---------- */
+const sem5 = TODAS.filter(m => m.sem === 5);
+function telefono(el) {
+  const k = el.dataset.tel;
+  let cuerpo = '', e = BASE, arriba = 100;
+  if (k === 'jost' || k === 'inter') {
+    cuerpo = `<div class="grupo">${cabSem(4, e, false)}</div>
+      <div class="grupo">${cabSem(5, e, true)}<div class="hilo-cab"></div>${sem5.map(m => filaMat(m, e, k)).join('')}</div>
+      <div class="grupo">${cabSem(6, e, false)}</div>`;
+  }
+  if (k === 'A1' || k === 'A2') {
+    if (k === 'A2') e = TRAS;
+    cuerpo = `<div class="grupo">${cabSem(5, e, true)}<div class="hilo-cab"></div>${sem5.map(m => m.cod === '0713172' ? filaAbierta(m, e, k === 'A2' ? 1 : 0) : filaMat(m, e)).join('')}</div>
+      <div class="grupo">${cabSem(6, e, false)}</div>`;
+  }
+  if (k === 'B') {
+    const cols = `<span class="cols" style="margin:0"><span>${est('C', 16, 'var(--panel)', 'var(--tenue)')}</span><span>${est('H', 16, 'var(--panel)', 'var(--tenue)')}</span></span>`;
+    const tg = (m) => { const s = e[m.cod]; return `<span class="tg"><i class="${s === 'C' ? 'on' : ''}">${s === 'C' ? est('C', 14) : ''}</i></span><span class="tg"><i class="${s === 'H' ? 'ok' : ''}">${s === 'H' ? est('H', 24) : ''}</i></span>`; };
+    const filaP = m => `<div class="fl pl" style="padding-right:8px;gap:4px"><span class="tx" style="padding-left:4px"><span class="nom inter" style="color:${colorNombre(e[m.cod])}">${m.nom}</span><span class="nota">${notaDe(m, e)}</span></span>${tg(m)}</div>`;
+    cuerpo = `<div class="grupo">${cabSem(4, e, false)}</div>
+      <div class="grupo">${cabSem(5, e, true)}<div class="hilo-cab"></div><div style="display:flex;justify-content:flex-end;align-items:center;height:28px;padding:0 8px;gap:0"><span class="rot" style="flex:1;padding-left:20px">Marca</span>${cols}</div>${sem5.map(filaP).join('')}</div>
+      <div class="grupo">${cabSem(6, e, false)}</div>`;
+  }
+  if (k === 'C') {
+    const filaD = m => m.cod === '0713172'
+      ? `<div class="desliza fl" style="padding:0;display:block"><div class="fondo-ac">${est('H', 20, '#1E2023')}<span class="tt">Aprobada</span></div><div class="mov fl">${filaMat(m, e).replace(/^<div class="fl">|<\/div>$/g, '')}</div></div>`
+      : filaMat(m, e);
+    cuerpo = `<div class="grupo">${cabSem(4, e, false)}</div>
+      <div class="grupo">${cabSem(5, e, true)}<div class="hilo-cab"></div>${sem5.map(filaD).join('')}</div>
+      <div class="grupo">${cabSem(6, e, false)}</div>`;
+  }
+  el.innerHTML = `<div class="fondo"></div>${sis()}${pastillas(e)}<div class="contenido" style="top:${arriba}px">${cuerpo}</div>${nucleo()}<div class="gestos"></div>`;
+}
+
+/* ---------- Acostada A: la tabla ---------- */
+function tablaA(el) {
+  const e = BASE;
+  const segi = s => { const act = s === 'C' ? 1 : s === 'H' ? 2 : 0; const ops = ['N', 'C', 'H'];
+    return `<div class="segi"><span class="lente" style="left:calc(4px + ${act} * (100% - 8px) / 3 + ((100% - 8px) / 3 - 36px) / 2)"></span>${ops.map((o, i) => `<span class="o">${est(o, 16, 'var(--panel)', i === act ? (o === 'H' ? 'var(--verde)' : 'var(--tinta)') : 'var(--apagada)')}</span>`).join('')}</div>`; };
+  const rel = l => l.length ? `<span class="rel1">${est(e[l[0].cod], 14)}<span class="nota">${l[0].nom}${l.length > 1 ? ` y ${l.length - 1} más` : ''}</span></span>` : `<span class="nota" style="color:var(--apagada)">Ninguna</span>`;
+  const filaT = m => `<div class="tfila"><span style="display:grid;place-items:center">${est(e[m.cod], 20)}</span><span class="nom inter" style="color:${colorNombre(e[m.cod])};display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${m.nom}</span><span class="cifra c20">${m.uc}<span class="u">UC</span></span>${rel(m.pre.map(c => POR[c]))}${rel((ADEL[m.cod] || []).map(c => POR[c]))}${segi(e[m.cod])}</div>`;
+  const [h, c, d, l] = cuentas(e);
+  el.innerHTML = `<div class="fondo"></div>${sis(24)}${riel()}
+    <div class="zona">
+      <div class="barra-f">${[['H', h], ['C', c], ['D', d], ['L', l]].map(([s, n]) => `<div class="pastilla">${est(s, 16)}<span class="n">${n}</span></div>`).join('')}</div>
+      <div class="tabla">
+        <div class="tcols"><span></span><span class="rot">Materia</span><span class="rot">UC</span><span class="rot">Pide</span><span class="rot">Abre</span><span class="rot" style="text-align:center">Marca</span></div>
+        <div class="tsem"><span style="width:32px;display:grid;place-items:center">${aro(0, 2 / 7, false)}</span><span class="enc">Semestre 5</span><span class="nota" style="flex:1">0 de 7 aprobadas · <b>2 cursando</b></span><span class="cifra c20" style="margin-right:6px">17<span class="u">UC</span></span><span class="ch" style="transform:rotate(90deg)">${ico('chevron-right', 16)}</span></div>
+        ${sem5.map(filaT).join('')}
+        <div class="desv"></div>
+      </div>
+    </div><div class="gestos"></div>`;
+}
+
+/* ---------- Acostada B: columnas por semestre ---------- */
+function columnasB(el) {
+  const e = BASE;
+  const segi = act => `<div class="segi" style="margin-top:10px"><span class="lente" style="left:calc(4px + ${act} * (100% - 8px) / 3 + ((100% - 8px) / 3 - 36px) / 2)"></span>${['N', 'C', 'H'].map((o, i) => `<span class="o">${est(o, 16, 'var(--panel)', i === act ? 'var(--tinta)' : 'var(--apagada)')}</span>`).join('')}</div>`;
+  const filaC = m => `<div class="fl"><span class="caja" style="width:28px">${est(e[m.cod], 18)}</span><span class="tx"><span class="nom inter" style="color:${colorNombre(e[m.cod])};${e[m.cod] === 'H' ? 'font-weight:400' : ''}">${m.nom}</span><span class="nota">${notaDe(m, e)}</span></span></div>`;
+  const abiertaC = m => `<div class="abierta"><div class="arriba"><span style="width:28px;display:grid;place-items:center;height:20px">${est(e[m.cod], 18)}</span><span style="flex:1;min-width:0"><span class="nom inter">${m.nom}</span><span class="nota" style="display:block;margin-top:2px">${m.uc} UC · Abre 1</span></span></div>${relDe(m, e)}${segi(0)}</div>`;
+  const col = (sem, cuerpo, desp = 0) => `<div class="col">${cabSem(sem, e, true, '', true).replace('width:44px;display:grid', 'width:20px;display:grid').replace(/<span class="ch"[^]*?<\/span><\/div>$/, '</div>')}<div class="hilo-cab"></div><div style="height:280px;overflow:hidden"><div style="margin-top:-${desp}px">${cuerpo}</div></div><div class="desv"></div></div>`;
+  const s = n => TODAS.filter(m => m.sem === n);
+  const [h, c, d, l] = cuentas(e);
+  el.innerHTML = `<div class="fondo"></div>${sis(24)}${riel()}
+    <div class="zona">
+      <div class="barra-f">${[['H', h], ['C', c], ['D', d], ['L', l]].map(([st, n]) => `<div class="pastilla">${est(st, 16)}<span class="n">${n}</span></div>`).join('')}</div>
+      <div class="cols-sem">
+        ${col(4, s(4).map(filaC).join(''))}
+        ${col(5, s(5).map(m => m.cod === '0713172' ? abiertaC(m) : filaC(m)).join(''), 60)}
+        ${col(6, s(6).map(filaC).join(''))}
+        ${col(7, s(7).map(filaC).join(''))}
+      </div>
+    </div><div class="gestos"></div>`;
+}
+
+/* ---------- Cuántos nombres pasan a dos líneas, medido con las dos letras ---------- */
+function contarLineas() {
+  const lz = document.createElement('canvas').getContext('2d');
+  const ancho = 375 - 32 - 60 - 16;
+  const cuenta = (fuente, esp) => {
+    lz.font = fuente; lz.letterSpacing = esp;
+    return TODAS.filter(m => {
+      let lineas = 1, actual = '';
+      for (const p of m.nom.split(' ')) { const prueba = actual ? actual + ' ' + p : p; if (actual && lz.measureText(prueba).width > ancho) { lineas++; actual = p; } else actual = prueba; }
+      return lineas > 1;
+    }).length;
+  };
+  const j = cuenta('400 17px Jost', '-0.17px'), i = cuenta('500 15px Inter', '-0.135px');
+  const medio = (fuente, esp) => { lz.font = fuente; lz.letterSpacing = esp; return TODAS.reduce((a, m) => a + lz.measureText(m.nom).width, 0) / TODAS.length; };
+  const aj = medio('400 17px Jost', '-0.17px'), ai = medio('500 15px Inter', '-0.135px');
+  document.querySelector('[data-ancho="jost"]').textContent = `${Math.round(aj)} dp por nombre`;
+  document.querySelector('[data-ancho="inter"]').textContent = Math.abs(aj - ai) / aj < .03 ? `${Math.round(ai)} dp: ocupa lo mismo` : `${Math.round(ai)} dp (${Math.round(100 * (aj - ai) / aj)} % menos)`;
+  document.querySelector('[data-cuenta="jost"]').innerHTML = `Nombres que pasan a dos líneas en toda la carrera: <b>${j} de ${TODAS.length}</b>.`;
+  document.querySelector('[data-cuenta="inter"]').innerHTML = `Nombres que pasan a dos líneas en toda la carrera: <b>${i} de ${TODAS.length}</b>.`;
+  document.querySelector('[data-lineas="jost"]').textContent = `${j} de ${TODAS.length} a dos líneas`;
+  document.querySelector('[data-lineas="inter"]').textContent = `${i} de ${TODAS.length} a dos líneas`;
+}
+
+Promise.all(['400 17px Jost', '300 17px Jost', '500 15px Inter', '400 13px Inter', '300 20px Inter'].map(f => document.fonts.load(f))).then(() => {
+  document.querySelectorAll('[data-tel]').forEach(el => {
+    if (el.dataset.tel === 'H-A') tablaA(el);
+    else if (el.dataset.tel === 'H-B') columnasB(el);
+    else telefono(el);
+  });
+  contarLineas();
+});
+</script>
+</body>
+</html>
