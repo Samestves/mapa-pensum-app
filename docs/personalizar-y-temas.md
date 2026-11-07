@@ -450,3 +450,72 @@ private val TABLA_CONTRASTE = arrayOf(
 - **Contrastes:** calculados con la fórmula WCAG sobre los hex de las tablas, con el mismo script que dibuja la maqueta.
 - **La maqueta:** renderizada con Edge sin interfaz (1700 de ancho) y revisada en el PNG.
 - **Al implementar:** añadir los cinco juegos nuevos y Más contraste a las pruebas `Captura*Tema*`. Revisar en cada uno el mapa, la lista, el horario, las hojas y la bienvenida antes del APK.
+
+## 8. Lo que Sam pidió al aprobar (7 de noviembre)
+
+Sam aprobó lo recomendado con tres cambios. **Esta sección manda sobre las anteriores** donde choquen.
+
+### 8.1 Tu carrera · Universidad (sustituye a Recorrido)
+
+Pidió «un logo más acorde, más académico». El birrete sigue siendo del grado (anillo, «¿Cuándo me gradúo?», bienvenida) y el libro es «cursando», así que el icono de Tu carrera es la **fachada de columnas** (`landmark` de Lucide): frontón, cuatro columnas y escalón. A 20 dp se lee «universidad» sin texto.
+
+```svg
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M10 18v-7"/><path d="M14 18v-7"/><path d="M18 18v-7"/><path d="M6 18v-7"/>
+  <path d="M11.12 2.198a2 2 0 0 1 1.76.006l7.866 3.847c.476.233.31.949-.22.949H3.474c-.53 0-.695-.716-.22-.949z"/>
+  <path d="M3 22h18"/>
+</svg>
+```
+
+```kotlin
+    /** Tu carrera: la fachada de columnas (landmark de Lucide). El birrete es del grado */
+    val universidad = listOf(trazo("M10 18v-7"), trazo("M14 18v-7"), trazo("M18 18v-7"), trazo("M6 18v-7"), trazo("M11.12 2.198a2 2 0 0 1 1.76.006l7.866 3.847c.476.233.31.949-.22.949H3.474c-.53 0-.695-.716-.22-.949z"), trazo("M3 22h18"))
+```
+
+Va en los mismos tres sitios que §1 daba a `recorrido` (tecla de `FilaCarrera` teñida con el color de la carrera, tecla neutra sin carrera, y calado en el disco de `CirculoAcento(null)`). `recorrido` no se añade.
+
+### 8.2 Exterior vuelve, en claro y en oscuro
+
+Sam quiere «un modo exterior pero en versión oscura, que se vea moderno, bonito, clean». Más contraste (§2) se queda como interruptor para los once temas, y además hay **dos temas para el sol**, en su propio grupo al final del carrusel (tras otro hilo):
+
+| Tema | Carácter | Fondo | Cables | Luz | Pareja |
+|---|---|---|---|---|---|
+| **Exterior oscuro** | Negro puro y blanco puro, bordes que se ven a pleno sol, colores de estado subidos de luz. Sin aurora, sin cristal. | liso | 1,0 | no | Exterior |
+| **Exterior** | El de hoy: blanco puro y tinta casi negra. | rejilla | 1,0 | no | Exterior oscuro |
+
+- **`Juego` gana `val exterior: Boolean`** (true en estos dos). Con `exterior`, `Tema.fuerte` es siempre true (bordes 1,5, cables ×1,5, lo inscribible con borde azul) y las superficies de cristal van en tinte liso, como en modo ligero: a pleno sol el desenfoque solo resta, y en gama baja ahorra.
+- **En Personalizar,** con un Exterior elegido, «Más contraste» se ve encendido y desactivado, con la nota «Exterior ya lo trae».
+- **`TABLA_CONTRASTE`** repite para ellos la fila de `TABLA` (ya son el máximo).
+- **Migración:** quien tenía `"exterior"` guardado queda en **Exterior** (ya no pasa a Claro + contraste, como decía §6).
+
+Tokens (orden de `Tokens`, 18 valores):
+
+```
+Exterior oscuro: 000000 0E0F11 16181B 8A8F96 FFFFFF E8EAED C9CDD3 A3A8AF 84ADFF B8CFFF 45E096 A8F0CC FF7A72 000000 000000 26292D 0E0F11 000000
+Exterior:        FFFFFF FFFFFF F0F1F3 84898F 050608 1C1F23 34383E 52565C 1A47C2 133A9F 00603F 00573A A80F1A 1A47C2 006B5C E2E4E7 FFFFFF 000000
+```
+
+Contraste de Exterior oscuro (lienzo / panel): tinta 21,0 / 19,2 · suave 17,4 / 15,9 · tenue 13,2 / 12,0 · apagada 8,8 / 8,0 · azul 9,4 / 8,6 · rojo 8,3 / 7,6 · verde 11,3 · borde 6,5. Todo AAA, incluso los iconos.
+
+Carrusel final: Sistema · seis oscuros · hilo · cinco claros · hilo · Exterior oscuro, Exterior. **Trece temas.**
+
+### 8.3 Más cosas que personalizar
+
+Sam pidió «seguir agregando más cosas». Entran las que no cuestan cuadros en gama baja ni multiplican los estados de la tarjeta:
+
+| Bloque | Opción | Valores | Por defecto | Coste |
+|---|---|---|---|---|
+| MAPA | **Grosor de los cables** | Fino · Normal · Grueso (×0,7 · ×1 · ×1,5 del trazo actual) | Normal | Ninguno: un factor en el `Stroke` que ya se crea. Se multiplica con el ×1,5 de `fuerte`. |
+| MAPA | **Lo aprobado** | Normal · Atenuado | Normal | Ninguno: con Atenuado, las tarjetas aprobadas y sus cables se dibujan al 45 % de opacidad, en el mismo `draw`. Así el ojo va a lo que falta. |
+| INICIO (bloque nuevo) | **Al abrir la app** | Portada · Mi carrera | Portada | Ninguno. Con «Mi carrera» y una carrera elegida, la app arranca dentro de ella; Atrás vuelve a la portada. Sin carrera, siempre portada. |
+| INICIO | **Mi carrera se abre en** | Mapa · Lista | Mapa | Ninguno: la vista inicial de la carrera. |
+| HORARIO (bloque nuevo) | **Formato de hora** | 12 h · 24 h | 12 h | Ninguno: solo el texto de la hora. En 24 h no hay meridiano y «13:00» cabe en el carril igual que «10:00». |
+| MOVIMIENTO Y TACTO | **Vibración** | interruptor | encendida | Ninguno: con ella apagada, los `performHapticFeedback` de lista, barra, mapa y ficha no se llaman. |
+
+Las de MAPA usan las mismas baldosas (§5) que Fondo y Cables. Las de INICIO y HORARIO, el segmentado de «Aa Normal / Aa Grande».
+
+**Orden de los bloques:** TEMA · ACENTO · MAPA · INICIO · HORARIO · LECTURA · MOVIMIENTO Y TACTO.
+
+**Preferencias nuevas** (además de las de §6): `grosorCables: StateFlow<Grosor>` (enum FINO, NORMAL, GRUESO), `atenuarAprobadas: StateFlow<Boolean>`, `abrirEnCarrera: StateFlow<Boolean>`, `vistaInicial: StateFlow<Vista>` (MAPA, LISTA; reutiliza el enum de vista si ya existe), `hora24: StateFlow<Boolean>`, `vibracion: StateFlow<Boolean>`. Cada una con su `guardar…`, y `App` las pone en `Tema` (o en un `CompositionLocal` de preferencias de uso) como las demás.
+
+**Siguen descartadas** las de la tabla de §4, por los mismos motivos.
