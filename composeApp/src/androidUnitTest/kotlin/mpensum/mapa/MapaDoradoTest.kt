@@ -77,14 +77,10 @@ class MapaDoradoTest {
     }
 
     @Test
-    fun cadenasYPeso() = carreras().forEach { (pensum, e) ->
+    fun cadenas() = carreras().forEach { (pensum, e) ->
         val relaciones = calcularLayout(pensum.asignaturas, pensum.grupos).relaciones
         e.getValue("cadenas").jsonObject.forEach { (codigo, cadena) ->
             assertEquals(cadena.jsonArray.map { it.jsonPrimitive.content }, cadenaDe(codigo, relaciones).sorted(), "${pensum.slug} · $codigo: cadena")
-        }
-        val peso = pesoDesbloqueo(relaciones)
-        e.getValue("peso").jsonObject.forEach { (codigo, n) ->
-            assertEquals(n.jsonPrimitive.int, peso[codigo], "${pensum.slug} · $codigo: cuántas abre")
         }
     }
 

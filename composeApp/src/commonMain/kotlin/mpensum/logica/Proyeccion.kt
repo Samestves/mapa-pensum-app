@@ -17,7 +17,7 @@ const val MAX_CARGA = 8
 
 /** Las marcas como quedarían si apruebas todo lo que cursas */
 fun conCursandoAprobadas(marcas: Map<String, Marca>): Map<String, Marca> =
-    marcas.mapValues { Marca.APROBADA }
+    marcas.mapValues { (_, marca) -> if (marca == Marca.CURSANDO) Marca.APROBADA else marca }
 
 /** Las que cursas ahora, en el orden del pensum: obligatorias y electivas */
 fun cursandoDe(pensum: Pensum, marcas: Map<String, Marca>): List<Asignatura> =

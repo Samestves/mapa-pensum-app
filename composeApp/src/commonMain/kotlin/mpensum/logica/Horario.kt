@@ -66,9 +66,6 @@ fun horaDe(min: Int) = "${hora12(min)}:${(min % 60).toString().padStart(2, '0')}
 /** "12:00 PM" */
 fun enDoceHoras(min: Int) = "${horaDe(min)} ${meridiano(min)}"
 
-/** Hora en punto sin ceros, para el riel de la rejilla: "7 AM" */
-fun horaEnPunto(min: Int) = "${hora12(min)} ${meridiano(min)}"
-
 /** Un tramo en corto, como Calendario de Apple: "7 – 9 AM", "11 AM – 1 PM", "8:15 – 9:50 AM" */
 fun tramoCorto(inicio: Int, fin: Int): String {
     fun h(m: Int) = if (m % 60 != 0) horaDe(m) else hora12(m).toString()
@@ -114,7 +111,6 @@ fun cuandoEs(sesion: Sesion, todas: List<Sesion>): String {
 
 fun solapan(a: Sesion, b: Sesion) = a.dia == b.dia && a.inicio < b.fin && b.inicio < a.fin
 
-/** La primera clase con la que choca una candidata; se ignora a sí misma por id para poder editarla sin moverla */
 /** Los pares que se pisan: primero la que empieza antes (a igual hora, la que acaba antes) y después la que se mete encima */
 fun choquesDe(sesiones: List<Sesion>): List<Pair<Sesion, Sesion>> {
     val orden = sesiones.sortedWith(porInicio)
@@ -143,6 +139,7 @@ fun diaDelMes(epoca: Long): Int {
     return (doy - (153 * mp + 2) / 5 + 1).toInt()
 }
 
+/** La primera clase con la que choca una candidata; se ignora a sí misma por id para poder editarla sin moverla */
 fun choqueCon(sesiones: List<Sesion>, candidata: Sesion): Sesion? =
     sesiones.firstOrNull { it.id != candidata.id && solapan(it, candidata) }
 

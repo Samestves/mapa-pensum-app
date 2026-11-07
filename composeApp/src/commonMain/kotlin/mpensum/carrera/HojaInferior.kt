@@ -389,7 +389,7 @@ fun BoxScope.HojaInferior(
                     },
                 )
                 .nestedScroll(hoja.conexion)
-                .clickable(toque, indication = null) {},
+                .pointerInput(Unit) { detectTapGestures {} },
         ) {
             AsaYCabecera(hoja, abierta, cabecera)
             Column(

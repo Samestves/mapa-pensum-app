@@ -202,9 +202,8 @@ class CapturaAvanceTest {
         montar(estado())
         abrirDetalle("No puedes atrasar")
         foto("avance-detalle-4-no-atrasar")
-        desplazarA("Verla en el mapa")
-        regla.mainClock.advanceTimeBy(100)
-        foto("avance-detalle-4b-no-atrasar-pie")
+        // «Ver en el mapa» ya no está al pie: vive en la cabecera del detalle
+        regla.onNodeWithText("Ver en el mapa").assertExists()
     }
 
     /** El tema claro, en la hoja y en el detalle */

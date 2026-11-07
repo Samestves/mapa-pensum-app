@@ -231,8 +231,9 @@ fun revisar(filas: List<FilaCruda>, materias: List<Asignatura>, yaGuardadas: Lis
     return marcarChoques(candidatas, yaGuardadas).map { it.copy(dudosa = it.avisos.isNotEmpty()) }
 }
 
-private fun solapa(d1: Int?, i1: Int?, f1: Int?, d2: Int?, i2: Int?, f2: Int?): Boolean =
-    d1 != null && d1 == d2 && i1 != null && f1 != null && i2 != null && f2 != null && i1 < f2 && i2 < f1
+/** La candidata como clase, si ya se entendió su día y su hora; con ella se usa el mismo `solapan` del horario */
+private fun Candidata.comoSesion(): Sesion? =
+    if (dia != null && inicio != null && fin != null) Sesion(id, codigo.orEmpty(), dia, inicio, fin) else null
 
 /** Vuelve a repasar los choques de toda la lista: desmarcar una fila puede liberar a la que chocaba con ella */
 fun marcarChoques(candidatas: List<Candidata>, yaGuardadas: List<Sesion> = emptyList()): List<Candidata> {
@@ -242,8 +243,9 @@ fun marcarChoques(candidatas: List<Candidata>, yaGuardadas: List<Sesion> = empty
         val sinChoque = c.avisos.filter { it != "choca" }
         if (c !in activas) return@map c.copy(avisos = sinChoque)
 
-        val choca = yaGuardadas.any { solapa(it.dia, it.inicio, it.fin, c.dia, c.inicio, c.fin) } ||
-            activas.any { it.id != c.id && solapa(it.dia, it.inicio, it.fin, c.dia, c.inicio, c.fin) }
+        val mia = c.comoSesion() ?: return@map c.copy(avisos = sinChoque)
+        val choca = yaGuardadas.any { solapan(it, mia) } ||
+            activas.any { it.id != c.id && it.comoSesion()?.let { otra -> solapan(otra, mia) } == true }
         c.copy(avisos = if (choca) sinChoque + "choca" else sinChoque)
     }
 }

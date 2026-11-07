@@ -82,9 +82,9 @@ class Lectura {
  */
 @Stable
 class EstadoHorario(val carrera: EstadoCarrera, private val reloj: () -> HoraLocal = ::horaLocal) {
-    private val porCodigo: Map<String, Asignatura> = carrera.pensum.todas.associateBy { it.codigo }
+    private val porCodigo: Map<String, Asignatura> = carrera.pensum.porCodigo
 
-    var sesiones by mutableStateOf(HorarioGuardado.leer(carrera.pensum.slug, porCodigo.keys))
+    var sesiones by mutableStateOf(HorarioGuardado.leer(carrera.pensum.slug, carrera.pensum.todas.mapTo(HashSet()) { it.codigo }))
         private set
 
     private var epoca = reloj().epoca

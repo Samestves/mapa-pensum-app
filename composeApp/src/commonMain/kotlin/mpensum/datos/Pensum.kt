@@ -34,6 +34,9 @@ data class Pensum(
 
     /** Obligatorias y electivas juntas: comparten las mismas marcas */
     val todas: List<Asignatura> by lazy { obligatorias + grupos.flatMap { it.asignaturas } }
+
+    /** Cada materia, casilla y electiva por su código: el único índice, para no armarlo en cada pantalla */
+    val porCodigo: Map<String, Asignatura> by lazy { (asignaturas + grupos.flatMap { it.asignaturas }).associateBy { it.codigo } }
 }
 
 @Serializable

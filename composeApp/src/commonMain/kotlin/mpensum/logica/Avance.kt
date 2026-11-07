@@ -38,18 +38,14 @@ fun avanceDeGrupos(grupos: List<Grupo>, marcas: Map<String, Marca>): Map<String,
 /** El avance de una carrera, contado sobre las obligatorias más lo que cabe de electivas */
 data class Progreso(
     val ucAprobadas: Int,
-    val ucTotales: Int,
     /** UC del título; null donde el pensum no trae créditos oficiales */
     val ucTitulo: Int?,
     val ucElectivas: Int,
     /** De 0 a 100 sobre las UC del título; null sin créditos oficiales: no se inventa un porcentaje */
     val porcentaje: Double?,
-    val porcentajeObligatorias: Double,
     val aprobadas: Int,
     val cursando: Int,
     val disponibles: Int,
-    /** Las que puedes inscribir, de la más atrasada a la más adelantada */
-    val paraInscribir: List<Asignatura>,
     val bloqueadas: Int,
     val total: Int,
 ) {
@@ -66,7 +62,7 @@ fun progresoDe(
     var ucAprobadas = 0
     var aprobadas = 0
     var cursando = 0
-    val paraInscribir = mutableListOf<Asignatura>()
+    var disponibles = 0
     for (a in asignaturas) {
         when (estados[a.codigo]) {
             EstadoMateria.APROBADA -> {
@@ -74,26 +70,22 @@ fun progresoDe(
                 aprobadas += 1
             }
             EstadoMateria.CURSANDO -> cursando += 1
-            EstadoMateria.DISPONIBLE -> paraInscribir += a
+            EstadoMateria.DISPONIBLE -> disponibles += 1
             else -> Unit
         }
     }
-    val ucTotales = asignaturas.sumOf { it.uc ?: 0 }
     // Solo cuentan las UC electivas que caben en su cuota
     val ucElectivas = avanceGrupos.values.sumOf { g -> if (g.meta != null) min(g.uc, g.meta) else 0 }
     val ucTitulo = creditos?.titulo
     return Progreso(
         ucAprobadas = ucAprobadas,
-        ucTotales = ucTotales,
         ucTitulo = ucTitulo,
         ucElectivas = ucElectivas,
         porcentaje = ucTitulo?.takeIf { it > 0 }?.let { (ucAprobadas + ucElectivas) * 100.0 / it },
-        porcentajeObligatorias = if (ucTotales > 0) ucAprobadas * 100.0 / ucTotales else 0.0,
         aprobadas = aprobadas,
         cursando = cursando,
-        disponibles = paraInscribir.size,
-        paraInscribir = paraInscribir.sortedWith(compareBy<Asignatura> { it.semestre ?: 99 }.then { a, b -> compararEs(a.nombre, b.nombre) }),
-        bloqueadas = asignaturas.size - aprobadas - cursando - paraInscribir.size,
+        disponibles = disponibles,
+        bloqueadas = asignaturas.size - aprobadas - cursando - disponibles,
         total = asignaturas.size,
     )
 }
@@ -122,7 +114,7 @@ data class ResumenPortada(
 fun resumenParaPortada(pensum: Pensum, marcasGuardadas: Map<String, String>?, casillasGuardadas: Map<String, String>? = null): ResumenPortada {
     val marcas = depurarMarcas(marcasGuardadas, pensum.todas.map { it.codigo }.toSet())
     val casillas = casillasEfectivas(pensum, depurarCasillas(casillasGuardadas, pensum), marcas)
-    val porCodigo = pensum.todas.associateBy { it.codigo }
+    val porCodigo = pensum.porCodigo
     val estados = estadosDe(pensum.todas, marcas)
     val progreso = progresoDe(pensum.obligatorias, estados, pensum.creditos, avanceDeGrupos(pensum.grupos, marcas))
     val conUc = progreso.porcentaje != null

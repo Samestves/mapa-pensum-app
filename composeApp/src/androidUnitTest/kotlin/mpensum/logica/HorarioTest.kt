@@ -62,7 +62,6 @@ class HorarioTest {
         assertEquals("8:15 – 9:50 AM", tramoCorto(495, 590))
         assertEquals("12:00 PM", enDoceHoras(h(12)))
         assertEquals("10:40", horaDe(640))
-        assertEquals("3 PM", horaEnPunto(h(15)))
         assertEquals(h(7) to h(15), rangoDeClases(ejemplo))
         assertEquals("10 clases · 20 h a la semana", resumenSemana(ejemplo))
     }

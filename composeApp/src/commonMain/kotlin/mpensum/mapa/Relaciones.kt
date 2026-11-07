@@ -33,7 +33,3 @@ private fun alcanzables(inicio: String, mapa: Map<String, List<String>>): Set<St
 /** La cadena entera de una materia: lo que pide hacia atrás, lo que abre hacia adelante y ella misma */
 fun cadenaDe(codigo: String, relaciones: Relaciones): Set<String> =
     setOf(codigo) + alcanzables(codigo, relaciones.atras) + alcanzables(codigo, relaciones.adelante)
-
-/** Cuántas materias dependen de cada una, directa o indirectamente */
-fun pesoDesbloqueo(relaciones: Relaciones): Map<String, Int> =
-    relaciones.adelante.keys.associateWith { alcanzables(it, relaciones.adelante).size }

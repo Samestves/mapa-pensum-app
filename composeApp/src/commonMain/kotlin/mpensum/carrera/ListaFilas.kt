@@ -123,7 +123,7 @@ private val FONDO_GRUPO get() = porTema(Paleta.panelSuave, Color.White.copy(alph
 internal fun colorDe(t: Tono): Color = when (t) {
     Tono.TENUE -> Paleta.tenue
     Tono.VERDE -> Paleta.verde
-    Tono.AMBAR -> Paleta.cursando
+    Tono.CURSANDO -> Paleta.cursando
     Tono.AZUL -> Paleta.azul
 }
 

@@ -84,6 +84,7 @@ import mpensum.logica.cargaMasRapida
 import mpensum.logica.cursandoDe
 import mpensum.logica.siApruebasLoQueCursas
 import mpensum.logica.ucTipicaDe
+import mpensum.mapa.nombreCasilla
 import mpensum.mapa.tituloGrupo
 import mpensum.plataforma.ManejarAtras
 import mpensum.tema.Espacio
@@ -542,20 +543,18 @@ private fun TarjetaElectivas(estado: EstadoCarrera, abrir: (DetalleAvance) -> Un
 
 /** Cómo se llama cada código del plan: la materia, la casilla, o "Electiva técnica" para lo que pide la cuota de un grupo */
 internal fun nombresDelPlan(pensum: Pensum): (String) -> String {
-    val porCodigo = (pensum.asignaturas + pensum.grupos.flatMap { it.asignaturas }).associateBy { it.codigo }
     val grupos = pensum.grupos.associateBy { it.clave }
     return { codigo ->
-        porCodigo[codigo]?.nombre
-            ?: grupos[codigo.substringBefore('#')]?.titulo?.let { t -> t.split(' ').joinToString(" ") { if (it.endsWith("as")) it.dropLast(1) else it } }
+        pensum.porCodigo[codigo]?.nombre
+            ?: grupos[codigo.substringBefore('#')]?.let(::nombreCasilla)
             ?: codigo
     }
 }
 
 /** Las UC de cada código del plan: las de la materia o, en una casilla sin elegir, las típicas de su grupo */
 internal fun ucsDelPlan(pensum: Pensum): (String) -> Int {
-    val porCodigo = (pensum.asignaturas + pensum.grupos.flatMap { it.asignaturas }).associateBy { it.codigo }
     val tipicas = pensum.grupos.associate { it.clave to ucTipicaDe(it) }
-    return { codigo -> porCodigo[codigo]?.uc ?: tipicas[porCodigo[codigo]?.grupo ?: codigo.substringBefore('#')] ?: 0 }
+    return { codigo -> pensum.porCodigo[codigo]?.uc ?: tipicas[pensum.porCodigo[codigo]?.grupo ?: codigo.substringBefore('#')] ?: 0 }
 }
 
 /** Si un código del plan es una casilla de electiva sin elegir */

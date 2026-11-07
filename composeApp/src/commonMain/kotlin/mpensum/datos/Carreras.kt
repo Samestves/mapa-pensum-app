@@ -62,8 +62,11 @@ fun rememberResumenes(carreras: List<Carrera>): Map<String, ResumenPortada>? {
         value = withContext(Dispatchers.Default) {
             carreras.mapNotNull { c ->
                 val crudas = Guardado.marcasCrudas(c.slug)?.takeIf { it.isNotEmpty() } ?: return@mapNotNull null
-                val pensum = leerPensum(Res.readBytes("files/carreras/${c.slug}.json").decodeToString())
-                c.slug to resumenParaPortada(pensum, crudas, Guardado.casillasCrudas(c.slug))
+                // Una carrera que no se pueda leer no mata la portada: simplemente no trae resumen
+                runCatching {
+                    val pensum = leerPensum(Res.readBytes("files/carreras/${c.slug}.json").decodeToString())
+                    c.slug to resumenParaPortada(pensum, crudas, Guardado.casillasCrudas(c.slug))
+                }.getOrNull()
             }.toMap()
         }
         UltimosResumenes.valor = value

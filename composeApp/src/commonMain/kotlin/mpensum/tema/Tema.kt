@@ -148,11 +148,7 @@ object Paleta {
     /** Lo deshabilitado y lo de poco peso; en claro aguanta 4,6:1 sobre la hoja blanca */
     val apagada get() = t.apagada
     val azul get() = t.azul
-    val azulClaro get() = t.azulClaro
     val verde get() = t.verde
-    val verdeClaro get() = t.verdeClaro
-    /** Solo queda en la tabla de tokens: ningún componente lo usa, «cursando» ya no es ámbar */
-    val ambar get() = t.ambar
     /** «Cursando» no tiene color propio: es la tinta, y se distingue por la forma (contorno, peso 500) */
     val cursando get() = t.tinta
     val rojo get() = t.rojo

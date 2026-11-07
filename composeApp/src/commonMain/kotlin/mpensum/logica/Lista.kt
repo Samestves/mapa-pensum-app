@@ -2,6 +2,7 @@ package mpensum.logica
 
 import mpensum.datos.Asignatura
 import mpensum.datos.Grupo
+import mpensum.mapa.tituloGrupo
 
 /*
  * La lista: la misma carrera que el mapa, contada por semestres. Aquí solo se
@@ -25,11 +26,11 @@ fun filtroDe(s: Situacion): FiltroLista = when (s) {
 }
 
 /** El color con el que se lee un texto de la lista; la vista lo traduce a la paleta */
-enum class Tono { TENUE, VERDE, AMBAR, AZUL }
+enum class Tono { TENUE, VERDE, CURSANDO, AZUL }
 
 fun tonoDe(f: FiltroLista): Tono = when (f) {
     FiltroLista.APROBADAS -> Tono.VERDE
-    FiltroLista.CURSANDO -> Tono.AMBAR
+    FiltroLista.CURSANDO -> Tono.CURSANDO
     FiltroLista.DISPONIBLES -> Tono.AZUL
     FiltroLista.BLOQUEADAS -> Tono.TENUE
 }
@@ -217,7 +218,7 @@ fun modeloLista(
         secciones += SeccionLista(
             clave = "g-${g.clave}",
             semestre = null,
-            titulo = g.titulo.replace(Regex("^Areas\\b"), "Áreas"),
+            titulo = tituloGrupo(g),
             aprobado = if (meta != null && meta > 0) (ucHechas.toFloat() / meta).coerceAtMost(1f) else 0f,
             cursado = if (meta != null && meta > 0) (ucCursando.toFloat() / meta).coerceAtMost(1f) else 0f,
             completo = completo,

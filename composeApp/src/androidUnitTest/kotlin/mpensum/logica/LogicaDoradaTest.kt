@@ -84,17 +84,14 @@ class LogicaDoradaTest {
         val p = progresoDe(pensum.obligatorias, estadosDe(pensum.todas, marcas), pensum.creditos, grupos)
         val e = caso.getValue("progreso").jsonObject
         assertEquals(e.entero("ucAprobadas"), p.ucAprobadas, "$nombre: UC aprobadas")
-        assertEquals(e.entero("ucTotales"), p.ucTotales, "$nombre: UC totales")
         assertEquals(e.entero("ucTitulo"), p.ucTitulo, "$nombre: UC del título")
         assertEquals(e.entero("ucElectivas"), p.ucElectivas, "$nombre: UC electivas")
         casiIgual(e.decimal("porcentaje"), p.porcentaje, "$nombre: porcentaje")
-        casiIgual(e.decimal("porcentajeObligatorias"), p.porcentajeObligatorias, "$nombre: porcentaje de obligatorias")
         assertEquals(e.entero("aprobadas"), p.aprobadas, "$nombre: aprobadas")
         assertEquals(e.entero("cursando"), p.cursando, "$nombre: cursando")
         assertEquals(e.entero("disponibles"), p.disponibles, "$nombre: disponibles")
         assertEquals(e.entero("bloqueadas"), p.bloqueadas, "$nombre: bloqueadas")
         assertEquals(e.entero("total"), p.total, "$nombre: total")
-        assertEquals(e.getValue("paraInscribir").jsonArray.map { it.jsonPrimitive.content }, p.paraInscribir.map { it.codigo }, "$nombre: orden de lo inscribible")
         casiIgual(caso.getValue("avance").jsonPrimitive.doubleOrNull, p.avance, "$nombre: avance")
     }
 
