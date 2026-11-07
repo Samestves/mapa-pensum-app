@@ -226,6 +226,8 @@ internal fun BotonTinta(
     /** La burbuja acostada usa botones de 48 con radio 16; la ficha de pie, los de 52 con radio 26 */
     alto: Dp = 52.dp,
     radio: Dp = Radio.Barra,
+    /** Una flecha tras el verbo, a 8 dp: la acción que lleva a otra pantalla */
+    flecha: Boolean = false,
 ) {
     val lleno = !superficie
     Column(
@@ -237,13 +239,18 @@ internal fun BotonTinta(
     ) {
         val centrado = TextAlign.Center
         // Un botón dice su verbo en una línea: si no cabe (la burbuja acostada, 320 dp), la letra baja hasta 13 antes que partirse
-        BasicText(
-            texto,
-            Modifier.padding(horizontal = Espacio.xs, vertical = if (nota == null) Espacio.xs else 0.dp),
-            style = estiloFila(if (lleno) Paleta.panel else Paleta.tinta).copy(textAlign = centrado),
-            maxLines = 1,
-            autoSize = TextAutoSize.StepBased(minFontSize = 13.sp, maxFontSize = 15.sp, stepSize = 0.5.sp),
-        )
+        val letra = estiloFila(if (lleno) Paleta.panel else Paleta.tinta).copy(textAlign = centrado)
+        val verbo: @Composable (Modifier) -> Unit = { m ->
+            BasicText(
+                texto, m.padding(horizontal = Espacio.xs, vertical = if (nota == null) Espacio.xs else 0.dp),
+                style = letra, maxLines = 1,
+                autoSize = TextAutoSize.StepBased(minFontSize = 13.sp, maxFontSize = 15.sp, stepSize = 0.5.sp),
+            )
+        }
+        if (flecha) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
+            verbo(Modifier.weight(1f, fill = false))
+            IconoLucide(Lucide.flecha, letra.color, 18.dp)
+        } else verbo(Modifier)
         if (nota != null) BasicText(nota, Modifier.padding(horizontal = Espacio.xs), style = estiloNota(colorNota ?: if (lleno) Paleta.panel.copy(alpha = 0.6f) else Paleta.tenue).copy(textAlign = centrado))
     }
 }

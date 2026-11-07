@@ -114,6 +114,15 @@ object Lucide {
     val codigo = listOf(trazo("m16 18 6-6-6-6"), trazo("m8 6-6 6 6 6"))
     val mundo = listOf(trazo("M12 2a10 10 0 1 0 0 20a10 10 0 1 0 0-20z"), trazo("M12 2a14.5 14.5 0 0 0 0 20a14.5 14.5 0 0 0 0-20"), trazo("M2 12h20"))
     val listo = listOf(trazo("M20 6 9 17l-5-5"))
+    /** Personalizar: tres fichas de color en abanico (swatch-book de Lucide) */
+    val muestrario = listOf(trazo("M11 17a4 4 0 0 1-8 0V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2Z"), trazo("M16.7 13H19a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2H7"), trazo("M7 17h.01"), trazo("m11 8 2.3-2.3a2.4 2.4 0 0 1 3.404.004L18.6 7.6a2.4 2.4 0 0 1 .026 3.434L9.9 19.8"))
+    /** Tu carrera: la fachada de columnas (landmark de Lucide). El birrete es del grado */
+    val universidad = listOf(trazo("M10 18v-7"), trazo("M14 18v-7"), trazo("M18 18v-7"), trazo("M6 18v-7"), trazo("M11.12 2.198a2 2 0 0 1 1.76.006l7.866 3.847c.476.233.31.949-.22.949H3.474c-.53 0-.695-.716-.22-.949z"), trazo("M3 22h18"))
+    /** calendar-days de Lucide: el calendario con sus seis días */
+    val calendarioDias = listOf(
+        trazo("M8 2v4"), trazo("M16 2v4"), trazo("M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"), trazo("M3 10h18"),
+        trazo("M8 14h.01"), trazo("M12 14h.01"), trazo("M16 14h.01"), trazo("M8 18h.01"), trazo("M12 18h.01"), trazo("M16 18h.01"),
+    )
     val calendario = listOf(trazo("M6.5 5h11a3 3 0 0 1 3 3v9a3 3 0 0 1-3 3h-11a3 3 0 0 1-3-3v-9a3 3 0 0 1 3-3z"), trazo("M3.5 10h17"), trazo("M8 3v4"), trazo("M16 3v4"))
 }
 

@@ -30,6 +30,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
 import mpensum.bienvenida.Bienvenida
 import mpensum.carrera.Interior
+import mpensum.carrera.Vista
 import mpensum.componentes.LocalVentana
 import mpensum.componentes.medirVentana
 import mpensum.datos.rememberCarreras
@@ -153,6 +154,8 @@ private fun Pantallas() {
             },
             label = "pantalla",
         ) { p ->
+    // La vista con la que nace la carrera que se abre (el atajo del horario); null es el mapa
+    var vistaInicial by remember { mutableStateOf<Vista?>(null) }
             when (p) {
                 Pantalla.Bienvenida -> Bienvenida(carreras) { elegida ->
                     Preferencias.marcarBienvenidaVista()
@@ -168,7 +171,7 @@ private fun Pantallas() {
                     Portada(
                         carreras,
                         propia = carreras.find { it.slug == propia },
-                        alAbrir = { c, desde ->
+                        alAbrir = { c, desde, vista ->
                             origen = desde
                             pantalla = Pantalla.Carrera(c.slug)
                         },
@@ -183,9 +186,10 @@ private fun Pantallas() {
                     val carrera = carreras.firstOrNull { it.slug == p.slug }
                     // Una carrera que el índice ya no trae (un estado guardado de otra versión) no tiene a dónde entrar
                     if (carrera == null) LaunchedEffect(Unit) { pantalla = Pantalla.Portada }
-                    else Interior(carrera, alVolver = { pantalla = Pantalla.Portada })
+                    else Interior(carrera, alVolver = { pantalla = Pantalla.Portada }, vistaInicial = vistaInicial ?: Vista.MAPA)
                 }
             }
         }
     }
 }
+                            vistaInicial = vista

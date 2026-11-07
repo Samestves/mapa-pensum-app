@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
@@ -82,6 +83,7 @@ import mpensum.componentes.tinteLiso
 import kotlinx.coroutines.launch
 import mpensum.componentes.esApaisado
 import mpensum.carrera.LocalFondoHoja
+import mpensum.carrera.Vista
 import mpensum.componentes.IconoTrazo
 import mpensum.componentes.Lucide
 import mpensum.componentes.Rosa
@@ -120,7 +122,8 @@ internal val ENFATICA = CubicBezierEasing(0.2f, 0f, 0f, 1f)
 fun Portada(
     carreras: List<Carrera>,
     propia: Carrera?,
-    alAbrir: (Carrera, TransformOrigin) -> Unit,
+    /** La vista con la que nace la carrera: null es el mapa; el atajo del horario pide `Vista.HORARIO` */
+    alAbrir: (Carrera, TransformOrigin, Vista?) -> Unit,
     alVerGuia: () -> Unit,
     alElegirPropia: (Carrera) -> Unit,
 ) {
@@ -139,7 +142,7 @@ fun Portada(
     }
     val barra = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
     val abajo = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
-    val resumenes = rememberResumenes(carreras)
+    val resumenes = rememberResumenes(carreras, tambien = propia?.slug)
     val suya = propia ?: resumenes?.let { r -> carreras.firstOrNull { it.slug in r } }
 
     BoxWithConstraints(Modifier.fillMaxSize().background(Paleta.lienzo)) {
@@ -154,24 +157,16 @@ fun Portada(
         val tarjeta: @Composable (Boolean) -> Unit = { lleno ->
             val resumen = suya?.let { resumenes?.get(it.slug) }
             Box(if (lleno) Modifier.fillMaxSize() else Modifier) {
-                TuCarrera(suya, resumen, cargando = resumenes == null, Modifier.sube(80, 14.dp, 560), lleno) { origen ->
-                    if (suya != null) alAbrir(suya, origen) else ajustes = PaginaAjustes.CARRERA
-                }
+                TuCarrera(
+                    suya, resumen, cargando = resumenes == null, Modifier.sube(80, 14.dp, 560), lleno,
+                    alPulsar = { origen -> if (suya != null) alAbrir(suya, origen, null) else ajustes = PaginaAjustes.CARRERA },
+                    alAbrirHorario = { origen -> if (suya != null) alAbrir(suya, origen, Vista.HORARIO) },
+                )
             }
         }
         // Agrupadas por tipo y en el orden de siempre: ingenierías, licenciaturas y gerencia
         val otras = carreras.filter { it.slug != suya?.slug }.sortedBy { TIPOS.indexOf(it.tipo) }
         val grupos = otras.groupBy { it.tipo }.toList()
-        val filas: @Composable () -> Unit = {
-            var i = 0
-            grupos.forEachIndexed { g, (tipo, lista) ->
-                RotuloGrupo(tipo, Modifier.padding(top = if (g > 0) Espacio.xl else 0.dp, bottom = Espacio.xs))
-                lista.forEach { c ->
-                    Fila(c, Modifier.padding(top = if (c !== lista.first()) Espacio.xs else 0.dp).sube(minOf(420, 180 + 40 * i), 12.dp, 480)) { origen -> alAbrir(c, origen) }
-                    i++
-                }
-            }
-        }
         // La luz va fuera del scroll: es del fondo, no sube ni baja con la lista
         Box(Modifier.fillMaxSize().luzCenital().fuenteCristal(cristal)) {
             if (horizontal) {
@@ -191,8 +186,9 @@ fun Portada(
             ) {
                 // Sin carrera elegida la tarjeta espera a saber si hay marcas: si las hay, la primera con marcas es la tuya
                 if (conTarjeta) tarjeta(false)
-                Spacer(Modifier.height(if (conTarjeta) Espacio.xxl else 0.dp))
-                filas()
+                Spacer(Modifier.height(if (conTarjeta) Espacio.xl else 0.dp))
+                // Las otras carreras, de dos en dos y sin flecha, como acostada pero dentro del scroll de la página
+                Column(verticalArrangement = Arrangement.spacedBy(Espacio.xs)) { FichasPorGrupo(otras, alAbrir) }
             }
         }
 
@@ -394,9 +390,31 @@ private fun RotuloGrupo(tipo: String, modifier: Modifier = Modifier) {
     )
 }
 
-/** Horizontal: las otras carreras en fichas de dos en dos, con su propio scroll y un fundido abajo si hay más por ver */
+/**
+ * Las otras carreras por grupo (ingenierías, licenciaturas, gerencia): el rótulo
+ * y sus fichas de dos en dos. Una ficha suelta al final deja su sitio, no se
+ * estira. Es la misma rejilla de pie y acostada; cada quien pone su contenedor.
+ */
 @Composable
-private fun RowScope.OtrasCompactas(otras: List<Carrera>, alAbrir: (Carrera, TransformOrigin) -> Unit) {
+private fun ColumnScope.FichasPorGrupo(otras: List<Carrera>, alAbrir: (Carrera, TransformOrigin, Vista?) -> Unit) {
+    var n = 0
+    otras.groupBy { it.tipo }.toList().forEachIndexed { g, (tipo, lista) ->
+        // El rótulo pega a su rejilla (el hueco de 8) y entre grupos hay 24: 16 de aquí y los 8 del hueco
+        RotuloGrupo(tipo, Modifier.padding(top = if (g > 0) Espacio.m else 0.dp))
+        lista.chunked(2).forEach { par ->
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Espacio.xs)) {
+                par.forEach { c ->
+                    FilaCompacta(c, Modifier.weight(1f).sube(minOf(420, 180 + 40 * n++), 12.dp, 480)) { origen -> alAbrir(c, origen, null) }
+                }
+                if (par.size == 1) Spacer(Modifier.weight(1f))
+            }
+        }
+    }
+}
+
+/** Horizontal: las otras carreras a la derecha, con su propio scroll y un fundido abajo si hay más por ver */
+@Composable
+private fun RowScope.OtrasCompactas(otras: List<Carrera>, alAbrir: (Carrera, TransformOrigin, Vista?) -> Unit) {
     val desplazo = rememberScrollState()
     Column(
         Modifier
@@ -416,22 +434,7 @@ private fun RowScope.OtrasCompactas(otras: List<Carrera>, alAbrir: (Carrera, Tra
             }
             .verticalScroll(desplazo),
         verticalArrangement = Arrangement.spacedBy(Espacio.xs),
-    ) {
-        var n = 0
-        otras.groupBy { it.tipo }.toList().forEachIndexed { g, (tipo, lista) ->
-            // El rótulo del grupo va dentro del scroll; el primero pega arriba y los demás dejan 16 dp (más los 8 del hueco)
-            RotuloGrupo(tipo, Modifier.padding(top = if (g > 0) Espacio.m else 0.dp))
-            lista.chunked(2).forEach { par ->
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Espacio.xs)) {
-                    par.forEach { c ->
-                        FilaCompacta(c, Modifier.weight(1f).sube(minOf(420, 180 + 40 * n++), 12.dp, 480)) { origen -> alAbrir(c, origen) }
-                    }
-                    // Una ficha suelta al final deja su sitio, no se estira
-                    if (par.size == 1) Spacer(Modifier.weight(1f))
-                }
-            }
-        }
-    }
+    ) { FichasPorGrupo(otras, alAbrir) }
 }
 
 @OptIn(ExperimentalHazeApi::class)

@@ -69,7 +69,7 @@ class CapturaPortadaTest {
         marcar("ingenieria-de-sistemas", 4, 2)
         marcar("licenciatura-en-contaduria-publica", 1, 0)
         regla.mainClock.autoAdvance = false
-        regla.setContent { Portada(carreras, carreras.first { it.slug == "ingenieria-de-sistemas" }, alAbrir = { _, _ -> }, alVerGuia = {}, alElegirPropia = {}) }
+        regla.setContent { Portada(carreras, carreras.first { it.slug == "ingenieria-de-sistemas" }, alAbrir = { _, _, _ -> }, alVerGuia = {}, alElegirPropia = {}) }
         esperar(3000)
         regla.onRoot().captureRoboImage("build/capturas/portada-arriba.png")
         regla.onNodeWithContentDescription("Ajustes y ayuda").performClick()
@@ -84,7 +84,7 @@ class CapturaPortadaTest {
     fun conAvanceDesplazada() {
         marcar("ingenieria-de-sistemas", 4, 2)
         regla.mainClock.autoAdvance = false
-        regla.setContent { Portada(carreras, carreras.first { it.slug == "ingenieria-de-sistemas" }, alAbrir = { _, _ -> }, alVerGuia = {}, alElegirPropia = {}) }
+        regla.setContent { Portada(carreras, carreras.first { it.slug == "ingenieria-de-sistemas" }, alAbrir = { _, _, _ -> }, alVerGuia = {}, alElegirPropia = {}) }
         esperar(2500)
         regla.onRoot().performTouchInput { swipeUp(startY = centerY + 200f, endY = centerY - 300f) }
         esperar(1200)
@@ -95,7 +95,7 @@ class CapturaPortadaTest {
     @Test
     fun sinMarcas() {
         regla.mainClock.autoAdvance = false
-        regla.setContent { Portada(carreras, carreras.first { it.slug == "ingenieria-de-petroleo" }, alAbrir = { _, _ -> }, alVerGuia = {}, alElegirPropia = {}) }
+        regla.setContent { Portada(carreras, carreras.first { it.slug == "ingenieria-de-petroleo" }, alAbrir = { _, _, _ -> }, alVerGuia = {}, alElegirPropia = {}) }
         esperar(2500)
         regla.onRoot().captureRoboImage("build/capturas/portada-sin-marcas.png")
     }
@@ -103,7 +103,7 @@ class CapturaPortadaTest {
     @Test
     fun sinCarrera() {
         regla.mainClock.autoAdvance = false
-        regla.setContent { Portada(carreras, null, alAbrir = { _, _ -> }, alVerGuia = {}, alElegirPropia = {}) }
+        regla.setContent { Portada(carreras, null, alAbrir = { _, _, _ -> }, alVerGuia = {}, alElegirPropia = {}) }
         esperar(2500)
         regla.onRoot().captureRoboImage("build/capturas/portada-sin-carrera.png")
         regla.onRoot().performTouchInput { swipeUp(startY = centerY + 200f, endY = centerY - 300f) }

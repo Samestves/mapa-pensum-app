@@ -27,7 +27,6 @@ import mpensum.componentes.IconoTrazo
 import mpensum.componentes.Lucide
 import mpensum.componentes.Silueta
 import mpensum.componentes.pulsable
-import mpensum.componentes.renglon
 import mpensum.datos.Carrera
 
 import mpensum.tema.Espacio
@@ -42,52 +41,8 @@ private fun estiloEncabezado() =
     TextStyle(fontFamily = jost(), fontWeight = porTema(FontWeight.Light, FontWeight.Normal), fontSize = 17.sp, lineHeight = 22.sp, letterSpacing = (-0.01).em, color = Paleta.tinta)
 
 /**
- * Otra carrera: su silueta entera y tenue en su color, el nombre corto y la
- * flecha. Una fila de cristal apenas marcada: lo que está a la vista es tu
- * carrera; esto es el índice. El tipo lo dice el rótulo del grupo.
- */
-@Composable
-internal fun Fila(c: Carrera, modifier: Modifier, alPulsar: (TransformOrigin) -> Unit) {
-    val color = colorDe(c.color)
-    val origen = rememberOrigen()
-    Row(
-        modifier
-            .fillMaxWidth()
-            .height(72.dp)
-            .then(origen.medir)
-            .pulsable({ alPulsar(origen.valor) }, escala = 0.98f)
-            .drawBehind {
-                // En claro la fila es papel blanco a medias sobre el lienzo, con el mismo filo de tinta
-                drawRoundRect(porTema(Paleta.tinta.copy(alpha = 0.035f), Color.White.copy(alpha = 0.62f)), cornerRadius = CornerRadius(16.dp.toPx()))
-                borde(Paleta.tinta.copy(alpha = porTema(0.065f, 0.06f)), 16.dp)
-            }
-            .padding(start = Espacio.m, end = Espacio.l),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        // La silueta cabe en 56 × 36 como en la web; la que tiene más de siete filas asoma por debajo
-        Box(Modifier.size(56.dp, 36.dp)) {
-            Silueta(
-                c.silueta, color.copy(alpha = 0.7f),
-                hechas = c.silueta,
-                punto = 2.5.dp,
-                hueco = (56f / c.silueta.size - 2.5f).dp,
-                huecoFila = (36f / 7f - 2.5f).dp,
-            )
-        }
-        BasicText(
-            c.nombreCorto,
-            Modifier.padding(start = Espacio.m, end = Espacio.s).weight(1f).renglon(22.dp, 17.sp),
-            style = estiloEncabezado(),
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
-        IconoTrazo(Lucide.siguiente, Paleta.apagada, 16.dp, 1.75f)
-    }
-}
-
-/**
- * La ficha compacta de otra carrera para la rejilla de dos columnas en
- * horizontal: 68 dp, su silueta entera en 36 × 28 y el nombre (que baja de 17 a
+ * La ficha compacta de otra carrera para la rejilla de dos columnas, de pie
+ * y acostada: 68 dp, su silueta entera en 36 × 28 y el nombre (que baja de 17 a
  * 13 sp antes de cortar). Sin flecha: toda la ficha es el toque.
  */
 @Composable
@@ -103,7 +58,7 @@ internal fun FilaCompacta(c: Carrera, modifier: Modifier, alPulsar: (TransformOr
                 drawRoundRect(porTema(Paleta.tinta.copy(alpha = 0.035f), Color.White.copy(alpha = 0.62f)), cornerRadius = CornerRadius(16.dp.toPx()))
                 borde(Paleta.tinta.copy(alpha = porTema(0.065f, 0.06f)), 16.dp)
             }
-            .padding(start = 14.dp, end = Espacio.s),
+            .padding(start = 14.dp, end = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(Modifier.size(36.dp, 28.dp)) {
@@ -117,9 +72,10 @@ internal fun FilaCompacta(c: Carrera, modifier: Modifier, alPulsar: (TransformOr
         }
         BasicText(
             c.nombreCorto,
-            Modifier.padding(start = 14.dp).weight(1f).renglon(22.dp, 17.sp),
+            Modifier.padding(start = Espacio.s).weight(1f),
             style = estiloEncabezado(),
-            maxLines = 1,
+            // Los nombres largos («Producción Animal») ganan una segunda línea antes de cortarse
+            maxLines = if (' ' in c.nombreCorto) 2 else 1,
             overflow = TextOverflow.Ellipsis,
             autoSize = TextAutoSize.StepBased(13.sp, 17.sp, 1.sp),
         )

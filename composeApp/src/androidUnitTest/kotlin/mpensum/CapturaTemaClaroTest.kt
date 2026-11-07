@@ -148,7 +148,7 @@ class CapturaTemaClaroTest {
     fun portada() {
         guardarMarcas()
         regla.mainClock.autoAdvance = false
-        regla.setContent { Portada(carreras, carreras.first { it.slug == "ingenieria-de-sistemas" }, alAbrir = { _, _ -> }, alVerGuia = {}, alElegirPropia = {}) }
+        regla.setContent { Portada(carreras, carreras.first { it.slug == "ingenieria-de-sistemas" }, alAbrir = { _, _, _ -> }, alVerGuia = {}, alElegirPropia = {}) }
         esperar(3000)
         foto("portada-arriba")
         regla.onRoot().performTouchInput { swipeUp(startY = centerY + 200f, endY = centerY - 300f) }

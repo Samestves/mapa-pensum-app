@@ -50,22 +50,23 @@ fun rememberCarreras(): List<Carrera> {
 
 /**
  * Lo que llevas de cada carrera en la que marcaste algo, sacado de tus marcas
- * guardadas: la portada lo enseña en tu tarjeta y en los mosaicos. Las que no
+ * guardadas (y de `tambien`, aunque no tenga): la portada lo enseña en tu tarjeta y en los mosaicos. Las que no
  * tienen marcas no se leen. Se calcula aparte del hilo de la pantalla y se
  * vuelve a calcular cada vez que la portada aparece, así que al volver de una
  * carrera ya trae lo que acabas de marcar.
  */
 @Composable
-fun rememberResumenes(carreras: List<Carrera>): Map<String, ResumenPortada>? {
+fun rememberResumenes(carreras: List<Carrera>, tambien: String? = null): Map<String, ResumenPortada>? {
     // Arranca con lo último que se calculó: al volver de una carrera nada parpadea mientras se recalcula
-    val estado = produceState(UltimosResumenes.valor, carreras) {
+    val estado = produceState(UltimosResumenes.valor, carreras, tambien) {
         value = withContext(Dispatchers.Default) {
             carreras.mapNotNull { c ->
-                val crudas = Guardado.marcasCrudas(c.slug)?.takeIf { it.isNotEmpty() } ?: return@mapNotNull null
+                // Sin marcas solo se lee la que pide `tambien` (tu carrera): su silueta enseña en azul lo que ya puedes inscribir
+                val crudas = Guardado.marcasCrudas(c.slug)?.takeIf { it.isNotEmpty() } ?: if (c.slug == tambien) emptyMap() else return@mapNotNull null
                 // Una carrera que no se pueda leer no mata la portada: simplemente no trae resumen
                 runCatching {
                     val pensum = leerPensum(Res.readBytes("files/carreras/${c.slug}.json").decodeToString())
-                    c.slug to resumenParaPortada(pensum, crudas, Guardado.casillasCrudas(c.slug))
+                    c.slug to resumenParaPortada(pensum, crudas, Guardado.casillasCrudas(c.slug), conGraduacion = true, carga = Guardado.carga(c.slug))
                 }.getOrNull()
             }.toMap()
         }

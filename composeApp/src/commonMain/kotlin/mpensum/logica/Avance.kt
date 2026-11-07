@@ -96,6 +96,12 @@ fun aprobadasPorSemestre(pensum: Pensum, marcas: Map<String, Marca>): List<Int> 
     return pensum.semestres.map { s -> obligatorias.count { it.semestre == s.numero && marcas[it.codigo] == Marca.APROBADA } }
 }
 
+/** Cuántas obligatorias hay en `estado` en cada semestre, en orden: las columnas de la silueta */
+private fun porSemestreEn(pensum: Pensum, estados: Map<String, EstadoMateria>, estado: EstadoMateria): List<Int> {
+    val obligatorias = pensum.obligatorias
+    return pensum.semestres.map { s -> obligatorias.count { it.semestre == s.numero && estados[it.codigo] == estado } }
+}
+
 /** Lo que la portada enseña de una carrera: su silueta encendida y cuánto llevas */
 data class ResumenPortada(
     val hechas: List<Int>,
@@ -109,11 +115,29 @@ data class ResumenPortada(
     val cursando: Int = 0,
     /** El semestre por el que vas, con la misma regla que la barra y la lista; null si los terminaste todos */
     val semestreActual: Int? = null,
+    /** Las que cursas en cada semestre y las que puedes inscribir: el contorno y el azul de la silueta */
+    val cursandoPorSemestre: List<Int> = emptyList(),
+    val disponiblesPorSemestre: List<Int> = emptyList(),
+    /** Cuándo te gradúas con tu carga; null sin marcas, sin cálculo pedido o si el plan no cierra */
+    val graduacion: Periodo? = null,
+    /** Si marcaste algo: sin marcas el resumen solo sirve para pintar en azul lo que ya puedes inscribir */
+    val conMarcas: Boolean = true,
 )
 
-fun resumenParaPortada(pensum: Pensum, marcasGuardadas: Map<String, String>?, casillasGuardadas: Map<String, String>? = null): ResumenPortada {
+/**
+ * `conGraduacion` pide además la fecha de grado: es una simulación completa, así que
+ * solo la pide quien la dibuja (la portada) y siempre fuera del hilo principal.
+ */
+fun resumenParaPortada(
+    pensum: Pensum,
+    marcasGuardadas: Map<String, String>?,
+    casillasGuardadas: Map<String, String>? = null,
+    conGraduacion: Boolean = false,
+    carga: Int? = null,
+): ResumenPortada {
     val marcas = depurarMarcas(marcasGuardadas, pensum.todas.map { it.codigo }.toSet())
-    val casillas = casillasEfectivas(pensum, depurarCasillas(casillasGuardadas, pensum), marcas)
+    val casillasPuestas = depurarCasillas(casillasGuardadas, pensum)
+    val casillas = casillasEfectivas(pensum, casillasPuestas, marcas)
     val porCodigo = pensum.porCodigo
     val estados = estadosDe(pensum.todas, marcas)
     val progreso = progresoDe(pensum.obligatorias, estados, pensum.creditos, avanceDeGrupos(pensum.grupos, marcas))
@@ -127,6 +151,11 @@ fun resumenParaPortada(pensum: Pensum, marcasGuardadas: Map<String, String>?, ca
         disponibles = progreso.disponibles,
         cursando = progreso.cursando,
         semestreActual = semestreActual(marcasDeSemestres(pensum.asignaturas, { casillas[it]?.let(porCodigo::get) }, estados)),
+        cursandoPorSemestre = porSemestreEn(pensum, estados, EstadoMateria.CURSANDO),
+        disponiblesPorSemestre = porSemestreEn(pensum, estados, EstadoMateria.DISPONIBLE),
+        // La misma cuenta que EstadoCarrera.graduacion: la portada y la hoja dicen la misma fecha
+        conMarcas = marcas.isNotEmpty(),
+        graduacion = if (conGraduacion && marcas.isNotEmpty()) estimarGraduacion(pensum, marcas, casillasPuestas, carga).periodoFinal else null,
     )
 }
 

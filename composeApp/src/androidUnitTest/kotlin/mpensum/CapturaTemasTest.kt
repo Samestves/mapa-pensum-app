@@ -81,7 +81,7 @@ class CapturaTemasTest {
         Tema.juego = juego
         Tema.luzFondo = juego.aurora > 0f
         regla.mainClock.autoAdvance = false
-        regla.setContent { Portada(carreras, carreras.first { it.slug == "ingenieria-de-sistemas" }, alAbrir = { _, _ -> }, alVerGuia = {}, alElegirPropia = {}) }
+        regla.setContent { Portada(carreras, carreras.first { it.slug == "ingenieria-de-sistemas" }, alAbrir = { _, _, _ -> }, alVerGuia = {}, alElegirPropia = {}) }
         esperar(3000)
         regla.onRoot().captureRoboImage("build/capturas/tema-portada-${juego.name.lowercase()}.png")
     }

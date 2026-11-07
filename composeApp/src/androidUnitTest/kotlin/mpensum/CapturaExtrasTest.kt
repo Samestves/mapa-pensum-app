@@ -126,7 +126,7 @@ class CapturaExtrasHorizontalTest : BaseExtras() {
 
     @Test
     fun portada() {
-        regla.setContent { Portada(carreras, sistemas, alAbrir = { _, _ -> }, alVerGuia = {}, alElegirPropia = {}) }
+        regla.setContent { Portada(carreras, sistemas, alAbrir = { _, _, _ -> }, alVerGuia = {}, alElegirPropia = {}) }
         correr(3000)
         foto("h-portada")
     }
@@ -163,7 +163,7 @@ class CapturaExtrasHorizontalAnchoTest : BaseExtras() {
 
     @Test
     fun portada() {
-        regla.setContent { Portada(carreras, sistemas, alAbrir = { _, _ -> }, alVerGuia = {}, alElegirPropia = {}) }
+        regla.setContent { Portada(carreras, sistemas, alAbrir = { _, _, _ -> }, alVerGuia = {}, alElegirPropia = {}) }
         correr(3000)
         foto("h915-portada")
     }
@@ -171,7 +171,7 @@ class CapturaExtrasHorizontalAnchoTest : BaseExtras() {
     @Test
     fun portadaSinMarcas() {
         Guardado.guardarMarcas(sistemas.slug, emptyMap())
-        regla.setContent { Portada(carreras, sistemas, alAbrir = { _, _ -> }, alVerGuia = {}, alElegirPropia = {}) }
+        regla.setContent { Portada(carreras, sistemas, alAbrir = { _, _, _ -> }, alVerGuia = {}, alElegirPropia = {}) }
         correr(3000)
         foto("h915-portada-sin-marcas")
     }

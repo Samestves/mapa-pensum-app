@@ -122,7 +122,7 @@ abstract class BaseResponsive(private val tam: String, private val escalaLetra: 
 
     @Test
     fun portada() {
-        montar { Portada(carreras, sistemas, alAbrir = { _, _ -> }, alVerGuia = {}, alElegirPropia = {}) }
+        montar { Portada(carreras, sistemas, alAbrir = { _, _, _ -> }, alVerGuia = {}, alElegirPropia = {}) }
         foto("portada")
     }
 

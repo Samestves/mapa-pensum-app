@@ -85,8 +85,8 @@ private val ANCHO_VELO = 150.dp
  * en la lista); las hojas (electivas, avance, horario) suben por encima de todo.
  */
 @Composable
-fun Interior(carrera: Carrera, alVolver: () -> Unit) {
-    var vista by rememberSaveable { mutableStateOf(Vista.MAPA) }
+fun Interior(carrera: Carrera, alVolver: () -> Unit, vistaInicial: Vista = Vista.MAPA) {
+    var vista by rememberSaveable { mutableStateOf(vistaInicial) }
     // Se sabe antes de medir porque de ello depende la geometría del mapa
     val horizontal = esApaisado()
     val estado = rememberEstadoCarrera(carrera.slug, horizontal)
