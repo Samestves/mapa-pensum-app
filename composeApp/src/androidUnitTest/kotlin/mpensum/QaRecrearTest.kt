@@ -63,7 +63,7 @@ class QaRecrearTest {
         val escenario = ActivityScenario.launch(MainActivity::class.java)
         regla.mainClock.autoAdvance = false
         correr(3000)
-        regla.onNodeWithText("Continuar").performClick()
+        regla.onNodeWithText("Seguir donde ibas").performClick()
         hasta("el interior de la carrera") { regla.onAllNodesWithContentDescription("Tu avance", substring = true).fetchSemanticsNodes().isNotEmpty() }
         regla.onNodeWithContentDescription("Lista").performClick()
         correr(900)

@@ -166,9 +166,8 @@ class QaAppTest {
         Guardado.guardarMarcas("ingenieria-de-sistemas", pensumDe("ingenieria-de-sistemas").obligatorias.filter { it.semestre == 1 }.associate { it.codigo to Marca.APROBADA })
         regla.setContent { App() }
         correr(3000)
-        regla.onNodeWithText("Continuar").performClick()
-        correr(2500)
-        regla.onNodeWithContentDescription("Tu avance", substring = true).assertExists()
+        regla.onNodeWithText("Seguir donde ibas").performClick()
+        hasta("el interior de la carrera") { regla.onAllNodesWithContentDescription("Tu avance", substring = true).fetchSemanticsNodes().isNotEmpty() }
         atras()
         correr(1500)
         regla.onNodeWithContentDescription("Ajustes y ayuda").assertExists()

@@ -111,7 +111,7 @@ internal fun resumenPersonalizar(): String {
 internal fun Personalizar(colorCarrera: Color, silueta: List<Int>?) {
     if (esApaisado()) {
         Row(Modifier.fillMaxSize().padding(horizontal = LADO).padding(top = Espacio.xxs), horizontalArrangement = Arrangement.spacedBy(Espacio.m)) {
-            Column(Modifier.width(330.dp).fillMaxHeight()) {
+            Column(Modifier.width(330.dp).fillMaxHeight().verticalScroll(rememberScrollState()).padding(bottom = Espacio.m)) {
                 VistaPrevia(colorCarrera, silueta, 166.dp, Modifier.fillMaxWidth())
                 BloqueTema(conDiaNoche = false, lado = 0.dp)
             }
