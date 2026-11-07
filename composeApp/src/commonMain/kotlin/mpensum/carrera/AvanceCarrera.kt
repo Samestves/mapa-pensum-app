@@ -190,7 +190,8 @@ fun BoxScope.HojaAvance(abierta: Boolean, estado: EstadoCarrera, alCerrar: () ->
     // La casilla de electiva que se está eligiendo: su selector sube por encima de esta hoja
     var casilla by remember(apertura) { mutableStateOf<String?>(null) }
     val apaisado = esApaisado()
-    val hoy = remember(apertura) { Periodo.actual() }
+    remember(apertura) { estado.actualizarHoy() }
+    val hoy = estado.hoy
 
     if (apaisado) {
         // Acostada: índice y detalle a pantalla completa; lo elegido es el mismo detalle de pie, así girar no pierde dónde estabas

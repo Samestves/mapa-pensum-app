@@ -89,7 +89,9 @@ fun Interior(carrera: Carrera, alVolver: () -> Unit) {
     val pensum = rememberPensum(carrera.slug)
     // Se sabe antes de medir porque de ello depende la geometría del mapa
     val horizontal = esApaisado()
-    val estado = remember(pensum, horizontal) { pensum?.let { EstadoCarrera(it, compacto = horizontal) } }
+    val estado = remember(pensum) { pensum?.let { EstadoCarrera(it, compacto = horizontal) } }
+    // Girar solo cambia el layout: el estado, el horario, la cámara y la lista siguen vivos
+    estado?.compacto = horizontal
     // El horario vive aquí y no en su vista: sus hojas suben por encima de la barra
     val horario = estado?.let { rememberEstadoHorario(it) }
     val color = colorDe(carrera.color)
@@ -100,7 +102,7 @@ fun Interior(carrera: Carrera, alVolver: () -> Unit) {
     // Lo que pasa por debajo de la barra se ve a través de ella, desenfocado
     val cristal = remember { HazeState() }
 
-    val camara = remember(carrera.slug, horizontal) { Camara(carrera.slug) }
+    val camara = remember(carrera.slug) { Camara(carrera.slug) }
     val efectos = remember(carrera.slug) { EfectosMapa() }
     val alcance = rememberCoroutineScope()
     var seleccionado by remember(carrera.slug) { mutableStateOf<String?>(null) }
@@ -112,9 +114,15 @@ fun Interior(carrera: Carrera, alVolver: () -> Unit) {
     // La materia a la que ya se le hizo sitio: la ficha cambia de alto al animarse y no debe empujar el mapa cada vez
     var encuadrada by remember { mutableStateOf<String?>(null) }
 
-    // Atrás suelta primero la materia elegida, luego la ruta fijada; después sale de la carrera
-    ManejarAtras(efectos.ruta != null) { efectos.ruta = null }
-    ManejarAtras(seleccionado != null) { seleccionado = null }
+    // Una hoja encima (electivas, avance o clase del horario) se cierra con su propio Atrás
+    val hojaAbierta = casillaAbierta != null || avanceAbierto || horario?.hoja != null
+    // Atrás, en este orden: la hoja, la materia elegida, la ruta fijada; después sale de la carrera.
+    // Un solo manejador con la prioridad escrita: no depende de quién se registró antes
+    ManejarAtras(!hojaAbierta && (seleccionado != null || efectos.ruta != null)) {
+        if (seleccionado != null) seleccionado = null else efectos.ruta = null
+    }
+    // Con otra orientación el panel de la ficha cambia de sitio: la materia se vuelve a encuadrar
+    LaunchedEffect(horizontal) { encuadrada = null }
     // Cambiar de vista suelta la materia abierta: la ficha es de la vista en la que se pidió
     LaunchedEffect(vista) { seleccionado = null }
     LaunchedEffect(seleccionado) { if (seleccionado == null) encuadrada = null }
@@ -166,7 +174,7 @@ fun Interior(carrera: Carrera, alVolver: () -> Unit) {
             tapa = tapa,
             reparto = reparto,
             seleccionado = seleccionado,
-            hojaAbierta = casillaAbierta != null || avanceAbierto,
+            hojaAbierta = hojaAbierta,
             alSeleccionar = { seleccionado = it },
             alAbrirCasilla = ::abrirCasilla,
         )

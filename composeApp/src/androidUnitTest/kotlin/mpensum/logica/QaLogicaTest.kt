@@ -165,4 +165,23 @@ class QaLogicaTest {
         assertEquals(MAX_CARGA, estimarGraduacion(sistemas, diez, emptyMap(), hoy = hoy).carga)
         assertEquals(MAX_CARGA, estimarGraduacion(sistemas, diez, emptyMap(), 12, hoy).carga)
     }
+
+    // ───────────────────────────── M1: importar sobre un horario guardado ─────────────────────────────
+
+    @Test
+    fun leerDosVecesLaMismaCapturaNoDuplicaLasClases() {
+        val guardadas = listOf(Sesion("a", "X", 0, 420, 520), Sesion("b", "Y", 2, 600, 700))
+        val leidas = listOf(Sesion("leida-0-0", "X", 0, 420, 520), Sesion("leida-1-0", "Z", 1, 480, 580))
+        assertEquals(listOf("Z"), sinRepetidas(leidas, guardadas).map { it.codigo })
+        // Otra hora de la misma materia sí es otra clase
+        assertEquals(1, sinRepetidas(listOf(Sesion("n", "X", 0, 540, 600)), guardadas).size)
+    }
+
+    @Test
+    fun laImportacionAvisaDeLosChoquesConLoGuardado() {
+        val guardadas = listOf(Sesion("a", "X", 0, 420, 520))
+        val nueva = Sesion("leida-0-0", "Z", 0, 480, 580)
+        assertEquals(listOf(guardadas[0] to nueva), choquesAlImportar(listOf(nueva), guardadas))
+        assertTrue(choquesAlImportar(listOf(Sesion("n", "Z", 1, 480, 580)), guardadas).isEmpty())
+    }
 }

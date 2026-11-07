@@ -121,6 +121,14 @@ fun choquesDe(sesiones: List<Sesion>): List<Pair<Sesion, Sesion>> {
     return orden.flatMapIndexed { i, a -> orden.drop(i + 1).filter { solapan(a, it) }.map { a to it } }
 }
 
+/** Las leídas que no repiten una clase ya guardada (misma materia, día y horas): leer dos veces la misma captura no la duplica */
+fun sinRepetidas(leidas: List<Sesion>, guardadas: List<Sesion>): List<Sesion> =
+    leidas.filter { l -> guardadas.none { it.codigo == l.codigo && it.dia == l.dia && it.inicio == l.inicio && it.fin == l.fin } }
+
+/** Los choques de una importación: entre las nuevas y de cada nueva con lo guardado (primero la que ya estaba) */
+fun choquesAlImportar(nuevas: List<Sesion>, guardadas: List<Sesion>): List<Pair<Sesion, Sesion>> =
+    choquesDe(nuevas) + nuevas.flatMap { n -> guardadas.filter { solapan(it, n) }.map { it to n } }
+
 /** Una materia leída de la captura, con todas sus clases de la semana */
 data class MateriaLeida(val codigo: String, val sesiones: List<Sesion>)
 

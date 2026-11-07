@@ -43,8 +43,25 @@ import mpensum.tema.ColoresMapa
  */
 @Stable
 class EstadoCarrera(val pensum: Pensum, private val demostracion: Map<String, Marca>? = null, compacto: Boolean = false) {
-    /** La geometría no depende del avance: se calcula una sola vez. Compacto (horizontal): cabecera de una línea */
-    val layout: LayoutMapa = calcularLayout(pensum.asignaturas, pensum.grupos, if (compacto) ALTO_ENCABEZADO_COMPACTO else ALTO_ENCABEZADO)
+    /**
+     * Horizontal: cabecera de una línea. Girar el teléfono cambia solo esto y,
+     * con ello, el layout; las marcas, el horario y la lista siguen donde estaban.
+     */
+    var compacto by mutableStateOf(compacto)
+
+    /** La geometría no depende del avance: solo se recalcula si gira el teléfono */
+    val layout: LayoutMapa by derivedStateOf { calcularLayout(pensum.asignaturas, pensum.grupos, if (this.compacto) ALTO_ENCABEZADO_COMPACTO else ALTO_ENCABEZADO) }
+
+    /**
+     * El período de hoy, uno solo para la fecha de la carrera y para todas las
+     * pantallas: se relee al abrir la hoja de avance, no a media sesión de otro.
+     */
+    var hoy by mutableStateOf(Periodo.actual())
+        private set
+
+    fun actualizarHoy() {
+        hoy = Periodo.actual()
+    }
 
     var marcas by mutableStateOf(demostracion ?: Guardado.marcas(pensum))
         private set
@@ -69,7 +86,7 @@ class EstadoCarrera(val pensum: Pensum, private val demostracion: Map<String, Ma
      * Cuándo te gradúas. Solo se calcula si algo lo lee (la hoja de avance), y
      * entonces una vez por cada marca, casilla o carga que cambie.
      */
-    val graduacion: EstimacionGraduacion by derivedStateOf { estimarGraduacion(pensum, marcas, casillas, carga, Periodo.actual()) }
+    val graduacion: EstimacionGraduacion by derivedStateOf { estimarGraduacion(pensum, marcas, casillas, carga, hoy) }
 
     /** Dónde está cada electiva: la misma cuenta que usa la fecha (casillasEfectivas) */
     private val elegidas by derivedStateOf { casillasEfectivas(pensum, casillas, marcas) }

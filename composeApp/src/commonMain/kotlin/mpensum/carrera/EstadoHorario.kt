@@ -23,6 +23,7 @@ import mpensum.logica.Sesion
 import mpensum.logica.clases
 import mpensum.logica.franjaNueva
 import mpensum.logica.idNuevo
+import mpensum.logica.sinRepetidas
 import mpensum.logica.momentoDe
 import mpensum.logica.porDia
 import mpensum.logica.rangoDeClases
@@ -138,11 +139,14 @@ class EstadoHorario(val carrera: EstadoCarrera, private val reloj: () -> HoraLoc
         hoja = null
     }
 
-    /** Confirma la lectura: las clases leídas se suman a las que hubiera, con ids propios, y se mira hoy (o el lunes en fin de semana) */
+    /** Lo que guardaría la lectura: sin las clases que ya tenías idénticas */
+    val nuevasDeLaLectura: List<Sesion> get() = lectura?.let { sinRepetidas(it.sesiones, sesiones) }.orEmpty()
+
+    /** Confirma la lectura: las clases leídas que aún no tenías se suman, con ids propios, y se mira hoy (o el lunes en fin de semana) */
     fun guardarLectura() {
-        val l = lectura ?: return
+        if (lectura == null) return
         val usados = sesiones.map { it.id }.toMutableSet()
-        val nuevas = l.sesiones.map { s -> s.copy(id = idNuevo(s.codigo, s.dia, s.inicio, usados).also { usados += it }) }
+        val nuevas = nuevasDeLaLectura.map { s -> s.copy(id = idNuevo(s.codigo, s.dia, s.inicio, usados).also { usados += it }) }
         cambiar(sesiones + nuevas)
         lectura = null
         hoja = null

@@ -55,7 +55,7 @@ import mpensum.logica.MateriaLeida
 import mpensum.logica.PASO_HORA
 import mpensum.logica.Sesion
 import mpensum.logica.choqueCon
-import mpensum.logica.choquesDe
+import mpensum.logica.choquesAlImportar
 import mpensum.logica.clases
 import mpensum.logica.cuandoEs
 import mpensum.logica.duracion
@@ -437,8 +437,10 @@ private fun Borrar(horario: EstadoHorario) {
 @Composable
 private fun Confirmar(horario: EstadoHorario) {
     val lectura = horario.lectura ?: return
-    val todas = lectura.sesiones
-    val pisan = remember(todas) { choquesDe(todas) }
+    val nuevas = horario.nuevasDeLaLectura
+    // Lo repetido no se guarda; lo que choca con tu horario de antes se avisa igual que lo que choca entre sí
+    val repetidas = lectura.sesiones.size - nuevas.size
+    val pisan = remember(nuevas, horario.sesiones) { choquesAlImportar(nuevas, horario.sesiones) }
     // En horizontal la hoja es ancha y baja: las materias van de dos en dos para que el botón quede a la vista
     val apaisado = esApaisado()
     val columnas = if (apaisado) 2 else 1
@@ -455,7 +457,8 @@ private fun Confirmar(horario: EstadoHorario) {
                 }
             }
         }
-        BotonLleno("Guardar ${clases(todas.size)}", todas.isNotEmpty(), Modifier.padding(top = Espacio.m), horario::guardarLectura)
+        if (repetidas > 0) BasicText("Ya tenías ${clases(repetidas)}", Modifier.padding(top = Espacio.s), style = letrasHorario().dato)
+        BotonLleno("Guardar ${clases(nuevas.size)}", nuevas.isNotEmpty(), Modifier.padding(top = Espacio.m), horario::guardarLectura)
     }
 }
 
