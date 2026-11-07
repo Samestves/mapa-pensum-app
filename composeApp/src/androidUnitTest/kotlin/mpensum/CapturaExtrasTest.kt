@@ -4,6 +4,7 @@ import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.junit4.AndroidComposeTestRule
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
@@ -141,7 +142,8 @@ class CapturaExtrasHorizontalTest : BaseExtras() {
         interior()
         regla.onNodeWithContentDescription("Lista").performClick()
         correr(1500)
-        regla.onNodeWithText("Sistemas de Costo").performClick()
+        // Acostada, el panel resume el semestre en curso y repite sus materias: se toca la fila de la lista
+        regla.onAllNodesWithText("Sistemas de Costo")[0].performClick()
         correr(1200)
         foto("h-lista-ficha")
     }
