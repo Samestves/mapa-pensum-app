@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>La portada · tres modelos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,100..900&family=Jost:wght@100..900&family=IBM+Plex+Mono:wght@300&display=block" rel="stylesheet">
+<style>
+/* ============ La página (presentación; no es la app) ============ */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #E6E7E9; color: #050608; font-family: Inter, sans-serif; font-optical-sizing: none; padding: 56px 40px 72px; -webkit-font-smoothing: antialiased; }
+.pagina { width: 1620px; margin: 0 auto; }
+.portada h1 { font: 300 40px/44px Jost; letter-spacing: -.01em; }
+.portada p { font: 400 15px/22px Inter; letter-spacing: -.009em; color: #34383E; margin-top: 12px; max-width: 1120px; }
+.portada b, .porque b, .op b, .lado b { font-weight: 500; color: #050608; }
+.bloque { margin-top: 64px; }
+.bloque > h2 { font: 500 11px/16px Inter; letter-spacing: .08em; text-transform: uppercase; color: #52565C; margin-bottom: 20px; }
+.fila { display: flex; gap: 40px; align-items: flex-start; }
+.op { width: 375px; flex: none; }
+.op > h3, .lado > h3 { font: 500 15px/20px Inter; letter-spacing: -.009em; display: flex; align-items: center; gap: 8px; }
+.op > p { font: 400 13px/18px Inter; color: #34383E; margin: 4px 0 16px; min-height: 108px; }
+.sello { font: 500 11px/16px Inter; letter-spacing: .08em; text-transform: uppercase; color: #fff; background: #1A47C2; border-radius: 10px; padding: 2px 8px; }
+.porque { margin-top: 28px; font: 400 15px/22px Inter; letter-spacing: -.009em; color: #1C1F23; max-width: 1240px; }
+.acostado { display: flex; gap: 40px; align-items: flex-start; }
+.acostado + .acostado { margin-top: 40px; }
+.lado { flex: 1; min-width: 0; padding-top: 4px; }
+.lado p { font: 400 13px/19px Inter; color: #34383E; margin-top: 6px; }
+.medida { position: absolute; z-index: 20; font: 500 10.5px/13px Inter; letter-spacing: .01em; color: #fff; background: #1A47C2; border-radius: 5px; padding: 2px 6px; white-space: nowrap; }
+.guia { position: absolute; z-index: 19; outline: 1px dashed rgb(91 138 245 / .9); pointer-events: none; }
+
+/* ============ Paleta Acero ============ */
+.osc { --lienzo:#0B0C0E; --panel:#121316; --tinta:#ECEEF1; --suave:#B6BBC2; --tenue:#858B94; --apagada:#5D636C; --azul:#5B8AF5; --verde:#2EC27E; --rojo:#E5403A;
+       --t: 236 238 241; --l: 11 12 14; --a: 91 138 245; --tinte: rgb(16 17 20 / .5); color: var(--tinta); }
+.cla { --lienzo:#F4F4F4; --panel:#FFFFFF; --tinta:#171A20; --suave:#393C41; --tenue:#5C5E62; --apagada:#717479; --azul:#3E6AE1; --verde:#0F8A5F; --rojo:#CC1F24;
+       --t: 23 26 32; --l: 244 244 244; --a: 62 106 225; --tinte: rgb(255 255 255 / .78); color: var(--tinta); }
+
+/* ============ El teléfono ============ */
+.tel { width: 375px; height: 812px; position: relative; overflow: hidden; border-radius: 44px; background: var(--lienzo); box-shadow: 0 0 0 1px rgb(0 0 0 / .07), 0 32px 64px -28px rgb(0 0 0 / .32); }
+.tel-h { width: 915px; height: 412px; flex: none; position: relative; overflow: hidden; border-radius: 36px; background: var(--lienzo); box-shadow: 0 0 0 1px rgb(0 0 0 / .1), 0 30px 60px -28px rgb(0 0 0 / .4); }
+.luz { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(150% 52% at 50% -14%, rgb(var(--t) / .15) 0%, rgb(var(--t) / .045) 52%, rgb(var(--t) / 0) 78%); }
+.cla .luz { background: radial-gradient(150% 52% at 50% -14%, rgb(var(--t) / .04) 0%, rgb(var(--t) / .012) 52%, rgb(var(--t) / 0) 78%); }
+.sis { position: absolute; top: 0; left: 0; right: 0; height: 32px; display: flex; align-items: center; justify-content: space-between; padding: 0 24px 0 28px; font: 500 13px/1 Inter; color: var(--tinta); z-index: 6; font-feature-settings: 'tnum'; }
+.sis .der { display: flex; gap: 6px; align-items: center; }
+.tel-h .sis { height: 24px; font-size: 12px; padding: 0 28px; }
+.gestos { position: absolute; bottom: 8px; left: 50%; width: 108px; height: 4px; margin-left: -54px; border-radius: 2px; background: rgb(var(--t) / .55); z-index: 8; }
+.tel-h .gestos { width: 96px; margin-left: -48px; bottom: 6px; }
+.fundido { position: absolute; left: 0; right: 0; bottom: 0; height: 84px; z-index: 5; pointer-events: none; background: linear-gradient(rgb(var(--l) / 0), rgb(var(--l) / 1)); }
+
+/* La cabecera: la placa de la marca y el engranaje (igual en los tres modelos) */
+.cab { position: absolute; left: 16px; right: 14px; top: 36px; height: 48px; display: flex; align-items: center; z-index: 6; }
+.tel-h .cab { top: 28px; left: 24px; right: 22px; }
+.cab .filete { width: 1px; height: 22px; margin: 0 14px 0 12px; background: linear-gradient(rgb(var(--t) / 0), rgb(var(--t) / .3), rgb(var(--t) / 0)); }
+.cab .marca { flex: 1; font: 300 14px/18px Jost; letter-spacing: .24em; color: var(--suave); white-space: nowrap; }
+.cab .marca b { font-weight: 500; color: var(--tinta); }
+.engranaje { width: 44px; height: 44px; display: grid; place-items: center; flex: none; }
+.engranaje > span { width: 40px; height: 40px; border-radius: 20px; display: grid; place-items: center; background: linear-gradient(rgb(var(--t) / .09), rgb(var(--t) / .04)); box-shadow: inset 0 0 0 1px rgb(var(--t) / .08), inset 0 1px 0 rgb(var(--t) / .16); }
+.cla .engranaje > span { background: linear-gradient(rgb(255 255 255 / .9), rgb(255 255 255 / .6)); box-shadow: inset 0 0 0 1px rgb(var(--t) / .08), inset 0 1px 0 #fff; }
+
+/* ============ Roles de texto (docs/reglas-diseno.md §1) ============ */
+.titulo { font: 300 28px/32px Jost; letter-spacing: -.005em; color: var(--tinta); }
+.encab { font: 300 17px/22px Jost; letter-spacing: -.01em; color: var(--tinta); }
+.cla .encab { font-weight: 400; }
+.rot { font: 500 11px/16px Inter; letter-spacing: .08em; text-transform: uppercase; color: var(--tenue); font-feature-settings: 'tnum'; }
+.nota { font: 400 13px/16px Inter; letter-spacing: -.003em; color: var(--tenue); font-feature-settings: 'tnum'; }
+.nota b { font-weight: 500; color: var(--tinta); }
+.cuerpo { font: 400 15px/20px Inter; letter-spacing: -.009em; color: var(--suave); }
+.cifra { font-family: Inter; font-feature-settings: 'tnum'; color: var(--tinta); white-space: nowrap; font-variation-settings: 'opsz' 32; }
+.c40 { font-size: 40px; line-height: 44px; font-weight: 200; letter-spacing: -.02em; }
+.c40 .u { font-size: 16px; font-weight: 300; color: var(--tenue); margin-left: 2px; letter-spacing: 0; }
+.f24 { font-size: 24px; line-height: 28px; font-weight: 300; letter-spacing: -.015em; }
+.azul { color: var(--azul) !important; }
+.mt4 { margin-top: 4px; } .mt8 { margin-top: 8px; } .mt12 { margin-top: 12px; } .mt16 { margin-top: 16px; } .mt20 { margin-top: 20px; } .mt24 { margin-top: 24px; }
+
+/* ============ Iconos y botones ============ */
+svg.i { fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; flex: none; display: block; }
+svg.est, svg.sil, svg.g { flex: none; display: block; overflow: visible; }
+.pas { width: 32px; height: 32px; border-radius: 8px; background: rgb(var(--t) / .08); color: var(--tinta); display: grid; place-items: center; flex: none; }
+.pas.azul { background: rgb(var(--a) / .16); }
+.btn { height: 52px; border-radius: 26px; display: flex; align-items: center; justify-content: center; gap: 8px; font: 500 15px/20px Inter; letter-spacing: -.009em; white-space: nowrap; }
+.btn.lleno { background: var(--tinta); color: var(--lienzo); }
+.circ { width: 52px; height: 52px; border-radius: 26px; flex: none; display: grid; place-items: center; background: rgb(var(--t) / .08); box-shadow: inset 0 0 0 1px rgb(var(--t) / .06); color: var(--tinta); }
+
+/* ============ El cristal de las tarjetas (cristalTarjeta de TuCarrera.kt, sin desenfoque) ============ */
+.cristal { position: relative; border-radius: 24px; background: var(--tinte); }
+.cristal::before { content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; background: linear-gradient(rgb(var(--t) / .07), rgb(var(--t) / .015) 60%, rgb(var(--t) / .015)); }
+.cristal::after { content: ''; position: absolute; inset: 0; border-radius: inherit; padding: 1px; pointer-events: none;
+  background: linear-gradient(148deg, rgb(var(--t) / .24), rgb(var(--t) / .06) 38%, rgb(var(--t) / 0) 58%, rgb(var(--t) / .10));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; }
+.cla .cristal { box-shadow: 0 2px 0 rgb(var(--t) / .035); }
+.cla .cristal::before { display: none; }
+.cla .cristal::after { background: linear-gradient(148deg, rgb(var(--t) / .12), rgb(var(--t) / .03) 38%, rgb(var(--t) / 0) 58%, rgb(var(--t) / .05)); }
+.cristal > * { position: relative; z-index: 1; }
+.cristal > .filo { position: absolute; top: 0; left: 28px; right: 28px; height: 1px; background: linear-gradient(90deg, transparent, var(--acento), transparent); opacity: .9; }
+
+/* ============ A · Silueta viva ============ */
+.tA { padding: 20px; display: flex; flex-direction: column; }
+.tA .cab2 { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.tA .cab2 .cifra { margin-top: -6px; }
+.tA .dato { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; }
+.ley { display: flex; flex-direction: column; gap: 4px; }
+.ley > span { display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+.ley.enlinea { flex-direction: row; gap: 16px; }
+.tA .acc { display: flex; gap: 8px; }
+.tA .fecha { text-align: right; }
+.vacio { visibility: hidden; }
+/* Las otras: fichas de dos en dos, 68 dp, sin flecha (FilaCompacta) */
+.grupo .rot { padding-left: 4px; margin-bottom: 8px; }
+.grupo + .grupo { margin-top: 24px; }
+.rejilla { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.mos { height: 68px; border-radius: 16px; background: rgb(var(--t) / .035); box-shadow: inset 0 0 0 1px rgb(var(--t) / .065); display: flex; align-items: center; gap: 12px; padding: 0 10px 0 14px; min-width: 0; }
+.cla .mos { background: rgb(255 255 255 / .62); box-shadow: inset 0 0 0 1px rgb(var(--t) / .06); }
+.mos .encab { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-wrap: balance; }
+.mos .caja { width: 36px; height: 28px; flex: none; }
+
+/* ============ B · Cartera ============ */
+.carne { position: relative; border-radius: 24px; overflow: hidden; padding: 20px; display: flex; flex-direction: column; justify-content: space-between;
+  background: radial-gradient(115% 90% at 100% 0%, color-mix(in srgb, var(--acento) 26%, transparent), transparent 62%), linear-gradient(160deg, #17181C, #0F1012); }
+.carne::after { content: ''; position: absolute; inset: 0; border-radius: inherit; padding: 1px; pointer-events: none;
+  background: linear-gradient(148deg, rgb(var(--t) / .26), rgb(var(--t) / .07) 38%, rgb(var(--t) / 0) 58%, rgb(var(--t) / .10));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; }
+.carne .arriba, .carne .abajo { display: flex; justify-content: space-between; gap: 12px; }
+.carne .arriba { align-items: flex-start; }
+.carne .abajo { align-items: flex-end; }
+.mazo { position: relative; }
+.naipe { position: absolute; left: 0; right: 0; height: 64px; border-radius: 20px; padding: 0 16px; display: flex; align-items: flex-start; gap: 12px;
+  background: linear-gradient(100deg, color-mix(in srgb, var(--c) 13%, transparent), transparent 48%), #141518;
+  box-shadow: inset 0 1px 0 rgb(var(--t) / .11), inset 0 0 0 1px rgb(var(--t) / .05), 0 -10px 18px -8px rgb(0 0 0 / .6); }
+.naipe > .fila-n { height: 52px; display: flex; align-items: center; gap: 12px; width: 100%; }
+.naipe .encab { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ============ C · Panel ============ */
+.bento { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.bento .grande { grid-column: 1 / -1; }
+.pieza { padding: 16px; display: flex; flex-direction: column; justify-content: space-between; }
+.tC { padding: 20px; display: flex; flex-direction: column; justify-content: space-between; }
+.tC .arriba, .tC .abajo { display: flex; justify-content: space-between; gap: 12px; }
+.tC .arriba { align-items: flex-start; }
+.tC .abajo { align-items: flex-end; }
+.flecha { width: 48px; height: 48px; border-radius: 24px; background: var(--tinta); color: var(--lienzo); display: grid; place-items: center; flex: none; }
+.repisa { display: grid; grid-auto-flow: column; grid-template-rows: auto auto; gap: 16px 12px; margin-right: -16px; overflow: hidden; justify-content: start; }
+.portadilla { width: 128px; flex: none; }
+.portadilla .arte { height: 100px; border-radius: 20px; display: grid; place-items: center;
+  background: radial-gradient(90% 80% at 50% 110%, color-mix(in srgb, var(--c) 16%, transparent), transparent 70%), rgb(var(--t) / .035); box-shadow: inset 0 0 0 1px rgb(var(--t) / .065); }
+.portadilla .encab { margin-top: 8px; font-size: 15px; line-height: 18px; min-height: 36px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+</style>
+</head>
+<body>
+<div class="pagina">
+
+<header class="portada">
+  <h1>La portada</h1>
+  <p>Tres modelos para lo primero que ves al abrir la app. Datos reales de <b>Ingeniería de Sistemas</b>: 41 % (62 / 153 UC), vas por el semestre 5, cursas 2 (Estadística II e Inferencia y Diseño de Experimentos), puedes inscribir 6 y te gradúas en <b>Dic 2029</b>; las otras ocho carreras, con su color y su silueta de <b>indice.json</b>. Lo nuevo en los tres: <b>la silueta de tu carrera dice tu estado</b> con los colores de la app (blanco lo aprobado, contorno lo que cursas, azul lo que puedes inscribir) y, en una línea, <b>ahora → próximo → tu fecha</b>. Lo demás (UC por semestre, la cadena, el plan) se queda dentro de la carrera, en la hoja de progreso.</p>
+</header>
+
+<!-- ======================= DE PIE ======================= -->
+<section class="bloque">
+  <h2>De pie · 375 × 812 · oscuro · tres modelos y las medidas de A</h2>
+  <div class="fila">
+    <div class="op">
+      <h3>A · Silueta viva <span class="sello">Recomendada</span></h3>
+      <p>«Sencilla», crecida. Una tarjeta, un trabajo: <b>volver a tu carrera</b>. La silueta va a todo el ancho y se lee de izquierda a derecha: lo hecho, lo de ahora y lo que puedes inscribir. Debajo, ahora y próximo, tu fecha y el único botón lleno de la pantalla. Las demás, en fichas de dos en dos.</p>
+      <div class="tel osc" data-tel="A"></div>
+    </div>
+    <div class="op">
+      <h3>B · Cartera</h3>
+      <p>Tu carrera como un carné de Wallet: el 41 % donde va el saldo y Dic 2029 donde va la caducidad. El botón vive fuera, como el de pagar. Las demás, en un mazo: asoma el borde de cada una con su luz. Tiene carácter, pero el mazo es volumen y alarga la página.</p>
+      <div class="tel osc" data-tel="B"></div>
+    </div>
+    <div class="op">
+      <h3>C · Panel</h3>
+      <p>Bento: tu carrera grande y dos puertas a lo que más se pregunta, <b>¿cuándo me gradúo?</b> y <b>¿qué inscribo?</b>, que abren su hoja directamente. Las demás, en una repisa de portadas, como Música. Cabe sin desplazar, pero repite dos respuestas de la hoja y deja cinco carreras fuera de la vista.</p>
+      <div class="tel osc" data-tel="C"></div>
+    </div>
+    <div class="op">
+      <h3>A · medidas</h3>
+      <p>Tarjeta de 343 × 320 dp, margen interior 20 y radio 24; entre bloques, 20 / 16 / 16. Silueta de 80 dp de alto: punto 8, diez columnas a todo el ancho (paso 32,8) y filas a 12. Botón 52 con radio 26 y círculo 52. Fichas de 68 dp, radio 16, de dos en dos con hueco de 8.</p>
+      <div class="tel osc" data-tel="A" data-medidas="1"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= ACOSTADO ======================= -->
+<section class="bloque">
+  <h2>Acostado · 915 × 412 · la tarjeta a la izquierda y las demás a la derecha, sin desplazar la página</h2>
+  <div class="acostado">
+    <div class="tel-h osc" data-telh="A"></div>
+    <div class="lado">
+      <h3>A · Silueta viva <span class="sello">Recomendada</span></h3>
+      <p>La tarjeta llena el alto (354 × 296, radio 28, margen 24). La silueta comparte franja con tu fecha; abajo, la línea de ahora y próximo, y el botón. A la derecha, las fichas de dos en dos, como hoy, con su propio desplazamiento y el fundido de 40 dp solo si hay más por ver.</p>
+    </div>
+  </div>
+  <div class="acostado">
+    <div class="tel-h osc" data-telh="B"></div>
+    <div class="lado">
+      <h3>B · Cartera</h3>
+      <p>El carné a la izquierda, con el botón debajo. El mazo se parte en dos columnas de cuatro: caben las ocho sin desplazar.</p>
+    </div>
+  </div>
+  <div class="acostado">
+    <div class="tel-h osc" data-telh="C"></div>
+    <div class="lado">
+      <h3>C · Panel</h3>
+      <p>El bento en la columna izquierda; a la derecha, la repisa se vuelve rejilla de cuatro por dos y se ven las ocho de una vez.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= A EN SUS ESTADOS ======================= -->
+<section class="bloque">
+  <h2>A · tema claro y estados · la misma estructura; cambia lo que dice</h2>
+  <div class="fila">
+    <div class="op">
+      <h3>Claro · con avance</h3>
+      <p>El mismo dibujo sobre papel: la tarjeta es blanco al 78 % con la sombra corrida de 2 dp, y el botón lleno pasa a la tinta oscura. Lo aprobado, en tinta; lo inscribible, en el azul profundo. El azul de Sistemas (#2751CC) queda solo en el filo.</p>
+      <div class="tel cla" data-tel="A" data-estado="avance"></div>
+    </div>
+    <div class="op">
+      <h3>Con carrera, sin marcas</h3>
+      <p>Sin marcas no hay cifra que contar ni fecha que estimar: en su sitio va la invitación. La silueta ya enseña en azul las 11 sin prelaciones, por donde se empieza, y el botón dice «Empezar».</p>
+      <div class="tel osc" data-tel="A" data-estado="sinmarcas"></div>
+    </div>
+    <div class="op">
+      <h3>Sin carrera elegida</h3>
+      <p>Una silueta fantasma con el contorno punteado de «por elegir» y «Elige tu carrera». El botón abre la hoja para elegirla; debajo, las nueve, que se pueden abrir sin elegirlas.</p>
+      <div class="tel osc" data-tel="A" data-estado="sincarrera"></div>
+    </div>
+    <div class="op">
+      <h3>Cargando</h3>
+      <p>El avance tarda un instante en llegar: la silueta apagada, y la cifra, la línea y la fecha guardan su sitio vacío, sin brillos que finjan un dato. Al llegar nada se mueve; solo se enciende.</p>
+      <div class="tel osc" data-tel="A" data-estado="cargando"></div>
+    </div>
+  </div>
+  <p class="porque"><b>Por qué A:</b> es la «Sencilla» que ya aprobaste con lo que le faltaba. Dice qué toca (lo que cursas, lo que puedes inscribir) y cuándo terminas con el dibujo propio de la app, no con más tarjetas, y tiene una sola acción, llena. Las demás carreras ocupan un tercio menos de alto que hoy y van sin flechas: se ven bonitas pero no compiten. <b>B</b> tiene más carácter, pero el mazo es volumen (ya rechazado) y alarga la página. <b>C</b> responde más, pero repite la hoja de progreso y esconde carreras.</p>
+</section>
+
+</div>
+
+<script>
+/* ---------- Iconos Lucide (rejilla de 24); el trazo se ajusta para medir 1,5 dp ---------- */
+const IC = {
+  'arrow-right': '<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>',
+  'settings': '<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>',
+  'calendar-days': '<path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/><path d="M8 18h.01"/><path d="M12 18h.01"/><path d="M16 18h.01"/>',
+  'graduation-cap': '<path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/>',
+};
+const f2 = n => +(+n).toFixed(2);
+const ico = (n, s = 18, cls = '', grosor = 1.5) => `<svg class="i ${cls}" width="${s}" height="${s}" viewBox="0 0 24 24" style="stroke-width:${f2(grosor * 24 / s)}" aria-hidden="true">${IC[n]}</svg>`;
+
+/* El candado abierto de lo inscribible (Iconos.kt, rejilla de 20) */
+const CUERPO = 'M6.5 9h7a2.25 2.25 0 0 1 2.25 2.25v3.75a2.25 2.25 0 0 1-2.25 2.25h-7a2.25 2.25 0 0 1-2.25-2.25v-3.75a2.25 2.25 0 0 1 2.25-2.25z';
+const candado = (tam = 18) => `<svg class="est" width="${tam}" height="${tam}" viewBox="0 0 20 20" aria-hidden="true"><path d="${CUERPO}" fill="var(--azul)" stroke="var(--azul)" stroke-width="1.5"/><path d="M6.75 9V6.75a3.25 3.25 0 0 1 6.5 0V9" fill="none" stroke="var(--azul)" stroke-width="1.5" stroke-linecap="round" transform="rotate(40 13.25 9)"/><path d="M10 12.3v1.7" stroke="var(--panel)" stroke-width="1.8" stroke-linecap="round"/></svg>`;
+
+/* ---------- La barra de estado ---------- */
+const BATERIA = `<svg width="22" height="11" viewBox="0 0 22 11"><rect x=".5" y=".5" width="18" height="10" rx="2.5" fill="none" stroke="currentColor" stroke-opacity=".5"/><rect x="2" y="2" width="12" height="7" rx="1.2" fill="currentColor"/><rect x="19.5" y="3.5" width="1.5" height="4" rx=".6" fill="currentColor" fill-opacity=".5"/></svg>`;
+const SENAL = `<svg width="15" height="11" viewBox="0 0 15 11"><path d="M1 10h2V7H1zM5 10h2V5H5zM9 10h2V3H9zM13 10h2V1h-2z" fill="currentColor"/></svg>`;
+const sis = () => `<div class="sis"><span>9:41</span><span class="der">${SENAL}${BATERIA}</span></div>`;
+
+/* ---------- La rosa de la marca (rosa.xml) con sus cuatro nodos azules ---------- */
+const ROSA = ["M6145 12623 c-4 -15 -24 -113 -45 -218 -59 -291 -155 -735 -195 -901 -20 -82 -52 -221 -71 -309 -52 -241 -36 -216 -159 -243 -262 -57 -537 -203 -723 -386 -78 -76 -232 -267 -232 -287 0 -5 30 -9 68 -9 65 0 122 -19 186 -62 15 -11 19 -11 23 0 14 38 76 143 131 221 69 98 208 237 317 318 74 56 315 197 322 189 2 -2 -18 -100 -46 -217 -28 -118 -89 -378 -137 -579 -258 -1095 -273 -1158 -284 -1165 -12 -7 -165 141 -215 208 -93 123 -161 291 -172 427 l-6 68 -40 -14 c-77 -27 -190 -11 -257 36 -17 12 -34 20 -37 17 -3 -4 -8 -55 -10 -114 -12 -236 60 -410 247 -607 122 -128 266 -238 480 -366 198 -119 718 -370 1190 -573 96 -41 249 -108 340 -147 91 -40 226 -98 300 -130 479 -206 1306 -599 1515 -720 130 -75 248 -155 329 -222 75 -62 176 -174 176 -194 0 -16 -269 -191 -455 -296 -266 -151 -377 -205 -420 -206 -22 -1 -246 -63 -497 -139 l-457 -136 45 -62 c24 -35 44 -67 44 -72 0 -5 -50 -30 -111 -56 l-111 -47 -286 277 c-461 448 -738 718 -737 719 0 2 2120 14 2413 14 151 0 242 4 242 10 0 18 -134 152 -215 215 -173 135 -364 245 -790 455 -275 136 -647 310 -662 310 -4 0 -231 -224 -505 -497 l-498 -497 0 666 0 666 -37 13 c-81 26 -398 161 -547 233 -413 198 -721 433 -877 667 -16 24 -54 57 -100 86 -379 236 -882 555 -1024 648 -44 29 -150 97 -235 150 -85 54 -209 133 -275 175 -119 77 -386 246 -457 289 l-37 22 51 -88 c58 -101 492 -828 548 -918 40 -65 205 -342 345 -580 48 -82 114 -193 145 -245 31 -52 103 -174 160 -270 57 -96 115 -193 130 -215 15 -22 60 -98 100 -170 41 -71 86 -148 100 -170 57 -85 58 -81 -18 -103 -63 -19 -443 -124 -487 -135 -11 -3 -139 -37 -285 -77 -146 -39 -341 -91 -435 -116 -93 -25 -294 -78 -445 -119 -292 -78 -510 -134 -1245 -320 -557 -140 -798 -206 -788 -216 5 -4 35 -11 68 -17 33 -6 164 -29 290 -51 255 -45 508 -85 871 -136 271 -39 603 -90 679 -105 28 -6 172 -28 320 -50 287 -41 838 -130 843 -135 4 -3 -35 -60 -111 -158 -179 -235 -289 -482 -302 -677 l-4 -72 27 6 c15 3 53 9 85 13 56 6 57 6 57 38 0 43 35 156 70 226 76 150 228 340 384 480 l101 91 55 -5 c30 -4 138 -22 240 -41 102 -19 203 -37 225 -41 69 -11 71 -14 32 -91 -50 -99 -300 -545 -419 -749 -39 -66 -95 -163 -126 -215 -92 -159 -74 -143 -153 -136 -38 4 -88 13 -111 20 l-43 12 -32 -54 c-18 -30 -33 -56 -33 -57 0 -10 161 -37 274 -47 109 -9 161 -8 316 6 409 38 789 113 1381 275 668 182 1752 559 2439 848 406 171 648 281 910 416 407 208 653 371 835 552 132 130 209 248 261 395 26 75 45 216 28 208 -5 -2 -35 -17 -68 -32 -68 -33 -157 -38 -218 -13 -35 15 -36 14 -42 -6 -3 -12 -6 -32 -6 -44 0 -26 -46 -151 -64 -175 -12 -16 -28 -14 -242 32 -126 27 -245 57 -264 66 -85 40 -392 169 -465 194 -103 37 -350 133 -410 159 l-46 20 16 31 c17 32 142 246 238 405 30 50 107 180 172 290 65 110 126 208 135 218 17 18 19 18 51 2 19 -10 68 -38 109 -63 267 -163 489 -365 622 -564 l52 -78 34 35 c19 19 56 44 81 56 25 12 48 24 50 25 6 5 -47 90 -93 146 -182 224 -433 378 -746 459 -69 18 -126 33 -128 35 -4 2 83 149 328 554 111 184 228 378 260 430 31 52 101 167 155 255 54 88 122 198 150 245 29 47 82 134 119 194 36 60 65 111 63 113 -7 6 -79 -40 -932 -597 -264 -172 -518 -338 -565 -368 -97 -62 -307 -199 -520 -339 -286 -187 -558 -362 -589 -377 l-30 -16 -10 37 c-37 142 -104 417 -121 502 -11 56 -40 184 -65 284 -65 271 -80 337 -119 507 -19 85 -51 220 -71 300 -20 80 -53 222 -75 315 -21 94 -65 287 -99 430 -158 676 -205 883 -241 1065 -16 80 -45 222 -65 315 -20 94 -43 208 -51 255 -8 46 -16 86 -18 88 -2 1 -7 -10 -11 -25z m19 -598 c17 -126 83 -506 191 -1105 188 -1042 316 -1783 419 -2420 37 -223 69 -419 71 -436 4 -24 20 -43 60 -74 30 -23 55 -44 55 -46 0 -20 -530 258 -750 393 l-65 40 -3 1888 c-1 1039 0 1886 2 1884 2 -2 12 -58 20 -124z m3336 -2015 c-76 -91 -1185 -1222 -1802 -1838 -281 -280 -409 -401 -419 -397 -11 4 -33 84 -77 278 -33 149 -60 272 -59 273 1 1 160 115 352 254 338 245 567 410 1093 788 311 224 407 294 706 514 133 97 243 177 244 178 2 0 -15 -22 -38 -50z m-6510 -125 c83 -62 249 -184 491 -360 302 -220 844 -619 1099 -809 118 -88 292 -216 385 -284 154 -113 170 -128 169 -154 -2 -36 -115 -520 -123 -530 -14 -16 -1707 1713 -2215 2261 l-41 44 70 -49 c39 -27 113 -80 165 -119z m2878 -3000 l272 -269 0 -687 0 -687 -144 -50 c-254 -89 -467 -155 -476 -146 -4 5 -17 86 -29 179 l-23 170 -160 161 -161 162 74 68 c40 38 117 110 169 159 52 50 238 222 413 384 174 162 317 296 317 298 0 2 -215 1 -477 -2 -263 -3 -914 -10 -1448 -15 -1673 -17 -3117 -46 -3320 -66 -33 -3 -57 -3 -54 0 3 3 145 33 315 66 170 33 417 84 549 115 132 30 393 89 580 130 478 107 637 144 1064 246 576 138 712 170 1171 282 l425 103 36 104 c21 58 40 114 43 125 5 17 56 -30 298 -270 161 -159 416 -411 566 -560z m-940 -1123 c111 -20 202 -41 202 -47 -1 -5 -149 -163 -329 -350 -180 -187 -393 -410 -474 -496 l-146 -156 -83 -11 c-46 -7 -104 -12 -131 -12 l-47 0 241 358 c132 196 301 448 376 559 127 189 137 202 162 197 14 -3 117 -22 229 -42z", "M9837 6893 c-2 -4 -10 -26 -17 -48 -7 -22 -30 -73 -52 -113 -22 -41 -38 -76 -36 -78 3 -2 164 -17 359 -33 195 -17 487 -42 649 -56 372 -31 511 -43 628 -51 51 -4 90 -9 88 -11 -2 -3 -125 -16 -273 -29 -431 -39 -871 -91 -1539 -183 l-351 -48 -104 -65 c-138 -87 -257 -153 -474 -265 -99 -51 -176 -92 -171 -93 5 0 136 31 290 70 155 38 405 97 556 130 151 34 300 67 331 75 31 8 145 33 255 54 109 22 300 61 424 86 124 25 286 57 360 70 74 13 221 39 325 58 105 19 310 57 458 83 147 27 267 51 267 54 0 6 -388 84 -595 120 -166 29 -1275 255 -1351 276 -12 3 -24 2 -27 -3z", "M7905 5548 c-55 -23 -102 -43 -104 -44 -5 -4 32 -54 393 -529 339 -447 546 -725 881 -1187 99 -136 208 -286 243 -333 34 -47 58 -85 53 -85 -8 0 -425 425 -681 695 -63 66 -253 266 -424 445 -286 300 -392 410 -704 732 l-114 117 -171 -64 c-272 -100 -745 -269 -947 -338 l-185 -63 -5 -1804 c-3 -993 -8 -1789 -12 -1770 -4 19 -17 103 -28 185 -64 464 -176 1134 -365 2185 -35 195 -89 505 -120 689 -30 184 -57 336 -58 337 -2 3 -209 -47 -214 -51 -3 -2 143 -665 217 -986 28 -119 68 -302 89 -405 22 -104 64 -301 95 -439 69 -317 164 -786 215 -1070 22 -121 65 -357 95 -525 31 -168 61 -333 67 -368 6 -35 14 -61 16 -58 6 6 99 524 144 801 29 180 107 613 149 830 11 55 40 210 66 345 25 135 56 292 69 348 21 94 22 108 9 144 -13 38 -11 49 32 221 74 297 64 281 85 143 24 -151 59 -266 116 -381 140 -279 348 -472 677 -630 107 -52 327 -135 356 -135 4 0 8 34 8 75 2 102 40 221 90 277 17 20 19 19 -75 43 -131 33 -393 146 -508 220 -108 69 -203 154 -276 248 -140 181 -216 377 -244 633 -13 127 -9 289 10 394 12 60 107 395 115 404 5 4 75 -33 157 -85 81 -51 193 -120 248 -154 55 -34 168 -104 250 -155 83 -51 209 -129 280 -172 72 -44 164 -101 205 -127 41 -27 183 -115 315 -196 132 -82 290 -180 350 -218 61 -39 136 -86 168 -106 33 -20 100 -63 150 -95 70 -45 373 -233 440 -273 16 -10 -10 31 -206 323 -429 639 -556 832 -671 1019 -38 61 -101 162 -141 225 -112 179 -178 287 -235 385 -29 50 -79 133 -110 185 -31 52 -76 128 -99 168 -23 39 -45 72 -49 72 -4 -1 -52 -19 -107 -42z", "M4925 4569 c-220 -50 -751 -129 -876 -129 -55 0 -57 -1 -104 -52 -153 -167 -1012 -1052 -1000 -1030 4 7 77 104 164 215 244 315 639 854 630 861 -2 1 -35 7 -72 13 l-69 9 -35 -55 c-140 -221 -354 -549 -560 -860 -134 -200 -241 -366 -239 -368 3 -3 117 66 291 177 275 175 415 263 640 403 138 86 288 180 335 210 47 30 171 107 275 172 105 65 219 137 255 160 36 23 151 95 255 160 105 65 194 122 200 126 11 11 9 11 -90 -12z"];
+const NODOS = [[480.1, 292, 20.3], [971.8, 538.1, 20.3], [324.9, 806.6, 22.1], [838, 1032.8, 37.5]];
+let nRosa = 0;
+function rosa(tam = 32) {
+  const id = 'halo' + (nRosa++);
+  const halo = 3 * 1230 / tam;
+  return `<svg width="${tam}" height="${tam}" viewBox="0 0 1230 1230" aria-label="Mapa de Pensum" style="flex:none;display:block;overflow:visible">
+    <defs><radialGradient id="${id}"><stop offset="0" stop-color="var(--azul)" stop-opacity=".75"/><stop offset="1" stop-color="var(--azul)" stop-opacity="0"/></radialGradient></defs>
+    <g transform="translate(3 10) translate(0 1278) scale(.1 -.1)" fill="var(--tinta)">${ROSA.map(d => `<path d="${d}"/>`).join('')}</g>
+    ${NODOS.map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${f2(r * 1.05 + halo)}" fill="url(#${id})"/><circle cx="${x}" cy="${y}" r="${f2(r * 1.05)}" fill="var(--azul)"/>`).join('')}
+  </svg>`;
+}
+const cabecera = () => `<div class="cab">${rosa(32)}<i class="filete"></i><span class="marca">MAPA DE <b>PENSUM</b></span><span class="engranaje"><span>${ico('settings', 20, '', 1.75)}</span></span></div>`;
+
+/* ---------- Las carreras (indice.json) ---------- */
+const CARRERAS = [
+  { corto: 'Agronómica', tipo: 'Ingeniería', c: '#3fcb74', cl: '#1b7a44', s: [9, 7, 7, 6, 6, 6, 5, 6, 3, 3] },
+  { corto: 'Ambiental', tipo: 'Ingeniería', c: '#34c6ea', cl: '#0b7391', s: [8, 6, 7, 7, 5, 6, 4, 5, 5, 2] },
+  { corto: 'Petróleo', tipo: 'Ingeniería', c: '#e8a33d', cl: '#9a6410', s: [7, 5, 7, 5, 5, 6, 4, 6, 5, 3] },
+  { corto: 'Sistemas', tipo: 'Ingeniería', c: '#6094ff', cl: '#2751cc', s: [6, 5, 6, 6, 7, 6, 5, 5, 2, 1], tuya: true },
+  { corto: 'Producción Animal', tipo: 'Ingeniería', c: '#a9c23f', cl: '#5f7a16', s: [8, 7, 6, 7, 6, 5, 5, 6, 7, 3] },
+  { corto: 'Administración', tipo: 'Licenciatura', c: '#8a7cf0', cl: '#4b3bc4', s: [7, 6, 6, 5, 6, 5, 5, 5, 6, 5] },
+  { corto: 'Contaduría', tipo: 'Licenciatura', c: '#2fd3c0', cl: '#0a8577', s: [7, 6, 6, 5, 5, 6, 5, 6, 6, 4] },
+  { corto: 'Tecnología de Alimentos', tipo: 'Licenciatura', c: '#ff7a6b', cl: '#c03a2b', s: [7, 5, 4, 5, 5, 5, 4, 4, 3, 3] },
+  { corto: 'Recursos Humanos', tipo: 'Gerencia', c: '#f072b0', cl: '#b32c74', s: [6, 5, 5, 5, 5, 4, 5, 5, 5, 4] },
+];
+const PLURAL = { 'Ingeniería': 'Ingenierías', 'Licenciatura': 'Licenciaturas', 'Gerencia': 'Gerencia' };
+const OTRAS = CARRERAS.filter(c => !c.tuya);
+
+/* ---------- Tu silueta por estados: una columna por semestre, de arriba abajo
+   aprobadas (H), cursando (C), inscribibles (D) y pendientes (P). Sistemas: 1 a 4 aprobados,
+   cursando Estadística II e Inferencia, y 6 inscribibles (5 del semestre 5 y Leyes y Deontología) ---------- */
+const SIS = ['HHHHHH', 'HHHHH', 'HHHHHH', 'HHHHHH', 'CCDDDDD', 'PPPPPP', 'PPPPP', 'PPPPP', 'DP', 'P'];
+/* Sin marcas: inscribibles las 11 sin prelaciones */
+const SIS_CERO = ['DDDDDD', 'DPPPP', 'DPPPPP', 'DDPPPP', 'PPPPPPP', 'PPPPPP', 'PPPPP', 'PPPPP', 'DP', 'P'];
+const SIS_CARGA = SIS.map(c => 'P'.repeat(c.length));
+const FANTASMA = ['EEEEEE', 'EEEEE', 'EEEEEE', 'EEEEE', 'EEEEEE', 'EEEEE', 'EEEEE', 'EEEEE', 'EEEE', 'EEE'];
+
+function sil(cols, { d = 8, px = 20, py = 14, filas = 7 } = {}) {
+  const n = cols.length;
+  const W = d + px * (n - 1), H = d + py * (filas - 1);
+  const r = d / 2;
+  let s = '';
+  cols.forEach((col, c) => [...col].forEach((e, j) => {
+    const cx = f2(c * px + r), cy = f2(j * py + r);
+    if (e === 'H') s += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="var(--tinta)"/>`;
+    else if (e === 'C') s += `<circle cx="${cx}" cy="${cy}" r="${f2(r - .75)}" fill="none" stroke="var(--tinta)" stroke-width="1.5"/>`;
+    else if (e === 'D') s += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="var(--azul)"/>`;
+    else if (e === 'P') s += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="rgb(var(--t) / .16)"/>`;
+    else if (e === 'E') { const rr = r - .6, L = 2 * Math.PI * rr; s += `<circle cx="${cx}" cy="${cy}" r="${f2(rr)}" fill="none" stroke="rgb(var(--t) / .5)" stroke-width="1.2" stroke-dasharray="${f2(L / 6)} ${f2(L / 12)}"/>`; }
+  }));
+  return `<svg class="sil" width="${f2(W)}" height="${f2(H)}" viewBox="0 0 ${f2(W)} ${f2(H)}" aria-hidden="true">${s}</svg>`;
+}
+/* La silueta entera de otra carrera, en su color al 70 % (Filas.kt): paso fijo de 7 filas, la más alta asoma */
+function silC(c, { w = 36, h = 28, d = 2, a = .72, claro = false } = {}) {
+  const px = w / c.s.length, py = h / 7, col = claro ? c.cl : c.c;
+  let s = '';
+  c.s.forEach((n, i) => { for (let j = 0; j < n; j++) s += `<circle cx="${f2(i * px + d / 2)}" cy="${f2(j * py + d / 2)}" r="${d / 2}"/>`; });
+  return `<svg class="sil" width="${f2(w)}" height="${f2(h)}" viewBox="0 0 ${f2(w)} ${f2(h)}" fill="${col}" fill-opacity="${a}" aria-hidden="true">${s}</svg>`;
+}
+/* Los glifos de la leyenda: los mismos puntos de la silueta */
+const anillo = (d = 8) => `<svg class="g" width="${d}" height="${d}" viewBox="0 0 ${d} ${d}"><circle cx="${d / 2}" cy="${d / 2}" r="${d / 2 - .75}" fill="none" stroke="var(--tinta)" stroke-width="1.5"/></svg>`;
+const punto = (d = 8) => `<svg class="g" width="${d}" height="${d}" viewBox="0 0 ${d} ${d}"><circle cx="${d / 2}" cy="${d / 2}" r="${d / 2}" fill="var(--azul)"/></svg>`;
+const cifra = (n, u = '%', cls = 'c40') => `<div class="cifra ${cls}">${n}<span class="u">${u}</span></div>`;
+
+/* ======================= A · Silueta viva ======================= */
+function tarjetaA(est, tema, { ancho = 343, acostado = false, m = false } = {}) {
+  const acento = tema === 'cla' ? '#2751cc' : '#6094ff';
+  const M = (t, pos = '') => m ? ` data-m="${t}" data-mpos="${pos}"` : '';
+  const interior = ancho - (acostado ? 48 : 40);
+  const silueta = est === 'sincarrera' ? FANTASMA : est === 'sinmarcas' ? SIS_CERO : est === 'cargando' ? SIS_CARGA : SIS;
+  const geo = acostado ? { d: 7, px: 19, py: 11 } : { d: 8, px: (interior - 8) / 9, py: 12 };
+  const nombre = est === 'sincarrera' ? 'Elige tu carrera' : 'Sistemas';
+  const tipo = est === 'sincarrera' ? '' : `<div class="rot mt4"${M('Rótulo 11/16', 'der')}>Ingeniería</div>`;
+  const conCifra = est === 'avance';
+  const cif = conCifra ? `<span${M('Cifra 40/44 · % 16')}>${cifra(41)}</span>` : `<div class="cifra c40 vacio">41<span class="u">%</span></div>`;
+  let dato;
+  if (est === 'avance') dato = `
+      <div class="ley${acostado ? ' enlinea' : ''}"${M('Nota 13/16')}><span>${anillo(acostado ? 7 : 8)}<span class="nota"><b>2</b> cursando</span></span><span>${punto(acostado ? 7 : 8)}<span class="nota"><b>6</b> por inscribir</span></span></div>
+      ${acostado ? '' : `<div class="fecha"${M('Fecha 24/28')}><div class="cifra f24">Dic 2029</div><div class="nota">Te gradúas</div></div>`}`;
+  else if (est === 'sinmarcas') dato = `<div class="cuerpo" style="padding-bottom:2px">Marca lo que ya aprobaste</div>`;
+  else if (est === 'sincarrera') dato = `<div class="cuerpo" style="padding-bottom:2px">Aquí verás tu avance</div>`;
+  else dato = `<div class="ley vacio"><span class="nota">2 cursando</span><span class="nota">6 por inscribir</span></div><div class="fecha vacio"><div class="cifra f24">Dic 2029</div><div class="nota">Te gradúas</div></div>`;
+  const boton = est === 'sinmarcas' ? 'Empezar' : est === 'sincarrera' ? 'Elegir carrera' : 'Seguir donde ibas';
+  const horario = est === 'sincarrera' ? '' : `<div class="circ" aria-label="Tu horario"${M('52')}>${ico('calendar-days', 20)}</div>`;
+  const fechaAcostado = acostado && est === 'avance' ? `<div class="fecha" style="text-align:right"><div class="cifra f24">Dic 2029</div><div class="nota">Te gradúas</div></div>` : (acostado ? `<div></div>` : '');
+  return `<div class="cristal tA" style="--acento:${acento};width:${ancho}px;${acostado ? 'height:296px;border-radius:28px;padding:24px;justify-content:space-between' : ''}"${M('Tarjeta · margen 20 · radio 24')}>
+    ${est === 'sincarrera' ? '' : '<i class="filo"></i>'}
+    <div class="cab2"><div><div class="titulo"${M('Título 28/32')}>${nombre}</div>${tipo}</div>${est === 'sincarrera' ? '' : cif}</div>
+    ${acostado
+      ? `<div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:12px">${sil(silueta, geo)}${fechaAcostado}</div>`
+      : `<div class="mt20"${M('Silueta · punto 8 · alto 80')}>${sil(silueta, geo)}</div>`}
+    <div class="dato ${acostado ? 'mt12' : 'mt16'}" style="min-height:${acostado ? 16 : 44}px">${dato}</div>
+    <div class="acc ${acostado ? 'mt12' : 'mt16'}"><div class="btn lleno" style="flex:1"${M('Botón 52 · radio 26')}>${boton}${ico('arrow-right', 18, '', 1.75)}</div>${horario}</div>
+  </div>`;
+}
+function mosaico(c, tema, m) {
+  return `<div class="mos"${m ? ' data-m="Ficha 68 · radio 16" data-mpos="dentro"' : ''}><span class="caja">${silC(c, { claro: tema === 'cla' })}</span><span class="encab">${c.corto}</span></div>`;
+}
+function grupos(lista, tema, m) {
+  const tipos = ['Ingeniería', 'Licenciatura', 'Gerencia'].filter(t => lista.some(c => c.tipo === t));
+  return tipos.map((t, i) => `<div class="grupo"><div class="rot"${m && i === 0 ? ' data-m="Rótulo · 8 hasta la ficha" data-mpos="dentro"' : ''}>${PLURAL[t]}</div><div class="rejilla">${lista.filter(c => c.tipo === t).map((c, k) => mosaico(c, tema, m && i === 0 && k === 0)).join('')}</div></div>`).join('');
+}
+function pieA(el) {
+  const tema = el.classList.contains('cla') ? 'cla' : 'osc';
+  const est = el.dataset.estado || 'avance';
+  const m = !!el.dataset.medidas;
+  const lista = est === 'sincarrera' ? CARRERAS : OTRAS;
+  el.innerHTML = `<div class="luz"></div>${sis()}${cabecera()}
+    <div style="position:absolute;left:16px;right:16px;top:108px">
+      ${tarjetaA(est, tema, { m })}
+      <div class="mt24">${grupos(lista, tema, m)}</div>
+    </div><div class="fundido"></div><div class="gestos"></div>`;
+}
+function acostadoA(el) {
+  el.innerHTML = `<div class="luz"></div>${sis()}${cabecera()}
+    <div style="position:absolute;left:24px;top:84px">${tarjetaA('avance', 'osc', { ancho: 354, acostado: true })}</div>
+    <div style="position:absolute;left:402px;right:24px;top:84px;bottom:0;overflow:hidden;-webkit-mask:linear-gradient(#000 calc(100% - 72px), transparent calc(100% - 32px))">${grupos(OTRAS, 'osc').replaceAll('class="grupo"', 'class="grupo" style="--x:0"')}</div>
+    <div class="gestos"></div>`;
+  el.querySelectorAll('.grupo + .grupo').forEach(g => (g.style.marginTop = '16px'));
+}
+
+/* ======================= B · Cartera ======================= */
+function carne({ ancho = 343, alto = 216 } = {}) {
+  return `<div class="carne" style="--acento:#6094ff;width:${ancho}px;height:${alto}px">
+    <div class="arriba"><div><div class="titulo">Sistemas</div><div class="rot mt4">Ingeniería</div></div><div style="margin-top:-6px">${cifra(41)}</div></div>
+    <div class="abajo">
+      <div>${sil(SIS, { d: 6, px: 13, py: 9 })}<div class="ley enlinea mt12"><span>${anillo(6)}<span class="nota"><b>2</b> cursando</span></span><span>${punto(6)}<span class="nota"><b>6</b> por inscribir</span></span></div></div>
+      <div style="text-align:right"><div class="cifra f24">Dic 2029</div><div class="nota">Te gradúas</div></div>
+    </div>
+  </div>`;
+}
+const accion = (txt = 'Seguir donde ibas') => `<div style="display:flex;gap:8px"><div class="btn lleno" style="flex:1">${txt}${ico('arrow-right', 18, '', 1.75)}</div><div class="circ">${ico('calendar-days', 20)}</div></div>`;
+function mazo(lista, paso = 52) {
+  return `<div class="mazo" style="height:${(lista.length - 1) * paso + 64}px">${lista.map((c, i) => `<div class="naipe" style="--c:${c.c};top:${i * paso}px"><div class="fila-n">${silC(c, { w: 36, h: 24, d: 2 })}<span class="encab">${c.corto}</span></div></div>`).join('')}</div>`;
+}
+function pieB(el) {
+  el.innerHTML = `<div class="luz"></div>${sis()}${cabecera()}
+    <div style="position:absolute;left:16px;right:16px;top:108px">
+      ${carne()}
+      <div class="mt16">${accion()}</div>
+      <div class="rot mt24" style="padding-left:4px;margin-bottom:8px">Otras carreras</div>
+      ${mazo(OTRAS)}
+    </div><div class="fundido"></div><div class="gestos"></div>`;
+}
+function acostadoB(el) {
+  const izq = OTRAS.slice(0, 4), der = OTRAS.slice(4);
+  el.innerHTML = `<div class="luz"></div>${sis()}${cabecera()}
+    <div style="position:absolute;left:24px;top:84px;width:354px">${carne({ ancho: 354, alto: 220 })}<div class="mt12">${accion()}</div></div>
+    <div style="position:absolute;left:402px;right:24px;top:84px">
+      <div class="rot" style="padding-left:4px;margin-bottom:8px">Otras carreras</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">${mazo(izq, 56)}${mazo(der, 56)}</div>
+    </div><div class="gestos"></div>`;
+}
+
+/* ======================= C · Panel ======================= */
+function bento({ alto = 216, altoP = 116, acostado = false } = {}) {
+  // Acostado no hay alto para la leyenda: la pastilla de las piezas pequeñas sube a la derecha
+  const pieza = (pas, txt) => acostado
+    ? `<div class="cristal pieza" style="height:${altoP}px;position:relative"><div style="position:absolute;top:14px;right:14px">${pas}</div><div style="margin-top:auto">${txt}</div></div>`
+    : `<div class="cristal pieza" style="height:${altoP}px">${pas}<div>${txt}</div></div>`;
+  return `<div class="bento">
+    <div class="cristal tC grande" style="--acento:#6094ff;height:${alto}px"><i class="filo"></i>
+      <div class="arriba"><div><div class="titulo">Sistemas</div><div class="rot mt4">Ingeniería</div></div><div style="margin-top:-6px">${cifra(41)}</div></div>
+      <div class="abajo"><div>${sil(SIS, { d: 6, px: 14, py: acostado ? 8 : 9 })}${acostado ? '' : `<div class="ley enlinea mt12"><span>${anillo(6)}<span class="nota"><b>2</b> cursando</span></span></div>`}</div><div class="flecha">${ico('arrow-right', 20, '', 1.75)}</div></div>
+    </div>
+    ${pieza(`<div class="pas">${ico('graduation-cap', 18)}</div>`, `<div class="cifra f24">Dic 2029</div><div class="nota">Te gradúas</div>`)}
+    ${pieza(`<div class="pas azul">${candado(18)}</div>`, `<div class="cifra f24 azul">6<span class="nota" style="margin-left:4px">materias</span></div><div class="nota">Ene – Jun 2027</div>`)}
+  </div>`;
+}
+function portadilla(c, { w = 128, h = 84, d = 4, sw = 90, sh = 52, chica = false } = {}) {
+  return `<div class="portadilla" style="--c:${c.c};width:${w}px"><div class="arte" style="height:${h}px">${silC(c, { w: sw, h: sh, d, a: .85 })}</div><div class="encab"${chica ? ' style="margin-top:6px"' : ''}>${c.corto}</div></div>`;
+}
+function pieC(el) {
+  el.innerHTML = `<div class="luz"></div>${sis()}${cabecera()}
+    <div style="position:absolute;left:16px;right:16px;top:108px">
+      ${bento({ alto: 200, altoP: 112 })}
+      <div class="rot mt24" style="padding-left:4px;margin-bottom:8px">Otras carreras</div>
+      <div class="repisa">${OTRAS.map(c => portadilla(c)).join('')}</div>
+    </div><div class="gestos"></div>`;
+}
+function acostadoC(el) {
+  el.innerHTML = `<div class="luz"></div>${sis()}${cabecera()}
+    <div style="position:absolute;left:24px;top:84px;width:354px">${bento({ alto: 176, altoP: 112, acostado: true })}</div>
+    <div style="position:absolute;left:402px;right:24px;top:84px">
+      <div class="rot" style="padding-left:4px;margin-bottom:8px">Otras carreras</div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px 10px">${OTRAS.map(c => portadilla(c, { w: 114, h: 74, d: 3.5, sw: 80, sh: 50, chica: true })).join('')}</div>
+    </div><div class="gestos"></div>`;
+}
+
+/* ---------- Pintar ---------- */
+document.querySelectorAll('[data-tel]').forEach(el => ({ A: pieA, B: pieB, C: pieC })[el.dataset.tel](el));
+document.querySelectorAll('[data-telh]').forEach(el => ({ A: acostadoA, B: acostadoB, C: acostadoC })[el.dataset.telh](el));
+
+/* Las medidas: cada pieza marcada con data-m lleva su contorno y su rótulo (arriba, a la derecha o dentro) */
+document.fonts.ready.then(() => {
+  document.querySelectorAll('[data-medidas]').forEach(tel => {
+    const p = tel.getBoundingClientRect();
+    tel.querySelectorAll('[data-m]').forEach(n => {
+      const r = n.getBoundingClientRect();
+      if (r.top - p.top > 780) return;
+      const x = f2(r.left - p.left), y = f2(r.top - p.top), pos = n.dataset.mpos;
+      const alto = Math.round(r.height);
+      tel.insertAdjacentHTML('beforeend', `<div class="guia" style="left:${x}px;top:${y}px;width:${f2(r.width)}px;height:${f2(r.height)}px"></div>`);
+      let lugar;
+      if (pos === 'der') lugar = `left:${f2(r.right - p.left + 8)}px;top:${f2(y + r.height / 2 - 8)}px`;
+      else if (pos === 'dentro') lugar = `right:${f2(p.right - r.right + 6)}px;top:${f2(y + 4)}px`;
+      else if (r.left - p.left > 180) lugar = `right:${f2(p.right - r.right)}px;top:${f2(y - 16)}px`;
+      else lugar = `left:${x}px;top:${f2(y - 16)}px`;
+      tel.insertAdjacentHTML('beforeend', `<div class="medida" style="${lugar}">${n.dataset.m} · ${alto}</div>`);
+    });
+  });
+});
+
+/* Como el autoSize de la app: un nombre que no cabe baja de 17 a 13 sp antes de partirse o cortarse */
+document.fonts.ready.then(() => {
+  document.querySelectorAll('.mos .encab, .naipe .encab, .portadilla .encab').forEach(e => {
+    let t = parseFloat(getComputedStyle(e).fontSize);
+    while (e.scrollWidth > e.clientWidth + .5 && t > 13) { t -= 1; e.style.fontSize = t + 'px'; e.style.lineHeight = (t + 5) + 'px'; }
+  });
+});
+</script>
+</body>
+</html>
