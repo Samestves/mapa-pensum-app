@@ -157,12 +157,10 @@ fun modeloLista(
 
     val secciones = mutableListOf<SeccionLista>()
     val porSemestre = nodos.filter { it.semestre != null }.groupBy { it.semestre!! }.toSortedMap()
-    var actual: Int? = null
 
     for ((s, delSemestre) in porSemestre) {
         val obligatorias = delSemestre.filter { !it.esHueco }
         val huecos = delSemestre.filter { it.esHueco }
-        if (actual == null && obligatorias.any { estados[it.codigo] != EstadoMateria.APROBADA }) actual = s
         // Primero las obligatorias, en el orden del pensum; las electivas, detrás
         val todas = (obligatorias + huecos.mapNotNull { enCasilla(it.codigo) }).map(::fila)
         todas.forEach { cuentas[filtroDe(it.situacion)] = cuentas.getValue(filtroDe(it.situacion)) + 1 }
@@ -234,7 +232,7 @@ fun modeloLista(
     return ModeloLista(
         secciones = if (filtro == null) secciones else secciones.filter { !it.vacia },
         cuentas = cuentas,
-        actual = actual,
+        actual = semestreActual(marcasDeSemestres(nodos, enCasilla, estados)),
     )
 }
 

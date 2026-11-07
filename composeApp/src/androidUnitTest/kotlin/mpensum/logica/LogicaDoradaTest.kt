@@ -36,13 +36,20 @@ class LogicaDoradaTest {
             ?: fail("No hay fixtures en ${carpetaFixtures.absolutePath}: corre herramientas/fixtures.mjs")
         assertEquals(9, archivos.size, "Faltan carreras en las fixtures")
         return archivos.flatMap { archivo ->
-            val pensum = leerPensum(File(carpetaCarreras, archivo.name).readText())
+            val pensum = sinUcMinimas(leerPensum(File(carpetaCarreras, archivo.name).readText()))
             Json.parseToJsonElement(archivo.readText()).jsonObject.getValue("casos").jsonArray.map {
                 val caso = it.jsonObject
                 Triple(pensum, "${pensum.slug} · ${caso.texto("nombre")}", caso)
             }
         }
     }
+
+    /**
+     * La web no mira las «120 UC aprobadas» de Proyecto de Trabajo de Grado
+     * (Ambiental): lo da por inscribible desde el primer día. La app sí lo
+     * respeta (QaLogicaTest), así que aquí se compara sin ese requisito.
+     */
+    private fun sinUcMinimas(p: Pensum) = p.copy(asignaturas = p.asignaturas.map { it.copy(requisitoEspecial = null) })
 
     @Test
     fun estadosSituacionesYCables() = casos().forEach { (pensum, nombre, caso) ->

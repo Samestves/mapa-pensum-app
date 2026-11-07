@@ -115,15 +115,16 @@ data class ResumenPortada(
     val disponibles: Int,
     /** Las que marcaste como cursando */
     val cursando: Int = 0,
-) {
-    /** El semestre por el que vas: el primero que te queda a medias; null si ya los terminaste todos */
-    fun semestreActual(silueta: List<Int>): Int? =
-        silueta.indices.firstOrNull { (hechas.getOrNull(it) ?: 0) < silueta[it] }?.plus(1)
-}
+    /** El semestre por el que vas, con la misma regla que la barra y la lista; null si los terminaste todos */
+    val semestreActual: Int? = null,
+)
 
-fun resumenParaPortada(pensum: Pensum, marcasGuardadas: Map<String, String>?): ResumenPortada {
+fun resumenParaPortada(pensum: Pensum, marcasGuardadas: Map<String, String>?, casillasGuardadas: Map<String, String>? = null): ResumenPortada {
     val marcas = depurarMarcas(marcasGuardadas, pensum.todas.map { it.codigo }.toSet())
-    val progreso = progresoDe(pensum.obligatorias, estadosDe(pensum.todas, marcas), pensum.creditos, avanceDeGrupos(pensum.grupos, marcas))
+    val casillas = casillasEfectivas(pensum, depurarCasillas(casillasGuardadas, pensum), marcas)
+    val porCodigo = pensum.todas.associateBy { it.codigo }
+    val estados = estadosDe(pensum.todas, marcas)
+    val progreso = progresoDe(pensum.obligatorias, estados, pensum.creditos, avanceDeGrupos(pensum.grupos, marcas))
     val conUc = progreso.porcentaje != null
     return ResumenPortada(
         hechas = aprobadasPorSemestre(pensum, marcas),
@@ -133,6 +134,7 @@ fun resumenParaPortada(pensum: Pensum, marcasGuardadas: Map<String, String>?): R
         unidad = if (conUc) "UC" else "materias",
         disponibles = progreso.disponibles,
         cursando = progreso.cursando,
+        semestreActual = semestreActual(marcasDeSemestres(pensum.asignaturas, { casillas[it]?.let(porCodigo::get) }, estados)),
     )
 }
 

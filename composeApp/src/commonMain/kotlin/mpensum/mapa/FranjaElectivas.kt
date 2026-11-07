@@ -23,7 +23,7 @@ fun casillaLibre(clave: String, n: Int) = "$PREFIJO$clave-$n"
 fun esCasillaLibre(codigo: String) = codigo.startsWith(PREFIJO)
 
 /* El número de la casilla en su grupo; la clave puede llevar guiones, así que se lee desde el final */
-private fun numeroDe(codigo: String) = codigo.substringAfterLast('-').toIntOrNull() ?: 0
+internal fun numeroDe(codigo: String) = codigo.substringAfterLast('-').toIntOrNull() ?: 0
 
 /** Los datos traen "Areas de Grado" sin tilde, tal como lo publica la DACE */
 fun tituloGrupo(grupo: Grupo) = grupo.titulo.replace(Regex("^Areas\\b"), "Áreas")

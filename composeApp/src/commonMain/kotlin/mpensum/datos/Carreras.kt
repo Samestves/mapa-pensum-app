@@ -63,7 +63,7 @@ fun rememberResumenes(carreras: List<Carrera>): Map<String, ResumenPortada>? {
             carreras.mapNotNull { c ->
                 val crudas = Guardado.marcasCrudas(c.slug)?.takeIf { it.isNotEmpty() } ?: return@mapNotNull null
                 val pensum = leerPensum(Res.readBytes("files/carreras/${c.slug}.json").decodeToString())
-                c.slug to resumenParaPortada(pensum, crudas)
+                c.slug to resumenParaPortada(pensum, crudas, Guardado.casillasCrudas(c.slug))
             }.toMap()
         }
         UltimosResumenes.valor = value

@@ -3,6 +3,7 @@ package mpensum.datos
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.produceState
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import kotlinx.serialization.json.Json
 import mpensum.recursos.Res
 
@@ -56,7 +57,13 @@ data class Asignatura(
     val esComodin: Boolean = false,
     /** Requisito que no es otra materia (un mínimo de UC, por ejemplo), en palabras */
     val requisitoEspecial: String? = null,
-)
+) {
+    /** Las UC aprobadas que pide el requisito especial («120 UC aprobadas»), leídas una sola vez; null si no pide */
+    @Transient
+    val ucMinimas: Int? = requisitoEspecial?.let { UC_MINIMAS.find(it)?.groupValues?.get(1)?.toIntOrNull() }
+}
+
+private val UC_MINIMAS = Regex("""(\d+)\s*UC""")
 
 @Serializable
 data class Grupo(

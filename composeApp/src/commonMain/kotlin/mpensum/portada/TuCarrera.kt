@@ -254,7 +254,7 @@ private fun Dato(c: Carrera, resumen: ResumenPortada?, cargando: Boolean, modifi
     Row(modifier, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Espacio.xs)) {
         when {
             resumen != null -> {
-                val semestre = resumen.semestreActual(c.silueta)
+                val semestre = resumen.semestreActual
                 // El punto va con el primer renglón, no centrado entre los dos
                 Box(Modifier.align(if (semestre != null) Alignment.Top else Alignment.CenterVertically).padding(top = if (semestre != null) 5.dp else 0.dp).size(6.dp).background(Paleta.azul, CircleShape))
                 // En dos renglones: junto a «Continuar» una sola línea con los dos datos se cortaba con «…»

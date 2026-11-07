@@ -163,7 +163,7 @@ fun MapaCarrera(
                 camara.medir(t.width / d, t.height / d, layout.ancho.toFloat(), estado.alto.toFloat())
                 // Abre en tu semestre a escala de lectura, o donde lo dejaste en esta sesión
                 camara.colocarInicial {
-                    val columna = semestreFrente(estado)?.let { s -> layout.columnas.firstOrNull { it.semestre == s } } ?: layout.columnas.first()
+                    val columna = semestreDeTrabajo(estado)?.let { s -> layout.columnas.firstOrNull { it.semestre == s } } ?: layout.columnas.first()
                     if (reservaIzquierda != null) vistaDeAltura(columna.x.toFloat(), layout.finSemestres.toFloat(), camara.alto, arriba, abajo, reservaIzquierda)
                     else vistaDeColumna(columna.x.toFloat(), camara.ancho, arriba)
                 }
@@ -280,8 +280,13 @@ private fun TarjetasMapa(
     } }
 }
 
-/** El semestre por el que vas: lo que puedes inscribir o cursas; si no, lo primero pendiente (layout/camara.js) */
-private fun semestreFrente(estado: EstadoCarrera): Int? {
+/**
+ * Dónde encuadra la cámara al abrir: el semestre más bajo donde hay algo que
+ * hacer (inscribible o en curso); si no, lo primero pendiente (layout/camara.js).
+ * No es «el semestre actual» de la portada y la barra: aquí interesa lo
+ * accionable, y por eso es otra regla con otro nombre.
+ */
+private fun semestreDeTrabajo(estado: EstadoCarrera): Int? {
     val reales = estado.layout.nodos.filter { !it.asignatura.esHueco }
     if (reales.isEmpty()) return null
     val sit = estado.situaciones

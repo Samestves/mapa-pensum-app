@@ -9,10 +9,12 @@ import mpensum.datos.Asignatura
 import mpensum.datos.Guardado
 import mpensum.datos.Pensum
 import mpensum.logica.EstimacionGraduacion
+import mpensum.logica.MAX_CARGA
 import mpensum.logica.Marca
 import mpensum.logica.Periodo
 import mpensum.logica.Situacion
 import mpensum.logica.avanceDeGrupos
+import mpensum.logica.casillasEfectivas
 import mpensum.logica.colocarElectiva
 import mpensum.logica.conMarcas
 import mpensum.logica.estadosDe
@@ -27,7 +29,6 @@ import mpensum.mapa.FranjaColocada
 import mpensum.mapa.LayoutMapa
 import mpensum.mapa.Nodo
 import mpensum.mapa.NodoMapa
-import mpensum.mapa.adoptarMarcadas
 import mpensum.mapa.calcularFranja
 import mpensum.mapa.calcularLayout
 import mpensum.tema.ColoresMapa
@@ -70,10 +71,8 @@ class EstadoCarrera(val pensum: Pensum, private val demostracion: Map<String, Ma
      */
     val graduacion: EstimacionGraduacion by derivedStateOf { estimarGraduacion(pensum, marcas, casillas, carga, Periodo.actual()) }
 
-    /** Sin ruta oficial de electivas, las marcadas entran solas en la franja */
-    private val elegidas by derivedStateOf {
-        if (pensum.electivasEnCasillas) casillas else adoptarMarcadas(casillas, pensum.grupos, marcas)
-    }
+    /** Dónde está cada electiva: la misma cuenta que usa la fecha (casillasEfectivas) */
+    private val elegidas by derivedStateOf { casillasEfectivas(pensum, casillas, marcas) }
 
     /** La franja de electivas, debajo de los semestres; null donde las casillas van en los semestres */
     val franja: FranjaColocada? by derivedStateOf {
@@ -131,12 +130,12 @@ class EstadoCarrera(val pensum: Pensum, private val demostracion: Map<String, Ma
     }
 
     /**
-     * null vuelve a la carga habitual. La habitual puede pasar de nueve (quien
-     * cursa doce) y el mando parte de ella: se acota aquí, para que lo que ves
-     * sea lo que se guarda y lo que vuelve al reabrir.
+     * null vuelve a la carga habitual. Se guarda siempre lo pulsado, aunque
+     * coincida con la habitual de hoy: la habitual cambia al marcar más y la
+     * elegida no debe moverse sola. Acotada al mismo tope que la cuenta.
      */
     fun elegirCarga(nueva: Int?) {
-        carga = nueva?.coerceIn(Guardado.LIMITES_CARGA)
+        carga = nueva?.coerceIn(1, MAX_CARGA)
         if (demostracion == null) Guardado.guardarCarga(pensum.slug, carga)
     }
 

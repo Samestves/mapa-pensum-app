@@ -4,6 +4,7 @@ import mpensum.carrera.EstadoCarrera
 import mpensum.datos.Guardado
 import mpensum.datos.HorarioGuardado
 import mpensum.datos.leerPensum
+import mpensum.logica.MAX_CARGA
 import mpensum.logica.Marca
 import mpensum.plataforma.Preferencias
 import org.junit.runner.RunWith
@@ -72,7 +73,7 @@ class QaDatosTest {
         Preferencias.guardarTexto("mapa-pensum:carga:$slug", "{\"unidad\":\"materias\",\"valor\":0}")
         assertEquals(1, Guardado.carga(slug))
         Preferencias.guardarTexto("mapa-pensum:carga:$slug", "{\"unidad\":\"materias\",\"valor\":9999}")
-        assertEquals(9, Guardado.carga(slug))
+        assertEquals(MAX_CARGA, Guardado.carga(slug))
         Preferencias.guardarTexto("mapa-pensum:carga:$slug", "{\"unidad\":\"materias\",\"valor\":-4}")
         assertEquals(1, Guardado.carga(slug))
         // Guardar y leer da lo mismo, y null vuelve a la habitual

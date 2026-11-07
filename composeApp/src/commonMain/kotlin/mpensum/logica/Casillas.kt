@@ -1,7 +1,10 @@
 package mpensum.logica
 
 import mpensum.datos.Pensum
+import mpensum.mapa.adoptarMarcadas
 import mpensum.mapa.casillasLibres
+import mpensum.mapa.esCasillaLibre
+import mpensum.mapa.numeroDe
 
 /**
  * Las casillas de electiva de una carrera, cada una con el grupo que admite.
@@ -41,4 +44,38 @@ fun depurarCasillas(datos: Map<String, String>?, pensum: Pensum): Map<String, St
 fun colocarElectiva(elegidas: Map<String, String>, casilla: String, codigo: String?): Map<String, String> {
     if (codigo == null) return elegidas - casilla
     return elegidas.filterValues { it != codigo } + (casilla to codigo)
+}
+
+/**
+ * Dónde está de verdad cada electiva: lo que se dibuja y lo que cuenta la
+ * fecha leen este mismo mapa, así que no pueden discrepar.
+ *
+ * Donde las casillas de los semestres son toda la exigencia (Sistemas) es lo
+ * que elegiste. En las demás, lo hecho o elegido fuera de una casilla de
+ * semestre la ocupa primero, mientras su grupo tenga una libre (Ambiental
+ * tiene cinco), en orden de semestre; solo lo que sobra va a la franja. Así
+ * una electiva aprobada desde la lista llena su casilla en vez de dejarla
+ * vacía, y elegirla en la franja no suma una pendiente más.
+ */
+fun casillasEfectivas(pensum: Pensum, casillas: Map<String, String>, marcas: Map<String, Marca>): Map<String, String> {
+    if (pensum.electivasEnCasillas) return casillas
+    return adoptarMarcadas(alSemestre(pensum, casillas, marcas), pensum.grupos, marcas)
+}
+
+/** Pasa a las casillas libres de los semestres las electivas de la franja y las marcadas sin casilla, mientras quepan */
+private fun alSemestre(pensum: Pensum, casillas: Map<String, String>, marcas: Map<String, Marca>): Map<String, String> {
+    var resultado = casillas
+    for (g in pensum.grupos) {
+        val libres = pensum.asignaturas
+            .filter { it.esHueco && it.grupo == g.clave && it.codigo !in resultado }
+            .sortedBy { it.semestre ?: 99 }
+            .map { it.codigo }
+        if (libres.isEmpty()) continue
+        val delGrupo = g.asignaturas.mapTo(mutableSetOf()) { it.codigo }
+        val enFranja = resultado.entries.filter { esCasillaLibre(it.key) && it.value in delGrupo }.sortedBy { numeroDe(it.key) }.map { it.value }
+        val sinCasilla = g.asignaturas.filter { marcas[it.codigo] != null && it.codigo !in resultado.values }.map { it.codigo }
+        val mover = (enFranja + sinCasilla).take(libres.size)
+        resultado = resultado.filterValues { it !in mover } + libres.zip(mover)
+    }
+    return resultado
 }

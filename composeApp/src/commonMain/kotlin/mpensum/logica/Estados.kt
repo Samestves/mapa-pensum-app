@@ -35,18 +35,24 @@ fun depurarMarcas(datos: Map<String, String>?, codigosValidos: Set<String>): Map
 
 /**
  * El estado de cada materia. Lo marcado manda; lo demás está disponible si
- * todos sus prerrequisitos están aprobados y bloqueado si no. Sin
- * prerrequisitos nace disponible.
+ * todos sus prerrequisitos están aprobados y, si pide un mínimo de UC
+ * («120 UC aprobadas»), ya las tienes; bloqueado si no. Sin prerrequisitos
+ * nace disponible.
+ *
+ * Las UC mínimas cuentan solo lo aprobado: lo que cursas aún no suma. La fecha
+ * de graduación sí da por hecho lo que cursas al cerrar el período (estimarGraduacion).
  */
-fun estadosDe(todas: List<Asignatura>, marcas: Map<String, Marca>): Map<String, EstadoMateria> =
-    todas.associate { a ->
+fun estadosDe(todas: List<Asignatura>, marcas: Map<String, Marca>): Map<String, EstadoMateria> {
+    val ucAprobadas by lazy { todas.sumOf { if (marcas[it.codigo] == Marca.APROBADA) it.uc ?: 0 else 0 } }
+    return todas.associate { a ->
         val estado = when (marcas[a.codigo]) {
             Marca.APROBADA -> EstadoMateria.APROBADA
             Marca.CURSANDO -> EstadoMateria.CURSANDO
-            null -> if (a.prerrequisitos.all { marcas[it] == Marca.APROBADA }) EstadoMateria.DISPONIBLE else EstadoMateria.BLOQUEADA
+            null -> if (a.prerrequisitos.all { marcas[it] == Marca.APROBADA } && (a.ucMinimas == null || ucAprobadas >= a.ucMinimas)) EstadoMateria.DISPONIBLE else EstadoMateria.BLOQUEADA
         }
         a.codigo to estado
     }
+}
 
 /** Aplica varios cambios de una vez; una marca null desmarca */
 fun conMarcas(marcas: Map<String, Marca>, cambios: Map<String, Marca?>): Map<String, Marca> =

@@ -107,7 +107,7 @@ class GraduacionTest {
         }
         val e = estimarGraduacion(sistemas, marcas, emptyMap(), hoy = hoy)
         assertEquals(FuenteCarga.CURSANDO, e.fuenteCarga)
-        assertEquals(marcas.count { it.value == Marca.CURSANDO }, e.carga)
+        assertEquals(minOf(MAX_CARGA, marcas.count { it.value == Marca.CURSANDO }), e.carga)
         assertPlanValido(sistemas, marcas, e)
     }
 

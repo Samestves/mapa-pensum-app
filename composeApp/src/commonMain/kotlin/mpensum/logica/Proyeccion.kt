@@ -119,6 +119,15 @@ data class Capsula(val uc: Int, val estado: EstadoCapsula)
 
 data class SemestreCapsulas(val numero: Int, val capsulas: List<Capsula>) {
     val completo: Boolean get() = capsulas.all { it.estado == EstadoCapsula.APROBADA }
+
+    /** La cuenta del semestre, para decir por cuál vas con la misma regla que la portada y la lista */
+    val cuenta: CuentaSemestre
+        get() = CuentaSemestre(
+            total = capsulas.size,
+            hechas = capsulas.count { it.estado == EstadoCapsula.APROBADA },
+            cursando = capsulas.count { it.estado == EstadoCapsula.CURSANDO },
+            huecos = 0,
+        )
 }
 
 /**
@@ -144,11 +153,5 @@ fun capsulasDe(pensum: Pensum, marcas: Map<String, Marca>, enCasilla: (String) -
     }
 }
 
-/**
- * El semestre por el que vas: el último donde cursas algo. Sin nada en curso,
- * el primero que no has completado; null si los terminaste todos. Una
- * electiva sin elegir del semestre 2 no te devuelve al 2 si ya cursas el 5.
- */
-fun semestreActual(semestres: List<SemestreCapsulas>): Int? =
-    semestres.lastOrNull { s -> s.capsulas.any { it.estado == EstadoCapsula.CURSANDO } }?.numero
-        ?: semestres.firstOrNull { !it.completo }?.numero
+/** El semestre por el que vas según la barra (ver la regla en `semestreActual` de las cuentas) */
+fun semestreActual(semestres: List<SemestreCapsulas>): Int? = semestreActual(semestres.associate { it.numero to it.cuenta })

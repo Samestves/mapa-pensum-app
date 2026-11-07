@@ -43,6 +43,18 @@ fun marcasDeSemestres(
     return cuentas
 }
 
+/**
+ * El semestre por el que vas, la única definición que usan la portada, la
+ * barra de cápsulas y la lista: el último donde cursas algo. Sin nada en
+ * curso, el primero que no has completado; null si los terminaste todos. Una
+ * electiva sin elegir del semestre 2 no te devuelve al 2 si ya cursas el 5.
+ */
+fun semestreActual(cuentas: Map<Int, CuentaSemestre>): Int? {
+    val orden = cuentas.toSortedMap()
+    return orden.entries.lastOrNull { it.value.cursando > 0 }?.key
+        ?: orden.entries.firstOrNull { it.value.marca != MarcaSemestre.COMPLETO }?.key
+}
+
 /** Los códigos que cuentan en un semestre: las materias y lo elegido en sus casillas */
 fun materiasDeSemestre(nodos: List<Asignatura>, semestre: Int, enCasilla: (String) -> Asignatura?): List<String> =
     nodos.filter { it.semestre == semestre }.mapNotNull { (if (it.esHueco) enCasilla(it.codigo) else it)?.codigo }

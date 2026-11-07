@@ -109,7 +109,7 @@ internal fun DetalleGraduacion(estado: EstadoCarrera, hoy: Periodo) {
                 planes = planes.map { it.semestresRestantes to it.periodoFinal },
                 alElegir = {
                     elegida = it
-                    estado.elegirCarga(if (it == habitual) null else it)
+                    estado.elegirCarga(it)
                 },
             )
             if (rapida < MAX_CARGA) {

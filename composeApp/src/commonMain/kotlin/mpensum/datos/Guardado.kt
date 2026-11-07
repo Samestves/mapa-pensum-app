@@ -4,6 +4,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
+import mpensum.logica.MAX_CARGA
 import mpensum.logica.Marca
 import mpensum.logica.depurarCasillas
 import mpensum.logica.depurarMarcas
@@ -31,6 +32,9 @@ object Guardado {
 
     fun casillas(pensum: Pensum): Map<String, String> = depurarCasillas(leerMapa(claveCasillas(pensum.slug)), pensum)
 
+    /** Las casillas tal como están guardadas, sin depurar: la portada las lee sin tener el pensum a mano */
+    fun casillasCrudas(slug: String): Map<String, String>? = leerMapa(claveCasillas(slug))
+
     fun guardarCasillas(slug: String, casillas: Map<String, String>) = guardarMapa(claveCasillas(slug), casillas)
 
     /*
@@ -41,13 +45,10 @@ object Guardado {
      */
     private fun claveCarga(slug: String) = "mapa-pensum:carga:$slug"
 
-    /** Lo que deja elegir el mando: con cero no te graduarías, y nadie inscribe más de nueve */
-    val LIMITES_CARGA = 1..9
-
     fun carga(slug: String): Int? {
         val mapa = leerMapa(claveCarga(slug)) ?: return null
         if (mapa["unidad"] != "materias") return null
-        return mapa["valor"]?.toIntOrNull()?.coerceIn(LIMITES_CARGA)
+        return mapa["valor"]?.toIntOrNull()?.coerceIn(1, MAX_CARGA)
     }
 
     fun guardarCarga(slug: String, carga: Int?) {

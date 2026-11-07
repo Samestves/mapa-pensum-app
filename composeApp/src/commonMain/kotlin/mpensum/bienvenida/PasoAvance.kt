@@ -134,7 +134,7 @@ private fun avanceDeDemostracion(pensum: Pensum): AvanceDemo {
     val resumen = resumenParaPortada(pensum, marcas)
     val silueta = pensum.semestres.map { it.cantidad }
     // Los semestres hechos son los que la portada da por terminados: los anteriores al que vas
-    val hechos = (resumen.semestreActual(silueta) ?: (silueta.size + 1)) - 1
+    val hechos = (resumen.semestreActual ?: (silueta.size + 1)) - 1
     val ucPorSemestre = (1..hechos).map { s ->
         obligatorias.filter { it.semestre == s && marcas[it.codigo] == Marca.APROBADA.valor }.sumOf { it.uc ?: 0 }
     }

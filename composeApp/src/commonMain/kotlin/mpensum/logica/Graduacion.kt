@@ -146,8 +146,6 @@ private class Pendiente(
     val ucMinimas: Int?,
 )
 
-private val UC_MINIMAS = Regex("""(\d+)\s*UC""")
-
 private fun pendienteDe(a: Asignatura, semestre: Int?, marcaNivel: Boolean) = Pendiente(
     codigo = a.codigo,
     semestre = semestre,
@@ -155,7 +153,7 @@ private fun pendienteDe(a: Asignatura, semestre: Int?, marcaNivel: Boolean) = Pe
     prerrequisitos = a.prerrequisitos,
     marcaNivel = marcaNivel,
     generica = false,
-    ucMinimas = a.requisitoEspecial?.let { UC_MINIMAS.find(it)?.groupValues?.get(1)?.toIntOrNull() },
+    ucMinimas = a.ucMinimas,
 )
 
 /** La mediana, redondeando la mitad hacia arriba; null sin datos */
@@ -165,6 +163,9 @@ private fun mediana(valores: List<Int>): Int? {
     val medio = orden.size / 2
     return if (orden.size % 2 == 1) orden[medio] else redondear((orden[medio - 1] + orden[medio]) / 2.0)
 }
+
+/** Cuántas materias trae un semestre típico del pensum, casillas de electiva incluidas */
+private fun cargaDelPensum(pensum: Pensum): Int = max(1, mediana(pensum.semestres.map { it.cantidad + it.huecos }) ?: 1)
 
 /**
  * Lo que falta para el título. Lo marcado (aprobado o en curso) ya no falta:
@@ -179,9 +180,11 @@ private fun mediana(valores: List<Int>): Int? {
  *     decidiste cursarlas. Sin casillas ni elegidas no se inventa nada.
  *   - Lo hecho ocupa primero las casillas donde lo pusiste, y lo que no tiene
  *     casilla, las más tempranas: así lo genérico cae en los semestres de las
- *     casillas que siguen vacías.
+ *     casillas que siguen vacías. Dónde está cada electiva lo dice
+ *     `casillasEfectivas`, el mismo mapa con el que se dibuja el mapa.
  */
-private fun pendientesDe(pensum: Pensum, marcas: Map<String, Marca>, casillas: Map<String, String>): List<Pendiente> {
+private fun pendientesDe(pensum: Pensum, marcas: Map<String, Marca>, elegidasEnCasillas: Map<String, String>): List<Pendiente> {
+    val casillas = casillasEfectivas(pensum, elegidasEnCasillas, marcas)
     val hecha = { codigo: String -> marcas[codigo] != null }
     val pendientes = pensum.obligatorias.filter { !hecha(it.codigo) }.map { pendienteDe(it, it.semestre, marcaNivel = it.semestre != null) }.toMutableList()
     val semestreDeCasilla = pensum.asignaturas.filter { it.esHueco }.associate { it.codigo to it.semestre }
@@ -197,7 +200,7 @@ private fun pendientesDe(pensum: Pensum, marcas: Map<String, Marca>, casillas: M
             .filter { it.esHueco && it.grupo == g.clave && it.codigo !in puestas }
             .sortedBy { it.semestre ?: 99 }
             .drop(hechasSinCasilla)
-        val ucTipica = max(1, mediana(g.asignaturas.mapNotNull { it.uc }) ?: 1)
+        val ucTipica = ucTipicaDe(g)
         var genericas = 0
         fun generica() = Pendiente(
             codigo = vacias.getOrNull(genericas)?.codigo ?: "${g.clave}#${genericas + 1}",
@@ -230,8 +233,13 @@ private fun pendientesDe(pensum: Pensum, marcas: Map<String, Marca>, casillas: M
 /**
  * Cuántas materias metes por período cuando no eliges: lo más alto entre las
  * que cursas y tu ritmo. El ritmo es lo aprobado entre los semestres que ya
- * recorriste (hasta el más alto donde aprobaste algo) y, sin aprobadas, la
- * mediana de un semestre del pensum, casillas de electiva incluidas.
+ * recorriste (hasta el más alto donde aprobaste algo).
+ *
+ * Si lo aprobado es escaso para esos semestres (menos de la mitad de lo que
+ * trae uno típico: quien marca solo lo que recuerda, o convalidó una materia
+ * de quinto), no es un ritmo, es que falta marcar. Entonces va la carga del
+ * pensum, la misma que sin aprobadas: dividir daba un ritmo de 1 y una
+ * graduación a los 25 años.
  *
  * No basta con lo que cursas: quien marca solo dos en curso casi nunca mete
  * dos, es que no las ha marcado todas, y la cuenta le daba 17 semestres. Y
@@ -243,8 +251,9 @@ private fun cargaHabitual(pensum: Pensum, marcas: Map<String, Marca>): Pair<Int,
     val cursando = todas.count { marcas[it.codigo] == Marca.CURSANDO }
     val aprobadas = todas.count { marcas[it.codigo] == Marca.APROBADA }
     val recorridos = pensum.obligatorias.filter { marcas[it.codigo] == Marca.APROBADA }.mapNotNull { it.semestre }.maxOrNull()
-    val ritmo = if (aprobadas > 0 && recorridos != null) max(1, redondear(aprobadas.toDouble() / recorridos)) to FuenteCarga.RITMO
-    else max(1, mediana(pensum.semestres.map { it.cantidad + it.huecos }) ?: 1) to FuenteCarga.PENSUM
+    val delPensum = cargaDelPensum(pensum)
+    val porSemestre = if (aprobadas > 0 && recorridos != null) aprobadas.toDouble() / recorridos else null
+    val ritmo = if (porSemestre != null && porSemestre >= delPensum / 2.0) max(1, redondear(porSemestre)) to FuenteCarga.RITMO else delPensum to FuenteCarga.PENSUM
     return if (cursando >= ritmo.first) cursando to FuenteCarga.CURSANDO else ritmo
 }
 
@@ -278,7 +287,9 @@ fun estimarGraduacion(
     hoy: Periodo = Periodo.actual(),
     noAntesDe: Map<String, Int> = emptyMap(),
 ): EstimacionGraduacion {
-    val (cargaUsada, fuente) = if (carga != null) max(1, carga) to FuenteCarga.ELEGIDA else cargaHabitual(pensum, marcas)
+    val (pedida, fuente) = if (carga != null) carga to FuenteCarga.ELEGIDA else cargaHabitual(pensum, marcas)
+    // Un solo tope para todo: lo que ves en el mando es lo que se cuenta
+    val cargaUsada = pedida.coerceIn(1, MAX_CARGA)
     val todas = pensum.todas
     val cursaAhora = todas.any { marcas[it.codigo] == Marca.CURSANDO }
     val pendientes = pendientesDe(pensum, marcas, casillas)
