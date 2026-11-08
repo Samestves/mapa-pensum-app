@@ -1,5 +1,13 @@
 package mpensum.carrera
 
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.core.updateTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.ContentTransform
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -63,6 +71,7 @@ import mpensum.logica.enDoceHoras
 import mpensum.logica.materiasParaElegir
 import mpensum.logica.tramoCorto
 import mpensum.tema.Espacio
+import mpensum.tema.Movimiento
 import mpensum.tema.Paleta
 
 /*
@@ -88,6 +97,9 @@ fun BoxScope.HojasHorario(horario: EstadoHorario, cristal: HazeState?) {
     val l = letrasHorario()
     val apaisado = esApaisado()
     val fija = apaisado && hoja == HojaHorario.Confirmar
+    // Cabecera y cuerpo cambian de página con un solo reloj; editar una clase no cuenta como página nueva
+    val transicion = updateTransition(hoja, label = "hoja-horario")
+    val empuje: AnimatedContentTransitionScope<HojaHorario?>.() -> ContentTransform = { fundidoDeHoja() }
     // Cerrar la revisión sin guardar descarta la lectura: la semana provisional no se puede dejar a medias
     val cerrar = { if (horario.hoja == HojaHorario.Confirmar) horario.cancelarLectura() else horario.hoja = null }
 
@@ -98,46 +110,77 @@ fun BoxScope.HojasHorario(horario: EstadoHorario, cristal: HazeState?) {
         // Acostado, la revisión es más ancha y es su lista la que desplaza: el botón queda fijo abajo
         desplazable = !fija,
         cabecera = {
-            val (etiqueta, titulo, punto) = when (hoja) {
-                is HojaHorario.Detalle -> {
-                    val s = sesionVista(horario, hoja.id)
-                    Triple(s?.let { etiquetaDetalle(horario, it) }.orEmpty(), s?.let { horario.nombre(it.codigo) }.orEmpty(), s?.let { horario.color(it.codigo) })
+            transicion.AnimatedContent(transitionSpec = empuje, contentKey = ::clasePagina, contentAlignment = Alignment.TopStart) { h ->
+                val (etiqueta, titulo, punto) = when (h) {
+                    is HojaHorario.Detalle -> {
+                        val s = sesionVista(horario, h.id)
+                        Triple(s?.let { etiquetaDetalle(horario, it) }.orEmpty(), s?.let { horario.nombre(it.codigo) }.orEmpty(), s?.let { horario.color(it.codigo) })
+                    }
+                    is HojaHorario.Editar -> Triple(
+                        if (h.borrador.id == null) "NUEVA CLASE" else "EDITAR CLASE",
+                        h.borrador.codigo?.let(horario::nombre) ?: "¿Qué materia?",
+                        null,
+                    )
+                    HojaHorario.Menu -> Triple("TU HORARIO", "${clases(horario.sesiones.size)} a la semana", null)
+                    HojaHorario.Borrar -> Triple("TU HORARIO", "¿Borrar todo el horario?", null)
+                    // Solo el título: leído de una captura y antes de guardar es lo que ya está pasando
+                    HojaHorario.Confirmar -> Triple("", "Revisa y guarda", null)
+                    null -> Triple("", "", null)
                 }
-                is HojaHorario.Editar -> Triple(
-                    if (hoja.borrador.id == null) "NUEVA CLASE" else "EDITAR CLASE",
-                    hoja.borrador.codigo?.let(horario::nombre) ?: "¿Qué materia?",
-                    null,
-                )
-                HojaHorario.Menu -> Triple("TU HORARIO", "${clases(horario.sesiones.size)} a la semana", null)
-                HojaHorario.Borrar -> Triple("TU HORARIO", "¿Borrar todo el horario?", null)
-                // Solo el título: leído de una captura y antes de guardar es lo que ya está pasando
-                HojaHorario.Confirmar -> Triple("", "Revisa y guarda", null)
-                null -> Triple("", "", null)
-            }
-            // «Quedan 40 min» es un dato: va en nota, junto al rótulo «EN CURSO»
-            val quedan = (hoja as? HojaHorario.Detalle)?.let { sesionVista(horario, it.id) }?.takeIf { horario.enCurso(it) }
-                ?.let { "Quedan ${duracion(it.fin - horario.ahora.minuto)}" }
-            Column(Modifier.fillMaxWidth().padding(start = Espacio.xl, end = Espacio.xl, top = Espacio.xs)) {
-                if (etiqueta.isNotEmpty()) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Espacio.xs)) {
-                    if (punto != null) Box(Modifier.size(6.dp).clip(CircleShape).drawBehind { drawRect(punto) })
-                    BasicText(etiqueta, style = l.etiqueta)
-                    if (quedan != null) BasicText(quedan, style = l.texto)
+                // «Quedan 40 min» es un dato: va en nota, junto al rótulo «EN CURSO»
+                val quedan = (h as? HojaHorario.Detalle)?.let { sesionVista(horario, it.id) }?.takeIf { horario.enCurso(it) }
+                    ?.let { "Quedan ${duracion(it.fin - horario.ahora.minuto)}" }
+                Column(Modifier.fillMaxWidth().padding(start = Espacio.xl, end = Espacio.xl, top = Espacio.xs)) {
+                    if (etiqueta.isNotEmpty()) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Espacio.xs)) {
+                        if (punto != null) Box(Modifier.size(6.dp).clip(CircleShape).drawBehind { drawRect(punto) })
+                        BasicText(etiqueta, style = l.etiqueta)
+                        if (quedan != null) BasicText(quedan, style = l.texto)
+                    }
+                    BasicText(titulo, Modifier.padding(top = if (etiqueta.isNotEmpty()) Espacio.xxs else 0.dp), style = l.tituloHoja)
                 }
-                BasicText(titulo, Modifier.padding(top = if (etiqueta.isNotEmpty()) Espacio.xxs else 0.dp), style = l.tituloHoja)
             }
         },
     ) {
-        Column((if (fija) Modifier.weight(1f, fill = false) else Modifier).padding(start = Espacio.xl, end = Espacio.xl, bottom = Espacio.l)) {
-            when (hoja) {
-                is HojaHorario.Detalle -> sesionVista(horario, hoja.id)?.let { Detalle(horario, it) }
-                is HojaHorario.Editar -> Editar(horario, hoja.borrador)
-                HojaHorario.Menu -> Menu(horario)
-                HojaHorario.Borrar -> Borrar(horario)
-                HojaHorario.Confirmar -> Confirmar(horario)
-                null -> Unit
+        // El peso va en el contenedor: fija, la lista de la revisión desplaza y el botón queda abajo
+        transicion.AnimatedContent(
+            modifier = if (fija) Modifier.weight(1f, fill = false) else Modifier,
+            transitionSpec = empuje,
+            contentKey = ::clasePagina,
+            contentAlignment = Alignment.TopStart,
+        ) { h ->
+            Column(Modifier.padding(start = Espacio.xl, end = Espacio.xl, bottom = Espacio.l)) {
+                when (h) {
+                    is HojaHorario.Detalle -> sesionVista(horario, h.id)?.let { Detalle(horario, it) }
+                    is HojaHorario.Editar -> Editar(horario, h.borrador)
+                    HojaHorario.Menu -> Menu(horario)
+                    HojaHorario.Borrar -> Borrar(horario)
+                    HojaHorario.Confirmar -> Confirmar(horario)
+                    null -> Unit
+                }
             }
         }
     }
+}
+
+/** Qué página es: la misma mientras el borrador o la clase cambian por dentro, para que editar no la anime */
+private fun clasePagina(h: HojaHorario?): Any = when (h) {
+    is HojaHorario.Detalle -> "detalle"
+    is HojaHorario.Editar -> "editar"
+    HojaHorario.Menu -> "menu"
+    HojaHorario.Borrar -> "borrar"
+    HojaHorario.Confirmar -> "confirmar"
+    null -> "ninguna"
+}
+
+/** Patrón B: sale una hoja y entra la otra, sin desplazamiento (es el mismo sitio), y el alto se anima una sola vez */
+private fun fundidoDeHoja(): ContentTransform {
+    val alto = SizeTransform(clip = true) { _, _ -> Movimiento.ALTO }
+    if (Movimiento.reducido) return ContentTransform(fadeIn(tween(Movimiento.CORTA)), fadeOut(tween(Movimiento.CORTA)), sizeTransform = alto)
+    return ContentTransform(
+        fadeIn(tween(Movimiento.CORTA, Movimiento.SALIDA_RAPIDA, Movimiento.ENTRA)),
+        fadeOut(tween(Movimiento.SALIDA_RAPIDA, easing = Movimiento.SALE)),
+        sizeTransform = alto,
+    )
 }
 
 /** La clase de la hoja de detalle; si se acaba de quitar, la que se vio por última vez, para que baje entera */

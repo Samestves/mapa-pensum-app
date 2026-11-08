@@ -7,6 +7,10 @@ import androidx.compose.runtime.Stable
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.referentialEqualityPolicy
 import androidx.compose.runtime.remember
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
@@ -135,6 +139,9 @@ class EstadoCarrera(
     /** Las simulaciones con veto que comparten «Tu próximo semestre» y «No puedes atrasar» */
     val simulador: Simulador by derivedStateOf { Simulador(pensum, marcas, casillas, carga, hoy, planes, graduacion) }
 
+    /** Las respuestas de la ficha ya calculadas para el simulador de ahora */
+    internal val respuestas: RespuestasFicha by derivedStateOf { RespuestasFicha(this) }
+
     /** Dónde está cada electiva: la misma cuenta que usa la fecha (casillasEfectivas) */
     private val elegidas by derivedStateOf { casillasEfectivas(pensum, casillas, marcas) }
 
@@ -232,6 +239,29 @@ private const val PAUSA_PRECALENTADO_MS = 600L
 private fun layoutDe(pensum: Pensum, compacto: Boolean, rectos: Boolean): LayoutMapa =
     calcularLayout(pensum.asignaturas, pensum.grupos, if (compacto) ALTO_ENCABEZADO_COMPACTO else ALTO_ENCABEZADO, rectos)
 
+/**
+ * El pensum y su geometría de cada carrera, calculados una sola vez por proceso. La portada los pide al
+ * pintarse (`precargarCarrera`) y así, cuando empieza el zoom hacia la carrera, el mapa ya está listo
+ * y nace dentro del zoom en vez de llegar a mitad. Se toca solo desde el hilo principal.
+ */
+private object PrecargaCarreras {
+    private val alcance = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    private val pedidas = mutableMapOf<Triple<String, Boolean, Boolean>, Deferred<CarreraLista>>()
+
+    fun pedir(slug: String, compacto: Boolean, rectos: Boolean): Deferred<CarreraLista> =
+        pedidas.getOrPut(Triple(slug, compacto, rectos)) {
+            alcance.async {
+                val pensum = leerPensumDelPaquete(slug)
+                CarreraLista(pensum, layoutDe(pensum, compacto, rectos), compacto, rectos)
+            }
+        }
+}
+
+/** Empieza a preparar una carrera en segundo plano: la portada lo pide para la que probablemente se abra */
+fun precargarCarrera(slug: String, horizontal: Boolean) {
+    PrecargaCarreras.pedir(slug, horizontal, Tema.rectos)
+}
+
 /** Lo que llega junto de fuera del hilo principal: el pensum y su geometría */
 private class CarreraLista(val pensum: Pensum, val layout: LayoutMapa, val compacto: Boolean, val rectos: Boolean)
 
@@ -242,14 +272,7 @@ private class CarreraLista(val pensum: Pensum, val layout: LayoutMapa, val compa
  */
 @Composable
 fun rememberEstadoCarrera(slug: String, horizontal: Boolean): EstadoCarrera? {
-    val lista = produceState<CarreraLista?>(null, slug) {
-        val compacto = horizontal
-        val rectos = Tema.rectos
-        value = withContext(Dispatchers.Default) {
-            val pensum = leerPensumDelPaquete(slug)
-            CarreraLista(pensum, layoutDe(pensum, compacto, rectos), compacto, rectos)
-        }
-    }.value
+    val lista = produceState<CarreraLista?>(null, slug) { value = PrecargaCarreras.pedir(slug, horizontal, Tema.rectos).await() }.value
     val estado = remember(lista) {
         lista?.let { EstadoCarrera(it.pensum, compacto = horizontal, layoutInicial = it.layout, compactoInicial = it.compacto, rectosInicial = it.rectos) }
     }

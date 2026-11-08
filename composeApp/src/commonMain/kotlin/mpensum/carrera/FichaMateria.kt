@@ -1,10 +1,18 @@
 package mpensum.carrera
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
+import androidx.compose.animation.core.updateTransition
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -19,8 +27,10 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import mpensum.componentes.margenPantalla
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withTimeoutOrNull
 import mpensum.componentes.ventana
 import mpensum.logica.Marca
+import mpensum.logica.Situacion
 import mpensum.tema.Espacio
 
 /*
@@ -34,6 +44,9 @@ import mpensum.tema.Espacio
 /** Hasta dónde crece la hoja de pie: el resto se desplaza dentro */
 private const val TOPE_FICHA = 0.6f
 
+/** El asa de la hoja sin velo: 8 arriba, 4 de alto y 8 abajo */
+private val ASA_FICHA = 20.dp
+
 @Composable
 fun BoxScope.FichaMateria(
     codigo: String?,
@@ -45,32 +58,47 @@ fun BoxScope.FichaMateria(
     /** Una vez por materia, con el alto de la hoja ya medido: de ahí sale dónde queda la tarjeta en el mapa */
     alEncuadrar: (String, Dp) -> Unit,
 ) {
-    // La última que se enseñó sigue pintándose mientras la hoja baja
-    var ultima by remember { mutableStateOf(codigo) }
-    if (codigo != null) ultima = codigo
-    val actual = ultima ?: return
-    var alto by remember { mutableStateOf(0.dp) }
-    // Espera un cuadro: con otra materia el alto viejo aún vale hasta que se mide el nuevo
+    val acostado = ventana().apaisado
+    val densidad = LocalDensity.current
+    val topePx = with(densidad) { (ventana().alto * TOPE_FICHA).toPx() }
+    val medidas = remember { MedidasFicha() }
+    // Lo que la hoja suma a sus dos contenidos: el asa (8 + 4 + 8) y la barra de gestos de abajo
+    val restoPx = with(densidad) { (ASA_FICHA + WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()).roundToPx() }
+    // Lo que se enseña va un paso por detrás de lo que se pide: al cambiar de materia se espera (150 ms como mucho)
+    // a que su respuesta esté calculada, y así la hoja entra con el contenido final y su alto se anima una sola vez
+    var actual by remember { mutableStateOf(codigo) }
     LaunchedEffect(codigo) {
         if (codigo == null) return@LaunchedEffect
-        withFrameNanos { }
-        alEncuadrar(codigo, snapshotFlow { alto }.first { it > 0.dp })
+        val situacion = estado.situaciones[codigo]
+        if (actual != null && actual != codigo && situacion != null && situacion != Situacion.HECHA) {
+            withTimeoutOrNull(150) { estado.respuestas.calcular(codigo, situacion) }
+        }
+        medidas.olvidar(codigo)
+        actual = codigo
     }
-    val acostado = ventana().apaisado
+    // Una vez por materia, con el alto al que va la hoja (no al que tiene ahora): la cámara y la hoja se mueven hacia el mismo sitio
+    LaunchedEffect(codigo, actual) {
+        if (codigo == null || actual != codigo) return@LaunchedEffect
+        withFrameNanos { }
+        val destino = snapshotFlow { medidas.destino(codigo, topePx, restoPx, acostado) }.first { it != null }!!
+        alEncuadrar(codigo, with(densidad) { destino.toDp() })
+    }
+    val vista = actual ?: return
+    val transicion = updateTransition(vista, label = "materia")
 
     HojaInferior(
         abierta = codigo != null,
         alCerrar = alCerrar,
         modal = false,
         tope = TOPE_FICHA,
-        alMedir = { alto = it },
+        alMedir = { medidas.hoja = with(densidad) { it.roundToPx() } },
         cabecera = {
-            FundidoDeMateria(actual) { c ->
+            transicion.FundidoDeMateria(alMedir = { c, h -> medidas.cabeceras[c] = h }) { c ->
                 encabezadoDe(c, estado)?.let { CabeceraFicha(it, alCerrar, alCambiarElectiva) }
             }
         },
     ) {
-        FundidoDeMateria(actual) { c ->
+        transicion.FundidoDeMateria(alMedir = { c, h -> medidas.cuerpos[c] = h }) { c ->
             val enc = encabezadoDe(c, estado)
             val vacia = if (enc?.estado == EstadoFicha.POR_ELEGIR) casillaElegida(estado, c) else null
             when {
@@ -84,6 +112,31 @@ fun BoxScope.FichaMateria(
                 else -> CuerpoDePie(c, estado, alMarcar, alIrA)
             }
         }
+    }
+}
+
+/**
+ * Lo medido de la hoja de la ficha, en px. El alto de destino de un cambio de
+ * materia es lo que miden la cabecera y el cuerpo de la materia nueva más lo
+ * que la hoja pone aparte (`resto`), sin pasar del tope de la hoja.
+ */
+private class MedidasFicha {
+    var hoja by mutableIntStateOf(0)
+    val cabeceras = mutableStateMapOf<String, Int>()
+    val cuerpos = mutableStateMapOf<String, Int>()
+    fun olvidar(codigo: String) {
+        cabeceras.remove(codigo)
+        cuerpos.remove(codigo)
+    }
+
+    /** Null mientras falte alguna medida */
+    fun destino(codigo: String, tope: Float, resto: Int, acostado: Boolean): Int? {
+        if (hoja <= 0) return null
+        // Acostada la hoja ocupa la pantalla y no se anima su alto: vale el que tiene
+        if (acostado) return hoja
+        val cabecera = cabeceras[codigo] ?: return null
+        val cuerpo = cuerpos[codigo] ?: return null
+        return minOf(cabecera + cuerpo + resto, tope.toInt())
     }
 }
 

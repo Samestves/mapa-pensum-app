@@ -1,11 +1,18 @@
 package mpensum.carrera
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.ContentTransform
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.core.Transition
+import androidx.compose.animation.core.updateTransition
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -70,6 +77,8 @@ import mpensum.logica.Situacion
 import mpensum.logica.fechaSiRepruebas
 import mpensum.logica.seAbrenAlAprobar
 import mpensum.mapa.nombreCasilla
+import mpensum.logica.Simulador
+import mpensum.tema.Movimiento
 import mpensum.tema.Espacio
 import mpensum.tema.Paleta
 import mpensum.tema.Radio
@@ -85,7 +94,10 @@ import mpensum.tema.plex
  */
 
 /** Lo que cambia de una materia a otra se funde en 150 ms, sin cambiar el alto de golpe a media animación */
-private const val FUNDIDO_MS = 150
+/** Sale la vieja (100 ms) y después entra la nueva (150 ms): nunca dos textos encimados */
+private fun fundidoEnSerie(): ContentTransform =
+    if (Movimiento.reducido) fadeIn(tween(Movimiento.CORTA)) togetherWith fadeOut(tween(Movimiento.CORTA))
+    else fadeIn(tween(Movimiento.CORTA, Movimiento.SALIDA_RAPIDA, Movimiento.ENTRA)) togetherWith fadeOut(tween(Movimiento.SALIDA_RAPIDA, easing = Movimiento.SALE))
 
 /** La fila de la respuesta reserva este alto desde el primer cuadro: la hoja no crece cuando llega el cálculo */
 private val ALTO_RESPUESTA = 64.dp
@@ -168,15 +180,26 @@ internal fun encabezadoDe(codigo: String, estado: EstadoCarrera): EncabezadoFich
     return EncabezadoFicha(rotulo, materia.codigo, materia.nombre, datos, estadoFichaDe(estado.situaciones[codigo] ?: Situacion.LEJANA), casilla)
 }
 
-/** El fundido de 150 ms al cambiar de materia: el alto cambia de golpe, no a media animación */
+/**
+ * El cambio de materia (patrón B): la que sale se funde rápido, después entra la
+ * nueva, y el alto se anima una sola vez hacia el de la nueva con el resorte de
+ * las hojas. Nunca se leen las dos a la vez. `alMedir` recibe el alto de cada
+ * contenido ya medido: de ahí sale el alto de destino que usa la cámara.
+ */
+@Composable
+internal fun Transition<String>.FundidoDeMateria(modifier: Modifier = Modifier, alMedir: (String, Int) -> Unit = { _, _ -> }, contenido: @Composable (String) -> Unit) {
+    AnimatedContent(
+        modifier = modifier,
+        transitionSpec = {
+            fundidoEnSerie().using(SizeTransform(clip = false) { _, _ -> Movimiento.ALTO })
+        },
+    ) { c -> Box(Modifier.onSizeChanged { alMedir(c, it.height) }) { contenido(c) } }
+}
+
+/** Lo mismo con su propio reloj, para quien no comparte cabecera y cuerpo (la burbuja) */
 @Composable
 internal fun FundidoDeMateria(codigo: String, modifier: Modifier = Modifier, contenido: @Composable (String) -> Unit) {
-    AnimatedContent(
-        targetState = codigo,
-        modifier = modifier,
-        transitionSpec = { (fadeIn(tween(FUNDIDO_MS)) togetherWith fadeOut(tween(FUNDIDO_MS))).using(null) },
-        label = "materia",
-    ) { contenido(it) }
+    updateTransition(codigo, label = "materia").FundidoDeMateria(modifier, contenido = contenido)
 }
 
 // ─────────────────────────────────── Cabecera ──────────────────────────────────
@@ -240,7 +263,7 @@ internal fun CabeceraFicha(enc: EncabezadoFicha, alCerrar: () -> Unit, alCambiar
 private fun FundidoDeEstado(e: EstadoFicha) {
     AnimatedContent(
         targetState = e,
-        transitionSpec = { (fadeIn(tween(FUNDIDO_MS)) togetherWith fadeOut(tween(FUNDIDO_MS))).using(null) },
+        transitionSpec = { fundidoEnSerie().using(null) },
         label = "pildora",
     ) { PildoraEstado(it) }
 }
@@ -292,18 +315,17 @@ internal fun IconoSituacion(s: Situacion, lado: Dp) {
 // ─────────────────────────────────── Respuesta ──────────────────────────────────
 
 /** Una nota con una fecha en medio de ella: «Si la atrasas, te gradúas en **Jun 2030**»; en rojo si la fecha es mala noticia */
-private class NotaRespuesta(val antes: String, val fecha: String? = null, val alerta: Boolean = false)
+internal class NotaRespuesta(val antes: String, val fecha: String? = null, val alerta: Boolean = false)
 
 /** Lo que responde la fila: su pastilla, la frase y la nota; `para` dice a qué estado de la materia pertenece */
-private class Respuesta(val para: Situacion, val icono: List<Path>, val azul: Boolean, val titulo: String, val nota: NotaRespuesta?)
+internal class Respuesta(val para: Situacion, val icono: List<Path>, val azul: Boolean, val titulo: String, val nota: NotaRespuesta?)
 
 
 /**
  * Lo que cuesta la fila: hasta 8 simulaciones la primera vez, y una más por cada materia. Va fuera del hilo
  * principal. Null si la materia no está en tu plan (una electiva que no cuenta) o ya está aprobada.
  */
-private fun respuestaDe(codigo: String, s: Situacion, estado: EstadoCarrera): Respuesta? {
-    val sim = estado.simulador
+private fun respuestaDe(codigo: String, s: Situacion, sim: Simulador): Respuesta? {
     val g = sim.base
     return when (s) {
         Situacion.HECHA -> null
@@ -334,24 +356,51 @@ private fun NotaRespuesta.texto(): AnnotatedString = buildAnnotatedString {
     if (fecha != null) withStyle(SpanStyle(color = if (alerta) Paleta.rojo else Paleta.tinta, fontWeight = FontWeight.Medium)) { append(fecha) }
 }
 
+/** Lo que se sabe de la respuesta de una materia: solo `Calculando` reserva sitio; `SinRespuesta` es que no hay nada que decir */
+internal sealed interface EstadoRespuesta {
+    data object Calculando : EstadoRespuesta
+    data object SinRespuesta : EstadoRespuesta
+    class Lista(val respuesta: Respuesta) : EstadoRespuesta
+}
+
+/**
+ * Las respuestas ya calculadas de las materias, para el simulador de ahora (si
+ * cambian las marcas, `EstadoCarrera.respuestas` crea otro). Se calculan fuera
+ * del hilo principal y la ficha las pide antes de cambiar de materia: así la
+ * tarjeta entra con su texto puesto y no se funde dos veces.
+ */
+internal class RespuestasFicha(estado: EstadoCarrera) {
+    private val sim = estado.simulador
+    private val calculadas = mutableStateMapOf<Pair<String, Situacion>, EstadoRespuesta>()
+
+    fun de(codigo: String, s: Situacion): EstadoRespuesta = calculadas[codigo to s] ?: EstadoRespuesta.Calculando
+
+    suspend fun calcular(codigo: String, s: Situacion) {
+        val clave = codigo to s
+        if (clave in calculadas) return
+        val r = withContext(Dispatchers.Default) { respuestaDe(codigo, s, sim) }
+        calculadas[clave] = r?.let { EstadoRespuesta.Lista(it) } ?: EstadoRespuesta.SinRespuesta
+    }
+}
+
 /**
  * «¿Puede esperar?»: una sola fila, la que importa para tu fecha. La tarjeta
- * reserva sus 64 dp desde el primer cuadro y el texto entra con un fundido
- * cuando llega el cálculo; una aprobada no tiene fila (no hay nada que decidir).
+ * reserva sus 64 dp solo mientras se calcula y el texto entra con un fundido;
+ * una aprobada o una materia fuera del plan no tienen fila (no hay nada que decidir).
  */
 @Composable
 internal fun RespuestaFicha(codigo: String, estado: EstadoCarrera, modifier: Modifier = Modifier) {
     val situacion = estado.situaciones[codigo] ?: return
     if (situacion == Situacion.HECHA) return
-    val marcas = estado.marcas
-    val calculada by produceState<Respuesta?>(null, codigo, situacion, marcas, estado.casillas, estado.carga, estado.hoy) {
-        value = withContext(Dispatchers.Default) { respuestaDe(codigo, situacion, estado) }
-    }
-    val lista = calculada?.takeIf { it.para == situacion }
-    // Mientras llega la siguiente respuesta se sigue pintando la anterior, que se apaga: sin parpadeo ni salto
-    var mostrada by remember { mutableStateOf<Respuesta?>(null) }
-    if (lista != null) mostrada = lista
-    val opacidad = animateFloatAsState(if (lista != null) 1f else 0f, tween(FUNDIDO_MS), label = "respuesta")
+    val respuestas = estado.respuestas
+    LaunchedEffect(respuestas, codigo, situacion) { respuestas.calcular(codigo, situacion) }
+    val actual = respuestas.de(codigo, situacion)
+    if (actual == EstadoRespuesta.SinRespuesta) return
+    // Nace con lo ya calculado: si la ficha lo pidió antes de cambiar de materia, no hay segundo fundido.
+    // Mientras llega la siguiente respuesta (tras marcar) se sigue pintando la anterior, que se apaga
+    var mostrada by remember { mutableStateOf((actual as? EstadoRespuesta.Lista)?.respuesta) }
+    if (actual is EstadoRespuesta.Lista) mostrada = actual.respuesta
+    val opacidad = animateFloatAsState(if (actual is EstadoRespuesta.Lista) 1f else 0f, tween(Movimiento.MEDIA, easing = Movimiento.ESTANDAR), label = "respuesta")
     TarjetaLista(modifier.heightIn(min = ALTO_RESPUESTA)) {
         mostrada?.let { r ->
             Box(Modifier.graphicsLayer { alpha = opacidad.value }) {
@@ -513,7 +562,7 @@ internal fun BotonesMarca(codigo: String, estado: EstadoCarrera, alMarcar: (Stri
     AnimatedContent(
         targetState = botonesDe(marca, bloqueada),
         modifier = modifier.fillMaxWidth(),
-        transitionSpec = { (fadeIn(tween(FUNDIDO_MS)) togetherWith fadeOut(tween(FUNDIDO_MS))).using(null) },
+        transitionSpec = { fundidoEnSerie().using(null) },
         label = "botones",
     ) { modo ->
         val cursando = @Composable { m: Modifier, lleno: Boolean -> BotonTinta("La estoy cursando", { marcar(Marca.CURSANDO) }, m, superficie = !lleno, alto = alto, radio = radio) }

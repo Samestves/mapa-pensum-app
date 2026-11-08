@@ -342,7 +342,7 @@ class CapturaTransicionesTest {
         val asentada = topeHoja()
         File(CARPETA, "ficha-$nombre-cambia.txt").appendText(
             "Encuadre pedido con la hoja de ${encuadre?.let { "%.1f".format(it) }} dp; la hoja asentada mide %.1f dp (tope de la cabecera: de %.1f a %.1f dp)\n"
-                .format(800f - (asentada ?: 0f) + 20f, abierta ?: 0f, asentada ?: 0f),
+                .format(800f - (asentada ?: 0f), abierta ?: 0f, asentada ?: 0f),
         )
     }
 
