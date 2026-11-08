@@ -68,4 +68,10 @@ class CapturaHorizontalAjustesTest {
 
     @Test
     fun personalizar() = capturar(PaginaAjustes.PERSONALIZAR, "2-personalizar")
+
+    @Test
+    fun subpaginaMapa() = capturar(PaginaAjustes.MAPA, "3-mapa")
+
+    @Test
+    fun subpaginaAccesibilidad() = capturar(PaginaAjustes.ACCESIBILIDAD, "4-accesibilidad")
 }

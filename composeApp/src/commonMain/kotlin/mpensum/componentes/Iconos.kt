@@ -116,14 +116,59 @@ object Lucide {
     val listo = listOf(trazo("M20 6 9 17l-5-5"))
     /** Personalizar: tres fichas de color en abanico (swatch-book de Lucide) */
     val muestrario = listOf(trazo("M11 17a4 4 0 0 1-8 0V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2Z"), trazo("M16.7 13H19a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2H7"), trazo("M7 17h.01"), trazo("m11 8 2.3-2.3a2.4 2.4 0 0 1 3.404.004L18.6 7.6a2.4 2.4 0 0 1 .026 3.434L9.9 19.8"))
-    /** Tu carrera: la fachada de columnas (landmark de Lucide). El birrete es del grado */
-    val universidad = listOf(trazo("M10 18v-7"), trazo("M14 18v-7"), trazo("M18 18v-7"), trazo("M6 18v-7"), trazo("M11.12 2.198a2 2 0 0 1 1.76.006l7.866 3.847c.476.233.31.949-.22.949H3.474c-.53 0-.695-.716-.22-.949z"), trazo("M3 22h18"))
+    /** Tu carrera: el escudo con la fachada dentro. El birrete es del grado */
+    val escudo = listOf(trazo("M5 3h14a1 1 0 0 1 1 1v7.5c0 5.2-3.6 8.4-8 10.2-4.4-1.8-8-5-8-10.2V4a1 1 0 0 1 1-1z"), trazo("M8 9.5h8L12 6.5z"), trazo("M9 11.5v4"), trazo("M12 11.5v4"), trazo("M15 11.5v4"), trazo("M8 17.5h8"))
+
+    // Un icono por carrera (docs/personalizar-v2.md §5 y §9), en la rejilla de 24 con trazo 1,5
+    /** Petróleo: el balancín de bombeo (cabeza, viga, caballete y manivela) */
+    val balancin = listOf(trazo("M3 21h18"), trazo("m9 21 3-12.5 3 12.5"), trazo("M6.5 7.5 20 10"), trazo("M6.5 4a4 4 0 0 0 0 7z"), trazo("M4.5 7.5V21"), trazo("m20 10-1.7 5.6"), trazo("M18 15.5a1.5 1.5 0 1 0 0 3a1.5 1.5 0 1 0 0-3z"))
+    /** Sistemas: el monitor con la consola; el </> es de «Código abierto» */
+    val consola = listOf(trazo("M4 3h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"), trazo("M8 21h8"), trazo("M12 17v4"), trazo("m7 7.5 3 2.5-3 2.5"), trazo("M12.5 12.5h4.5"))
+    /** Administración: el organigrama, una caja arriba y tres abajo */
+    val organigrama = listOf(trazo("M10 2h4a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z"), trazo("M12 7v8"), trazo("M5 15v-2a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v2"), trazo("M3.5 15h3a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-3a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1z"), trazo("M10.5 15h3a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-3a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1z"), trazo("M17.5 15h3a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-3a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1z"))
+    /** Agronomía: la espiga (wheat de Lucide) */
+    val espiga = listOf(trazo("M2 22 16 8"), trazo("M3.47 12.53 5 11l1.53 1.53a3.5 3.5 0 0 1 0 4.94L5 19l-1.53-1.53a3.5 3.5 0 0 1 0-4.94Z"), trazo("M7.47 8.53 9 7l1.53 1.53a3.5 3.5 0 0 1 0 4.94L9 15l-1.53-1.53a3.5 3.5 0 0 1 0-4.94Z"), trazo("M11.47 4.53 13 3l1.53 1.53a3.5 3.5 0 0 1 0 4.94L13 11l-1.53-1.53a3.5 3.5 0 0 1 0-4.94Z"), trazo("M20 2h2v2a4 4 0 0 1-4 4h-2V6a4 4 0 0 1 4-4Z"), trazo("M11.47 17.47 13 19l-1.53 1.53a3.5 3.5 0 0 1-4.94 0L5 19l1.53-1.53a3.5 3.5 0 0 1 4.94 0Z"), trazo("M15.47 13.47 17 15l-1.53 1.53a3.5 3.5 0 0 1-4.94 0L9 15l1.53-1.53a3.5 3.5 0 0 1 4.94 0Z"), trazo("M19.47 9.47 21 11l-1.53 1.53a3.5 3.5 0 0 1-4.94 0L13 11l1.53-1.53a3.5 3.5 0 0 1 4.94 0Z"))
+    /** Ambiental: la hoja (leaf de Lucide) */
+    val hoja = listOf(trazo("M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"), trazo("M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"))
+    /** Producción animal: la cabeza de res */
+    val res = listOf(trazo("M8.5 7C6.5 7 5 5.5 5 3.5"), trazo("M15.5 7c2 0 3.5-1.5 3.5-3.5"), trazo("M7 13V8.5A1.5 1.5 0 0 1 8.5 7h7A1.5 1.5 0 0 1 17 8.5V13"), trazo("M7 9.5H4.5c0 1.7 1 2.5 2.5 2.5"), trazo("M17 9.5h2.5c0 1.7-1 2.5-2.5 2.5"), trazo("M10.5 13h3a4 4 0 0 1 0 8h-3a4 4 0 0 1 0-8z"), trazo("M10 17h.01"), trazo("M14 17h.01"), trazo("M9.8 10.2h.01"), trazo("M14.2 10.2h.01"))
+    /** Contaduría: la calculadora (calculator de Lucide) */
+    val calculadora = listOf(trazo("M6 2h12a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"), trazo("M8 6h8"), trazo("M16 14v4"), trazo("M16 10h.01"), trazo("M12 10h.01"), trazo("M8 10h.01"), trazo("M12 14h.01"), trazo("M8 14h.01"), trazo("M12 18h.01"), trazo("M8 18h.01"))
+    /** Alimentos: el matraz (flask-conical de Lucide) */
+    val matraz = listOf(trazo("M14 2v6a2 2 0 0 0 .245.96l5.51 10.08A2 2 0 0 1 18 22H6a2 2 0 0 1-1.755-2.96l5.51-10.08A2 2 0 0 0 10 8V2"), trazo("M6.453 15h11.094"), trazo("M8.5 2h7"))
+    /** Recursos humanos: el apretón de manos (handshake de Lucide) */
+    val apreton = listOf(trazo("m11 17 2 2a1 1 0 1 0 3-3"), trazo("m14 14 2.5 2.5a1 1 0 1 0 3-3l-3.88-3.88a3 3 0 0 0-4.24 0l-.88.88a1 1 0 1 1-3-3l2.81-2.81a5.79 5.79 0 0 1 7.06-.87l.47.28a2 2 0 0 0 1.42.25L21 4"), trazo("m21 3 1 11h-2"), trazo("M3 3 2 14l6.5 6.5a1 1 0 1 0 3-3"), trazo("M3 4h8"))
+
+    /** Inicio y horario (house de Lucide) */
+    val casa = listOf(trazo("M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"), trazo("M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"))
+    /** Accesibilidad (person-standing de Lucide); no es el icono de «personas», que es de sociohumanísticas */
+    val persona = listOf(trazo("M11 5a1 1 0 1 0 2 0a1 1 0 1 0-2 0z"), trazo("m9 20 3-6 3 6"), trazo("m6 8 6 2 6-2"), trazo("M12 10v4"))
+    /** La ranura de día (sun de Lucide) */
+    val sol = listOf(trazo("M8 12a4 4 0 1 0 8 0a4 4 0 1 0-8 0z"), trazo("M12 2v2"), trazo("M12 20v2"), trazo("m4.93 4.93 1.41 1.41"), trazo("m17.66 17.66 1.41 1.41"), trazo("M2 12h2"), trazo("M20 12h2"), trazo("m6.34 17.66-1.41 1.41"), trazo("m19.07 4.93-1.41 1.41"))
+    /** La ranura de noche (moon de Lucide) */
+    val luna = listOf(trazo("M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"))
+    /** El mapa plegado (map de Lucide): la vista de mapa */
+    val mapa3 = listOf(trazo("M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z"), trazo("M15 5.764v15"), trazo("M9 3.236v15"))
     /** calendar-days de Lucide: el calendario con sus seis días */
     val calendarioDias = listOf(
         trazo("M8 2v4"), trazo("M16 2v4"), trazo("M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"), trazo("M3 10h18"),
         trazo("M8 14h.01"), trazo("M12 14h.01"), trazo("M16 14h.01"), trazo("M8 18h.01"), trazo("M12 18h.01"), trazo("M16 18h.01"),
     )
     val calendario = listOf(trazo("M6.5 5h11a3 3 0 0 1 3 3v9a3 3 0 0 1-3 3h-11a3 3 0 0 1-3-3v-9a3 3 0 0 1 3-3z"), trazo("M3.5 10h17"), trazo("M8 3v4"), trazo("M16 3v4"))
+}
+
+/** El icono de la carrera de ese slug; sin slug o con uno desconocido, el escudo de «Tu carrera» */
+fun iconoCarrera(slug: String?): List<Path> = when (slug) {
+    "ingenieria-de-petroleo" -> Lucide.balancin
+    "ingenieria-de-sistemas" -> Lucide.consola
+    "licenciatura-en-administracion" -> Lucide.organigrama
+    "ingenieria-agronomica" -> Lucide.espiga
+    "ingenieria-ambiental" -> Lucide.hoja
+    "ingenieria-en-produccion-animal" -> Lucide.res
+    "licenciatura-en-contaduria-publica" -> Lucide.calculadora
+    "licenciatura-en-tecnologia-de-los-alimentos" -> Lucide.matraz
+    "gerencia-de-recursos-humanos" -> Lucide.apreton
+    else -> Lucide.escudo
 }
 
 /**

@@ -31,7 +31,7 @@ enum class Grosor(val factor: Float) {
 }
 
 /**
- * Los trece juegos de color de la app (los tokens de tokens.py de las
+ * Los doce juegos de color de la app (los tokens de tokens.py de las
  * maquetas). `claro` dice si va sobre papel (las barras del sistema y las
  * ramas [porTema] siguen a él), `aurora` cuánta luz de fondo trae de serie,
  * `fondo` el fondo del mapa que pone al elegirlo y `cables` cuánto color de su
@@ -51,7 +51,6 @@ enum class Juego(
     GRAFITO(false, 0.45f, "Grafito", Fondo.PUNTOS, 0.5f),
     MEDIANOCHE(false, 1.15f, "Medianoche", Fondo.REJILLA, 1f),
     CIRUELA(false, 0.9f, "Ciruela", Fondo.PUNTOS, 0.9f),
-    MORICHAL(false, 0.9f, "Morichal", Fondo.REJILLA, 0.9f),
     CLARO(true, 0.35f, "Claro", Fondo.REJILLA, 1f),
     PAPEL(true, 0f, "Papel", Fondo.PUNTOS, 0.15f),
     NIEBLA(true, 0.45f, "Niebla", Fondo.REJILLA, 0.9f),
@@ -68,7 +67,6 @@ val Juego.pareja: Juego get() = when (this) {
     Juego.GRAFITO -> Juego.ALUMINIO
     Juego.MEDIANOCHE -> Juego.NIEBLA
     Juego.CIRUELA -> Juego.CUARZO
-    Juego.MORICHAL -> Juego.NIEBLA
     Juego.CLARO -> Juego.OSCURO
     Juego.PAPEL -> Juego.GRAFITO
     Juego.NIEBLA -> Juego.MEDIANOCHE
@@ -184,7 +182,6 @@ private val TABLA = arrayOf(
     Tokens("27292C 303236 36393D 494C52 F1F2F4 CDD0D5 A9AEB5 8B9098 86A9FA B8CCFF 52D197 A8E7CB F47E76 C9D2DE 7FA5FF 3A3D42 34373B 121315"), // Grafito
     Tokens("0A1020 10192D 151F37 24304B E9EEF8 B4BFD3 8794AE 5F6C88 7DA4FF AEC6FF 3FCF8E A0E4C6 F26A63 3A78FF 8C6BFF 141E36 121B30 02050C"), // Medianoche
     Tokens("100D15 17131E 1C1825 2D2738 EFEBF4 BEB6CA 9088A1 6B6380 6F96FF A6BEFF 37C886 9DE2C2 EE5F58 A57BFF F27BB5 2A2433 1A1622 040206"), // Ciruela
-    Tokens("06110F 0C1917 10201E 1E3330 E5F0EE ADC2BE 7D9691 556B67 6C95FF A4BEFF 35CC85 9BE3C1 EE5E57 2BD0BC 3FA8F2 102320 0F1C1A 010605"), // Morichal
     Tokens("F3F4F6 FFFFFF F7F8F9 DADDE1 171A20 393C42 5B5F66 72767D 3A66DC 2F57C9 0F8A5F 0B7350 CC1F24 2751CC 0A9781 E3E5E8 FFFFFF 171A20"), // Claro
     Tokens("EEEFEF F8F9F9 F2F3F3 D3D6D9 141A2A 343B4D 515A6B 6A7282 2F5DC4 284FA8 1C7A4F 166541 B3302A 2F5DC4 6A7282 C3C8CF F8F9F9 141A2A"), // Papel
     Tokens("E6EBF1 F5F7FA EDF1F5 CED6E0 0E1626 323F58 4C5973 66728B 2E5ED0 254FB4 0E7F57 0A6B49 C0242A 3B6EE0 7FA6FF D3DBE5 F5F7FA 0E1626"), // Niebla
@@ -201,7 +198,6 @@ private val TABLA_CONTRASTE = arrayOf(
     Tokens("27292C 303236 36393D 7E8085 F9FAFB E3E5E8 C9CCD1 ACB0B6 86A9FA B8CCFF 52D197 A8E7CB F47E76 C9D2DE 7FA5FF 45484D 34373B 121315"), // Grafito
     Tokens("0A1020 10192D 151F37 636C80 F6F8FC D5DCE8 B3BCCD 8C96AB 7DA4FF AEC6FF 3FCF8E A0E4C6 F26A63 3A78FF 8C6BFF 222B42 121B30 02050C"), // Medianoche
     Tokens("100D15 17131E 1C1825 6A6572 F9F7FB DCD6E2 BAB4C5 968FA5 6F96FF A6BEFF 37C886 9DE2C2 EE5F58 A57BFF F27BB5 36313F 1A1622 040206"), // Ciruela
-    Tokens("06110F 0C1917 10201E 5E6E6C F5F9F8 D1DEDB ADBEBA 859692 6C95FF A4BEFF 35CC85 9BE3C1 EE5E57 2BD0BC 3FA8F2 1E302D 0F1C1A 010605"), // Morichal
     Tokens("F3F4F6 FFFFFF F7F8F9 9B9EA1 090A0D 212328 3A3D42 52565B 3A66DC 2F57C9 0F8A5F 0B7350 CC1F24 2751CC 0A9781 D6D8DB FFFFFF 171A20"), // Claro
     Tokens("EEEFEF F8F9F9 F2F3F3 96999D 080A11 1E222F 343A47 4D5360 2F5DC4 284FA8 1C7A4F 166541 B3302A 2F5DC4 6A7282 B8BDC4 F8F9F9 141A2A"), // Papel
     Tokens("E6EBF1 F5F7FA EDF1F5 9298A1 06090F 1C2434 30394B 495266 2E5ED0 254FB4 0E7F57 0A6B49 C0242A 3B6EE0 7FA6FF C7CED8 F5F7FA 0E1626"), // Niebla
@@ -212,10 +208,11 @@ private val TABLA_CONTRASTE = arrayOf(
     TABLA[Juego.EXTERIOR.ordinal],
 )
 
-internal fun tokensDe(j: Juego): Tokens = TABLA[j.ordinal]
+/** Los tokens de un juego; con `contraste`, los de Más contraste, como los pinta [Paleta] */
+internal fun tokensDe(j: Juego, contraste: Boolean = false): Tokens = (if (contraste) TABLA_CONTRASTE else TABLA)[j.ordinal]
 
 /**
- * La paleta Acero de la web (src/estilos/tema.css) en sus trece juegos. Cada
+ * La paleta Acero de la web (src/estilos/tema.css) en sus doce juegos. Cada
  * color es un getter que lee el juego actual, así que se recompone o se
  * redibuja solo donde se use. El único azul sigue siendo lo inscribible, y
  * los estados son los tonos profundos en los juegos claros (los vivos del

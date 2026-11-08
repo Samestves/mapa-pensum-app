@@ -33,6 +33,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
@@ -58,7 +59,8 @@ import mpensum.carrera.versal
 import mpensum.componentes.IconoTrazo
 import mpensum.componentes.Lucide
 import mpensum.componentes.Silueta
-import mpensum.componentes.VistaPrevia
+import mpensum.componentes.iconoCarrera
+import androidx.compose.foundation.isSystemInDarkTheme
 import mpensum.componentes.esApaisado
 import mpensum.componentes.pulsable
 import mpensum.datos.Carrera
@@ -84,7 +86,7 @@ import mpensum.tema.jost
  * de ella; aquí solo:
  *
  *   - Tu carrera: cuál sale arriba en la portada.
- *   - Personalizar: tema, acento, texto y movimiento (subpantalla; el tema es el mismo de la hoja de avance).
+ *   - Personalizar: tema, acento, texto y movimiento (subpantalla con tres páginas: Mapa, Inicio y horario, Accesibilidad).
  *   - Ayuda: la guía otra vez y reportar un error.
  *   - El proyecto: la web y el código.
  *   - Al pie, la versión, para saber qué tienes instalado al reportar.
@@ -100,7 +102,7 @@ private const val WEB = "https://mapa-pensum.vercel.app"
 private val ALTO_FILA = 72.dp
 
 /** Lo que enseña la hoja: el menú, o la lista para elegir tu carrera */
-enum class PaginaAjustes { MENU, CARRERA, PERSONALIZAR }
+enum class PaginaAjustes { MENU, CARRERA, PERSONALIZAR, MAPA, INICIO, ACCESIBILIDAD }
 
 @Composable
 fun BoxScope.HojaAjustes(
@@ -111,6 +113,7 @@ fun BoxScope.HojaAjustes(
     alElegir: (Carrera) -> Unit,
     alVerGuia: () -> Unit,
 ) {
+    val nocheDelSistema = isSystemInDarkTheme()
     // La última página abierta sigue pintándose mientras la hoja baja
     var ultima by remember { mutableStateOf(pagina ?: PaginaAjustes.MENU) }
     var actual by remember { mutableStateOf(ultima) }
@@ -119,6 +122,8 @@ fun BoxScope.HojaAjustes(
         actual = pagina
     }
     val enlaces = LocalUriHandler.current
+    // Qué ranura de Automático se edita: vive aquí para sobrevivir a entrar y salir de las subpáginas
+    val ranuras = remember { Ranuras(noche = nocheDelSistema) }
     // Un solo reloj para la cabecera y el cuerpo: cambian de página a la vez, y la vista previa llega con su página
     val transicion = updateTransition(actual, label = "ajustes")
     val desplazoPx = with(LocalDensity.current) { Movimiento.DESPLAZO.roundToPx() }
@@ -134,43 +139,55 @@ fun BoxScope.HojaAjustes(
           Column {
             // El título de la hoja; las páginas internas llevan encima «AJUSTES» para saber de dónde se vino
             Row(Modifier.fillMaxWidth().padding(start = margenPantalla(), end = margenPantalla(), top = Espacio.xxs, bottom = if (esApaisado()) Espacio.xs else Espacio.m), verticalAlignment = Alignment.CenterVertically) {
-                // La flecha de volver solo si se llegó desde el menú; abierta directo en la lista, se cierra y ya
-                val conVolver = p != PaginaAjustes.MENU && ultima == PaginaAjustes.MENU
+                // Las subpáginas de Personalizar siempre vuelven a ella; las demás, solo si se llegó desde el menú
+                val conVolver = p.esDePersonalizar && p != PaginaAjustes.PERSONALIZAR || (p != PaginaAjustes.MENU && ultima == PaginaAjustes.MENU)
                 if (conVolver) {
-                    Box(Modifier.padding(end = Espacio.xs)) { BotonRedondo(Lucide.atras, "Volver") { actual = PaginaAjustes.MENU } }
+                    val destino = if (p.esDePersonalizar && p != PaginaAjustes.PERSONALIZAR) PaginaAjustes.PERSONALIZAR else PaginaAjustes.MENU
+                    Box(Modifier.padding(end = Espacio.xs)) { BotonRedondo(Lucide.atras, "Volver") { actual = destino } }
                 }
                 Column(Modifier.weight(1f)) {
-                    if (p != PaginaAjustes.MENU) BasicText("AJUSTES", style = versal(Paleta.tenue))
+                    // El rótulo ocupa su sitio también en el menú (transparente): así la cabecera no cambia de alto al entrar en una página
+                    val rotulo = when {
+                        p == PaginaAjustes.MENU -> " "
+                        p.esDePersonalizar && p != PaginaAjustes.PERSONALIZAR -> "PERSONALIZAR"
+                        else -> "AJUSTES"
+                    }
+                    BasicText(rotulo, style = versal(if (p == PaginaAjustes.MENU) Color.Transparent else Paleta.tenue))
                     BasicText(
                         when (p) {
                             PaginaAjustes.CARRERA -> "Elige tu carrera"
                             PaginaAjustes.PERSONALIZAR -> "Personalizar"
+                            PaginaAjustes.MAPA -> "Mapa"
+                            PaginaAjustes.INICIO -> "Inicio y horario"
+                            PaginaAjustes.ACCESIBILIDAD -> "Accesibilidad"
                             PaginaAjustes.MENU -> "Ajustes"
                         },
-                        Modifier.padding(top = if (p != PaginaAjustes.MENU) Espacio.xxs else 0.dp),
+                        Modifier.padding(top = Espacio.xxs),
                         style = estiloTitulo(),
                     )
                 }
                 BotonCerrar(alCerrar)
             }
-            // La vista previa no se desplaza: bajo el título, para ver cada cambio sin subir. Acostado vive en el índice de la página
-            if (p == PaginaAjustes.PERSONALIZAR && !esApaisado()) {
-                VistaPrevia(propia?.let { colorDe(it.color) } ?: Paleta.azul, propia?.silueta, 176.dp, Modifier.padding(start = margenPantalla(), end = margenPantalla(), bottom = Espacio.xs).fillMaxWidth())
-            }
           }
           }
         },
         // Acostado, Personalizar reparte su alto en dos columnas y desplaza solo la de la derecha
-        desplazable = !(esApaisado() && actual == PaginaAjustes.PERSONALIZAR),
+        desplazable = !(esApaisado() && actual.esDePersonalizar),
     ) {
-        transicion.AnimatedContent(transitionSpec = empuje, contentAlignment = Alignment.TopStart) { p ->
+        // Acostado, las cuatro páginas de Personalizar son una sola: el índice no se mueve y cambia la columna de la derecha
+        val apaisado = esApaisado()
+        transicion.AnimatedContent(
+            transitionSpec = empuje,
+            contentAlignment = Alignment.TopStart,
+            contentKey = { if (apaisado && it.esDePersonalizar) PaginaAjustes.PERSONALIZAR else it },
+        ) { p ->
             if (p == PaginaAjustes.CARRERA) {
                 ListaCarreras(carreras, propia) { c ->
                     alElegir(c)
                     alCerrar()
                 }
-            } else if (p == PaginaAjustes.PERSONALIZAR) {
-                Personalizar(propia?.let { colorDe(it.color) } ?: Paleta.azul, propia?.silueta)
+            } else if (p.esDePersonalizar) {
+                Personalizar(p, propia, ranuras) { actual = it }
             } else {
                 val tuCarrera = { actual = PaginaAjustes.CARRERA }
                 val personalizar = { actual = PaginaAjustes.PERSONALIZAR }
@@ -329,9 +346,8 @@ private fun Renglon(icono: List<Path>, titulo: String, texto: String?, fuera: Bo
 @Composable
 private fun FilaCarrera(propia: Carrera?, alPulsar: () -> Unit) {
     FilaCristal(alPulsar) {
-        // La fachada de columnas: con carrera, teñida con su color; sin ella, la tecla neutra
-        if (propia != null) TeclaIcono(Lucide.universidad, colorDe(propia.color), colorDe(propia.color).copy(alpha = 0.16f))
-        else TeclaIcono(Lucide.universidad, Paleta.suave)
+        // Su icono en tinta neutra: el color de la carrera es del acento, no de las filas
+        TeclaIcono(iconoCarrera(propia?.slug), Paleta.suave)
         // La etiqueta arriba y el valor debajo, como una ficha: "Tu carrera / Sistemas"
         Column(Modifier.padding(start = Espacio.m, end = Espacio.s).weight(1f)) {
             BasicText("Tu carrera", style = TextStyle(fontFamily = inter(), fontSize = Tipo.s, lineHeight = 18.sp, color = Paleta.tenue))
@@ -379,7 +395,7 @@ private fun ListaCarreras(carreras: List<Carrera>, propia: Carrera?, alElegir: (
                     )
                     BasicText(c.tipo.uppercase(), Modifier.padding(top = Espacio.xxs), style = versal(Paleta.tenue), maxLines = 1)
                 }
-                if (elegida) IconoTrazo(Lucide.listo, Paleta.azul, 20.dp, 2.2f)
+                if (elegida) IconoTrazo(Lucide.listo, Paleta.tinta, 20.dp, 2.2f)
             }
         }
     }

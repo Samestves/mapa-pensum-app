@@ -67,8 +67,8 @@ actual object Preferencias {
         grosor.value = leerEnum<Grosor>("grosorCables") ?: Grosor.NORMAL
         atenuar.value = prefs?.getBoolean("atenuarAprobadas", false) ?: false
         masContraste.value = prefs?.getBoolean("contraste", false) ?: false
-        dia.value = leerEnum<Juego>("temaDia") ?: Juego.CLARO
-        noche.value = leerEnum<Juego>("temaNoche") ?: Juego.OSCURO
+        dia.value = leerJuego("temaDia") ?: Juego.CLARO
+        noche.value = leerJuego("temaNoche") ?: Juego.OSCURO
         entrarEnCarrera.value = prefs?.getBoolean("abrirEnCarrera", false) ?: false
         // El horario no es una vista con la que se abra una carrera
         vista.value = leerEnum<Vista>("vistaInicial")?.takeIf { it != Vista.HORARIO } ?: Vista.MAPA
@@ -202,6 +202,10 @@ actual object Preferencias {
         vibra.value = activa
         prefs?.edit()?.putBoolean("vibracion", activa)?.apply()
     }
+
+    /** Un juego guardado; el Morichal de antes pasa a Medianoche */
+    private fun leerJuego(clave: String): Juego? =
+        if (prefs?.getString(clave, null) == "MORICHAL") Juego.MEDIANOCHE else leerEnum<Juego>(clave)
 
     /** Un enum guardado por su nombre, o null si no hay o ya no existe */
     private inline fun <reified E : Enum<E>> leerEnum(clave: String): E? {

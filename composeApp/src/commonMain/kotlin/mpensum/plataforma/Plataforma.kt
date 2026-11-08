@@ -11,7 +11,7 @@ import mpensum.tema.Juego
 import mpensum.tema.Tema
 
 /**
- * Cómo quiere ver la app: uno de los trece juegos o lo que diga el teléfono.
+ * Cómo quiere ver la app: uno de los doce juegos o lo que diga el teléfono.
  * Es una sola para toda la app, se cambie desde Ajustes o desde la hoja de
  * avance. Se guarda con el nombre del juego en minúsculas, así que lo viejo
  * («claro», «oscuro», «exterior», «sistema») sigue leyéndose.
@@ -22,7 +22,6 @@ enum class Apariencia(val juego: Juego?) {
     GRAFITO(Juego.GRAFITO),
     MEDIANOCHE(Juego.MEDIANOCHE),
     CIRUELA(Juego.CIRUELA),
-    MORICHAL(Juego.MORICHAL),
     CLARO(Juego.CLARO),
     PAPEL(Juego.PAPEL),
     NIEBLA(Juego.NIEBLA),
@@ -42,7 +41,11 @@ enum class Apariencia(val juego: Juego?) {
 
     companion object {
         /** Lo guardado, o la oscura: es la que existe hoy y con la que nació la app */
-        fun de(valor: String?): Apariencia = entries.firstOrNull { it.valor == valor } ?: OSCURO
+        fun de(valor: String?): Apariencia = when (valor) {
+            // Morichal ya no existe: Medianoche es el oscuro de luz azul más cercano
+            "morichal" -> MEDIANOCHE
+            else -> entries.firstOrNull { it.valor == valor } ?: OSCURO
+        }
     }
 }
 

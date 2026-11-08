@@ -1,5 +1,6 @@
 package mpensum.portada
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
@@ -9,7 +10,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,8 +20,6 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.toggleable
@@ -32,6 +30,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -40,28 +40,39 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PointMode
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.selectableGroup
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import mpensum.carrera.Vista
+import mpensum.carrera.empujeDePagina
 import mpensum.carrera.versal
-import mpensum.componentes.CarruselTemas
 import mpensum.componentes.IconoTrazo
 import mpensum.componentes.Lucide
-import mpensum.componentes.VistaPrevia
+import mpensum.componentes.PaletaTemas
+import mpensum.componentes.PantallaTema
+import mpensum.componentes.PantallasTema
+import mpensum.componentes.VistaPreviaMapa
 import mpensum.componentes.esApaisado
+import mpensum.componentes.iconoCarrera
+import mpensum.componentes.margenPantalla
+import mpensum.componentes.pulsable
+import mpensum.datos.Carrera
 import mpensum.plataforma.Apariencia
 import mpensum.plataforma.Preferencias
 import mpensum.plataforma.animacionesQuitadas
@@ -72,203 +83,331 @@ import mpensum.tema.Fondo
 import mpensum.tema.FormaCables
 import mpensum.tema.Grosor
 import mpensum.tema.Juego
+import mpensum.tema.Movimiento
 import mpensum.tema.Paleta
+import mpensum.tema.Radio
 import mpensum.tema.Tema
 import mpensum.tema.Tipo
 import mpensum.tema.inter
 import mpensum.tema.jost
+import mpensum.tema.pareja
 
 /*
- * Personalizar: la subpantalla de Ajustes donde se elige cómo se ve la app.
- * Todo se guarda en el acto (Preferencias) y se ve en el acto, primero en la
- * vista previa fija de arriba. Los bloques, en este orden:
+ * Personalizar (docs/personalizar-v2.md, opción C «Primero la cara»): lo que
+ * cambia la cara está a cero toques en la página y lo demás, a uno.
  *
- *   TEMA · ACENTO · MAPA · INICIO · HORARIO · LECTURA · MOVIMIENTO Y TACTO
+ *   Personalizar   Tema (dos pantallas y la paleta) · Automático · Acento · tres filas
+ *   Mapa           Fondo · Cables · Grosor · Atenuar lo aprobado · Códigos de materia
+ *   Inicio y horario   Al abrir · Vista inicial · Hora de 24 h
+ *   Accesibilidad  Texto · Más contraste · Luz de fondo · Reducir movimiento · Vibración · Modo ligero
  *
- * Lo que cambia la cara va primero; lo de accesibilidad y rendimiento, al final.
+ * Todo se guarda en el acto (Preferencias) y se ve en el acto. Las pantallas y
+ * la paleta son Canvas sin animación: solo se redibujan al cambiar algo.
  */
 
-/** El borde de los bloques: 20 dp, como el aire de la hoja */
-private val LADO = Espacio.l
+/** Las páginas que cuelgan de Personalizar */
+internal val PaginaAjustes.esDePersonalizar: Boolean
+    get() = this == PaginaAjustes.PERSONALIZAR || this == PaginaAjustes.MAPA || this == PaginaAjustes.INICIO || this == PaginaAjustes.ACCESIBILIDAD
 
-/** Lo que dice la fila de Ajustes: «Oscuro · tu carrera · texto normal» */
+/**
+ * Qué ranura de Automático se está editando (la de noche o la de día) y si ya
+ * se tocó la otra. Vive en la hoja de Ajustes para que sobreviva a entrar y
+ * salir de las subpáginas.
+ */
+internal class Ranuras(noche: Boolean) {
+    var noche by mutableStateOf(noche)
+    var diaTocado = false
+}
+
+/** Lo que dice la fila de Ajustes: «Oscuro · acento tu carrera» */
 @Composable
 internal fun resumenPersonalizar(): String {
     val tema by Preferencias.tema.collectAsState()
     val acento by Preferencias.acento.collectAsState()
+    return "${if (tema == Apariencia.SISTEMA) "Automático" else tema.nombre} · acento ${acento?.nombre?.lowercase() ?: "tu carrera"}"
+}
+
+/** La nota de la fila Mapa: «Rejilla · cables curvos» */
+@Composable
+private fun resumenMapa(): String {
+    val fondo = when (Tema.fondo) { Fondo.REJILLA -> "Rejilla"; Fondo.PUNTOS -> "Puntos"; Fondo.LISO -> "Liso" }
+    val cables = when (Tema.cables) { FormaCables.CURVOS -> "curvos"; FormaCables.RECTOS -> "rectos"; FormaCables.AL_TOCAR -> "al tocar" }
+    return "$fondo · cables $cables"
+}
+
+/** La nota de la fila Inicio y horario: «Portada · 12 h» o «Sistemas · 24 h» */
+@Composable
+private fun resumenInicio(propia: Carrera?): String {
+    val abrir by Preferencias.abrirEnCarrera.collectAsState()
+    val h24 by Preferencias.hora24.collectAsState()
+    return "${if (abrir && propia != null) propia.nombreCorto else "Portada"} · ${if (h24) "24 h" else "12 h"}"
+}
+
+/** La nota de la fila Accesibilidad: «Texto normal · ligero automático», más «· más contraste» si lo hay */
+@Composable
+private fun resumenAccesibilidad(): String {
     val grande by Preferencias.textoGrande.collectAsState()
     val contraste by Preferencias.contraste.collectAsState()
-    return "${tema.nombre} · ${acento?.nombre?.lowercase() ?: "tu carrera"} · texto ${if (grande) "grande" else "normal"}${if (contraste) " · más contraste" else ""}"
+    val ligero by Preferencias.modoLigero.collectAsState()
+    val modo = when (ligero) { null -> "automático"; true -> "sí"; false -> "no" }
+    return "Texto ${if (grande) "grande" else "normal"} · ligero $modo${if (contraste) " · más contraste" else ""}"
 }
 
 /**
- * De pie, la vista previa va en la cabecera de la hoja (no se desplaza) y aquí
- * solo queda lo que se desplaza. Acostado no hay cabecera para tanto: el
- * índice de 330 lleva la vista previa y el carrusel, un hilo, y a la derecha
- * una columna que se desplaza.
+ * Personalizar y sus tres páginas. De pie, `pagina` dice cuál se pinta. Acostado
+ * el índice de la izquierda (tema) no se mueve y a la derecha se sustituye la
+ * columna por la página elegida: maestro y detalle.
  */
 @Composable
-internal fun Personalizar(colorCarrera: Color, silueta: List<Int>?) {
+internal fun Personalizar(pagina: PaginaAjustes, propia: Carrera?, ranuras: Ranuras, alAbrir: (PaginaAjustes) -> Unit) {
+    val lado = margenPantalla()
     if (esApaisado()) {
-        Row(Modifier.fillMaxSize().padding(horizontal = LADO).padding(top = Espacio.xxs), horizontalArrangement = Arrangement.spacedBy(Espacio.m)) {
+        Row(Modifier.fillMaxSize().padding(horizontal = lado).padding(top = Espacio.xxs), horizontalArrangement = Arrangement.spacedBy(Espacio.m)) {
             Column(Modifier.width(330.dp).fillMaxHeight().verticalScroll(rememberScrollState()).padding(bottom = Espacio.m)) {
-                VistaPrevia(colorCarrera, silueta, 166.dp, Modifier.fillMaxWidth())
-                BloqueTema(conDiaNoche = false, lado = 0.dp)
+                BloqueTema(propia, ranuras, apaisado = true, lado = 0.dp)
             }
             Box(Modifier.width(1.dp).fillMaxHeight().background(Paleta.borde))
-            Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(bottom = Espacio.xl)) {
-                BloqueDiaNoche(0.dp)
-                BloquesAjustes(colorCarrera, lado = 0.dp, primero = false)
+            val desplazoPx = with(LocalDensity.current) { Movimiento.DESPLAZO.roundToPx() }
+            Box(Modifier.weight(1f).fillMaxHeight()) {
+                AnimatedContent(
+                    pagina,
+                    transitionSpec = { empujeDePagina(targetState.ordinal > initialState.ordinal, desplazoPx) },
+                    contentAlignment = Alignment.TopStart,
+                ) { p ->
+                    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(bottom = Espacio.xxl)) {
+                        ContenidoDePagina(p, propia, ranuras, 0.dp, alAbrir)
+                    }
+                }
+                // El desvanecido de 40 dp: lo que se desplaza se va por debajo sin cortarse en seco
+                Box(Modifier.align(Alignment.BottomCenter).fillMaxWidth().height(40.dp).background(Brush.verticalGradient(listOf(Color.Transparent, Paleta.panel))))
             }
         }
     } else {
         Column(Modifier.padding(top = Espacio.xxs, bottom = Espacio.xl)) {
-            BloqueTema(conDiaNoche = true, lado = LADO)
-            BloquesAjustes(colorCarrera, lado = LADO, primero = true)
+            ContenidoDePagina(pagina, propia, ranuras, lado, alAbrir)
         }
     }
 }
 
-/** De ACENTO a MOVIMIENTO Y TACTO: lo mismo de pie y acostado */
+/** Lo que lleva cada página; la raíz, de pie, abre con el tema */
 @Composable
-private fun BloquesAjustes(colorCarrera: Color, lado: Dp, primero: Boolean) {
-    BloqueAcento(colorCarrera, lado, primero)
-    BloqueMapa(lado)
-    BloqueInicio(lado)
-    BloqueHorario(lado)
-    BloqueLectura(lado)
-    BloqueMovimiento(lado)
+private fun ContenidoDePagina(pagina: PaginaAjustes, propia: Carrera?, ranuras: Ranuras, lado: Dp, alAbrir: (PaginaAjustes) -> Unit) {
+    when (pagina) {
+        PaginaAjustes.MAPA -> PaginaMapa(propia, lado)
+        PaginaAjustes.INICIO -> PaginaInicio(propia, lado)
+        PaginaAjustes.ACCESIBILIDAD -> PaginaAccesibilidad(lado)
+        else -> {
+            if (!esApaisado()) BloqueTema(propia, ranuras, apaisado = false, lado = lado)
+            BloqueAutomatico(ranuras, lado, primero = esApaisado())
+            BloqueAcento(propia, lado)
+            BloqueGrupos(propia, lado, alAbrir)
+        }
+    }
 }
 
+/** El nombre del juego que se está viendo en la paleta: el de la ranura activa con Automático */
 @Composable
-private fun BloqueTema(conDiaNoche: Boolean, lado: Dp) {
+private fun juegoElegido(ranuras: Ranuras): Juego {
     val tema by Preferencias.tema.collectAsState()
-    Rotulo("TEMA", tema.nombre, Modifier.padding(horizontal = lado).padding(top = Espacio.l))
-    CarruselTemas(relleno = PaddingValues(horizontal = if (lado == 0.dp) 0.dp else 16.dp))
-    if (conDiaNoche) BloqueDiaNoche(lado)
-}
-
-/** Con Sistema, cuál es el de día y cuál el de noche: divulgación progresiva, solo aparece al elegirlo */
-@Composable
-private fun BloqueDiaNoche(lado: Dp) {
-    val tema by Preferencias.tema.collectAsState()
-    if (tema != Apariencia.SISTEMA) return
     val dia by Preferencias.temaDia.collectAsState()
     val noche by Preferencias.temaNoche.collectAsState()
-    Column(Modifier.padding(top = Espacio.m)) {
-        FilaJuegos("De día", dia, lado, Preferencias::guardarTemaDia)
-        FilaJuegos("De noche", noche, lado, Preferencias::guardarTemaNoche)
-    }
+    return tema.juego ?: if (ranuras.noche) noche else dia
 }
 
-/** Una fila de pastillas con los juegos para elegir uno; se desplaza, con 44 de alto */
-@Composable
-private fun FilaJuegos(titulo: String, actual: Juego, lado: Dp, alElegir: (Juego) -> Unit) {
-    Nota(titulo, Modifier.padding(horizontal = lado, vertical = Espacio.xs))
-    LazyRow(
-        Modifier.semantics { selectableGroup() },
-        contentPadding = PaddingValues(horizontal = if (lado == 0.dp) 0.dp else 16.dp),
-        horizontalArrangement = Arrangement.spacedBy(Espacio.xs),
-    ) {
-        items(Juego.entries, key = { it.name }) { j ->
-            val elegido = j == actual
-            val forma = RoundedCornerShape(22.dp)
-            Box(
-                Modifier
-                    .height(44.dp)
-                    .clip(forma)
-                    .background(Paleta.tinta.copy(alpha = 0.05f))
-                    .border(if (elegido) 2.dp else 1.dp, if (elegido) Paleta.tinta else Paleta.tinta.copy(alpha = 0.065f), forma)
-                    .selectable(elegido, role = Role.RadioButton) { alElegir(j) }
-                    .padding(horizontal = 16.dp),
-                contentAlignment = Alignment.Center,
-            ) {
-                BasicText(j.nombre, style = TextStyle(fontFamily = inter(), fontSize = Tipo.s, fontWeight = if (elegido) FontWeight.Medium else FontWeight.Normal, color = if (elegido) Paleta.tinta else Paleta.tenue))
-            }
+/** Elegir en la paleta: el tema, o el de la ranura activa si hay Automático */
+private fun elegirJuego(juego: Juego, ranuras: Ranuras) {
+    if (Preferencias.tema.value == Apariencia.SISTEMA) {
+        if (ranuras.noche) {
+            Preferencias.guardarTemaNoche(juego)
+            // Elegir «De noche» propone su pareja para «De día», si ese no se ha tocado
+            if (!ranuras.diaTocado && !juego.claro) Preferencias.guardarTemaDia(juego.pareja)
+        } else {
+            Preferencias.guardarTemaDia(juego)
+            ranuras.diaTocado = true
         }
+    } else Preferencias.guardarTema(aparienciaDe(juego))
+}
+
+private fun aparienciaDe(juego: Juego): Apariencia = Apariencia.entries.first { it.juego == juego }
+
+/**
+ * Las dos pantallas, el nombre del tema y la paleta. Acostado es el índice de
+ * la izquierda: el rótulo TEMA con el nombre a la derecha, pantallas de 154 × 168
+ * y toques de 50.
+ */
+@Composable
+private fun BloqueTema(propia: Carrera?, ranuras: Ranuras, apaisado: Boolean, lado: Dp) {
+    val tema by Preferencias.tema.collectAsState()
+    val dia by Preferencias.temaDia.collectAsState()
+    val noche by Preferencias.temaNoche.collectAsState()
+    val automatico = tema == Apariencia.SISTEMA
+    val elegido = juegoElegido(ranuras)
+    val actual = tema.juego ?: Tema.juego
+    val izquierda = if (automatico) PantallaTema(dia, false, "De día", false) else PantallaTema(actual, false, "Portada", null)
+    val derecha = if (automatico) PantallaTema(noche, false, "De noche", true) else PantallaTema(actual, true, "Mapa", null)
+    if (apaisado) Rotulo("TEMA", elegido.nombre, Modifier.padding(top = Espacio.xs))
+    PantallasTema(
+        izquierda, derecha, propia?.color, propia?.silueta,
+        ranuraActiva = if (automatico) (if (ranuras.noche) 1 else 0) else null,
+        modifier = Modifier.padding(horizontal = lado).padding(top = if (apaisado) 0.dp else Espacio.xs),
+        anchoMaximo = if (apaisado) 154.dp else 160.dp,
+        altoMaximo = if (apaisado) 168.dp else 208.dp,
+        hueco = if (apaisado) 14.dp else 15.dp,
+        alElegirRanura = { ranuras.noche = it == 1 },
+    )
+    if (!apaisado) {
+        BasicText(
+            elegido.nombre,
+            Modifier.fillMaxWidth().padding(top = Espacio.s, bottom = Espacio.xs),
+            style = TextStyle(fontFamily = jost(), fontWeight = FontWeight.Light, fontSize = Tipo.xl, lineHeight = 22.sp, textAlign = TextAlign.Center, color = Paleta.tinta),
+        )
+    }
+    PaletaTemas(
+        elegido = elegido,
+        otro = if (automatico) (if (ranuras.noche) dia else noche) else null,
+        otroEsNoche = !ranuras.noche,
+        modifier = Modifier.padding(horizontal = lado).padding(top = if (apaisado) Espacio.xs else 0.dp),
+        alElegir = { elegirJuego(it, ranuras) },
+    )
+}
+
+/** Sistema: un solo interruptor. Encendido, las dos pantallas pasan a ser las ranuras de día y de noche */
+@Composable
+private fun BloqueAutomatico(ranuras: Ranuras, lado: Dp, primero: Boolean) {
+    val tema by Preferencias.tema.collectAsState()
+    val automatico = tema == Apariencia.SISTEMA
+    Tarjeta(lado, Modifier.padding(top = if (primero) Espacio.xs else Espacio.m)) {
+        FilaInterruptor(
+            "Automático", automatico,
+            nota = if (automatico) "Claro de día · Oscuro de noche" else null,
+            alCambiar = { encendido ->
+                // Apagado guarda el juego que se está viendo, para que la pantalla no salte
+                Preferencias.guardarTema(if (encendido) Apariencia.SISTEMA else aparienciaDe(Tema.juego))
+            },
+        )
     }
 }
 
 @Composable
-private fun BloqueAcento(colorCarrera: Color, lado: Dp, primero: Boolean) {
+private fun BloqueAcento(propia: Carrera?, lado: Dp) {
     val acento by Preferencias.acento.collectAsState()
-    Rotulo("ACENTO", acento?.nombre ?: "Tu carrera", Modifier.padding(horizontal = lado).padding(top = if (primero) Espacio.xl else 0.dp))
+    Rotulo("ACENTO", acento?.nombre ?: "Tu carrera", Modifier.padding(horizontal = lado).padding(top = Espacio.xl))
     Row(Modifier.fillMaxWidth().padding(horizontal = if (lado == 0.dp) 0.dp else Espacio.xs).semantics { selectableGroup() }, horizontalArrangement = Arrangement.SpaceBetween) {
-        CirculoAcento(null, acento == null, colorCarrera)
-        Acento.entries.forEach { CirculoAcento(it, acento == it, colorCarrera) }
+        CirculoAcento(null, acento == null, propia)
+        Acento.entries.forEach { CirculoAcento(it, acento == it, propia) }
     }
 }
 
+/** Mapa, Inicio y horario, y Accesibilidad: una tarjeta de tres filas de 64 */
 @Composable
-private fun BloqueMapa(lado: Dp) {
+private fun BloqueGrupos(propia: Carrera?, lado: Dp, alAbrir: (PaginaAjustes) -> Unit) {
+    Tarjeta(lado, Modifier.padding(top = Espacio.xl)) {
+        FilaGrupo(Lucide.mapa, "Mapa", resumenMapa()) { alAbrir(PaginaAjustes.MAPA) }
+        Divisor(60.dp)
+        FilaGrupo(Lucide.casa, "Inicio y horario", resumenInicio(propia)) { alAbrir(PaginaAjustes.INICIO) }
+        Divisor(60.dp)
+        FilaGrupo(Lucide.persona, "Accesibilidad y movimiento", resumenAccesibilidad()) { alAbrir(PaginaAjustes.ACCESIBILIDAD) }
+    }
+}
+
+/** Una fila que abre su página: pastilla de 32 con el icono, el título, su resumen y el chevrón */
+@Composable
+private fun FilaGrupo(icono: List<Path>, titulo: String, resumen: String, alPulsar: () -> Unit) {
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .heightIn(min = 64.dp)
+            .pulsable(alPulsar, escala = 0.98f)
+            .padding(horizontal = Espacio.m, vertical = Espacio.xs),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Box(Modifier.size(32.dp).clip(RoundedCornerShape(8.dp)).background(Paleta.tinta.copy(alpha = 0.06f)), contentAlignment = Alignment.Center) {
+            IconoTrazo(icono, Paleta.suave, 18.dp, 1.75f)
+        }
+        Column(Modifier.weight(1f).padding(horizontal = Espacio.s)) {
+            BasicText(titulo, style = TextStyle(fontFamily = inter(), fontWeight = FontWeight.Medium, fontSize = Tipo.l, lineHeight = 20.sp, color = Paleta.tinta), maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Nota(resumen, Modifier.padding(top = Espacio.hilo), maxLines = 1)
+        }
+        IconoTrazo(Lucide.siguiente, Paleta.apagada, 16.dp, 1.75f)
+    }
+}
+
+// Las tres páginas
+
+@Composable
+private fun PaginaMapa(propia: Carrera?, lado: Dp) {
     val fondo = Tema.fondo
     val cables by Preferencias.cables.collectAsState()
     val grosor by Preferencias.grosorCables.collectAsState()
     val atenuar by Preferencias.atenuarAprobadas.collectAsState()
     val codigos by Preferencias.codigos.collectAsState()
-    Rotulo("MAPA", null, Modifier.padding(horizontal = lado).padding(top = Espacio.xl))
-    Nota("Fondo", Modifier.padding(horizontal = lado).padding(bottom = Espacio.xs))
+    VistaPreviaMapa(propia?.color, Modifier.padding(horizontal = lado).padding(top = Espacio.xxs))
+    Rotulo("FONDO", null, Modifier.padding(horizontal = lado).padding(top = Espacio.xl))
     Baldosas(lado) {
         Baldosa("Rejilla", fondo == Fondo.REJILLA, { Preferencias.guardarFondoMapa(Fondo.REJILLA) }) { dibujoFondo(Fondo.REJILLA) }
         Baldosa("Puntos", fondo == Fondo.PUNTOS, { Preferencias.guardarFondoMapa(Fondo.PUNTOS) }) { dibujoFondo(Fondo.PUNTOS) }
         Baldosa("Liso", fondo == Fondo.LISO, { Preferencias.guardarFondoMapa(Fondo.LISO) }) { dibujoFondo(Fondo.LISO) }
     }
-    Nota("Cables", Modifier.padding(horizontal = lado).padding(top = Espacio.m, bottom = Espacio.xs))
+    Rotulo("CABLES", null, Modifier.padding(horizontal = lado).padding(top = Espacio.xl))
     Baldosas(lado) {
         Baldosa("Curvos", cables == FormaCables.CURVOS, { Preferencias.guardarCables(FormaCables.CURVOS) }) { dibujoCables(FormaCables.CURVOS) }
         Baldosa("Rectos", cables == FormaCables.RECTOS, { Preferencias.guardarCables(FormaCables.RECTOS) }) { dibujoCables(FormaCables.RECTOS) }
         Baldosa("Al tocar", cables == FormaCables.AL_TOCAR, { Preferencias.guardarCables(FormaCables.AL_TOCAR) }) { dibujoCables(FormaCables.AL_TOCAR) }
     }
-    Nota("Grosor de los cables", Modifier.padding(horizontal = lado).padding(top = Espacio.m, bottom = Espacio.xs))
-    Baldosas(lado) {
-        Baldosa("Fino", grosor == Grosor.FINO, { Preferencias.guardarGrosorCables(Grosor.FINO) }) { dibujoGrosor(Grosor.FINO) }
-        Baldosa("Normal", grosor == Grosor.NORMAL, { Preferencias.guardarGrosorCables(Grosor.NORMAL) }) { dibujoGrosor(Grosor.NORMAL) }
-        Baldosa("Grueso", grosor == Grosor.GRUESO, { Preferencias.guardarGrosorCables(Grosor.GRUESO) }) { dibujoGrosor(Grosor.GRUESO) }
+    Rotulo("GROSOR", null, Modifier.padding(horizontal = lado).padding(top = Espacio.xl))
+    Segmentado(Modifier.padding(horizontal = lado)) {
+        Grosor.entries.forEachIndexed { i, g ->
+            val nombre = when (g) { Grosor.FINO -> "Fino"; Grosor.NORMAL -> "Normal"; Grosor.GRUESO -> "Grueso" }
+            OpcionTexto(nombre, null, grosor == g, Modifier.weight(1f), delante = { colorTexto ->
+                // La línea que dibuja el grosor: 18 dp de largo y 1, 2 o 3 de alto
+                Box(Modifier.padding(end = Espacio.xs).size(18.dp, (i + 1).dp).background(colorTexto, CircleShape))
+            }) { Preferencias.guardarGrosorCables(g) }
+        }
     }
-    Nota("Lo aprobado", Modifier.padding(horizontal = lado).padding(top = Espacio.m, bottom = Espacio.xs))
-    Baldosas(lado) {
-        Baldosa("Normal", !atenuar, { Preferencias.guardarAtenuarAprobadas(false) }) { dibujoAprobado(false) }
-        Baldosa("Atenuado", atenuar, { Preferencias.guardarAtenuarAprobadas(true) }) { dibujoAprobado(true) }
-    }
-    Tarjeta(lado, Modifier.padding(top = Espacio.m)) {
-        FilaInterruptor("Códigos en el mapa", codigos, alCambiar = Preferencias::guardarCodigos)
+    Tarjeta(lado, Modifier.padding(top = Espacio.xl)) {
+        FilaInterruptor("Atenuar lo aprobado", atenuar, alCambiar = Preferencias::guardarAtenuarAprobadas)
+        Divisor(Espacio.m)
+        FilaInterruptor("Códigos de materia", codigos, alCambiar = Preferencias::guardarCodigos)
     }
 }
 
 @Composable
-private fun BloqueInicio(lado: Dp) {
+private fun PaginaInicio(propia: Carrera?, lado: Dp) {
     val abrir by Preferencias.abrirEnCarrera.collectAsState()
     val vista by Preferencias.vistaInicial.collectAsState()
-    Rotulo("INICIO", null, Modifier.padding(horizontal = lado).padding(top = Espacio.xl))
-    Nota("Al abrir la app", Modifier.padding(horizontal = lado).padding(bottom = Espacio.xs))
-    Segmentado(Modifier.padding(horizontal = lado)) {
-        OpcionTexto("Portada", null, !abrir, Modifier.weight(1f)) { Preferencias.guardarAbrirEnCarrera(false) }
-        OpcionTexto("Mi carrera", null, abrir, Modifier.weight(1f)) { Preferencias.guardarAbrirEnCarrera(true) }
-    }
-    Nota("Mi carrera se abre en", Modifier.padding(horizontal = lado).padding(top = Espacio.m, bottom = Espacio.xs))
-    Segmentado(Modifier.padding(horizontal = lado)) {
-        OpcionTexto("Mapa", null, vista != Vista.LISTA, Modifier.weight(1f)) { Preferencias.guardarVistaInicial(Vista.MAPA) }
-        OpcionTexto("Lista", null, vista == Vista.LISTA, Modifier.weight(1f)) { Preferencias.guardarVistaInicial(Vista.LISTA) }
-    }
-}
-
-@Composable
-private fun BloqueHorario(lado: Dp) {
     val h24 by Preferencias.hora24.collectAsState()
-    Rotulo("HORARIO", null, Modifier.padding(horizontal = lado).padding(top = Espacio.xl))
-    Nota("Formato de hora", Modifier.padding(horizontal = lado).padding(bottom = Espacio.xs))
+    var primero = true
+    // Sin carrera no hay a dónde entrar directo: el bloque no aparece
+    if (propia != null) {
+        primero = false
+        Rotulo("AL ABRIR", null, Modifier.padding(horizontal = lado).padding(top = Espacio.xxs))
+        Segmentado(Modifier.padding(horizontal = lado)) {
+            OpcionTexto("Portada", null, !abrir, Modifier.weight(1f)) { Preferencias.guardarAbrirEnCarrera(false) }
+            OpcionTexto(propia.nombreCorto, null, abrir, Modifier.weight(1f)) { Preferencias.guardarAbrirEnCarrera(true) }
+        }
+    }
+    Rotulo("VISTA INICIAL", null, Modifier.padding(horizontal = lado).padding(top = if (primero) Espacio.xxs else Espacio.xl))
     Segmentado(Modifier.padding(horizontal = lado)) {
-        OpcionTexto("12 h", null, !h24, Modifier.weight(1f)) { Preferencias.guardarHora24(false) }
-        OpcionTexto("24 h", null, h24, Modifier.weight(1f)) { Preferencias.guardarHora24(true) }
+        OpcionTexto("Mapa", null, vista != Vista.LISTA, Modifier.weight(1f), delante = { IconoTrazo(Lucide.mapa3, it, 18.dp, 1.75f, Modifier.padding(end = Espacio.xs)) }) { Preferencias.guardarVistaInicial(Vista.MAPA) }
+        OpcionTexto("Lista", null, vista == Vista.LISTA, Modifier.weight(1f), delante = { IconoTrazo(Lucide.lista, it, 18.dp, 1.75f, Modifier.padding(end = Espacio.xs)) }) { Preferencias.guardarVistaInicial(Vista.LISTA) }
+    }
+    Rotulo("HORARIO", null, Modifier.padding(horizontal = lado).padding(top = Espacio.xl))
+    Tarjeta(lado) {
+        // La nota enseña el formato elegido
+        FilaInterruptor("Hora de 24 h", h24, nota = if (h24) "13:00" else "1:00 p. m.", alCambiar = Preferencias::guardarHora24)
     }
 }
 
 @Composable
-private fun BloqueLectura(lado: Dp) {
+private fun PaginaAccesibilidad(lado: Dp) {
     val grande by Preferencias.textoGrande.collectAsState()
     val contraste by Preferencias.contraste.collectAsState()
+    val luz by Preferencias.luzFondo.collectAsState()
+    val reducir by Preferencias.reducirMovimiento.collectAsState()
+    val vibracion by Preferencias.vibracion.collectAsState()
+    val ligero by Preferencias.modoLigero.collectAsState()
     val exterior = Tema.juego.exterior
-    Rotulo("LECTURA", null, Modifier.padding(horizontal = lado).padding(top = Espacio.xl))
+    Rotulo("LECTURA", null, Modifier.padding(horizontal = lado).padding(top = Espacio.xxs))
     Segmentado(Modifier.padding(horizontal = lado)) {
         OpcionTexto("Normal", 14, !grande, Modifier.weight(1f)) { Preferencias.guardarTextoGrande(false) }
         OpcionTexto("Grande", 18, grande, Modifier.weight(1f)) { Preferencias.guardarTextoGrande(true) }
@@ -281,23 +420,15 @@ private fun BloqueLectura(lado: Dp) {
             alCambiar = Preferencias::guardarContraste,
         )
     }
-}
-
-@Composable
-private fun BloqueMovimiento(lado: Dp) {
-    val luz by Preferencias.luzFondo.collectAsState()
-    val reducir by Preferencias.reducirMovimiento.collectAsState()
-    val vibracion by Preferencias.vibracion.collectAsState()
-    val ligero by Preferencias.modoLigero.collectAsState()
     Rotulo("MOVIMIENTO Y TACTO", null, Modifier.padding(horizontal = lado).padding(top = Espacio.xl))
     Tarjeta(lado) {
         FilaInterruptor("Luz de fondo", luz ?: (Tema.juego.aurora > 0f), alCambiar = Preferencias::guardarLuzFondo)
-        Divisor()
+        Divisor(Espacio.m)
         FilaInterruptor("Reducir movimiento", reducir ?: animacionesQuitadas(), alCambiar = Preferencias::guardarReducirMovimiento)
-        Divisor()
+        Divisor(Espacio.m)
         FilaInterruptor("Vibración", vibracion, alCambiar = Preferencias::guardarVibracion)
     }
-    Nota("Modo ligero", Modifier.padding(horizontal = lado).padding(top = Espacio.m, bottom = Espacio.xs))
+    Rotulo("MODO LIGERO", null, Modifier.padding(horizontal = lado).padding(top = Espacio.xl))
     Segmentado(Modifier.padding(horizontal = lado)) {
         OpcionTexto("Automático", null, ligero == null, Modifier.weight(1.4f)) { Preferencias.guardarModoLigero(null) }
         OpcionTexto("Sí", null, ligero == true, Modifier.weight(1f)) { Preferencias.guardarModoLigero(true) }
@@ -320,19 +451,19 @@ private fun Rotulo(texto: String, valor: String?, modifier: Modifier) {
     }
 }
 
-/** La nota de una opción: Inter 13/16 en `tenue` */
+/** La nota de una opción: Inter 13/18 en `tenue` */
 @Composable
-private fun Nota(texto: String, modifier: Modifier = Modifier, color: Color = Paleta.tenue) {
-    BasicText(texto, modifier, style = TextStyle(fontFamily = inter(), fontSize = Tipo.s, lineHeight = 18.sp, color = color))
+private fun Nota(texto: String, modifier: Modifier = Modifier, color: Color = Paleta.tenue, maxLines: Int = Int.MAX_VALUE) {
+    BasicText(texto, modifier, style = TextStyle(fontFamily = inter(), fontSize = Tipo.s, lineHeight = 18.sp, color = color), maxLines = maxLines, overflow = TextOverflow.Ellipsis)
 }
 
 /**
  * Un acento: un círculo de 24 en un área táctil de 44; el elegido lleva un
- * aro de 36. `null` es «tu carrera»: la universidad calada en un disco del
- * color de la carrera.
+ * aro de 36. `null` es «tu carrera»: el icono de la carrera en tinta neutra,
+ * en un disco de 28 al 12 %.
  */
 @Composable
-private fun CirculoAcento(acento: Acento?, elegido: Boolean, colorCarrera: Color) {
+private fun CirculoAcento(acento: Acento?, elegido: Boolean, propia: Carrera?) {
     val nombre = acento?.nombre ?: "Tu carrera"
     Box(
         Modifier
@@ -348,8 +479,8 @@ private fun CirculoAcento(acento: Acento?, elegido: Boolean, colorCarrera: Color
             contentAlignment = Alignment.Center,
         ) {
             if (acento == null) {
-                Box(Modifier.size(24.dp).clip(CircleShape).background(colorCarrera), contentAlignment = Alignment.Center) {
-                    IconoTrazo(Lucide.universidad, Paleta.panel, 14.dp, 2.4f)
+                Box(Modifier.size(28.dp).clip(CircleShape).background(Paleta.tinta.copy(alpha = 0.12f)), contentAlignment = Alignment.Center) {
+                    IconoTrazo(iconoCarrera(propia?.slug), Paleta.tinta, 14.dp, 1.75f)
                 }
             } else {
                 Box(Modifier.size(24.dp).clip(CircleShape).background(acento.color))
@@ -425,23 +556,7 @@ private fun DrawScope.dibujoCables(forma: FormaCables) {
     drawCircle(if (forma == FormaCables.AL_TOCAR) Paleta.tinta else Paleta.suave, 3.5f * dp, b)
 }
 
-private fun DrawScope.dibujoGrosor(grosor: Grosor) {
-    val dp = density
-    drawLine(Paleta.suave, Offset(4 * dp, size.height / 2), Offset(60 * dp, size.height / 2), 2.2f * dp * grosor.factor, StrokeCap.Round)
-}
-
-private fun DrawScope.dibujoAprobado(atenuado: Boolean) {
-    val dp = density
-    val alpha = if (atenuado) 0.45f else 1f
-    for (i in 0..1) {
-        val o = Offset(2 * dp + i * 32 * dp, 6 * dp)
-        val u = Size(28 * dp, 18 * dp)
-        drawRoundRect(Paleta.verde.copy(alpha = 0.2f * alpha), o, u, CornerRadius(5 * dp))
-        drawRoundRect(Paleta.verde.copy(alpha = alpha), o, u, CornerRadius(5 * dp), style = Stroke(1.5f * dp))
-    }
-}
-
-/** Una tarjeta de filas de interruptor: velo de tinta, filo de 1 y radio 16 */
+/** Una tarjeta de filas: velo de tinta, filo de 1 y radio 24 */
 @Composable
 private fun Tarjeta(lado: Dp, modifier: Modifier = Modifier, contenido: @Composable () -> Unit) {
     Column(
@@ -449,7 +564,7 @@ private fun Tarjeta(lado: Dp, modifier: Modifier = Modifier, contenido: @Composa
             .padding(horizontal = lado)
             .fillMaxWidth()
             .drawBehind {
-                val r = 16.dp.toPx()
+                val r = Radio.Grande.toPx()
                 val g = Tema.grosorBorde.dp.toPx()
                 drawRoundRect(Paleta.tinta.copy(alpha = 0.035f), cornerRadius = CornerRadius(r))
                 drawRoundRect(Paleta.tinta.copy(alpha = 0.065f), Offset(g / 2, g / 2), Size(size.width - g, size.height - g), CornerRadius(r - g / 2), style = Stroke(g))
@@ -473,28 +588,36 @@ private fun Segmentado(modifier: Modifier, opciones: @Composable RowScope.() -> 
     )
 }
 
-/** Una opción del segmentado; con `tamAa`, la muestra «Aa» delante a ese tamaño */
+/**
+ * Una opción del segmentado. La elegida pasa a tinta al 11 % con un filo de
+ * tinta al 12 % y texto 500 (en oscuro, el `panel` con sombra quedaba más
+ * oscuro que la pista). Con `tamAa`, la muestra «Aa» delante a ese tamaño; con
+ * `delante`, lo que se dibuje, que recibe el color del texto.
+ */
 @Composable
-private fun OpcionTexto(nombre: String, tamAa: Int?, elegida: Boolean, modifier: Modifier, alPulsar: () -> Unit) {
+private fun OpcionTexto(nombre: String, tamAa: Int?, elegida: Boolean, modifier: Modifier, delante: (@Composable (Color) -> Unit)? = null, alPulsar: () -> Unit) {
+    val forma = RoundedCornerShape(20.dp)
     Row(
         modifier
             .fillMaxWidth()
             .height(40.dp)
-            .then(if (elegida) Modifier.shadow(1.dp, RoundedCornerShape(20.dp)).background(Paleta.panel, RoundedCornerShape(20.dp)) else Modifier)
-            .clip(RoundedCornerShape(20.dp))
+            .clip(forma)
+            .then(if (elegida) Modifier.background(Paleta.tinta.copy(alpha = 0.11f)).border(1.dp, Paleta.tinta.copy(alpha = 0.12f), forma) else Modifier)
             .selectable(elegida, role = Role.RadioButton, onClick = alPulsar),
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically,
     ) {
         val color = if (elegida) Paleta.tinta else Paleta.tenue
         if (tamAa != null) BasicText("Aa", Modifier.padding(end = Espacio.xs), style = TextStyle(fontFamily = jost(), fontSize = tamAa.sp, color = color))
-        BasicText(nombre, style = TextStyle(fontFamily = inter(), fontSize = Tipo.l, fontWeight = if (elegida) FontWeight.Medium else FontWeight.Normal, color = color))
+        delante?.invoke(color)
+        BasicText(nombre, style = TextStyle(fontFamily = inter(), fontSize = Tipo.l, fontWeight = if (elegida) FontWeight.Medium else FontWeight.Normal, color = color), maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
 }
 
+/** El separador de una tarjeta, que arranca en `desde` (a la altura del texto si hay una pastilla) */
 @Composable
-private fun Divisor() {
-    Box(Modifier.padding(start = Espacio.m).fillMaxWidth().height(1.dp).background(Paleta.borde))
+private fun Divisor(desde: Dp) {
+    Box(Modifier.padding(start = desde).fillMaxWidth().height(1.dp).background(Paleta.borde))
 }
 
 /**

@@ -77,25 +77,68 @@ class CapturaAjustesTest {
         regla.onRoot().captureRoboImage("build/capturas/ajustes-3-elegir.png")
     }
 
-    /** La apariencia se elige en Personalizar y es la misma de la hoja de avance */
+    /** Automático se enciende en Personalizar y guarda Sistema */
     @Test
     fun elegirApariencia() {
         montar(carreras.first { it.slug == "ingenieria-de-sistemas" })
         regla.onNodeWithText("Personalizar").performClick()
         regla.mainClock.advanceTimeBy(900)
-        regla.onNodeWithText("Sistema").performClick()
+        regla.onNodeWithText("Automático").performClick()
         regla.mainClock.advanceTimeBy(500)
         assertEquals(Apariencia.SISTEMA, Preferencias.tema.value)
     }
 
-    /** Personalizar de pie, con Sistema elegido para que se vea también la fila De día / De noche */
+    /** Personalizar de pie, con y sin Automático */
     @Test
     fun personalizar() {
-        Preferencias.guardarTema(Apariencia.SISTEMA)
         montar(carreras.first { it.slug == "ingenieria-de-sistemas" })
         regla.onNodeWithText("Personalizar").performClick()
         regla.mainClock.advanceTimeBy(900)
         regla.onRoot().captureRoboImage("build/capturas/personalizar-1-de-pie.png")
+        regla.onNodeWithText("Automático").performClick()
+        regla.mainClock.advanceTimeBy(500)
+        regla.onRoot().captureRoboImage("build/capturas/personalizar-2-automatico.png")
+    }
+
+    /** Cuadro a cuadro y con un respiro real: el reloj de pruebas solo no deja asentar la hoja */
+    private fun esperar(ms: Long) {
+        val inicio = regla.mainClock.currentTime
+        while (regla.mainClock.currentTime - inicio < ms) {
+            regla.mainClock.advanceTimeByFrame()
+            Thread.sleep(2)
+        }
+    }
+
+    /** Accesibilidad abierta directo: su fila queda bajo el pliegue de Personalizar y no se alcanza con un toque */
+    @Test
+    fun accesibilidad() {
+        regla.mainClock.autoAdvance = false
+        regla.setContent {
+            Box(Modifier.fillMaxSize().background(Paleta.lienzo)) {
+                HojaAjustes(PaginaAjustes.ACCESIBILIDAD, carreras, carreras.first { it.slug == "ingenieria-de-sistemas" }, alCerrar = {}, alElegir = {}, alVerGuia = {})
+            }
+        }
+        esperar(1200)
+        regla.onRoot().captureRoboImage("build/capturas/personalizar-3-accesibilidad.png")
+    }
+
+    /** Las subpáginas Mapa e Inicio y horario, entrando por su fila */
+    @Test
+    fun subpaginas() {
+        montar(carreras.first { it.slug == "ingenieria-de-sistemas" })
+        regla.onNodeWithText("Personalizar").performClick()
+        regla.mainClock.advanceTimeBy(900)
+        for ((fila, archivo) in listOf("cables" to "mapa", "12 h" to "inicio")) {
+            // Se pulsa por el resumen de la fila, que es único en la página
+            regla.onNodeWithText(fila, substring = true).performClick()
+            esperar(1200)
+            regla.onRoot().captureRoboImage("build/capturas/personalizar-3-$archivo.png")
+            regla.onNodeWithContentDescription("Volver").performClick()
+            // Sin esto la vuelta no se recompone: el reloj manual no vacía los cambios de estado
+            regla.waitForIdle()
+            esperar(1200)
+            regla.onRoot().captureRoboImage("build/capturas/personalizar-4-vuelta-$archivo.png")
+        }
     }
 
     @Test
