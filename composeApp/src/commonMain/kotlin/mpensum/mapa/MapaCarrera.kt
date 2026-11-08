@@ -55,6 +55,7 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import mpensum.carrera.EstadoCarrera
+import mpensum.componentes.rememberPartesListas
 import mpensum.logica.Situacion
 import mpensum.logica.Tramo
 import mpensum.logica.marcasDeSemestres
@@ -66,6 +67,7 @@ import mpensum.tema.Paleta
 import mpensum.tema.Tema
 import mpensum.tema.avivar
 import mpensum.tema.porTema
+import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 
@@ -166,6 +168,11 @@ fun MapaCarrera(
         llegada.animateTo(1f, tween(Movimiento.MEDIA + 100, easing = LLEGADA))
     }
 
+    // El mapa entra por partes, unas pocas tarjetas por cuadro desde la columna que mira la cámara: el cuadro
+    // en que arranca el zoom de entrada no carga con las sesenta, y las demás llegan mientras siguen fuera
+    val entrada = remember(estado.nodos) { EntradaDelMapa(estado) }
+    val listos = rememberPartesListas(entrada.lotes)
+
     // Recordada: cada tarjeta guarda la suya y no recompone cuando el mapa sí
     val opacidadDe = remember { { codigo: String? ->
         {
@@ -211,22 +218,24 @@ fun MapaCarrera(
             // Al tocar no hay cables a la vista: tampoco la luz que viaja por ellos
             if (!Tema.sinBucles && Tema.cables != FormaCables.AL_TOCAR) LuzDeFrontera(estado, cables, congelada = { camara.enGesto || congelado || seleccionado != null }, sinGesto = { !camara.enGesto }, cadena = { cadenaVisible }, foco = { foco.value })
 
-            CabecerasSemestres(estado, tipos, medidor, alAlternarSemestre)
+            CabecerasSemestres(estado, tipos, medidor, entrada, listos, alAlternarSemestre)
             estado.franja?.let { RotulosFranja(it, estado, tipos) }
 
-            TarjetasMapa(estado, camara, efectos, tipos, cadena, seleccionado, opacidadDe, alTocarMateria, alAbrirCasilla)
+            TarjetasMapa(estado, camara, efectos, tipos, entrada, listos, cadena, seleccionado, opacidadDe, alTocarMateria, alAbrirCasilla)
         }
     }
 }
 
 /** La cabecera de cada semestre: su número, lo que cuenta y el aro que lo aprueba entero */
 @Composable
-private fun CabecerasSemestres(estado: EstadoCarrera, tipos: TiposMapa, medidor: TextMeasurer, alAlternarSemestre: (Int) -> Unit) {
+private fun CabecerasSemestres(estado: EstadoCarrera, tipos: TiposMapa, medidor: TextMeasurer, entrada: EntradaDelMapa, listos: Int, alAlternarSemestre: (Int) -> Unit) {
     val layout = estado.layout
     val sit = estado.situaciones
     val porColumna = remember(layout) { layout.nodos.groupBy { it.semestre } }
     val cuentas = remember(layout, estado.estados, estado.casillas) { marcasDeSemestres(layout.nodos.map { it.asignatura }, estado::enCasilla, estado.estados) }
     layout.columnas.forEach { columna ->
+        // Cada cabecera entra con la primera tarjeta de su semestre
+        if (entrada.loteDe(columna.semestre) >= listos) return@forEach
         val delSemestre = porColumna[columna.semestre].orEmpty()
         val materias = delSemestre.map { estado.materiaDe(it) }
         val situaciones = materias.map { m -> m?.let { sit[it.codigo] } ?: Situacion.LEJANA }
@@ -255,6 +264,8 @@ private fun TarjetasMapa(
     camara: Camara,
     efectos: EfectosMapa,
     tipos: TiposMapa,
+    entrada: EntradaDelMapa,
+    listos: Int,
     cadena: Set<String>?,
     seleccionado: String?,
     opacidadDe: (String?) -> () -> Float,
@@ -268,44 +279,80 @@ private fun TarjetasMapa(
     // Los toques llegan por estados: así las lambdas de cada tarjeta no cambian al cambiar la elegida, y la tarjeta se salta
     val tocarMateria by rememberUpdatedState(alTocarMateria)
     val abrirCasilla by rememberUpdatedState(alAbrirCasilla)
-    estado.nodos.forEach { nodo -> key(nodo.codigo) {
-        val materia = estado.materiaDe(nodo)
-        val codigo = materia?.codigo
-        val situacion = codigo?.let { sit[it] }
-        // «Lo aprobado: Atenuado»: la tarjeta aprobada baja al 45 % salvo la que se está mirando
-        val atenuada = Tema.atenuarAprobadas && situacion == Situacion.HECHA && codigo != seleccionado
-        val opacidad = remember(codigo, opacidadDe, atenuada) {
-            val delFoco = opacidadDe(codigo)
-            if (atenuada) ({ delFoco() * ATENUADO }) else delFoco
+    estado.nodos.forEach { nodo ->
+        if (entrada.loteDe(nodo) >= listos) return@forEach
+        key(nodo.codigo) {
+            val materia = estado.materiaDe(nodo)
+            val codigo = materia?.codigo
+            val situacion = codigo?.let { sit[it] }
+            // «Lo aprobado: Atenuado»: la tarjeta aprobada baja al 45 % salvo la que se está mirando
+            val atenuada = Tema.atenuarAprobadas && situacion == Situacion.HECHA && codigo != seleccionado
+            val opacidad = remember(codigo, opacidadDe, atenuada) {
+                val delFoco = opacidadDe(codigo)
+                if (atenuada) ({ delFoco() * ATENUADO }) else delFoco
+            }
+            TarjetaMapa(
+                nodo = nodo,
+                materia = materia,
+                lineas = codigo?.let { layout.porCodigo[it]?.lineasNombre } ?: nodo.lineasNombre,
+                situacion = situacion,
+                acento = materia?.let(estado.colores::de) ?: Paleta.suave,
+                seleccionada = codigo != null && codigo == seleccionado,
+                resaltada = codigo != null && cadena?.contains(codigo) == true,
+                opacidad = opacidad,
+                animaciones = AnimacionesTarjeta(
+                    toque = efectos.toque?.takeIf { it.codigo == codigo }?.n,
+                    destello = descargado?.takeIf { situacion == Situacion.INSCRIBIBLE && materia?.prerrequisitos?.contains(it.codigo) == true }?.n,
+                    carga = efectos.carga?.takeIf { it.codigo == codigo },
+                ),
+                escala = { camara.escala },
+                tipos = tipos,
+                camara = camara,
+                alTocar = { if (codigo != null) tocarMateria(codigo) else abrirCasilla(nodo.codigo) },
+                alEmpezarCarga = { if (codigo != null) efectos.empezarCarga(codigo) },
+                alSoltarCarga = { efectos.soltarCarga() },
+                alFijar = {
+                    if (codigo != null) {
+                        efectos.fijarRuta(codigo)
+                        haptica.performHapticFeedback(HapticFeedbackType.LongPress)
+                    }
+                },
+            )
         }
-        TarjetaMapa(
-            nodo = nodo,
-            materia = materia,
-            lineas = codigo?.let { layout.porCodigo[it]?.lineasNombre } ?: nodo.lineasNombre,
-            situacion = situacion,
-            acento = materia?.let(estado.colores::de) ?: Paleta.suave,
-            seleccionada = codigo != null && codigo == seleccionado,
-            resaltada = codigo != null && cadena?.contains(codigo) == true,
-            opacidad = opacidad,
-            animaciones = AnimacionesTarjeta(
-                toque = efectos.toque?.takeIf { it.codigo == codigo }?.n,
-                destello = descargado?.takeIf { situacion == Situacion.INSCRIBIBLE && materia?.prerrequisitos?.contains(it.codigo) == true }?.n,
-                carga = efectos.carga?.takeIf { it.codigo == codigo },
-            ),
-            escala = { camara.escala },
-            tipos = tipos,
-            camara = camara,
-            alTocar = { if (codigo != null) tocarMateria(codigo) else abrirCasilla(nodo.codigo) },
-            alEmpezarCarga = { if (codigo != null) efectos.empezarCarga(codigo) },
-            alSoltarCarga = { efectos.soltarCarga() },
-            alFijar = {
-                if (codigo != null) {
-                    efectos.fijarRuta(codigo)
-                    haptica.performHapticFeedback(HapticFeedbackType.LongPress)
-                }
-            },
-        )
-    } }
+    }
+}
+
+/** Las tarjetas que se componen en cada cuadro de la entrada: crear sus nodos y medir sus tres textos es lo que cuesta */
+private const val TARJETAS_POR_CUADRO = 4
+
+/**
+ * En qué cuadro de la entrada se compone cada tarjeta. Por columnas desde la
+ * que encuadra la cámara al abrir ([semestreDeTrabajo]) y después las demás
+ * por cercanía, primero la de su derecha, que es la que asoma en la pantalla;
+ * dentro de cada columna, de arriba abajo. Lo que no es de un semestre (la
+ * franja de electivas, abajo del todo) va al final.
+ */
+private class EntradaDelMapa(estado: EstadoCarrera) {
+    private val porCodigo: Map<String, Int>
+    private val porSemestre: Map<Int, Int>
+
+    /** Cuántos cuadros dura la entrada */
+    val lotes: Int
+
+    init {
+        val semestres = estado.layout.columnas.map { it.semestre }
+        val centro = semestreDeTrabajo(estado) ?: semestres.firstOrNull()
+        val cercania = centro?.let { c -> semestres.sortedWith(compareBy<Int>({ abs(it - c) }, { it < c })).withIndex().associate { (i, s) -> s to i } }.orEmpty()
+        val orden = estado.nodos.sortedWith(compareBy<NodoMapa>({ it.semestre?.let(cercania::get) ?: Int.MAX_VALUE }, { it.y }))
+        porCodigo = orden.withIndex().associate { (i, n) -> n.codigo to i / TARJETAS_POR_CUADRO }
+        porSemestre = semestres.associateWith { s -> orden.indexOfFirst { it.semestre == s }.coerceAtLeast(0) / TARJETAS_POR_CUADRO }
+        lotes = maxOf(1, (orden.size + TARJETAS_POR_CUADRO - 1) / TARJETAS_POR_CUADRO)
+    }
+
+    fun loteDe(nodo: NodoMapa): Int = porCodigo[nodo.codigo] ?: 0
+
+    /** La cabecera de un semestre entra con su primera tarjeta */
+    fun loteDe(semestre: Int): Int = porSemestre[semestre] ?: 0
 }
 
 /**

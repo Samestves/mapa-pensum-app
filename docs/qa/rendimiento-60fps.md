@@ -154,6 +154,24 @@ Hecho cuando: compila, las capturas de la lista, el horario con hoja y el avance
 
 Hecho cuando: el TECNO KL5 entra en ligero por `SOC_MODEL` (no por los 2,0 GHz), corre a 60 Hz en ligero, y los benchmarks dan cifras (sección 5).
 
+### Tanda 4: los picos del hilo de UI al abrir y navegar (8-nov)
+
+Medido en el Redmi Note 15 Pro: abrir «Tu avance» con un cuadro de 133 ms, ir a «Tu próximo semestre» y volver con p99 de 101 ms, y entrar a la carrera con uno de 150 ms. GPU p50 7 ms: era CPU. `carrera/CosteCuadrosTest` (Robolectric) recorre los tres desde la portada con un `CompositionTracer` y deja en `build/capturas/coste-cuadros.txt` cuánto cuesta cada cuadro y qué se compuso. Cada pico era **un solo cuadro que creaba todos los nodos y medía todos los textos de una pantalla**; la lógica ya venía precalculada, salvo la del índice y la de «Este semestre».
+
+| Recorrido (JVM, calentado) | Antes: cuadro mayor | Después |
+|---|---|---|
+| Entrar a la carrera | 104 ms, 1 144 funciones (60 tarjetas y 11 cabeceras) | 19 ms; el mapa entra en 16 cuadros de 4 tarjetas |
+| Abrir «Tu avance» | 43 ms, 607 funciones | 14 ms; el índice en 4 cuadros |
+| Ir a «Tu próximo semestre» | 47 ms, 679 funciones | 16 ms; la pantalla en 5 cuadros |
+| Volver al índice | 33 ms, 557 funciones (el índice entero otra vez) | 12 ms; el índice no se recompone |
+
+- `componentes/PorPartes.kt`: `rememberPartesListas(n)` deja componer una parte más en cada cuadro. Solo se usa donde lo que falta no se ve: la página que entra 100 ms después de salir la otra, la hoja que sube desde fuera y las columnas que la cámara aún no mira.
+- El índice del progreso queda montado (`IndiceRetenido`, `PaginasHoja.kt`): al entrar a una pantalla se aparta con el mismo reloj y deja de colocarse; volver no compone nada.
+- `EstadoCarrera.resumen` (barra, preguntas, electivas y lo que te da aprobar lo que cursas) y `Simulador.retrasos` («Este semestre») se calculan en `precalentar`, fuera del hilo principal.
+- `BarraCapsulas` recuerda los textos medidos; el dominó usa una caché de 48 en vez de 8.
+
+Falta medirlo en el teléfono: con esto `gfxinfo` debe dar p50 ≤ 8 ms y ningún cuadro de más de 33 ms en los tres recorridos.
+
 ## 5. Cómo medirlo de verdad (TECNO KL5, Helio G85 MT6769, Android 14, 720×1600 a 320 dpi, 120 Hz)
 
 Datos del build: paquete **`com.mapapensum.app`**, actividad **`mpensum.MainActivity`**, versión 0.1, minSdk 26. A 320 dpi la densidad es 2,0: **1 dp = 2 px**, y la pantalla mide 360×800 dp (el ancho «compacto» exacto de la cámara, `Camara.kt:76`).
