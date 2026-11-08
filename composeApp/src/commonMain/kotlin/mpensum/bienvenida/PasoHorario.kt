@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
+import mpensum.tema.Movimiento
 import mpensum.tema.Paleta
 import mpensum.tema.Tema
 import mpensum.tema.colorArea
@@ -62,8 +63,6 @@ private const val ABRE = 5_900f
 private const val BARRA = 6_700f
 private const val SE_VA = 9_100f
 
-private val ENFATICA = CubicBezierEasing(0.2f, 0f, 0f, 1f)
-private val SALIDA = CubicBezierEasing(0.16f, 1f, 0.3f, 1f)
 private val ESTANDAR = CubicBezierEasing(0.4f, 0f, 0.2f, 1f)
 private val LATIDO = CubicBezierEasing(0.22f, 0.61f, 0.36f, 1f)
 
@@ -315,7 +314,7 @@ private fun DrawScope.ancho(t: TextLayoutResult) = t.size.width / density
 
 private fun DrawScope.pintar(t: Float, x: TextosHorario, sesiones: List<SesionHorario>, tarjeta: TarjetaEnCurso) {
     // Al final de cada vuelta todo se apaga a la vez: la siguiente arranca de cero, sin salto
-    val velo = 1f - ENFATICA.transform(durante(t, SE_VA, 700f))
+    val velo = 1f - Movimiento.ESTANDAR.transform(durante(t, SE_VA, 700f))
     val foco = ESTANDAR.transform(durante(t, FOCO, 600f))
     val fotoSeVa = ESTANDAR.transform(durante(t, SUELTA, 500f))
     semana(t, x, tarjeta, velo, foco)
@@ -328,7 +327,7 @@ private fun DrawScope.pintar(t: Float, x: TextosHorario, sesiones: List<SesionHo
 private fun DrawScope.semana(t: Float, x: TextosHorario, tarjeta: TarjetaEnCurso, velo: Float, foco: Float) {
     val op = ESTANDAR.transform(durante(t, 3_100f, 900f)) * velo * (1f - 0.5f * foco)
     if (op <= 0.004f) return
-    val lineaAhora = ENFATICA.transform(durante(t, AHORA_EN, 650f))
+    val lineaAhora = Movimiento.ESTANDAR.transform(durante(t, AHORA_EN, 650f))
     val alto = 8 * HORA
     // Hoy se distingue apenas, cuando llega la línea de ahora
     if (lineaAhora > 0f) drawRect(tarjeta.hoy, Offset(GX, GY), Size(COL, alto), alpha = lineaAhora * op)
@@ -351,10 +350,10 @@ private fun DrawScope.semana(t: Float, x: TextosHorario, tarjeta: TarjetaEnCurso
     }
     // La línea de ahora cruza la semana tenue y se marca fuerte sobre hoy
     if (lineaAhora > 0f) drawRect(Paleta.rojo.copy(alpha = 0.45f * op), Offset(GX, Y_AHORA), Size(ANCHO_SEMANA * lineaAhora, 1f))
-    val grueso = ENFATICA.transform(durante(t, AHORA_EN + 120f, 500f))
+    val grueso = Movimiento.ESTANDAR.transform(durante(t, AHORA_EN + 120f, 500f))
     if (grueso > 0f) drawRect(Paleta.rojo.copy(alpha = op), Offset(GX, Y_AHORA - 0.5f), Size(COL * grueso, 2f))
     // La etiqueta de ahora se retira cuando la tarjeta toma la palabra: no debe asomar cortada por su borde
-    val chip = SALIDA.transform(durante(t, AHORA_EN + 250f, 400f)) * (1f - foco) * op
+    val chip = Movimiento.ASIENTA.transform(durante(t, AHORA_EN + 250f, 400f)) * (1f - foco) * op
     if (chip > 0.004f) {
         drawRoundRect(Paleta.rojo.copy(alpha = chip), Offset(10f, Y_AHORA - 8f), Size(36f, 16f), CornerRadius(8f))
         texto(x.chip, 28f, Y_AHORA - 8f + (16f - alto(x.chip)) / 2, Color.White, chip, ancla = 0.5f)
@@ -363,8 +362,8 @@ private fun DrawScope.semana(t: Float, x: TextosHorario, tarjeta: TarjetaEnCurso
 
 /** La foto: entra con 3° de giro y un leve hundimiento, se endereza, se lee y se va hacia atrás */
 private fun DrawScope.foto(t: Float, x: TextosHorario, seVa: Float) {
-    val entra = SALIDA.transform(durante(t, ENTRA, 600f))
-    val endereza = ENFATICA.transform(durante(t, ENTRA, 1_000f))
+    val entra = Movimiento.ASIENTA.transform(durante(t, ENTRA, 600f))
+    val endereza = Movimiento.ESTANDAR.transform(durante(t, ENTRA, 1_000f))
     val op = entra * (1f - seVa)
     if (op <= 0.004f) return
     val esc = (0.97f + 0.03f * endereza) * (1f - 0.05f * seVa)
@@ -417,9 +416,9 @@ private fun DrawScope.bloque(t: Float, s: SesionHorario, x: TextosHorario, velo:
     // La de ahora se va al abrirse: desde ese instante la lleva la tarjeta
     val op = velo * pasada * apagada * (if (s.esCosto && t >= ABRE) 0f else 1f)
     if (op <= 0.004f) return
-    val pDia = ENFATICA.transform(durante(t, AL_DIA + 60f * s.j, 600f))
+    val pDia = Movimiento.ESTANDAR.transform(durante(t, AL_DIA + 60f * s.j, 600f))
     val enHora = A_LA_HORA + 75f * s.j
-    val pHora = ENFATICA.transform(durante(t, enHora, 800f))
+    val pHora = Movimiento.ESTANDAR.transform(durante(t, enHora, 800f))
     val bx = mezclar(s.x0, s.x1, pDia)
     val bw = mezclar(s.w0, s.w1, pDia)
     val by = mezclar(s.y0, s.y1, pHora)
@@ -461,7 +460,7 @@ private fun DrawScope.rotuloBloque(x: TextosHorario, s: SesionHorario, bx: Float
 /** La de ahora: el bloque de Sistemas de Costo crece hasta la tarjeta «En curso» de Horario.kt */
 private fun DrawScope.enCurso(t: Float, x: TextosHorario, costo: SesionHorario, tarjeta: TarjetaEnCurso, velo: Float) {
     if (t < ABRE || velo <= 0.004f) return
-    val crece = ENFATICA.transform(durante(t, ABRE, 900f))
+    val crece = Movimiento.ESTANDAR.transform(durante(t, ABRE, 900f))
     val cristal = ESTANDAR.transform(durante(t, ABRE, 450f))
     val bx = mezclar(costo.x1, TX, crece)
     val by = mezclar(costo.y1, TY, crece)
@@ -503,7 +502,7 @@ private fun DrawScope.enCurso(t: Float, x: TextosHorario, costo: SesionHorario, 
 
 /** El contenido de la tarjeta, que entra línea a línea cuando ya casi ha crecido */
 private fun DrawScope.contenido(t: Float, x: TextosHorario, bx: Float, by: Float, op: Float) {
-    fun linea(en: Float) = SALIDA.transform(durante(t, en, 500f))
+    fun linea(en: Float) = Movimiento.ASIENTA.transform(durante(t, en, 500f))
     val izq = bx + 20f
 
     // EN CURSO, con el latido del punto (el de la app: 2600 ms, un anillo que crece y se apaga)
@@ -550,7 +549,7 @@ private fun DrawScope.contenido(t: Float, x: TextosHorario, bx: Float, by: Float
     drawCircle(ROSA.copy(alpha = a4), 3.5f, Offset(x0 + 2.5f, yb))
     drawCircle(porTema(Color(0xFF15171A), Paleta.panel).copy(alpha = a4), 3.5f, Offset(x1 - 2.5f, yb))
     drawCircle(ROSA.copy(alpha = a4), 2.75f, Offset(x1 - 2.5f, yb), style = Stroke(1.5f))
-    val cabeza = SALIDA.transform(durante(t, BARRA, 300f)) * a4
+    val cabeza = Movimiento.ASIENTA.transform(durante(t, BARRA, 300f)) * a4
     if (cabeza > 0f) {
         val c = Offset(x0 + w * avance, yb)
         drawCircle(Paleta.panelSuave.copy(alpha = cabeza), 8.5f, c)

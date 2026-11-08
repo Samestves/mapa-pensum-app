@@ -48,6 +48,7 @@ import mpensum.datos.rememberPensum
 import mpensum.logica.Marca
 import mpensum.logica.redondear
 import mpensum.logica.resumenParaPortada
+import mpensum.tema.Movimiento
 import mpensum.tema.Paleta
 import mpensum.tema.Tipo
 import mpensum.tema.Tema
@@ -97,8 +98,6 @@ private const val ESCENA_ALTO = 468f
 /** Del borde de abajo de la escena al título, como en el tablero */
 private const val HUECO_TITULO = 68f
 
-private val ENFATICA = CubicBezierEasing(0.2f, 0f, 0f, 1f)
-private val SALIDA = CubicBezierEasing(0.16f, 1f, 0.3f, 1f)
 private val ESTANDAR = CubicBezierEasing(0.4f, 0f, 0.2f, 1f)
 private val DESTELLO = CubicBezierEasing(0.22f, 0.61f, 0.36f, 1f)
 /** La marcha del riel por lo que falta: arranca y llega suave, a ritmo parejo en medio */
@@ -336,7 +335,7 @@ private fun DrawScope.texto(t: TextLayoutResult, x: Float, base: Float, alfa: Fl
 private fun DrawScope.pintar(t: Float, a: AvanceDemo, g: GeometriaAvance, x: TextosAvance) {
     fun en(desde: Float, dura: Float) = tramoDe(t, desde, dura)
     val hechos = a.hechos
-    val velo = 1f - ENFATICA.transform(en(SE_VA, 650f))
+    val velo = 1f - Movimiento.ESTANDAR.transform(en(SE_VA, 650f))
     fun enciendeEn(c: Int) = ENCIENDE + POR_SEMESTRE * c
 
     // La cifra suma las UC reales de cada semestre mientras se enciende, y redondea como la portada
@@ -353,7 +352,7 @@ private fun DrawScope.pintar(t: Float, a: AvanceDemo, g: GeometriaAvance, x: Tex
     }
 
     // Lo que llevas: la cifra de la portada sobre las columnas que la explican
-    val eC = SALIDA.transform(en(CIFRA, 500f))
+    val eC = Movimiento.ASIENTA.transform(en(CIFRA, 500f))
     val alfaCifra = eC * velo * (1f - cede)
     if (alfaCifra > 0f) {
         val dy = (1f - eC) * 8f
@@ -372,7 +371,7 @@ private fun DrawScope.pintar(t: Float, a: AvanceDemo, g: GeometriaAvance, x: Tex
 
     // La silueta: tenue al nacer; lo hecho se llena de verde, lo que cursas a medias en tinta, lo que falta en anillo gris
     a.silueta.forEachIndexed { c, filas ->
-        val nace = ENFATICA.transform(en(NACE + 70f * c, 520f))
+        val nace = Movimiento.ESTANDAR.transform(en(NACE + 70f * c, 520f))
         val alfa = nace * velo
         if (alfa <= 0f) return@forEachIndexed
         val r = 7f * (0.6f + 0.4f * nace)
@@ -463,24 +462,24 @@ private fun DrawScope.pintar(t: Float, a: AvanceDemo, g: GeometriaAvance, x: Tex
         drawCircle(Paleta.lienzo.copy(alpha = 0.9f), 9f, meta, alpha = alfaMeta)
         drawCircle(aro, 8.25f, meta, alpha = alfaMeta, style = Stroke(1.5f))
     }
-    val lleno = ENFATICA.transform(en(LLEGA - 60f, 420f)) * velo
+    val lleno = Movimiento.ESTANDAR.transform(en(LLEGA - 60f, 420f)) * velo
     if (lleno > 0f) drawCircle(Paleta.azul, 9f * lleno, meta)
     val onda = en(LLEGA, 1_100f)
     if (onda > 0f && onda < 1f) {
-        val e = 1f + 1.8f * SALIDA.transform(onda)
+        val e = 1f + 1.8f * Movimiento.ASIENTA.transform(onda)
         drawCircle(Paleta.azul, 9f * e - 0.75f * e, meta, alpha = 0.6f * (1f - onda) * velo, style = Stroke(1.5f * e))
     }
-    val asta = ENFATICA.transform(en(LLEGA + 60f, 520f)) * velo
+    val asta = Movimiento.ESTANDAR.transform(en(LLEGA + 60f, 520f)) * velo
     if (asta > 0f) {
         scale(1f, asta, Offset(meta.x, 347f)) { drawRect(g.asta, Offset(meta.x - 0.75f, 165f), Size(1.5f, 182f)) }
     }
-    val disco = SALIDA.transform(en(LLEGA + 420f, 460f)) * velo
+    val disco = Movimiento.ASIENTA.transform(en(LLEGA + 420f, 460f)) * velo
     val cima = Offset(meta.x, 145f)
     if (disco > 0f) {
         drawCircle(g.halo, 60f, cima, alpha = disco)
         drawCircle(Paleta.azul, 20f * (0.7f + 0.3f * disco), cima, alpha = disco)
     }
-    val birrete = SALIDA.transform(en(LLEGA + 520f, 420f)) * velo
+    val birrete = Movimiento.ASIENTA.transform(en(LLEGA + 520f, 420f)) * velo
     if (birrete > 0f) {
         translate(cima.x - 11f, cima.y - 11f + (1f - birrete) * 3f) {
             scale(22f / 24f, 22f / 24f, Offset.Zero) {
@@ -492,7 +491,7 @@ private fun DrawScope.pintar(t: Float, a: AvanceDemo, g: GeometriaAvance, x: Tex
     // La respuesta cuelga del disco, alineada a la derecha a 14 de él: versal y «6 semestres» por línea base
     val derecha = cima.x - 34f
     fun linea(desde: Float): Pair<Float, Float> {
-        val e = SALIDA.transform(en(desde, 560f))
+        val e = Movimiento.ASIENTA.transform(en(desde, 560f))
         return e * velo to (1f - e) * 8f
     }
     val (op1, dy1) = linea(LLEGA + 480f)

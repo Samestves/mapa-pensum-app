@@ -46,6 +46,7 @@ import mpensum.mapa.NodoMapa
 import mpensum.mapa.Vista
 import mpensum.plataforma.ManejarAtras
 import mpensum.tema.Espacio
+import mpensum.tema.Movimiento
 import mpensum.tema.Paleta
 
 /*
@@ -67,7 +68,7 @@ private const val RADIO_CUERPO = 28f
 private const val PUNTA_A_ESQUINA = 40f
 
 /** Lo que cabe en pantalla: los bordes (dp) donde la burbuja y su tarjeta pueden estar; el riel cuenta como borde */
-class ZonaSegura(val izq: Float, val arriba: Float, val der: Float, val abajo: Float)
+data class ZonaSegura(val izq: Float, val arriba: Float, val der: Float, val abajo: Float)
 
 private enum class Lado { DERECHA, IZQUIERDA }
 
@@ -140,8 +141,8 @@ fun BoxScope.BurbujaFicha(
 
     ManejarAtras(codigo != null, alCerrar)
     LaunchedEffect(codigo != null) {
-        if (codigo != null) apertura.animateTo(1f, tween(180)) else {
-            apertura.animateTo(0f, tween(120))
+        if (codigo != null) apertura.animateTo(1f, tween(Movimiento.CORTA, easing = Movimiento.ENTRA)) else {
+            apertura.animateTo(0f, tween(Movimiento.SALIDA_RAPIDA, easing = Movimiento.SALE))
             montada = false
         }
     }
@@ -153,7 +154,7 @@ fun BoxScope.BurbujaFicha(
         lado = plan.lado
         if (abs(plan.dx) > 1f || abs(plan.dy) > 1f) camara.animarHacia(alcance, Vista(camara.x + plan.dx, camara.y + plan.dy, camara.escala), DURACION_MOSTRAR)
         salto.snapTo(0f)
-        salto.animateTo(1f, tween(150))
+        salto.animateTo(1f, tween(Movimiento.CORTA, easing = Movimiento.ENTRA))
     }
     // Al soltar el mapa se recoloca el lado; durante el gesto se queda fijo
     LaunchedEffect(codigo) {

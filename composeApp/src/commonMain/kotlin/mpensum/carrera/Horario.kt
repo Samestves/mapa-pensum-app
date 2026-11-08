@@ -79,6 +79,7 @@ import mpensum.componentes.trazarCruz
 import mpensum.componentes.trazarPuntos
 import mpensum.componentes.margenPantalla
 import mpensum.componentes.ventana
+import mpensum.tema.Movimiento
 import mpensum.tema.Alto
 import mpensum.tema.Espacio
 import mpensum.logica.DIAS
@@ -115,7 +116,6 @@ import kotlin.math.min
 
 /* ---- Medidas y letras ------------------------------------------------------ */
 
-internal val CURVA_HORARIO = CubicBezierEasing(0.32f, 0.72f, 0f, 1f)
 private val CURVA_LATIDO = CubicBezierEasing(0.22f, 0.61f, 0.36f, 1f)
 /** El margen de la vista: el px-5 de la web en el teléfono */
 internal val MARGEN_HORARIO = Espacio.l
@@ -436,7 +436,7 @@ private fun Semanita(horario: EstadoHorario) {
         BasicText("${clases(horario.sesiones.size)} · ${duracion(horario.sesiones.sumOf { it.duracion })} · ${tramoCorto(abre, cierra)}", style = l.dato, maxLines = 1)
     }
     val lente = remember { Animatable(horario.dia.toFloat()) }
-    LaunchedEffect(horario.dia) { lente.animateTo(horario.dia.toFloat(), tween(380, easing = CURVA_HORARIO)) }
+    LaunchedEffect(horario.dia) { lente.animateTo(horario.dia.toFloat(), tween(380, easing = Movimiento.FLUIDA)) }
     Row(
         Modifier
             .padding(top = Espacio.xs)
@@ -541,8 +541,8 @@ private fun DiaElegido(horario: EstadoHorario, arriba: Dp) {
                 val haciaDelante = targetState > initialState
                 val sentido = if (haciaDelante) 1 else -1
                 if (Tema.sinBucles) fadeIn(tween(160)) togetherWith fadeOut(tween(100))
-                else (slideInHorizontally(tween(320, easing = CURVA_HORARIO)) { sentido * it / 5 } + fadeIn(tween(220, 60))) togetherWith
-                    (slideOutHorizontally(tween(260, easing = CURVA_HORARIO)) { -sentido * it / 5 } + fadeOut(tween(140)))
+                else (slideInHorizontally(tween(320, easing = Movimiento.FLUIDA)) { sentido * it / 5 } + fadeIn(tween(220, 60))) togetherWith
+                    (slideOutHorizontally(tween(260, easing = Movimiento.FLUIDA)) { -sentido * it / 5 } + fadeOut(tween(140)))
             },
             label = "dia",
         ) { d -> ContenidoDia(horario, d) }

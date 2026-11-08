@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.em
 import mpensum.componentes.aspecto
 import mpensum.componentes.iconoEstado
 import mpensum.logica.Situacion
+import mpensum.tema.Movimiento
 import mpensum.tema.PESO_NOMBRE
 import mpensum.tema.Paleta
 import mpensum.tema.Tema
@@ -65,8 +66,6 @@ private const val ABRE = 5_450f
 private const val ROTULO = 5_950f
 private const val SE_VA = 9_100f
 
-private val ENFATICA = CubicBezierEasing(0.2f, 0f, 0f, 1f)
-private val SALIDA = CubicBezierEasing(0.16f, 1f, 0.3f, 1f)
 private val ESTANDAR = CubicBezierEasing(0.4f, 0f, 0.2f, 1f)
 private val ANILLO = CubicBezierEasing(0.2f, 0.7f, 0.3f, 1f)
 private val DESTELLO = CubicBezierEasing(0.22f, 0.61f, 0.2f, 1f)
@@ -251,7 +250,7 @@ private fun DrawScope.texto(t: TextLayoutResult, x: Float, base: Float, color: C
 
 private fun DrawScope.pintar(t: Float, x: TextosMapa, cables: List<CableDemo>) {
     // Al final de cada vuelta todo se apaga a la vez: la vuelta siguiente arranca de cero, sin salto
-    val velo = 1f - ENFATICA.transform(durante(t, SE_VA, 700f))
+    val velo = 1f - Movimiento.ESTANDAR.transform(durante(t, SE_VA, 700f))
 
     // Las cabeceras de semestre, como RotulosGrafo: aro tenue y mayúsculas espaciadas
     for (c in 0..2) {
@@ -266,9 +265,9 @@ private fun DrawScope.pintar(t: Float, x: TextosMapa, cables: List<CableDemo>) {
     MATERIAS.forEachIndexed { i, m -> tarjeta(t, i, m, x, velo) }
 
     // El dedo: un círculo de luz, sin sombra; se posa, aprieta y se va. Vive en el plano y viaja con la cámara
-    val aparece = SALIDA.transform(durante(t, TOCA, 380f))
-    val aprieta = ENFATICA.transform(durante(t, 3_580f, 140f)) - ENFATICA.transform(durante(t, 3_740f, 240f))
-    val seVa = ENFATICA.transform(durante(t, 3_820f, 360f))
+    val aparece = Movimiento.ASIENTA.transform(durante(t, TOCA, 380f))
+    val aprieta = Movimiento.ESTANDAR.transform(durante(t, 3_580f, 140f)) - Movimiento.ESTANDAR.transform(durante(t, 3_740f, 240f))
+    val seVa = Movimiento.ESTANDAR.transform(durante(t, 3_820f, 360f))
     val opDedo = aparece * (1f - seVa)
     if (opDedo > 0f) {
         val r = 22f * ((1.18f - 0.18f * aparece) * (1f - 0.12f * aprieta) + 0.12f * seVa)
@@ -278,12 +277,12 @@ private fun DrawScope.pintar(t: Float, x: TextosMapa, cables: List<CableDemo>) {
 }
 
 /** Cuánto ha entrado lo de una columna y fila: semestre a semestre y, dentro, de arriba abajo */
-private fun entrada(t: Float, col: Int, fila: Int) = SALIDA.transform(durante(t, 150f + col * 240f + fila * 90f, 650f))
+private fun entrada(t: Float, col: Int, fila: Int) = Movimiento.ASIENTA.transform(durante(t, 150f + col * 240f + fila * 90f, 650f))
 
 private fun DrawScope.cable(t: Float, c: CableDemo, velo: Float) {
     val o = c.origen
     // El cable crece detrás de su tarjeta mientras el mapa se arma
-    val dibujo = ENFATICA.transform(durante(t, 150f + o.col * 240f + o.fila * 90f + 380f, 800f))
+    val dibujo = Movimiento.ESTANDAR.transform(durante(t, 150f + o.col * 240f + o.fila * 90f + 380f, 800f))
     var frontera = 0f
     var lleno = 0f
     var descarga = 0f
@@ -292,7 +291,7 @@ private fun DrawScope.cable(t: Float, c: CableDemo, velo: Float) {
     var luzHasta = 0f
     if (c.orden >= 0) {
         val j = c.orden
-        frontera = ENFATICA.transform(durante(t, ABRE - 50f + j * 120f, 500f))
+        frontera = Movimiento.ESTANDAR.transform(durante(t, ABRE - 50f + j * 120f, 500f))
         // La descarga: el verde llena el cable en el 58 % del tiempo, se queda un instante y se apaga (2 s: a cámara lenta)
         val r = durante(t, DESCARGA_EN, 2_000f)
         if (r > 0f && r < 1f) {
@@ -357,13 +356,13 @@ private fun DrawScope.tarjeta(t: Float, i: Int, m: MateriaDemo, x: TextosMapa, v
         // La que se aprueba: la única en azul al principio, verde al toque
         de = Situacion.INSCRIBIBLE
         a = Situacion.HECHA
-        k = ENFATICA.transform(durante(t, APRUEBA, 380f))
+        k = Movimiento.ESTANDAR.transform(durante(t, APRUEBA, 380f))
         candado = Paleta.azul
         giro = 40f
         candadoA = 1f - durante(t, APRUEBA, 180f)
         candadoE = 1f - 0.2f * durante(t, APRUEBA, 180f)
-        selloA = SALIDA.transform(durante(t, APRUEBA, 300f))
-        selloE = 0.6f + 0.4f * ENFATICA.transform(durante(t, APRUEBA, 450f))
+        selloA = Movimiento.ASIENTA.transform(durante(t, APRUEBA, 300f))
+        selloE = 0.6f + 0.4f * Movimiento.ESTANDAR.transform(durante(t, APRUEBA, 450f))
         rotuloA = 1f - ESTANDAR.transform(durante(t, APRUEBA - 50f, 220f))
         val r = durante(t, APRUEBA - 50f, 620f)
         if (r > 0f && r < 1f) {
@@ -372,13 +371,13 @@ private fun DrawScope.tarjeta(t: Float, i: Int, m: MateriaDemo, x: TextosMapa, v
             anilloG = 2f + 12f * p
         }
         // Se hunde un poco bajo el dedo, como un botón
-        val hundido = ENFATICA.transform(durante(t, 3_600f, 120f)) - ENFATICA.transform(durante(t, 3_740f, 260f))
+        val hundido = Movimiento.ESTANDAR.transform(durante(t, 3_600f, 120f)) - Movimiento.ESTANDAR.transform(durante(t, 3_740f, 260f))
         esc = 1f - 0.025f * hundido
     } else if (i <= 2) {
         // Lo que abre: el candado gira abierto y pasa de rojo a azul, un destello y luego el rótulo
         val j = i - 1
         a = Situacion.INSCRIBIBLE
-        k = ENFATICA.transform(durante(t, ABRE + j * 120f, 450f))
+        k = Movimiento.ESTANDAR.transform(durante(t, ABRE + j * 120f, 450f))
         candado = lerp(Paleta.rojo, Paleta.azul, k)
         giro = 40f * k
         val r = durante(t, ABRE + 150f + j * 120f, 1_100f)
@@ -388,7 +387,7 @@ private fun DrawScope.tarjeta(t: Float, i: Int, m: MateriaDemo, x: TextosMapa, v
             destelloX = 1f + 0.06f * p
             destelloY = 1f + 0.28f * p
         }
-        val f = SALIDA.transform(durante(t, ROTULO + j * 120f, 500f))
+        val f = Movimiento.ASIENTA.transform(durante(t, ROTULO + j * 120f, 500f))
         rotuloA = f
         rotuloY = (1f - f) * 4f
     }

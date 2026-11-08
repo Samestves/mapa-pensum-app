@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.sp
 import mpensum.logica.Sesion
 import mpensum.logica.enCarriles
 import mpensum.logica.rangoDeClases
+import mpensum.tema.Movimiento
 import mpensum.tema.Paleta
 import mpensum.tema.Tema
 import mpensum.tema.inter
@@ -62,7 +63,6 @@ import kotlin.random.Random
 internal const val ESC_ANCHO = 300f
 internal const val ESC_ALTO = 262f
 
-private val SUAVE = CubicBezierEasing(0.32f, 0.72f, 0f, 1f)
 private val IO = CubicBezierEasing(0.65f, 0f, 0.35f, 1f)
 private val SAL = CubicBezierEasing(0.2f, 0f, 0f, 1f)
 
@@ -250,7 +250,7 @@ private fun DrawScope.escena(plano: PlanoVuelo, o: OpcionesEscena, t: Float, dia
     val lienzo = Paleta.lienzo
 
     // La semana: etiquetas de día y una línea por hora, que aparecen cuando la captura se apaga
-    val rejilla = SUAVE.transform(tramo(tl, 50f, 500f))
+    val rejilla = Movimiento.FLUIDA.transform(tramo(tl, 50f, 500f))
     if (rejilla > 0f) {
         for (k in 0..4) texto(dias[k], Offset(60f * k + 30f - dias[k].size.width / 2f, 6f), rejilla)
         val horas = plano.horasVisibles()
@@ -258,7 +258,7 @@ private fun DrawScope.escena(plano: PlanoVuelo, o: OpcionesEscena, t: Float, dia
     }
 
     // La captura: entra, se lee con una línea y se apaga (o se encoge) dejando sus clases sueltas
-    val entra = if (o.entrada) SUAVE.transform(tramo(t, 0f, 450f)) else 1f
+    val entra = if (o.entrada) Movimiento.FLUIDA.transform(tramo(t, 0f, 450f)) else 1f
     val scan = if (o.entrada) 48f + IO.transform(tramo(t, 400f, 1150f)) * 204f else -1f
     val sale = SAL.transform(tramo(tl, 0f, if (o.miniatura != null) 500f else 300f))
     if (o.miniatura != null) {
@@ -284,9 +284,9 @@ private fun DrawScope.escena(plano: PlanoVuelo, o: OpcionesEscena, t: Float, dia
         val orig = plano.origen[i]
         val dest = plano.destino[i]
         val color = plano.colores[i]
-        val c = SUAVE.transform(tramo(tl, 0f, CONDENSA))
+        val c = Movimiento.FLUIDA.transform(tramo(tl, 0f, CONDENSA))
         val floreciendo = tl >= plano.llegada[i]
-        val b = SUAVE.transform(tramo(tl, plano.llegada[i], plano.llegada[i] + FLORECE))
+        val b = Movimiento.FLUIDA.transform(tramo(tl, plano.llegada[i], plano.llegada[i] + FLORECE))
         fun punto(r: Rect, y: Float) = Rect(Offset(r.center.x - PT / 2, r.top + r.height * y - PT / 2), Size(PT, PT))
         val r = when {
             tl < plano.salida[i] -> lerp(orig, punto(orig, 0.5f), c)
@@ -318,7 +318,7 @@ private fun DrawScope.escena(plano: PlanoVuelo, o: OpcionesEscena, t: Float, dia
     // La línea de «ahora»: se traza al final, de izquierda a derecha
     val y = o.ahoraY
     if (y != null) {
-        val ah = SUAVE.transform(tramo(tl, plano.fin - 100f, plano.fin + 470f))
+        val ah = Movimiento.FLUIDA.transform(tramo(tl, plano.fin - 100f, plano.fin + 470f))
         if (ah > 0f) {
             drawRect(Paleta.rojo, Offset(0f, y), Size(ESC_ANCHO * ah, 1.5f))
             drawCircle(Paleta.rojo, 4f, Offset(1f, y + 0.75f))

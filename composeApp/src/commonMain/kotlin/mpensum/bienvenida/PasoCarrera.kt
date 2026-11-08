@@ -66,6 +66,7 @@ import mpensum.datos.Carrera
 import mpensum.datos.TIPOS
 import mpensum.logica.compararEs
 import mpensum.plataforma.Preferencias
+import mpensum.tema.Movimiento
 import mpensum.tema.Alto
 import mpensum.tema.Espacio
 import mpensum.tema.Paleta
@@ -76,7 +77,6 @@ import mpensum.tema.inter
 import mpensum.tema.jost
 import mpensum.tema.porTema
 
-private val SALIDA = CubicBezierEasing(0.16f, 1f, 0.3f, 1f)
 private val ESTANDAR = CubicBezierEasing(0.4f, 0f, 0.2f, 1f)
 
 /** Lo que mide una fila y su paso, como las de la portada */
@@ -257,7 +257,7 @@ private fun FilaCarrera(c: Carrera, i: Int, esElegida: Boolean, hay: State<Float
     val relleno = if (compacta) Espacio.s else Espacio.m
     val k = animateFloatAsState(if (esElegida) 1f else 0f, tween(260, easing = ESTANDAR), label = "elegida")
     val entra = remember { Animatable(0f) }
-    LaunchedEffect(Unit) { entra.animateTo(1f, tween(480, 150 + 40 * i, SALIDA)) }
+    LaunchedEffect(Unit) { entra.animateTo(1f, tween(480, 150 + 40 * i, Movimiento.ASIENTA)) }
     Row(
         modifier
             .padding(start = margen, end = margen, bottom = PASO_FILA - ALTO_FILA)
@@ -303,7 +303,7 @@ private fun FilaCarrera(c: Carrera, i: Int, esElegida: Boolean, hay: State<Float
         Box(
             Modifier.size(VISTO_TAM).graphicsLayer {
                 alpha = k.value
-                val e = 0.8f + 0.2f * SALIDA.transform(k.value)
+                val e = 0.8f + 0.2f * Movimiento.ASIENTA.transform(k.value)
                 scaleX = e
                 scaleY = e
             }.drawBehind {

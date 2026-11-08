@@ -1,7 +1,6 @@
 package mpensum
 
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -41,6 +40,7 @@ import mpensum.plataforma.Preferencias
 import mpensum.plataforma.animacionesQuitadas
 import mpensum.plataforma.telefonoModesto
 import mpensum.portada.Portada
+import mpensum.tema.Movimiento
 import mpensum.tema.Paleta
 import mpensum.tema.Tema
 import mpensum.tema.LocalFuentes
@@ -77,7 +77,6 @@ private val GuardarPantalla = Saver<Pantalla, String>(
 )
 
 /** Lo que cambia sin salir de pantalla arranca quieto y frena largo (Material, enfatizada) */
-private val ENFATICA = CubicBezierEasing(0.2f, 0f, 0f, 1f)
 
 /**
  * La primera vez, la guía; después, la portada. La guía acaba en la portada
@@ -172,13 +171,13 @@ private fun Pantallas() {
                     // Con el movimiento reducido, un fundido de 150 ms en vez de entrar y salir con escala
                     Tema.movimiento -> fadeIn(tween(150)) togetherWith fadeOut(tween(150))
                     targetState is Pantalla.Carrera ->
-                        (scaleIn(tween(420, easing = ENFATICA), 0.9f, origen) + fadeIn(tween(200, 40, LinearEasing))) togetherWith
-                            (scaleOut(tween(420, easing = ENFATICA), 1.06f, origen) + fadeOut(tween(180, easing = LinearEasing)))
+                        (scaleIn(tween(420, easing = Movimiento.ESTANDAR), 0.9f, origen) + fadeIn(tween(200, 40, LinearEasing))) togetherWith
+                            (scaleOut(tween(420, easing = Movimiento.ESTANDAR), 1.06f, origen) + fadeOut(tween(180, easing = LinearEasing)))
                     initialState is Pantalla.Carrera ->
-                        (scaleIn(tween(380, easing = ENFATICA), 1.06f, origen) + fadeIn(tween(200, easing = LinearEasing))) togetherWith
-                            (scaleOut(tween(380, easing = ENFATICA), 0.9f, origen) + fadeOut(tween(180, 60, LinearEasing)))
+                        (scaleIn(tween(380, easing = Movimiento.ESTANDAR), 1.06f, origen) + fadeIn(tween(200, easing = LinearEasing))) togetherWith
+                            (scaleOut(tween(380, easing = Movimiento.ESTANDAR), 0.9f, origen) + fadeOut(tween(180, 60, LinearEasing)))
                     // De la guía a la portada: la guía se disuelve y la portada nace bajo ella, que hace su propia entrada
-                    targetState == Pantalla.Portada -> fadeIn(tween(360, 80, ENFATICA)) togetherWith fadeOut(tween(320, easing = LinearEasing))
+                    targetState == Pantalla.Portada -> fadeIn(tween(360, 80, Movimiento.ESTANDAR)) togetherWith fadeOut(tween(320, easing = LinearEasing))
                     else -> fadeIn(tween(500, 120)) togetherWith fadeOut(tween(200))
                 }
             },

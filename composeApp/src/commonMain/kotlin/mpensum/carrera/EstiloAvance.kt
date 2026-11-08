@@ -65,6 +65,7 @@ import mpensum.componentes.Lucide
 import mpensum.componentes.estiloCifra
 import mpensum.componentes.pulsable
 import mpensum.componentes.tamañoUnidad
+import mpensum.tema.Movimiento
 import mpensum.tema.Alto
 import mpensum.tema.Espacio
 import mpensum.tema.Paleta
@@ -345,7 +346,7 @@ internal fun CifraFila(valor: String, unidad: String? = null, color: Color = Pal
 @Composable
 internal fun <T> FilasPlegables(elementos: List<T>, visibles: Int = 3, fila: @Composable (T, Boolean) -> Unit) {
     var abierta by remember { mutableStateOf(false) }
-    val giro by animateFloatAsState(if (abierta) 180f else 0f, tween(if (Tema.movimiento) 0 else 220, easing = ENFATICA), label = "giro")
+    val giro by animateFloatAsState(if (abierta) 180f else 0f, tween(if (Tema.movimiento) 0 else 220, easing = Movimiento.ESTANDAR), label = "giro")
     val mostradas = if (abierta || elementos.size <= visibles + 1) elementos else elementos.take(visibles)
     mostradas.forEachIndexed { k, e -> fila(e, k == 0) }
     if (elementos.size > visibles + 1) {

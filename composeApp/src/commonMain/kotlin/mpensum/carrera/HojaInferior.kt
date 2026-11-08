@@ -82,6 +82,7 @@ import mpensum.componentes.Vidrio
 import mpensum.componentes.ventana
 import mpensum.componentes.vidrio
 import mpensum.plataforma.ManejarAtras
+import mpensum.tema.Movimiento
 import mpensum.tema.Espacio
 import mpensum.tema.Radio
 import mpensum.tema.Paleta
@@ -108,7 +109,6 @@ private val ENTRA = spring<Float>(dampingRatio = 1f, stiffness = 380f, visibilit
 /** Vuelta cuando el tirón no llegó al umbral: algo más rígido, con la velocidad del dedo */
 private val VUELVE = spring<Float>(dampingRatio = 1f, stiffness = 420f, visibilityThreshold = 0.5f)
 /** Salida por atrás o por el aspa: aceleración (Material), arranca lenta y se va */
-private val SALE = CubicBezierEasing(0.3f, 0f, 0.8f, 0.15f)
 /** Salida tras un tirón: arranca ya a la velocidad del dedo (pendiente 1) y acelera al final */
 private val SALE_DEDO = CubicBezierEasing(0.35f, 0.35f, 0.9f, 0.55f)
 private const val SALE_MS = 260
@@ -220,7 +220,7 @@ private class Hoja(private val alcance: CoroutineScope) {
         val restante = ((meta - desp) / meta).coerceIn(0f, 1f)
         // Por distancia: desde arriba del todo 260 ms (o 270 tras un tirón); desde casi fuera, la mitad
         if (porDedo) animar(meta, tween((140 + 130 * restante).toInt(), easing = SALE_DEDO))
-        else animar(meta, tween((SALE_MS * (0.5f + 0.5f * restante)).toInt(), easing = SALE))
+        else animar(meta, tween((SALE_MS * (0.5f + 0.5f * restante)).toInt(), easing = Movimiento.SALE))
     }
 
     /** El dedo agarra la hoja, aunque esté a medio entrar o volviendo */

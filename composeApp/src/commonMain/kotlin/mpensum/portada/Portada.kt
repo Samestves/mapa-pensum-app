@@ -1,7 +1,6 @@
 package mpensum.portada
 
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.keyframes
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
@@ -96,6 +95,7 @@ import mpensum.datos.TIPOS
 import mpensum.carrera.estiloRotulo
 import mpensum.datos.rememberResumenes
 
+import mpensum.tema.Movimiento
 import mpensum.tema.Espacio
 import mpensum.tema.Tipo
 import mpensum.tema.Paleta
@@ -103,8 +103,6 @@ import mpensum.tema.Tema
 import mpensum.tema.jost
 import kotlin.math.sin
 
-internal val SALIDA = CubicBezierEasing(0.16f, 1f, 0.3f, 1f)
-internal val ENFATICA = CubicBezierEasing(0.2f, 0f, 0f, 1f)
 
 /**
  * La portada: la marca arriba, tu carrera en un cristal con tu avance de
@@ -356,7 +354,7 @@ internal object EntradaPortada {
 @Composable
 private fun Modifier.sube(retardo: Int, distancia: Dp = 16.dp, duracion: Int = 480): Modifier {
     val f = remember { Animatable(if (EntradaPortada.hecha) 1f else 0f) }
-    LaunchedEffect(Unit) { if (f.value < 1f) f.animateTo(1f, tween(duracion, retardo, SALIDA)) }
+    LaunchedEffect(Unit) { if (f.value < 1f) f.animateTo(1f, tween(duracion, retardo, Movimiento.ASIENTA)) }
     return graphicsLayer {
         alpha = f.value
         translationY = (1f - f.value) * distancia.toPx()

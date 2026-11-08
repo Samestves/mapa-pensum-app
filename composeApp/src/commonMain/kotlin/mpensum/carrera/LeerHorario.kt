@@ -54,6 +54,7 @@ import mpensum.logica.Salida
 import mpensum.componentes.margenPantalla
 import mpensum.componentes.pulsable
 import mpensum.logica.cuandoEs
+import mpensum.tema.Movimiento
 import mpensum.tema.Espacio
 import mpensum.tema.Paleta
 
@@ -68,7 +69,6 @@ import mpensum.tema.Paleta
  * derecha, bajo la misma cabecera.
  */
 
-private val CURVA = androidx.compose.animation.core.CubicBezierEasing(0.32f, 0.72f, 0f, 1f)
 
 /** Cuánto mide la foto cuando comparte el renglón con el texto; el alto sale de su proporción */
 private val ANCHO_FOTO = 320.dp
@@ -245,7 +245,7 @@ private fun PasoLeyendo(horario: EstadoHorario, lectura: Lectura, arriba: Dp, ab
     val barrido by rememberInfiniteTransition(label = "barrido").animateFloat(
         0f, 1f, infiniteRepeatable(tween(1800, easing = LinearEasing), RepeatMode.Reverse), label = "barrido",
     )
-    val real by animateFloatAsState(if (lectura.total > 0) (leidas.toFloat() / lectura.total).coerceIn(0f, 1f) else 0f, tween(600, easing = CURVA), label = "linea")
+    val real by animateFloatAsState(if (lectura.total > 0) (leidas.toFloat() / lectura.total).coerceIn(0f, 1f) else 0f, tween(600, easing = Movimiento.FLUIDA), label = "linea")
     val escaneo = { if (lectura.total > 0) real else barrido }
     Column(modifier.fillMaxSize().padding(top = arriba + Espacio.xs, bottom = abajo + Espacio.s, start = margenPantalla(), end = margenPantalla())) {
         CabeceraLectura("LEER HORARIO", horario::cancelarLectura)
@@ -285,7 +285,7 @@ private fun FilaLeyendo(horario: EstadoHorario, m: mpensum.logica.MateriaLeida) 
     val l = letrasHorario()
     // Entra al leerse: sube desde 8 dp mientras aparece
     val entrada = remember { Animatable(0f) }
-    LaunchedEffect(Unit) { entrada.animateTo(1f, tween(420, easing = CURVA)) }
+    LaunchedEffect(Unit) { entrada.animateTo(1f, tween(420, easing = Movimiento.FLUIDA)) }
     val color = horario.color(m.codigo)
     Row(
         Modifier

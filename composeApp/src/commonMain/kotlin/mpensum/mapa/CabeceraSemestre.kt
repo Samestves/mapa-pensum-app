@@ -1,6 +1,5 @@
 package mpensum.mapa
 
-import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
@@ -39,6 +38,7 @@ import mpensum.componentes.iconoEstado
 import mpensum.logica.CuentaSemestre
 import mpensum.logica.MarcaSemestre
 import mpensum.logica.Situacion
+import mpensum.tema.Movimiento
 import mpensum.tema.Paleta
 import kotlin.math.PI
 import kotlin.math.cos
@@ -62,7 +62,6 @@ private const val CASILLA_ARRIBA = 2.8f
 private const val SANGRIA_TITULO = 21f
 private const val ALTO_CASILLA = 44f
 
-private val CRECER = CubicBezierEasing(0.32f, 0.72f, 0f, 1f)
 
 /** Lo que dice la cabecera de un semestre */
 data class DatosCabecera(
@@ -89,8 +88,8 @@ fun CabeceraSemestre(datos: DatosCabecera, tipos: TiposMapa, medidor: TextMeasur
         return
     }
     val ancho = Nodo.ANCHO.toFloat()
-    val anchoHechas by animateFloatAsState(if (datos.total > 0) ancho * datos.hechas / datos.total else 0f, tween(600, easing = CRECER), label = "hechas")
-    val anchoCursando by animateFloatAsState(if (datos.total > 0) ancho * datos.cursando / datos.total else 0f, tween(600, easing = CRECER), label = "cursando")
+    val anchoHechas by animateFloatAsState(if (datos.total > 0) ancho * datos.hechas / datos.total else 0f, tween(600, easing = Movimiento.FLUIDA), label = "hechas")
+    val anchoCursando by animateFloatAsState(if (datos.total > 0) ancho * datos.cursando / datos.total else 0f, tween(600, easing = Movimiento.FLUIDA), label = "cursando")
     val faltaElegir = datos.casilla?.marca == MarcaSemestre.FALTA_ELEGIR
     val pie = when {
         datos.completo -> "COMPLETO"
@@ -154,8 +153,8 @@ private const val BARRA_COMPACTA = 26f
 @Composable
 private fun CabeceraCompacta(datos: DatosCabecera, tipos: TiposMapa, alAlternar: () -> Unit) {
     val ancho = Nodo.ANCHO.toFloat()
-    val anchoHechas by animateFloatAsState(if (datos.total > 0) ancho * datos.hechas / datos.total else 0f, tween(600, easing = CRECER), label = "hechas")
-    val anchoCursando by animateFloatAsState(if (datos.total > 0) ancho * datos.cursando / datos.total else 0f, tween(600, easing = CRECER), label = "cursando")
+    val anchoHechas by animateFloatAsState(if (datos.total > 0) ancho * datos.hechas / datos.total else 0f, tween(600, easing = Movimiento.FLUIDA), label = "hechas")
+    val anchoCursando by animateFloatAsState(if (datos.total > 0) ancho * datos.cursando / datos.total else 0f, tween(600, easing = Movimiento.FLUIDA), label = "cursando")
     val apagado = SpanStyle(fontFamily = tipos.datos.fontFamily, fontWeight = tipos.datos.fontWeight, fontSize = tipos.datos.fontSize, color = Paleta.tenue, letterSpacing = tipos.datos.letterSpacing)
     Box(
         Modifier

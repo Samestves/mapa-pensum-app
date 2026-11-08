@@ -56,6 +56,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import mpensum.tema.Movimiento
 import mpensum.tema.Paleta
 import mpensum.tema.Tema
 import mpensum.tema.porTema
@@ -103,7 +104,6 @@ fun Modifier.aurora(intensidad: Float = 1f): Modifier = drawBehind {
  */
 
 /** Entra rápido y se asienta muy largo: la luz se enciende, no se desliza */
-private val ENCENDER = CubicBezierEasing(0.05f, 0.7f, 0.1f, 1f)
 private val SALIDA_LUZ = CubicBezierEasing(0.16f, 1f, 0.3f, 1f)
 private const val CUADRO_NS = 32_000_000L
 /** Cada luz, del centro al borde, con un final largo para que no se vea dónde acaba */
@@ -141,7 +141,7 @@ class RelojAurora internal constructor(segundos: Float, entrando: Boolean) {
     internal fun ola(p: Float): Float = sin(2f * PI.toFloat() * segundos / p)
 
     /** Cuánto se ha encendido el cielo al aparecer */
-    internal val entrada: Float get() = ENCENDER.transform((ms / 900f).coerceIn(0f, 1f))
+    internal val entrada: Float get() = Movimiento.ENTRA.transform((ms / 900f).coerceIn(0f, 1f))
 
     /** La luz de la carrera llega un poco después que el cielo */
     internal val luz: Float get() = SALIDA_LUZ.transform(((ms - 200f) / 700f).coerceIn(0f, 1f))

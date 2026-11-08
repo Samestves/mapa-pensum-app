@@ -74,6 +74,7 @@ import mpensum.logica.FilaMateria
 import mpensum.logica.SeccionLista
 import mpensum.logica.Situacion
 import mpensum.logica.Tono
+import mpensum.tema.Movimiento
 import mpensum.tema.Alto
 import mpensum.tema.Espacio
 import mpensum.tema.Paleta
@@ -96,7 +97,6 @@ import kotlin.math.sin
  */
 
 /** La curva enfática de Material: arranca decidida y se posa despacio */
-internal val ENFATICA = CubicBezierEasing(0.2f, 0f, 0f, 1f)
 /** El "ease" de CSS, para los fundidos */
 private val SUAVE = CubicBezierEasing(0.25f, 0.1f, 0.25f, 1f)
 
@@ -182,7 +182,7 @@ internal fun SeccionDeLista(
     modifier: Modifier = Modifier,
 ) {
     val apertura = remember { Animatable(if (abierto) 1f else 0f) }
-    LaunchedEffect(abierto) { apertura.animateTo(if (abierto) 1f else 0f, tween(360, easing = ENFATICA)) }
+    LaunchedEffect(abierto) { apertura.animateTo(if (abierto) 1f else 0f, tween(360, easing = Movimiento.ESTANDAR)) }
     val opacidad = animateFloatAsState(if (abierto) 1f else 0f, tween(240, easing = SUAVE), label = "filas")
     // Solo cambia al terminar de plegarse: no recompone en cada cuadro de la animación
     val asoma by remember { derivedStateOf { apertura.value > 0f } }
@@ -245,7 +245,7 @@ internal fun SeccionDeLista(
 
 @Composable
 private fun CabeceraSeccion(seccion: SeccionLista, abierto: Boolean, conDeshacer: Boolean, acciones: AccionesLista) {
-    val giro = animateFloatAsState(if (abierto) 90f else 0f, tween(320, easing = ENFATICA), label = "chevron")
+    val giro = animateFloatAsState(if (abierto) 90f else 0f, tween(320, easing = Movimiento.ESTANDAR), label = "chevron")
     val i = inter()
     Box(
         Modifier
@@ -345,8 +345,8 @@ private fun AroSemestre(aprobado: Float, cursado: Float, completo: Boolean) {
     val verde = remember { Animatable(aprobado) }
     val ambar = remember { Animatable(cursado) }
     LaunchedEffect(aprobado, cursado) {
-        launch { verde.animateTo(aprobado, tween(400, easing = ENFATICA)) }
-        ambar.animateTo(cursado, tween(400, easing = ENFATICA))
+        launch { verde.animateTo(aprobado, tween(400, easing = Movimiento.ESTANDAR)) }
+        ambar.animateTo(cursado, tween(400, easing = Movimiento.ESTANDAR))
     }
     Canvas(Modifier.size(24.dp)) {
         val lado = size.minDimension
@@ -424,7 +424,7 @@ private fun FilaDeMateria(
             brillo.animateTo(0f, tween(300, easing = SUAVE))
         }
         pop.snapTo(0.72f)
-        pop.animateTo(1f, tween(260, easing = ENFATICA))
+        pop.animateTo(1f, tween(260, easing = Movimiento.ESTANDAR))
     }
     LaunchedEffect(aviso) {
         if (aviso == 0) {

@@ -83,6 +83,7 @@ import mpensum.logica.Situacion
 import mpensum.logica.accionDeSemestre
 import mpensum.logica.modeloLista
 import mpensum.plataforma.ManejarAtras
+import mpensum.tema.Movimiento
 import mpensum.tema.Alto
 import mpensum.tema.Espacio
 import mpensum.tema.Paleta
@@ -267,7 +268,7 @@ fun VistaLista(
                     avisoCodigo = control.avisoCodigo,
                     avisoVez = control.avisoVez,
                     acciones = acciones,
-                    modifier = Modifier.animateItem(fadeInSpec = tween(240), placementSpec = tween(360, easing = ENFATICA), fadeOutSpec = tween(160)),
+                    modifier = Modifier.animateItem(fadeInSpec = tween(240), placementSpec = tween(360, easing = Movimiento.ESTANDAR), fadeOutSpec = tween(160)),
                 )
             }
             if (m.secciones.isEmpty()) {

@@ -87,6 +87,7 @@ import mpensum.logica.ucTipicaDe
 import mpensum.mapa.nombreCasilla
 import mpensum.mapa.tituloGrupo
 import mpensum.plataforma.ManejarAtras
+import mpensum.tema.Movimiento
 import mpensum.tema.Espacio
 import mpensum.tema.Paleta
 import mpensum.tema.Tipo
@@ -133,7 +134,7 @@ private const val ENTRADA_CIFRA = 700
 @Composable
 fun numeroAnimado(destino: Float): Float {
     val valor = remember { Animatable(destino) }
-    LaunchedEffect(destino) { valor.animateTo(destino, tween(600, easing = ENFATICA)) }
+    LaunchedEffect(destino) { valor.animateTo(destino, tween(600, easing = Movimiento.ESTANDAR)) }
     return valor.value
 }
 
@@ -222,8 +223,8 @@ fun BoxScope.HojaAvance(abierta: Boolean, estado: EstadoCarrera, alCerrar: () ->
             transitionSpec = {
                 val entra = if (targetState != null) 3 else -6
                 val sale = if (targetState != null) -6 else 3
-                ((slideInHorizontally(tween(340, easing = ENFATICA)) { it / entra } + fadeIn(tween(260))) togetherWith
-                    (slideOutHorizontally(tween(340, easing = ENFATICA)) { it / sale } + fadeOut(tween(160)))).using(SizeTransform(clip = true) { _, _ -> snap() })
+                ((slideInHorizontally(tween(340, easing = Movimiento.ESTANDAR)) { it / entra } + fadeIn(tween(260))) togetherWith
+                    (slideOutHorizontally(tween(340, easing = Movimiento.ESTANDAR)) { it / sale } + fadeOut(tween(160)))).using(SizeTransform(clip = true) { _, _ -> snap() })
             },
             contentAlignment = Alignment.TopStart,
             label = "detalle",
@@ -422,7 +423,7 @@ private fun TarjetaHeroe(estado: EstadoCarrera, g: EstimacionGraduacion, semestr
 @Composable
 private fun CifraHeroe(porcentaje: Int) {
     val cuenta = remember { Animatable(0f) }
-    LaunchedEffect(porcentaje) { cuenta.animateTo(1f, tween(ENTRADA_CIFRA, easing = ENFATICA)) }
+    LaunchedEffect(porcentaje) { cuenta.animateTo(1f, tween(ENTRADA_CIFRA, easing = Movimiento.ESTANDAR)) }
     val medidor = rememberTextMeasurer()
     val numero = estiloCifra(64.sp, interlinea = 64.sp)
     val signo = estiloUnidad(64.sp)

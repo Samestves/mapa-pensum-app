@@ -70,6 +70,7 @@ import mpensum.componentes.renglon
 import mpensum.componentes.ventana
 import mpensum.datos.Carrera
 import mpensum.logica.ResumenPortada
+import mpensum.tema.Movimiento
 import mpensum.tema.Espacio
 import mpensum.tema.Paleta
 import mpensum.tema.Tema
@@ -147,7 +148,7 @@ internal fun TuCarrera(
     alPulsar: (TransformOrigin) -> Unit,
     alAbrirHorario: (TransformOrigin) -> Unit = {},
 ) {
-    val acento by animateColorAsState(c?.let { acentoDe(colorDe(it.color)) } ?: Paleta.tenue, tween(400, easing = SALIDA), label = "acento")
+    val acento by animateColorAsState(c?.let { acentoDe(colorDe(it.color)) } ?: Paleta.tenue, tween(400, easing = Movimiento.ASIENTA), label = "acento")
     // Una sola línea de tiempo para toda la entrada; arranca cuando el avance está, para contar desde algo cierto
     val tiempo = remember(c?.slug) { Animatable(if (EntradaPortada.hecha && !cargando) FIN_ENTRADA else 0f) }
     LaunchedEffect(c?.slug, cargando) {
@@ -171,7 +172,7 @@ internal fun TuCarrera(
         (if (lleno) modifier.fillMaxSize() else modifier.fillMaxWidth().height(ALTO_TARJETA))
             .then(origen.medir)
             .pulsable(abrir, escala = 0.985f)
-            .drawBehind { cristalTarjeta(acento, if (c == null) 0f else ENFATICA.transform(tramo(300f, 700f)), if (lleno) 28.dp else 24.dp) },
+            .drawBehind { cristalTarjeta(acento, if (c == null) 0f else Movimiento.ESTANDAR.transform(tramo(300f, 700f)), if (lleno) 28.dp else 24.dp) },
     ) {
         if (lleno) Acostada(datos, tramo, abrir, abrirHorario) else DePie(datos, tramo, pad, abrir, abrirHorario)
     }
@@ -246,7 +247,7 @@ private fun Cabeza(d: DatosTarjeta, tramo: Tramo) {
         }
         // Cargando o sin marcas no hay cifra: nada de brillos que finjan un dato
         val r = d.resumen
-        if (c != null && r != null) Cifra(r.porcentaje, 40.sp, Modifier.offset(y = (-5).dp)) { ENFATICA.transform(tramo(380f, 900f)) }
+        if (c != null && r != null) Cifra(r.porcentaje, 40.sp, Modifier.offset(y = (-5).dp)) { Movimiento.ESTANDAR.transform(tramo(380f, 900f)) }
     }
 }
 
@@ -260,7 +261,7 @@ private fun SiluetaViva(d: DatosTarjeta, tramo: Tramo, punto: Dp, hueco: Dp, hue
         hechas = s?.hechas ?: emptyList(),
         punto = punto, hueco = hueco, huecoFila = huecoFila,
         apagado = 0.16f,
-        encendido = { col, fila -> ENFATICA.transform(tramo(380f + col * 70f + fila * 12f, 320f)) },
+        encendido = { col, fila -> Movimiento.ESTANDAR.transform(tramo(380f + col * 70f + fila * 12f, 320f)) },
         porEstado = (s?.cursandoPorSemestre ?: emptyList()) to (s?.disponiblesPorSemestre ?: emptyList()),
         // Lo inscribible aparece después de todo lo aprobado, escalonado y dentro de la línea de tiempo
         aparece = { i -> tramo(1080f + minOf(i * 40f, 240f), 280f) },

@@ -59,6 +59,7 @@ import mpensum.logica.Situacion
 import mpensum.logica.Tramo
 import mpensum.logica.marcasDeSemestres
 import mpensum.logica.tramoDe
+import mpensum.tema.Movimiento
 import mpensum.tema.Fondo
 import mpensum.tema.FormaCables
 import mpensum.tema.Paleta
@@ -77,7 +78,6 @@ import kotlin.math.min
 
 /** La opacidad de lo que queda fuera del foco en el teléfono (--opacidad-foco) */
 private const val OPACIDAD_FOCO = 0.14f
-private val CURVA_FOCO = CubicBezierEasing(0.32f, 0.72f, 0f, 1f)
 private val LLEGADA = CubicBezierEasing(0.22f, 0.61f, 0.2f, 1f)
 private val VIAJE_LUZ = CubicBezierEasing(0.45f, 0f, 0.3f, 1f)
 private val DESCARGA = CubicBezierEasing(0.55f, 0f, 0.25f, 1f)
@@ -128,16 +128,16 @@ fun MapaCarrera(
     LaunchedEffect(cadena) {
         if (cadena != null) {
             cadenaVisible = cadena
-            foco.animateTo(1f, tween(320, easing = CURVA_FOCO))
+            foco.animateTo(1f, tween(320, easing = Movimiento.FLUIDA))
         } else {
-            foco.animateTo(0f, tween(320, easing = CURVA_FOCO))
+            foco.animateTo(0f, tween(320, easing = Movimiento.FLUIDA))
             cadenaVisible = null
         }
     }
     LaunchedEffect(mirada) {
         if (mirada == null) return@LaunchedEffect
         trazado.snapTo(0f)
-        trazado.animateTo(1f, tween(560, easing = CURVA_FOCO))
+        trazado.animateTo(1f, tween(560, easing = Movimiento.FLUIDA))
     }
     val descarga = remember { Animatable(1f) }
     LaunchedEffect(efectos.descarga?.n) {
