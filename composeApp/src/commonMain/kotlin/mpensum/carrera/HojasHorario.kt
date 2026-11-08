@@ -96,9 +96,11 @@ fun BoxScope.HojasHorario(horario: EstadoHorario, cristal: HazeState?) {
     val hoja = horario.hoja ?: recuerdo[0]
     val l = letrasHorario()
     val apaisado = esApaisado()
-    val fija = apaisado && hoja == HojaHorario.Confirmar
     // Cabecera y cuerpo cambian de página con un solo reloj; editar una clase no cuenta como página nueva
     val transicion = updateTransition(hoja, label = "hoja-horario")
+    // Fija mientras la revisión esté en pantalla, también mientras sale: su lista desplazable no puede
+    // quedar dentro de una hoja que desplaza (un desplazamiento dentro de otro no se puede medir)
+    val fija = apaisado && (transicion.currentState == HojaHorario.Confirmar || transicion.targetState == HojaHorario.Confirmar)
     val empuje: AnimatedContentTransitionScope<HojaHorario?>.() -> ContentTransform = { fundidoDeHoja() }
     // Cerrar la revisión sin guardar descarta la lectura: la semana provisional no se puede dejar a medias
     val cerrar = { if (horario.hoja == HojaHorario.Confirmar) horario.cancelarLectura() else horario.hoja = null }

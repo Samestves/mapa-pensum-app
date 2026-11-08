@@ -30,6 +30,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -171,8 +174,10 @@ fun BoxScope.HojaAjustes(
           }
           }
         },
-        // Acostado, Personalizar reparte su alto en dos columnas y desplaza solo la de la derecha
-        desplazable = !(esApaisado() && actual.esDePersonalizar),
+        // Acostado la hoja nunca desplaza: cada página trae su propio desplazamiento. Si dependiera de la
+        // página actual, al volver de Personalizar la hoja volvería a desplazar mientras esa página aún
+        // sale con su columna desplazable dentro, y un desplazamiento dentro de otro no se puede medir
+        desplazable = !esApaisado(),
     ) {
         // Acostado, las cuatro páginas de Personalizar son una sola: el índice no se mueve y cambia la columna de la derecha
         val apaisado = esApaisado()
@@ -181,6 +186,8 @@ fun BoxScope.HojaAjustes(
             contentAlignment = Alignment.TopStart,
             contentKey = { if (apaisado && it.esDePersonalizar) PaginaAjustes.PERSONALIZAR else it },
         ) { p ->
+          // Personalizar acostado reparte su alto y desplaza su columna derecha; las demás desplazan enteras
+          Column(if (apaisado && !p.esDePersonalizar) Modifier.fillMaxSize().verticalScroll(rememberScrollState()) else Modifier) {
             if (p == PaginaAjustes.CARRERA) {
                 ListaCarreras(carreras, propia) { c ->
                     alElegir(c)
@@ -233,6 +240,7 @@ fun BoxScope.HojaAjustes(
                     }
                 }
             }
+          }
         }
     }
 }

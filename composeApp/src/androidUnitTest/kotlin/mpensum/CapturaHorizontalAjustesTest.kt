@@ -6,7 +6,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
+import androidx.compose.ui.test.performClick
 import com.github.takahirom.roborazzi.captureRoboImage
 import kotlinx.serialization.json.Json
 import mpensum.datos.Carrera
@@ -74,4 +77,28 @@ class CapturaHorizontalAjustesTest {
 
     @Test
     fun subpaginaAccesibilidad() = capturar(PaginaAjustes.ACCESIBILIDAD, "4-accesibilidad")
+
+    /**
+     * Menú → Personalizar → Volver, cuadro a cuadro. Mientras Personalizar sale, su columna
+     * desplazable sigue montada: si la hoja volviera a desplazar en ese momento, la app se cerraba
+     * («Vertically scrollable component was measured with an infinity maximum height»).
+     */
+    @Test
+    fun volverDePersonalizarNoSeCierra() {
+        regla.mainClock.autoAdvance = false
+        regla.setContent {
+            Box(Modifier.fillMaxSize().background(Paleta.lienzo)) {
+                HojaAjustes(PaginaAjustes.MENU, carreras, carreras.first { it.slug == "ingenieria-de-sistemas" }, alCerrar = {}, alElegir = {}, alVerGuia = {})
+            }
+        }
+        regla.mainClock.advanceTimeBy(900)
+        regla.onNodeWithText("Personalizar").performClick()
+        repeat(60) { regla.mainClock.advanceTimeByFrame() }
+        regla.onNodeWithContentDescription("Volver").performClick()
+        // Con el reloj manual, la vuelta necesita un respiro para recomponerse (artefacto del test)
+        regla.waitForIdle()
+        repeat(60) { regla.mainClock.advanceTimeByFrame() }
+        regla.onNodeWithText("Tu carrera").assertExists()
+        regla.onRoot().captureRoboImage("build/capturas/horizontal-ajustes-5-volver.png")
+    }
 }
