@@ -27,16 +27,18 @@ import mpensum.tema.Movimiento
  * El empuje de una página a otra dentro de una hoja: la que sale se va rápido
  * hacia atrás (100 ms) y la que entra llega después (250 ms) desde 24 dp. Con
  * «Reducir movimiento», un fundido corto y sin desplazamiento. El alto no se
- * anima: con la hoja de alto fijo, el `snap` ya no mueve nada.
+ * anima (`snap`) salvo con `animarAlto`: con la hoja de alto fijo no mueve nada.
  */
-internal fun empujeDePagina(adelante: Boolean, desplazoPx: Int): ContentTransform {
-    if (Movimiento.reducido) return fadeIn(tween(Movimiento.CORTA)) togetherWith fadeOut(tween(Movimiento.CORTA))
+internal fun empujeDePagina(adelante: Boolean, desplazoPx: Int, animarAlto: Boolean = false): ContentTransform {
+    if (Movimiento.reducido) return ContentTransform(fadeIn(tween(Movimiento.CORTA)), fadeOut(tween(Movimiento.CORTA)), sizeTransform = SizeTransform(clip = true) { _, _ -> if (animarAlto) Movimiento.ALTO else snap() })
     val signo = if (adelante) 1 else -1
     val entra = fadeIn(tween(Movimiento.MEDIA, Movimiento.SALIDA_RAPIDA, Movimiento.ENTRA)) +
         slideInHorizontally(tween(Movimiento.MEDIA, Movimiento.SALIDA_RAPIDA, Movimiento.ENTRA)) { signo * desplazoPx }
     val sale = fadeOut(tween(Movimiento.SALIDA_RAPIDA, easing = Movimiento.SALE)) +
         slideOutHorizontally(tween(Movimiento.SALIDA_RAPIDA, easing = Movimiento.SALE)) { -signo * desplazoPx }
-    return ContentTransform(entra, sale, sizeTransform = SizeTransform(clip = true) { _, _ -> snap() })
+    // Una hoja de alto fijo no necesita animarlo; la que mide su contenido lo anima una sola vez, con el resorte de las hojas
+    val alto = SizeTransform(clip = true) { _, _ -> if (animarAlto) Movimiento.ALTO else snap() }
+    return ContentTransform(entra, sale, sizeTransform = alto)
 }
 
 /**

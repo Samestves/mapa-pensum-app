@@ -1,6 +1,9 @@
 package mpensum.portada
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.updateTransition
+import androidx.compose.animation.ContentTransform
+import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -36,6 +39,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.UriHandler
 import androidx.compose.ui.text.TextStyle
@@ -64,6 +68,8 @@ import mpensum.plataforma.versionApp
 import mpensum.tema.Espacio
 import mpensum.tema.Tipo
 import mpensum.componentes.margenPantalla
+import mpensum.carrera.empujeDePagina
+import mpensum.tema.Movimiento
 import mpensum.tema.Paleta
 import mpensum.tema.Radio
 import mpensum.tema.Tema
@@ -113,49 +119,51 @@ fun BoxScope.HojaAjustes(
         actual = pagina
     }
     val enlaces = LocalUriHandler.current
+    // Un solo reloj para la cabecera y el cuerpo: cambian de página a la vez, y la vista previa llega con su página
+    val transicion = updateTransition(actual, label = "ajustes")
+    val desplazoPx = with(LocalDensity.current) { Movimiento.DESPLAZO.roundToPx() }
+    val empuje: AnimatedContentTransitionScope<PaginaAjustes>.() -> ContentTransform = {
+        empujeDePagina(targetState.ordinal > initialState.ordinal, desplazoPx, animarAlto = true)
+    }
     HojaInferior(
         abierta = pagina != null,
         alCerrar = alCerrar,
         // Acostado, las dos columnas piden más que los 560 dp de siempre
         cabecera = {
+          transicion.AnimatedContent(transitionSpec = empuje, contentAlignment = Alignment.TopStart) { p ->
+          Column {
             // El título de la hoja; las páginas internas llevan encima «AJUSTES» para saber de dónde se vino
             Row(Modifier.fillMaxWidth().padding(start = margenPantalla(), end = margenPantalla(), top = Espacio.xxs, bottom = if (esApaisado()) Espacio.xs else Espacio.m), verticalAlignment = Alignment.CenterVertically) {
                 // La flecha de volver solo si se llegó desde el menú; abierta directo en la lista, se cierra y ya
-                val conVolver = actual != PaginaAjustes.MENU && ultima == PaginaAjustes.MENU
+                val conVolver = p != PaginaAjustes.MENU && ultima == PaginaAjustes.MENU
                 if (conVolver) {
                     Box(Modifier.padding(end = Espacio.xs)) { BotonRedondo(Lucide.atras, "Volver") { actual = PaginaAjustes.MENU } }
                 }
                 Column(Modifier.weight(1f)) {
-                    if (actual != PaginaAjustes.MENU) BasicText("AJUSTES", style = versal(Paleta.tenue))
+                    if (p != PaginaAjustes.MENU) BasicText("AJUSTES", style = versal(Paleta.tenue))
                     BasicText(
-                        when (actual) {
+                        when (p) {
                             PaginaAjustes.CARRERA -> "Elige tu carrera"
                             PaginaAjustes.PERSONALIZAR -> "Personalizar"
                             PaginaAjustes.MENU -> "Ajustes"
                         },
-                        Modifier.padding(top = if (actual != PaginaAjustes.MENU) Espacio.xxs else 0.dp),
+                        Modifier.padding(top = if (p != PaginaAjustes.MENU) Espacio.xxs else 0.dp),
                         style = estiloTitulo(),
                     )
                 }
                 BotonCerrar(alCerrar)
             }
             // La vista previa no se desplaza: bajo el título, para ver cada cambio sin subir. Acostado vive en el índice de la página
-            if (actual == PaginaAjustes.PERSONALIZAR && !esApaisado()) {
+            if (p == PaginaAjustes.PERSONALIZAR && !esApaisado()) {
                 VistaPrevia(propia?.let { colorDe(it.color) } ?: Paleta.azul, propia?.silueta, 176.dp, Modifier.padding(start = margenPantalla(), end = margenPantalla(), bottom = Espacio.xs).fillMaxWidth())
             }
+          }
+          }
         },
         // Acostado, Personalizar reparte su alto en dos columnas y desplaza solo la de la derecha
         desplazable = !(esApaisado() && actual == PaginaAjustes.PERSONALIZAR),
     ) {
-        AnimatedContent(
-            targetState = actual,
-            transitionSpec = {
-                val adelante = targetState.ordinal > initialState.ordinal
-                (slideInHorizontally(tween(320)) { if (adelante) it / 4 else -it / 4 } + fadeIn(tween(240))) togetherWith
-                    (slideOutHorizontally(tween(280)) { if (adelante) -it / 4 else it / 4 } + fadeOut(tween(160)))
-            },
-            label = "ajustes",
-        ) { p ->
+        transicion.AnimatedContent(transitionSpec = empuje, contentAlignment = Alignment.TopStart) { p ->
             if (p == PaginaAjustes.CARRERA) {
                 ListaCarreras(carreras, propia) { c ->
                     alElegir(c)
