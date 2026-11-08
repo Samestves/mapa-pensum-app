@@ -3,6 +3,7 @@ package mpensum.bienvenida
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.CubicBezierEasing
+import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Box
@@ -16,6 +17,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.TextAutoSize
@@ -31,11 +33,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.CompositingStrategy
@@ -106,6 +106,11 @@ private val VISTO_TAM = 20.dp
 private const val PESO_LISTA_APAISADA = 2f
 private const val PESO_TEXTO_APAISADO = 1f
 
+/** La entrada escalonada de las filas, en ms: cuándo arranca la primera, el paso entre una y otra y lo que dura cada una */
+private const val ENTRADA_FILA_RETARDO = 150
+private const val ENTRADA_FILA_PASO = 40
+private const val ENTRADA_FILA_DURA = 480
+
 /** El visto de la elegida, en la rejilla de 24 */
 private val VISTO = PathParser().parsePathString("m7 12.5 3.2 3.2L17 9").toPath()
 
@@ -135,30 +140,52 @@ fun PasoCarrera(
     val hay = animateFloatAsState(if (actual != null) 1f else 0f, tween(260, easing = ESTANDAR), label = "hay")
 
     val boton = if (repite) "Listo" else "Empezar"
+    // Lo que debe sobrevivir al giro va por encima de la bifurcación: la entrada del título, la de las filas
+    // y el scroll de la lista. Dentro de cada rama se montarían de nuevo y todo entraría otra vez desde arriba
+    val titulo = rememberEntrada()
+    val filas = rememberEntradaFilas(ordenadas.size)
+    val desplazamiento = rememberScrollState()
     if (esApaisado()) {
         // La lista a un lado, en dos columnas para que quepan más carreras sin desplazar; el título y el botón al otro,
         // bajo la barra de pasos, como en los demás pasos
         Row(Modifier.fillMaxSize()) {
-            Lista(ordenadas, elegida, hay, Modifier.weight(PESO_LISTA_APAISADA).fillMaxHeight().padding(top = ALTO_BARRA - Espacio.m), columnas = 2) { elegida = it.slug }
+            Lista(ordenadas, elegida, hay, filas, desplazamiento, Modifier.weight(PESO_LISTA_APAISADA).fillMaxHeight().padding(top = ALTO_BARRA - Espacio.m), columnas = 2) { elegida = it.slug }
             Column(Modifier.weight(PESO_TEXTO_APAISADO).fillMaxHeight().padding(top = ALTO_BARRA), verticalArrangement = Arrangement.Center) {
-                Titulo()
+                Titulo(titulo)
                 Boton(actual, boton) { alElegir(actual) }
             }
         }
     } else {
         Column(Modifier.fillMaxSize()) {
-            Titulo()
-            Lista(ordenadas, elegida, hay, Modifier.weight(1f)) { elegida = it.slug }
+            Titulo(titulo)
+            Lista(ordenadas, elegida, hay, filas, desplazamiento, Modifier.weight(1f)) { elegida = it.slug }
             Boton(actual, boton) { alElegir(actual) }
         }
     }
 }
 
+/**
+ * La entrada escalonada de las filas, con un solo reloj en milisegundos: la
+ * fila `i` arranca a los 150 + 40·i ms y tarda 480 con la curva de asentarse
+ * (ver [entradaFila]). Un reloj para las nueve en vez de nueve animaciones.
+ */
+@Composable
+private fun rememberEntradaFilas(cuantas: Int): State<Float> {
+    val reloj = remember { Animatable(0f) }
+    val total = (ENTRADA_FILA_RETARDO + ENTRADA_FILA_PASO * (cuantas - 1).coerceAtLeast(0) + ENTRADA_FILA_DURA).toFloat()
+    LaunchedEffect(Unit) { reloj.animateTo(total, tween(total.toInt(), easing = LinearEasing)) }
+    return reloj.asState()
+}
+
+/** Cuánto ha entrado la fila `i` (0 a 1) cuando el reloj de las filas marca `ms` */
+private fun entradaFila(ms: Float, i: Int): Float {
+    val t = ((ms - ENTRADA_FILA_RETARDO - ENTRADA_FILA_PASO * i) / ENTRADA_FILA_DURA).coerceIn(0f, 1f)
+    return Movimiento.ASIENTA.transform(t)
+}
+
 /** El título arriba, con la misma letra y la misma entrada que el de los otros pasos */
 @Composable
-private fun Titulo() {
-    val entrada = remember { Animatable(0f) }
-    LaunchedEffect(Unit) { entrada.animateTo(1f, tween(1000, 300, ESTANDAR)) }
+private fun Titulo(entrada: State<Float>) {
     val margen = if (ventana().compacta) Espacio.m else Espacio.xl
     BasicText(
         buildAnnotatedString {
@@ -184,8 +211,16 @@ private fun Titulo() {
  * va en `columnas` columnas.
  */
 @Composable
-private fun Lista(carreras: List<Carrera>, elegida: String?, hay: State<Float>, modifier: Modifier, columnas: Int = 1, alTocar: (Carrera) -> Unit) {
-    val desplazamiento = rememberScrollState()
+private fun Lista(
+    carreras: List<Carrera>,
+    elegida: String?,
+    hay: State<Float>,
+    entrada: State<Float>,
+    desplazamiento: ScrollState,
+    modifier: Modifier,
+    columnas: Int = 1,
+    alTocar: (Carrera) -> Unit,
+) {
     val indice = carreras.indexOfFirst { it.slug == elegida }
     val luzColor = animateColorAsState(carreras.getOrNull(indice)?.let { colorDe(it.color) } ?: Paleta.azul, tween(260), label = "luz")
     val luzFila = animateFloatAsState((indice.coerceAtLeast(0) / columnas).toFloat(), tween(260, easing = ESTANDAR), label = "fila")
@@ -214,16 +249,8 @@ private fun Lista(carreras: List<Carrera>, elegida: String?, hay: State<Float>, 
         Column(
             Modifier
                 .fillMaxSize()
-                .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
-                .drawWithContent {
-                    drawContent()
-                    val arriba = FUNDIDO_ARRIBA.toPx() / size.height
-                    val abajo = FUNDIDO_ABAJO.toPx() / size.height
-                    drawRect(
-                        Brush.verticalGradient(0f to Color.Transparent, arriba to Color.Black, 1f - abajo to Color.Black, 1f to Color.Transparent),
-                        blendMode = BlendMode.DstIn,
-                    )
-                }
+                // Antes del scroll, para que el fundido quede quieto en los bordes mientras la lista pasa por debajo
+                .fundidoBordes(arriba = FUNDIDO_ARRIBA, abajo = FUNDIDO_ABAJO)
                 .verticalScroll(desplazamiento)
                 // Abajo sobra lo justo para que la última suba por encima del fundido
                 .padding(top = MARGEN_LISTA, bottom = if (columnas > 1) ABAJO_DOS_COLUMNAS else ABAJO_UNA_COLUMNA),
@@ -231,7 +258,7 @@ private fun Lista(carreras: List<Carrera>, elegida: String?, hay: State<Float>, 
             carreras.chunked(columnas).forEachIndexed { r, grupo ->
                 Row(Modifier.fillMaxWidth()) {
                     grupo.forEachIndexed { k, c ->
-                        FilaCarrera(c, r * columnas + k, c.slug == elegida, hay, columnas > 1, Modifier.weight(1f)) { alTocar(c) }
+                        FilaCarrera(c, r * columnas + k, c.slug == elegida, hay, entrada, columnas > 1, Modifier.weight(1f)) { alTocar(c) }
                     }
                 }
             }
@@ -246,7 +273,7 @@ private fun Lista(carreras: List<Carrera>, elegida: String?, hay: State<Float>, 
  * al 55 %. Lo que cambia se lee al dibujar: elegir no recompone la lista.
  */
 @Composable
-private fun FilaCarrera(c: Carrera, i: Int, esElegida: Boolean, hay: State<Float>, compacta: Boolean, modifier: Modifier, alPulsar: () -> Unit) {
+private fun FilaCarrera(c: Carrera, i: Int, esElegida: Boolean, hay: State<Float>, entrada: State<Float>, compacta: Boolean, modifier: Modifier, alPulsar: () -> Unit) {
     val color = colorDe(c.color)
     // En dos columnas los márgenes bajan y el nombre puede ocupar dos renglones antes de cortarse
     // También se aprieta y se parte en dos renglones con la ventana estrecha o la letra grande
@@ -255,16 +282,15 @@ private fun FilaCarrera(c: Carrera, i: Int, esElegida: Boolean, hay: State<Float
     val margen = if (compacta) Espacio.xs else Espacio.m
     val relleno = if (compacta) Espacio.s else Espacio.m
     val k = animateFloatAsState(if (esElegida) 1f else 0f, tween(260, easing = ESTANDAR), label = "elegida")
-    val entra = remember { Animatable(0f) }
-    LaunchedEffect(Unit) { entra.animateTo(1f, tween(480, 150 + 40 * i, Movimiento.ASIENTA)) }
     Row(
         modifier
             .padding(start = margen, end = margen, bottom = PASO_FILA - ALTO_FILA)
             .graphicsLayer {
                 // El alfa se aplica a cada trazo y no a una capa aparte: nueve capas por cuadro pesan en gama baja
                 compositingStrategy = CompositingStrategy.ModulateAlpha
-                alpha = entra.value * (1f - 0.45f * hay.value * (1f - k.value))
-                translationY = (1f - entra.value) * 12.dp.toPx()
+                val entra = entradaFila(entrada.value, i)
+                alpha = entra * (1f - 0.45f * hay.value * (1f - k.value))
+                translationY = (1f - entra) * 12.dp.toPx()
             }
             .pulsable(alPulsar, escala = 0.98f)
             .fillMaxWidth()

@@ -9,9 +9,14 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import mpensum.datos.Asignatura
 import mpensum.datos.HorarioGuardado
 import mpensum.logica.Ahora
@@ -72,6 +77,9 @@ class Lectura {
     var fallo by mutableStateOf<FalloLectura?>(null)
     val leidas = mutableStateListOf<MateriaLeida>()
     val sesiones: List<Sesion> get() = leidas.flatMap { it.sesiones }
+
+    /** La lectura de esta captura mientras está en marcha: impide lanzar una segunda (cada una gasta cupo diario) */
+    internal var tarea: Job? = null
 }
 
 /**
@@ -100,6 +108,15 @@ class EstadoHorario(val carrera: EstadoCarrera, private val reloj: () -> HoraLoc
 
     /** La lectura en curso, si hay una */
     var lectura by mutableStateOf<Lectura?>(null)
+
+    /**
+     * Dónde corre la lectura de una captura: el alcance de quien recuerda el
+     * horario (el interior de la carrera), no el de la vista Horario. Así
+     * cambiar de vista mientras dice «Leyendo tu captura» no la cancela, y al
+     * volver no se lanza otra. Sin él (las capturas de prueba montan la vista
+     * sola) se usa el alcance que pase la vista.
+     */
+    internal var alcance: CoroutineScope? = null
 
     /** El día del mes de cada columna de la semana en curso (lunes a viernes), o null si el reloj no lo da */
     val numerosDia: List<Int>? get() = if (epoca > 0) (0 until 5).map { diaDelMes(epoca - ahora.dia + it) } else null
@@ -131,12 +148,44 @@ class EstadoHorario(val carrera: EstadoCarrera, private val reloj: () -> HoraLoc
 
     /** «Subir mi horario»: abre la lectura si hay lector; si no, lo único posible es crear la primera clase */
     fun subir() {
-        if (lector == null) abrirNueva(if (ahora.dia < 5) ahora.dia else 0, 7 * 60) else lectura = Lectura()
+        if (lector == null) abrirNueva(if (ahora.dia < 5) ahora.dia else 0, 7 * 60) else {
+            // Una lectura nueva reemplaza a la anterior: si esa seguía leyendo, se para
+            lectura?.tarea?.cancel()
+            lectura = Lectura()
+        }
     }
 
     fun cancelarLectura() {
+        // La lectura ya no vive en la vista: salir de ella no la para, hay que pararla aquí
+        lectura?.tarea?.cancel()
         lectura = null
         hoja = null
+    }
+
+    /**
+     * Lee la captura de `lectura` con el lector, si aún no se está leyendo:
+     * cada materia entra a la lista cuando el lector la entrega. Al terminar,
+     * las clases vuelan a la semana o, sin nada leído, se vuelve a elegir con
+     * el motivo en pantalla. `respaldo` solo se usa si el horario no tiene
+     * alcance propio (ver [alcance]).
+     */
+    fun leerCaptura(lectura: Lectura, respaldo: CoroutineScope) {
+        if (lectura.tarea?.isActive == true || lectura.fase != FaseLectura.LEYENDO) return
+        val lector = lector ?: return
+        val foto = lectura.foto ?: return
+        lectura.leidas.clear()
+        lectura.total = 0
+        lectura.fallo = null
+        lectura.tarea = (alcance ?: respaldo).launch {
+            try {
+                lector.leer(foto, { lectura.total = it }, { lectura.leidas += it })
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                lectura.fallo = e as? FalloLectura ?: FalloLectura("desconocido", e.message)
+            }
+            lectura.fase = if (lectura.fallo == null && lectura.leidas.isNotEmpty()) FaseLectura.VOLANDO else FaseLectura.ELEGIR
+        }
     }
 
     /** Lo que guardaría la lectura: sin las clases que ya tenías idénticas */
@@ -192,5 +241,10 @@ class EstadoHorario(val carrera: EstadoCarrera, private val reloj: () -> HoraLoc
 @Composable
 fun rememberEstadoHorario(estado: EstadoCarrera): EstadoHorario {
     val lector = rememberLectorCaptura(estado.pensum.todas)
-    return remember(estado) { EstadoHorario(estado) }.also { it.lector = lector }
+    // Vive con el interior de la carrera: la lectura sigue aunque se cambie de vista, y se para al salir de la carrera
+    val alcance = rememberCoroutineScope()
+    return remember(estado) { EstadoHorario(estado) }.also {
+        it.lector = lector
+        it.alcance = alcance
+    }
 }

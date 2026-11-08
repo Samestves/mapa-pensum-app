@@ -12,12 +12,7 @@ import androidx.compose.runtime.withFrameMillis
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.MotionDurationScale
 import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.BlendMode
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.graphics.graphicsLayer
@@ -122,18 +117,8 @@ fun EscenaEnBucle(
     val enDibujo = remember { FloatArray(5) }
     Box(
         modifier
-            .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
-            .drawWithContent {
-                drawContent()
-                drawRect(
-                    Brush.verticalGradient(0f to Color.Transparent, arriba to Color.Black, 1f - abajo to Color.Black, 1f to Color.Transparent),
-                    blendMode = BlendMode.DstIn,
-                )
-                drawRect(
-                    Brush.horizontalGradient(0f to Color.Transparent, lados to Color.Black, 1f - lados to Color.Black, 1f to Color.Transparent),
-                    blendMode = BlendMode.DstIn,
-                )
-            },
+            // La escena cambia en cada cuadro, así que una capa Offscreen tampoco se ahorraba nada: se repintaba igual
+            .fundidoBordes(arriba = arriba, abajo = abajo, lados = lados),
     ) {
         Spacer(
             Modifier.fillMaxSize()

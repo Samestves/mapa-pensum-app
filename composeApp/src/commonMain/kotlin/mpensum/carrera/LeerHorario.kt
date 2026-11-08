@@ -223,23 +223,9 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.trazarEscaneo() {
 
 @Composable
 private fun PasoLeyendo(horario: EstadoHorario, lectura: Lectura, arriba: Dp, abajo: Dp, modifier: Modifier, horizontal: Boolean) {
-    val foto = lectura.foto
-    // Lee de verdad: cada materia entra a la lista cuando el lector la entrega. Sin nada leído, se vuelve a elegir
-    LaunchedEffect(lectura) {
-        val lector = horario.lector
-        if (lector == null || foto == null) return@LaunchedEffect
-        lectura.leidas.clear()
-        lectura.total = 0
-        lectura.fallo = null
-        try {
-            lector.leer(foto, { lectura.total = it }, { lectura.leidas += it })
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: Exception) {
-            lectura.fallo = e as? FalloLectura ?: FalloLectura("desconocido", e.message)
-        }
-        lectura.fase = if (lectura.fallo == null && lectura.leidas.isNotEmpty()) FaseLectura.VOLANDO else FaseLectura.ELEGIR
-    }
+    // Lee de verdad, pero la lectura corre en el horario y no aquí: si se cambia de vista a media lectura,
+    // sigue, y al volver esta llamada no lanza otra (cada una gasta una de las lecturas del día)
+    LaunchedEffect(lectura) { horario.leerCaptura(lectura, respaldo = this) }
     val leidas = lectura.leidas.size
     // Mientras el servidor lee no se sabe cuánto falta: la línea recorre la foto sin decir un porcentaje. Con las materias, baja al ritmo de lo leído
     val barrido by rememberInfiniteTransition(label = "barrido").animateFloat(

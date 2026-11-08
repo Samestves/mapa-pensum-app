@@ -24,6 +24,7 @@ import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -162,32 +163,46 @@ fun Bienvenida(carreras: List<Carrera>, pasoInicial: Int = 0, alTerminar: (Carre
  */
 @Composable
 fun PasoConEscena(primera: String, segunda: String, boton: String, alSeguir: () -> Unit, hueco: Dp = 0.dp, escena: @Composable (Modifier) -> Unit) {
+    // Por encima de la bifurcación: al girar, el bloque de texto se monta en la otra rama, pero su entrada ya pasó
+    val entrada = rememberEntrada()
     if (esApaisado()) {
         Row(Modifier.fillMaxSize()) {
             escena(Modifier.weight(PESO_ESCENA).fillMaxHeight())
             Box(Modifier.weight(PESO_TEXTO).fillMaxHeight().padding(top = ALTO_BARRA), contentAlignment = Alignment.CenterStart) {
-                BloqueTexto(primera, segunda, boton, alSeguir)
+                BloqueTexto(primera, segunda, boton, alSeguir, entrada)
             }
         }
     } else {
         Column(Modifier.fillMaxSize()) {
             escena(Modifier.weight(1f).fillMaxWidth())
             Spacer(Modifier.height(if (ventana().compacta || ventana().letraGrande) hueco / REDUCCION_HUECO else hueco))
-            BloqueTexto(primera, segunda, boton, alSeguir)
+            BloqueTexto(primera, segunda, boton, alSeguir, entrada)
         }
     }
 }
 
 /**
- * El bloque de abajo de cada paso: el título en dos líneas (la segunda en
- * azul) y el botón, con el borde del título a 40 dp del botón. El título
- * entra una sola vez, desenfocado, y no con cada vuelta de la escena. Si una
- * línea no cabe en un teléfono estrecho, la letra baja antes que partirse.
+ * La entrada de un título: de 0 a 1 en un segundo, una sola vez por paso.
+ * Quien la llama la recuerda por encima de su bifurcación de pie o acostado:
+ * si viviera dentro de la rama, cada giro montaría la otra rama desde 0 y el
+ * título volvería a entrar. Se lee en la capa, así que no recompone.
  */
 @Composable
-fun BloqueTexto(primera: String, segunda: String, boton: String, alPulsar: () -> Unit, retardo: Int = 300) {
+internal fun rememberEntrada(retardo: Int = 300): State<Float> {
     val entrada = remember { Animatable(0f) }
     LaunchedEffect(Unit) { entrada.animateTo(1f, tween(1000, retardo)) }
+    return entrada.asState()
+}
+
+/**
+ * El bloque de abajo de cada paso: el título en dos líneas (la segunda en
+ * azul) y el botón, con el borde del título a 40 dp del botón. El título
+ * entra una sola vez con `entrada` (ver [rememberEntrada]), y no con cada
+ * vuelta de la escena ni con cada giro. Si una línea no cabe en un teléfono
+ * estrecho, la letra baja antes que partirse.
+ */
+@Composable
+fun BloqueTexto(primera: String, segunda: String, boton: String, alPulsar: () -> Unit, entrada: State<Float>) {
     val margen = if (ventana().compacta) Espacio.m else Espacio.xl
     Column(Modifier.fillMaxWidth().padding(start = margen, end = margen, bottom = Espacio.xl)) {
         BasicText(

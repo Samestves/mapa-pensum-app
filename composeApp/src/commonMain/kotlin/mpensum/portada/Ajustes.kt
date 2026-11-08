@@ -26,7 +26,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -117,24 +120,41 @@ fun BoxScope.HojaAjustes(
     alVerGuia: () -> Unit,
 ) {
     val nocheDelSistema = isSystemInDarkTheme()
-    // La última página abierta sigue pintándose mientras la hoja baja
+    // La hoja siempre está compuesta (la portada solo la abre y la cierra), así que sus remember viven
+    // entre aperturas. Cada apertura cuenta una vez: la página pedida manda aunque sea la misma de la vez
+    // anterior, y no se arrastra la subpágina donde se cerró (mismo patrón que HojaAvance)
+    val abierta = pagina != null
+    var apertura by remember { mutableIntStateOf(0) }
+    var estabaAbierta by remember { mutableStateOf(abierta) }
+    // La página pedida al abrir: decide si la cabecera ofrece volver al menú
     var ultima by remember { mutableStateOf(pagina ?: PaginaAjustes.MENU) }
+    // La que se ve; mientras la hoja baja sigue pintándose la última que hubo
     var actual by remember { mutableStateOf(ultima) }
-    if (pagina != null && pagina != ultima) {
+    // Al abrir, o si piden otra página con la hoja abierta, se parte de la pedida; lo demás lo mueve la
+    // navegación interna (volver, entrar en una fila)
+    if (pagina != null && (!estabaAbierta || pagina != ultima)) {
         ultima = pagina
         actual = pagina
+    }
+    if (abierta != estabaAbierta) {
+        estabaAbierta = abierta
+        if (abierta) apertura++
     }
     val enlaces = LocalUriHandler.current
     // Qué ranura de Automático se edita: vive aquí para sobrevivir a entrar y salir de las subpáginas
     val ranuras = remember { Ranuras(noche = nocheDelSistema) }
-    // Un solo reloj para la cabecera y el cuerpo: cambian de página a la vez, y la vista previa llega con su página
-    val transicion = updateTransition(actual, label = "ajustes")
+    // Si el sistema pasa a noche o a día con la hoja montada, la ranura que se edita lo sigue. No se rehace
+    // el objeto: así no se olvida que ya se tocó el tema de día
+    LaunchedEffect(nocheDelSistema) { ranuras.noche = nocheDelSistema }
+    // Un solo reloj para la cabecera y el cuerpo: cambian de página a la vez, y la vista previa llega con su
+    // página. Uno nuevo en cada apertura, para que la hoja suba ya en su página, sin el empuje desde la vieja
+    val transicion = key(apertura) { updateTransition(actual, label = "ajustes") }
     val desplazoPx = with(LocalDensity.current) { Movimiento.DESPLAZO.roundToPx() }
     val empuje: AnimatedContentTransitionScope<PaginaAjustes>.() -> ContentTransform = {
         empujeDePagina(targetState.ordinal > initialState.ordinal, desplazoPx, animarAlto = true)
     }
     HojaInferior(
-        abierta = pagina != null,
+        abierta = abierta,
         alCerrar = alCerrar,
         // Acostado, las dos columnas piden más que los 560 dp de siempre
         cabecera = {

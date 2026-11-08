@@ -57,6 +57,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import mpensum.carrera.Vista
@@ -646,13 +647,15 @@ private fun FilaInterruptor(titulo: String, activo: Boolean, habilitado: Boolean
 /** El interruptor de iOS, 51×31: la pista en tinta y el pomo en el panel (nada de verde); apagado, pista de borde y pomo blanco */
 @Composable
 private fun Interruptor(activo: Boolean, habilitado: Boolean) {
-    val x by animateDpAsState(if (activo) 22.dp else 2.dp, tween(if (Tema.movimiento) 0 else 200), label = "pomo")
+    // El pomo se lee como State dentro del offset en lambda: así su carrera solo recoloca, sin recomponer
+    // la fila en cada cuadro de los 200 ms
+    val x = animateDpAsState(if (activo) 22.dp else 2.dp, tween(if (Tema.movimiento) 0 else 200), label = "pomo")
     Box(
         Modifier
             .size(51.dp, 31.dp)
             .clip(RoundedCornerShape(16.dp))
             .background((if (activo) Paleta.tinta else Paleta.borde).let { if (habilitado) it else it.copy(alpha = 0.55f) }),
     ) {
-        Box(Modifier.offset(x, 2.dp).size(27.dp).shadow(2.dp, CircleShape).background(if (activo) Paleta.panel else Color.White, CircleShape))
+        Box(Modifier.offset { IntOffset(x.value.roundToPx(), 2.dp.roundToPx()) }.size(27.dp).shadow(2.dp, CircleShape).background(if (activo) Paleta.panel else Color.White, CircleShape))
     }
 }

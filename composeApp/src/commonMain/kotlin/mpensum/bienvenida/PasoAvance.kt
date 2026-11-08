@@ -11,14 +11,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.withFrameMillis
 import androidx.compose.ui.MotionDurationScale
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
@@ -156,22 +153,8 @@ fun PasoAvance(alSeguir: () -> Unit) {
     PasoConEscena("Cuánto llevas,", "cuándo te gradúas.", "Continuar", alSeguir) { modifier ->
         Box(
             modifier
-                .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
-                .drawWithContent {
-                    drawContent()
-                    // Sin recuadro: la escena se funde con el fondo hacia los cuatro lados
-                    val arriba = FUNDIDO_ARRIBA.toPx() / size.height
-                    val abajo = FUNDIDO_ABAJO.toPx() / size.height
-                    val lado = FUNDIDO_LADO.toPx() / size.width
-                    drawRect(
-                        Brush.verticalGradient(0f to Color.Transparent, arriba to Color.Black, 1f - abajo to Color.Black, 1f to Color.Transparent),
-                        blendMode = BlendMode.DstIn,
-                    )
-                    drawRect(
-                        Brush.horizontalGradient(0f to Color.Transparent, lado to Color.Black, 1f - lado to Color.Black, 1f to Color.Transparent),
-                        blendMode = BlendMode.DstIn,
-                    )
-                },
+                // Sin recuadro: la escena se funde con el fondo hacia los cuatro lados
+                .fundidoBordes(arriba = FUNDIDO_ARRIBA, abajo = FUNDIDO_ABAJO, lados = FUNDIDO_LADO),
         ) {
             if (avance != null) Escena(avance)
         }

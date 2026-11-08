@@ -36,6 +36,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -136,7 +137,12 @@ fun Portada(
     // Un solo valor continuo (0 arriba del todo, 1 a 56 dp de scroll): se lee en la fase de dibujo
     // y la cabecera se va formando con el dedo, sin umbral ni animación aparte
     val umbral = with(densidad) { 56.dp.toPx() }
+    // Acostada no hay scroll de página, pero `desplazamiento` guarda lo que se bajó de pie: sin esto, girar
+    // con la portada bajada dejaba el vidrio puesto sobre una pantalla quieta. Se lee como State porque la
+    // cabecera recuerda la primera lambda (derivedStateOf) y un Boolean capturado se quedaría viejo
+    val acostada by rememberUpdatedState(esApaisado())
     fun progreso(): Float {
+        if (acostada) return 0f
         val t = (desplazamiento.value / umbral).coerceIn(0f, 1f)
         return t * t * (3f - 2f * t)
     }
