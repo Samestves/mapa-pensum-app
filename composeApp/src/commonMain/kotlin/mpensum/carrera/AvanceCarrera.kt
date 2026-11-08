@@ -129,14 +129,6 @@ internal fun estilo(tam: TextUnit, color: Color, peso: FontWeight = FontWeight.N
 
 private const val ENTRADA_CIFRA = 700
 
-/** Un número que cuenta hasta su valor en 600 ms, saliendo rápido y frenando (useNumeroAnimado) */
-@Composable
-fun numeroAnimado(destino: Float): Float {
-    val valor = remember { Animatable(destino) }
-    LaunchedEffect(destino) { valor.animateTo(destino, tween(600, easing = Movimiento.ESTANDAR)) }
-    return valor.value
-}
-
 /** Lo que hay dentro de cada pantalla interna, de pie o en el panel del detalle acostado */
 @Composable
 internal fun ContenidoDetalle(d: DetalleAvance, estado: EstadoCarrera, hoy: Periodo, alVerEnMapa: (List<String>) -> Unit, alAbrirCasilla: (String) -> Unit) {
@@ -206,6 +198,7 @@ fun BoxScope.HojaAvance(abierta: Boolean, estado: EstadoCarrera, alCerrar: () ->
         casilla = casilla,
         estado = estado,
         aprobarAlElegir = false,
+        sobreHoja = true,
         alColocar = { c, electiva ->
             estado.colocar(c, electiva)
             casilla = null

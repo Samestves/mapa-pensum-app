@@ -82,6 +82,8 @@ fun BoxScope.SelectorElectiva(
     aprobarAlElegir: Boolean,
     alColocar: (String, String?) -> Unit,
     alCerrar: () -> Unit,
+    /** Si sube sobre otra hoja (el progreso): sin desenfoque y con el velo a media fuerza, para no perder de dónde vienes */
+    sobreHoja: Boolean = false,
 ) {
     // La última casilla abierta: al cerrarse, la hoja baja enseñando lo que tenía
     var ultima by remember { mutableStateOf(casilla) }
@@ -95,6 +97,7 @@ fun BoxScope.SelectorElectiva(
     HojaInferior(
         abierta = casilla != null,
         alCerrar = alCerrar,
+        sobreOtraHoja = sobreHoja,
         cabecera = {
             Row(Modifier.fillMaxWidth().padding(start = margenPantalla(), end = margenPantalla(), top = Espacio.xxs, bottom = Espacio.m), verticalAlignment = Alignment.Top) {
                 Column(Modifier.weight(1f)) {

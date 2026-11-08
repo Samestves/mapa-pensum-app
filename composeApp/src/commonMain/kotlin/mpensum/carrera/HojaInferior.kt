@@ -112,7 +112,7 @@ private val VUELVE = spring<Float>(dampingRatio = 1f, stiffness = 420f, visibili
 /** Salida por atrás o por el aspa: aceleración (Material), arranca lenta y se va */
 /** Salida tras un tirón: arranca ya a la velocidad del dedo (pendiente 1) y acelera al final */
 private val SALE_DEDO = CubicBezierEasing(0.35f, 0.35f, 0.9f, 0.55f)
-private const val SALE_MS = 260
+private const val SALE_MS = Movimiento.SALIDA_HOJA
 
 /** Cuánto hay que bajarla (fracción de su alto) o a qué velocidad (dp/s) basta un tirón corto */
 private const val UMBRAL_FRACCION = 0.25f
@@ -143,6 +143,7 @@ private val ESTILO_CRISTAL get() = HazeStyle(
     tint = HazeTint(Paleta.vidrio.copy(alpha = 0.86f)),
     blurRadius = 28.dp,
     noiseFactor = 0f,
+    fallbackTint = HazeTint(Paleta.vidrio.copy(alpha = 0.86f)),
 )
 
 /**
@@ -213,7 +214,8 @@ private class Hoja(private val alcance: CoroutineScope) {
     suspend fun entrar() {
         porDedo = false
         desp = minOf(desp, oculto())
-        animar(0f, ENTRA)
+        // Con «Reducir movimiento» la hoja llega con una curva corta, sin el resorte
+        animar(0f, if (Movimiento.reducido) tween(Movimiento.CORTA, easing = Movimiento.ESTANDAR) else ENTRA)
     }
 
     suspend fun salir() {
@@ -307,6 +309,10 @@ private fun goma(x: Float, tope: Float) = tope * (1f - exp(-x / tope))
  * cerraría sin querer: se cierra con su aspa o con atrás. El contenido se
  * aparta solo de la barra de estado, la cámara y la barra de gestos.
  *
+ * Con `sobreOtraHoja` (el selector de electiva sobre el progreso) no se desenfoca
+ * nada: la hoja de debajo se ve atenuada por un velo a media fuerza, como las
+ * hojas apiladas de iOS, y no se pierde de dónde vienes.
+ *
  * Con `modal` en falso (la ficha de materia) no hay velo ni desenfoque: el mapa
  * de debajo sigue vivo, los toques fuera de la hoja le llegan y la separación
  * es el color del panel con una sombra tenue por encima, pintada una vez. Con
@@ -324,6 +330,7 @@ fun BoxScope.HojaInferior(
     desplazable: Boolean = true,
     altoFijo: Boolean = false,
     modal: Boolean = true,
+    sobreOtraHoja: Boolean = false,
     tope: Float? = null,
     alMedir: (Dp) -> Unit = {},
     cabecera: @Composable () -> Unit,
@@ -361,7 +368,7 @@ fun BoxScope.HojaInferior(
     ManejarAtras(abierta, alCerrar)
     if (!montada) return
 
-    if (modal) FondoHoja(fondo, hoja, remember { MutableInteractionSource() }, alCerrar)
+    if (modal) FondoHoja(if (sobreOtraHoja) null else fondo, hoja, remember { MutableInteractionSource() }, alCerrar, if (sobreOtraHoja) 0.5f else 1f)
 
     if (completa) {
         PantallaCompleta(hoja, desplazable, cabecera, contenido)
@@ -401,12 +408,14 @@ fun BoxScope.HojaInferior(
                 )
                 .then(
                     // Sin velo detrás, la hoja se separa del mapa con un degradado que sube 40 dp, no con una sombra grande
-                    if (modal) Modifier.shadow(24.dp, forma, ambientColor = SOMBRA_FLOTANTE, spotColor = SOMBRA_FLOTANTE) else Modifier.sombraSuave(),
+                    // En ligero la sombra de elevación se vuelve a teselar en cada cuadro de la subida: un degradado cuesta una vez
+                    if (modal && !Tema.ligero) Modifier.shadow(24.dp, forma, ambientColor = SOMBRA_FLOTANTE, spotColor = SOMBRA_FLOTANTE) else Modifier.sombraSuave()
                 )
                 .clip(forma)
                 .then(
                     if (cristal != null) {
-                        Modifier.vidrio(cristal, ESTILO_CRISTAL, VIDRIO_HOJA)
+                        // Mientras sube se mueve: esmerilarla de nuevo en cada cuadro es el coste; se esmerila al asentarse
+                        Modifier.vidrio(cristal, ESTILO_CRISTAL, VIDRIO_HOJA) { hoja.desp == 0f }
                     } else {
                         Modifier.panelPegado()
                     },
@@ -460,7 +469,7 @@ private fun PantallaCompleta(
 /** El fondo: la pantalla de debajo, difuminada, que entra y sale con la hoja; sin pantalla que difuminar (o en modo ligero), un velo */
 @OptIn(ExperimentalHazeApi::class)
 @Composable
-private fun FondoHoja(fondo: HazeState?, hoja: Hoja, toque: MutableInteractionSource, alCerrar: () -> Unit) {
+private fun FondoHoja(fondo: HazeState?, hoja: Hoja, toque: MutableInteractionSource, alCerrar: () -> Unit, fuerza: Float) {
     if (fondo != null && !Tema.sinDesenfoque) {
         Box(
             Modifier
@@ -475,21 +484,26 @@ private fun FondoHoja(fondo: HazeState?, hoja: Hoja, toque: MutableInteractionSo
         Box(
             Modifier
                 .fillMaxSize()
-                .graphicsLayer { alpha = hoja.progreso() }
+                .graphicsLayer { alpha = hoja.progreso() * fuerza }
                 .background(VELO)
                 .clickable(toque, indication = null, onClick = alCerrar),
         )
     }
 }
 
-/** La separación de la hoja sin velo: un degradado de 40 dp por encima de su borde, pintado una sola vez */
+/**
+ * La separación de la hoja sin velo: en oscuro una sombra; en claro, el mapa
+ * que se funde en el papel (una sombra gris sobre el lienzo claro ensucia las
+ * tarjetas). El degradado pasa de `y = 0` y se queda en su tono final hasta
+ * bajar el radio de la esquina: así las esquinas redondas de la hoja no dejan
+ * asomar el mapa sin teñir bajo un corte recto.
+ */
 private fun Modifier.sombraSuave(): Modifier = drawWithCache {
-    val alto = 40.dp.toPx()
-    val brocha = Brush.verticalGradient(
-        listOf(Color.Transparent, Paleta.sombra.copy(alpha = porTema(0.45f, 0.14f))),
-        startY = -alto, endY = 0f,
-    )
-    onDrawBehind { drawRect(brocha, Offset(0f, -alto), Size(size.width, alto)) }
+    val alto = 32.dp.toPx()
+    val esquina = Radio.Hoja.toPx()
+    val tono = if (Tema.claro) Paleta.lienzo.copy(alpha = 0.88f) else Paleta.sombra.copy(alpha = 0.45f)
+    val brocha = Brush.verticalGradient(0f to tono.copy(alpha = 0f), 1f to tono, startY = -alto, endY = 0f)
+    onDrawBehind { drawRect(brocha, Offset(0f, -alto), Size(size.width, alto + esquina)) }
 }
 
 /** El panel pegado abajo: fondo liso y el filo de luz de arriba, sin desenfoque */

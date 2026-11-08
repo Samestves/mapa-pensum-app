@@ -85,9 +85,13 @@ fun Modifier.tinteLiso(estilo: HazeStyle, alfa: () -> Float = { 1f }): Modifier 
 
 /** El vidrio sin sombra ni recorte: desenfoque, relleno más claro arriba que abajo y el filo de luz del canto */
 @OptIn(ExperimentalHazeApi::class)
-internal fun Modifier.vidrio(estado: HazeState, estilo: HazeStyle, vidrio: Vidrio): Modifier =
+internal fun Modifier.vidrio(estado: HazeState, estilo: HazeStyle, vidrio: Vidrio, esmerilar: () -> Boolean = { true }): Modifier =
     this
-        .then(if (Tema.sinDesenfoque) Modifier.tinteLiso(estilo) else Modifier.hazeEffect(estado, estilo) { inputScale = HazeInputScale.Auto })
+        .then(if (Tema.sinDesenfoque) Modifier.tinteLiso(estilo) else Modifier.hazeEffect(estado, estilo) {
+            inputScale = HazeInputScale.Auto
+            // Sin esmerilar (algo se mueve) queda el tinte, que cuesta un rectángulo
+            blurEnabled = esmerilar()
+        })
         .drawWithCache {
             val claro = Tema.claro
             val relleno = if (claro) fondoVidrio() else vidrio.fondoOscuro
