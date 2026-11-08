@@ -151,9 +151,12 @@ fun MapaCarrera(
         delay(APAGADO_MS.toLong())
         efectos.apagarCarga(c.n)
     }
-    val llegada = remember { Animatable(0f) }
+    // La llegada del mapa es solo la primera vez por carrera: al volver de la lista o del horario ya está puesto
+    val llegada = remember { Animatable(if (camara.yaLlego) 1f else 0f) }
     LaunchedEffect(camara.colocada) {
-        if (camara.colocada) llegada.animateTo(1f, tween(620, easing = LLEGADA))
+        if (!camara.colocada || camara.yaLlego) return@LaunchedEffect
+        camara.yaLlego = true
+        if (Movimiento.reducido) llegada.snapTo(1f) else llegada.animateTo(1f, tween(Movimiento.MEDIA + 100, easing = LLEGADA))
     }
 
     // Recordada: cada tarjeta guarda la suya y no recompone cuando el mapa sí

@@ -59,6 +59,7 @@ import mpensum.componentes.ventana
 import mpensum.componentes.rememberRelojAurora
 import mpensum.datos.Carrera
 import mpensum.plataforma.ManejarAtras
+import mpensum.tema.Movimiento
 import mpensum.tema.Alto
 import mpensum.tema.Espacio
 import mpensum.tema.Paleta
@@ -107,7 +108,11 @@ fun Bienvenida(carreras: List<Carrera>, pasoInicial: Int = 0, alTerminar: (Carre
         Box(Modifier.fillMaxSize().grano())
         AnimatedContent(
             targetState = paso,
-            transitionSpec = { (fadeIn(tween(500, 120)) + scaleIn(tween(600, 120), initialScale = 0.98f)) togetherWith fadeOut(tween(180)) },
+            // En serie (100 sale + 250 entra): ni un cuadro con el lienzo vacío ni dos pasos a la vez
+            transitionSpec = {
+                if (Movimiento.reducido) fadeIn(tween(Movimiento.CORTA)) togetherWith fadeOut(tween(Movimiento.CORTA))
+                else (fadeIn(tween(Movimiento.MEDIA, Movimiento.SALIDA_RAPIDA, Movimiento.ENTRA)) + scaleIn(tween(Movimiento.MEDIA, Movimiento.SALIDA_RAPIDA, Movimiento.ENTRA), initialScale = 0.98f)) togetherWith fadeOut(tween(Movimiento.SALIDA_RAPIDA, easing = Movimiento.SALE))
+            },
             label = "paso",
         ) { p ->
             Column(Modifier.fillMaxSize().safeDrawingPadding()) {
@@ -200,8 +205,7 @@ fun BloqueTexto(primera: String, segunda: String, boton: String, alPulsar: () ->
             // última línea base a 48. Android no reparte un interlineado menor que la letra como la web: se fija la base
             modifier = Modifier.paddingFromBaseline(bottom = 48.dp).graphicsLayer {
                 alpha = entrada.value
-                translationY = (1f - entrada.value) * 18.dp.toPx()
-                renderEffect = if (Tema.sinDesenfoque) null else desenfoque((12 * (1f - entrada.value)).dp.toPx())
+                translationY = (1f - entrada.value) * 12.dp.toPx()
             },
         )
         BotonPrincipal(boton, alPulsar)

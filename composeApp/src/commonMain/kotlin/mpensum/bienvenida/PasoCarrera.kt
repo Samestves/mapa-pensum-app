@@ -172,8 +172,7 @@ private fun Titulo() {
         autoSize = TextAutoSize.StepBased(minFontSize = TITULO_MINIMO, maxFontSize = Tipo.gigante, stepSize = 1.sp),
         modifier = Modifier.fillMaxWidth().padding(start = margen, end = margen, top = Espacio.s).graphicsLayer {
             alpha = entrada.value
-            translationY = (1f - entrada.value) * 18.dp.toPx()
-            renderEffect = if (Tema.sinDesenfoque) null else desenfoque((12 * (1f - entrada.value)).dp.toPx())
+            translationY = (1f - entrada.value) * 12.dp.toPx()
         },
     )
 }

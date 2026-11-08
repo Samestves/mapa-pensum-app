@@ -55,6 +55,7 @@ import mpensum.mapa.MARGEN_AL_APROBAR
 import mpensum.mapa.MapaCarrera
 import mpensum.mapa.Margenes
 import mpensum.plataforma.ManejarAtras
+import mpensum.tema.Movimiento
 import mpensum.tema.Paleta
 import mpensum.tema.Espacio
 import mpensum.tema.colorDe
@@ -125,7 +126,7 @@ fun Interior(carrera: Carrera, alVolver: () -> Unit, vistaInicial: Vista = Vista
         val codigos = porEncuadrar ?: return@LaunchedEffect
         if (vista != Vista.MAPA || estado == null) return@LaunchedEffect
         // Espera a que la hoja se haya ido y el mapa esté a la vista
-        delay(380)
+        delay(Movimiento.SALIDA_HOJA + 120L)
         estado.cajaDe(codigos)?.let { camara.mostrar(alcance, it, MARGEN_AL_APROBAR) }
         porEncuadrar = null
     }
@@ -298,7 +299,11 @@ private fun CapaVista(
 AnimatedContent(
     targetState = vista,
     modifier = Modifier.fillMaxSize().fuenteCristal(cristal),
-    transitionSpec = { fadeIn(tween(260, 80)) togetherWith fadeOut(tween(160)) },
+    // Cambio de vista en serie (100 sale, 200 entra): nunca dos vistas a medias a la vez
+    transitionSpec = {
+        if (Movimiento.reducido) fadeIn(tween(Movimiento.CORTA)) togetherWith fadeOut(tween(Movimiento.CORTA))
+        else fadeIn(tween(Movimiento.CAMBIO_VISTA - Movimiento.SALIDA_RAPIDA, Movimiento.SALIDA_RAPIDA, Movimiento.ENTRA)) togetherWith fadeOut(tween(Movimiento.SALIDA_RAPIDA, easing = Movimiento.SALE))
+    },
     label = "vista",
 ) { v ->
     // Mientras el pensum carga no se pinta nada
@@ -374,7 +379,12 @@ private fun BoxScope.NavegacionCarrera(
     /** Con la ficha abierta la barra baja y se funde (solo `graphicsLayer`), y vuelve al cerrarla */
     oculta: Boolean,
 ) {
-    val fuera by animateFloatAsState(if (oculta) 1f else 0f, tween(200), label = "barra")
+    val fuera by animateFloatAsState(
+        if (oculta) 1f else 0f,
+        // Se va con la ficha y vuelve cuando la ficha ya casi salió (la hoja tarda más en irse que la barra en volver)
+        if (oculta) tween(Movimiento.CORTA, easing = Movimiento.SALE) else tween(Movimiento.CORTA, delayMillis = 120, easing = Movimiento.ENTRA),
+        label = "barra",
+    )
     if (horizontal) Box(
         Modifier.align(Alignment.CenterStart).fillMaxHeight().width(ANCHO_VELO).background(
             Brush.horizontalGradient(0.4f to Paleta.lienzo.copy(alpha = 0.92f), 1f to Color.Transparent),

@@ -78,11 +78,13 @@ import dev.chrisbanes.haze.HazeStyle
 import dev.chrisbanes.haze.HazeTint
 import dev.chrisbanes.haze.hazeEffect
 import mpensum.componentes.fuenteCristal
+import mpensum.componentes.fundidoAbajo
 import mpensum.componentes.tinteLiso
 import kotlinx.coroutines.launch
 import mpensum.componentes.esApaisado
 import mpensum.carrera.LocalFondoHoja
 import mpensum.carrera.Vista
+import mpensum.carrera.precargarCarrera
 import mpensum.componentes.IconoTrazo
 import mpensum.componentes.Lucide
 import mpensum.componentes.Rosa
@@ -142,6 +144,9 @@ fun Portada(
     val abajo = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
     val resumenes = rememberResumenes(carreras, tambien = propia?.slug)
     val suya = propia ?: resumenes?.let { r -> carreras.firstOrNull { it.slug in r } }
+    // La carrera que más probablemente se abra queda lista antes del toque: el mapa nace dentro del zoom
+    val horizontalPortada = esApaisado()
+    LaunchedEffect(suya?.slug, horizontalPortada) { suya?.let { precargarCarrera(it.slug, horizontalPortada) } }
 
     BoxWithConstraints(Modifier.fillMaxSize().background(Paleta.lienzo)) {
         // Horizontal: la tarjeta a la izquierda y las otras carreras a la derecha, sin riel y sin scroll de página
@@ -418,18 +423,8 @@ private fun RowScope.OtrasCompactas(otras: List<Carrera>, alAbrir: (Carrera, Tra
         Modifier
             .weight(1f)
             .fillMaxHeight()
-            .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
-            .drawWithContent {
-                drawContent()
-                // El fundido de 40 dp de abajo solo si hay más por ver (con las 9 carreras): con 8 caben enteras
-                if (desplazo.canScrollForward) {
-                    val f = 40.dp.toPx()
-                    drawRect(
-                        Brush.verticalGradient(listOf(Color.Transparent, Color.Black), startY = size.height - f, endY = size.height),
-                        blendMode = BlendMode.DstOut,
-                    )
-                }
-            }
+            // El fundido de 40 dp de abajo solo si hay más por ver (con las 9 carreras): con 8 caben enteras
+            .fundidoAbajo(desplazo, 40.dp)
             .verticalScroll(desplazo),
         verticalArrangement = Arrangement.spacedBy(Espacio.xs),
     ) { FichasPorGrupo(otras, alAbrir) }

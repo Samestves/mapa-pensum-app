@@ -12,6 +12,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.text.drawText
+import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.animation.core.Animatable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -47,6 +52,7 @@ import dev.chrisbanes.haze.HazeTint
 import mpensum.bienvenida.desenfoque
 import mpensum.componentes.IconoDoble
 import mpensum.componentes.IconoRelleno
+import mpensum.componentes.IconoRellenoVivo
 import mpensum.componentes.Phosphor
 import mpensum.componentes.Vidrio
 import mpensum.componentes.cristal
@@ -54,6 +60,7 @@ import mpensum.componentes.pulsable
 import mpensum.logica.Progreso
 import mpensum.tema.Alto
 import mpensum.tema.Espacio
+import mpensum.tema.Movimiento
 import mpensum.tema.Paleta
 import mpensum.tema.acentoDe
 import mpensum.tema.Tema
@@ -155,7 +162,7 @@ fun BarraCarrera(
 /** Una pestaña: el icono en reposo, y la elegida en blanco con un halo del mismo icono desenfocado detrás */
 @Composable
 private fun Pestana(icono: IconoDoble, etiqueta: String, activa: Boolean, tam: DpSize, lado: Dp, alPulsar: () -> Unit) {
-    val luz = animateFloatAsState(if (activa) 1f else 0f, tween(350), label = "luz")
+    val luz = animateFloatAsState(if (activa) 1f else 0f, tween(Movimiento.CAMBIO_VISTA, easing = Movimiento.ESTANDAR), label = "luz")
     Box(
         Modifier
             .size(tam)
@@ -180,36 +187,47 @@ private fun Pestana(icono: IconoDoble, etiqueta: String, activa: Boolean, tam: D
                 contentAlignment = Alignment.Center,
             ) { IconoRelleno(icono, false, ACTIVO, lado) }
         }
-        IconoRelleno(icono, false, lerp(REPOSO, ACTIVO, luz.value), lado)
+        // El color se lee al dibujar: la pestaña no se recompone en cada cuadro de su fundido
+        IconoRellenoVivo(icono, false, { lerp(REPOSO, ACTIVO, luz.value) }, lado)
     }
 }
 
 /** El avance en el centro: un aro fino con la cifra dentro, sin más */
 @Composable
 private fun Nucleo(progreso: Progreso?, color: Color?, tam: DpSize, alPulsar: () -> Unit) {
-    val avance = numeroAnimado((progreso?.avance ?: 0.0).toFloat().coerceIn(0f, 100f))
-    val cifra = avance.roundToInt()
+    val destino = (progreso?.avance ?: 0.0).toFloat().coerceIn(0f, 100f)
+    // Cuenta al dibujar, no al componer: el Núcleo no se recompone en cada cuadro de sus 600 ms
+    val animado = remember { Animatable(destino) }
+    LaunchedEffect(destino) {
+        if (Movimiento.reducido) animado.snapTo(destino) else animado.animateTo(destino, tween(600, easing = Movimiento.ESTANDAR))
+    }
+    val medidor = rememberTextMeasurer()
+    val estilo = TextStyle(fontFamily = jost(), fontWeight = FontWeight.Normal, fontSize = 13.sp, letterSpacing = (-0.01).em, color = Paleta.tinta)
+    val tinta = Paleta.tinta
+    val tenue = Paleta.tenue
     Box(
         Modifier
             .size(tam)
-            .semantics { contentDescription = "Tu avance: $cifra por ciento" }
+            .semantics { contentDescription = "Tu avance: ${destino.roundToInt()} por ciento" }
             .pulsable(alPulsar),
         contentAlignment = Alignment.Center,
     ) {
         Canvas(Modifier.size(40.dp)) {
+            val avance = animado.value
             val g = 1.5.dp.toPx()
             val r = size.minDimension / 2 - g / 2
             val caja = Size(r * 2, r * 2)
             val esquina = Offset(center.x - r, center.y - r)
-            drawCircle(Paleta.tinta.copy(alpha = 0.12f), r, style = Stroke(g))
+            drawCircle(tinta.copy(alpha = 0.12f), r, style = Stroke(g))
             if (avance > 0.5f) drawArc(color?.let { acentoDe(it) } ?: Paleta.verde, -90f, 3.6f * avance, false, esquina, caja, style = Stroke(g, cap = StrokeCap.Round))
+            val cifra = medidor.measure(
+                buildAnnotatedString {
+                    append("${avance.roundToInt()}")
+                    withStyle(SpanStyle(fontSize = 8.5.sp, color = tenue)) { append("%") }
+                },
+                estilo,
+            )
+            drawText(cifra, topLeft = Offset(center.x - cifra.size.width / 2f, center.y - cifra.size.height / 2f))
         }
-        BasicText(
-            buildAnnotatedString {
-                append("$cifra")
-                withStyle(SpanStyle(fontSize = 8.5.sp, color = Paleta.tenue)) { append("%") }
-            },
-            style = TextStyle(fontFamily = jost(), fontWeight = FontWeight.Normal, fontSize = 13.sp, letterSpacing = (-0.01).em, color = Paleta.tinta),
-        )
     }
 }

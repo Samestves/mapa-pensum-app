@@ -163,6 +163,17 @@ fun IconoRelleno(icono: IconoDoble, relleno: Boolean, color: Color, tam: Dp = 20
     }
 }
 
+/** Un icono relleno cuyo color se lee al dibujar: animarlo no recompone a quien lo lleva */
+@Composable
+fun IconoRellenoVivo(icono: IconoDoble, relleno: Boolean, color: () -> Color, tam: Dp = 20.dp, modifier: Modifier = Modifier) {
+    Canvas(modifier.size(tam)) {
+        val e = size.minDimension / 256f
+        withTransform({ scale(e, e, pivot = Offset.Zero) }) {
+            drawPath(if (relleno) icono.relleno else icono.reposo, color())
+        }
+    }
+}
+
 @Composable
 fun IconoTrazo(trazos: List<Path>, color: Color, tam: Dp = 20.dp, grosor: Float = 1.8f, modifier: Modifier = Modifier) {
     Canvas(modifier.size(tam)) {

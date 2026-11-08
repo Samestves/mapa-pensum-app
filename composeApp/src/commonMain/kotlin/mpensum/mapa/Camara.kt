@@ -114,6 +114,9 @@ class Camara(private val clave: String) {
     var colocada by mutableStateOf(false)
         private set
 
+    /** Si el mapa ya hizo su llegada: solo la hace la primera vez, no cada vez que se vuelve a la vista */
+    var yaLlego = false
+
     /** Mientras algo mueve el mapa (dedo, inercia o viaje): la luz de los cables se congela */
     var enGesto by mutableStateOf(false)
         private set

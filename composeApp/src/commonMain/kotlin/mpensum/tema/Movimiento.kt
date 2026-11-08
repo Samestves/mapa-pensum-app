@@ -24,6 +24,8 @@ object Movimiento {
     const val PANTALLA = 420
     /** Entre los elementos de una misma entrada */
     const val ESCALONADO = 50
+    /** Lo que tarda una hoja en irse (por el aspa o Atrás): lo que hay que esperar para mirar lo que tapaba */
+    const val SALIDA_HOJA = 260
     /** Lo que sale de un fundido en serie: rápido, para dejar sitio a lo que entra */
     const val SALIDA_RAPIDA = 100
 
