@@ -147,6 +147,7 @@ private val ESTILO_VELO get() = HazeStyle(
     tint = HazeTint(porTema(Color(0xFF0E0F12).copy(alpha = 0.6f), Paleta.lienzo.copy(alpha = 0.72f))),
     blurRadius = 24.dp,
     noiseFactor = 0f,
+    fallbackTint = HazeTint(porTema(Color(0xFF0E0F12).copy(alpha = 0.6f), Paleta.lienzo.copy(alpha = 0.72f))),
 )
 
 /** Lo último que se marcó, para devolverlo tal cual estaba */
@@ -496,7 +497,8 @@ private fun BoxScope.CabeceraLista(
                 if (Tema.sinDesenfoque) Modifier.tinteLiso(ESTILO_VELO) { vidrio.value }
                 else Modifier.hazeEffect(fondo, ESTILO_VELO) {
                     alpha = vidrio.value
-                    blurEnabled = vidrio.value > 0f
+                    // Con la lista en movimiento queda el tinte: esmerilar en cada cuadro de scroll es lo caro; se esmerila al parar
+                    blurEnabled = vidrio.value > 0f && !lista.isScrollInProgress
                     inputScale = HazeInputScale.Auto
                 },
             )

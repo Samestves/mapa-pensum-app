@@ -43,6 +43,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.withFrameMillis
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -360,12 +362,25 @@ private fun EnUnRenglon(horario: EstadoHorario, rotulo: String, s: Sesion) {
     }
 }
 
+private const val CICLO_LATIDO_MS = 2600L
+private const val CUADRO_LATIDO_MS = 33L
+
 /** El punto de «En curso»: un aro que se expande y se apaga, dibujado; no recompone nada */
 @Composable
 private fun PuntoQueLate(color: Color) {
-    val t by rememberInfiniteTransition(label = "latido").animateFloat(
-        0f, 1f, infiniteRepeatable(tween(2600, easing = LinearEasing), RepeatMode.Restart), label = "latido",
-    )
+    // A 30 cuadros como mucho: a 120 Hz el latido redibujaría el cristal de la barra 120 veces por segundo
+    var t by remember { mutableFloatStateOf(0f) }
+    LaunchedEffect(Unit) {
+        var ultimo = 0L
+        while (true) {
+            withFrameMillis { ahora ->
+                if (ahora - ultimo >= CUADRO_LATIDO_MS) {
+                    ultimo = ahora
+                    t = (ahora % CICLO_LATIDO_MS) / CICLO_LATIDO_MS.toFloat()
+                }
+            }
+        }
+    }
     // En su propia capa: el latido repinta el punto y no la cabecera
     Canvas(Modifier.size(7.dp).graphicsLayer {}) {
         val r = size.minDimension / 2

@@ -1,6 +1,7 @@
 package mpensum.carrera
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.CubicBezierEasing
@@ -319,10 +320,28 @@ private fun CabeceraSeccion(seccion: SeccionLista, abierto: Boolean, conDeshacer
                 }
             }
         }
-        AnimatedVisibility(conDeshacer, Modifier.align(Alignment.TopEnd).padding(end = Alto.toque, top = Espacio.xs), enter = fadeIn(tween(200)), exit = fadeOut(tween(200))) {
+        BotonDeshacerAnimado(conDeshacer, Modifier.align(Alignment.TopEnd).padding(end = Alto.toque, top = Espacio.xs)) {
             BotonDeshacer(Modifier.heightIn(min = Alto.toque).padding(start = Espacio.s, end = Espacio.xs), acciones.deshacer)
         }
     }
+}
+
+/**
+ * El «Deshacer» con su entrada y su salida, pero solo compuesto mientras hace
+ * falta: una lista tiene decenas de filas y casi ninguna lo muestra, y un
+ * `AnimatedVisibility` siempre montado cuesta en cada fila que entra.
+ */
+@Composable
+private fun BotonDeshacerAnimado(visible: Boolean, modifier: Modifier, contenido: @Composable () -> Unit) {
+    val estado = remember { MutableTransitionState(false) }
+    estado.targetState = visible
+    if (!visible && estado.isIdle && !estado.currentState) return
+    AnimatedVisibility(
+        estado,
+        modifier,
+        enter = fadeIn(tween(Movimiento.CORTA, easing = Movimiento.ESTANDAR)),
+        exit = fadeOut(tween(Movimiento.CORTA, easing = Movimiento.ESTANDAR)),
+    ) { contenido() }
 }
 
 @Composable
@@ -487,7 +506,7 @@ private fun FilaDeMateria(
                 }
             }
         }
-        AnimatedVisibility(conDeshacer, Modifier.align(Alignment.CenterEnd), enter = fadeIn(tween(200)), exit = fadeOut(tween(200))) {
+        BotonDeshacerAnimado(conDeshacer, Modifier.align(Alignment.CenterEnd)) {
             BotonDeshacer(Modifier.heightIn(min = ALTO_FILA).padding(start = Espacio.s, end = Espacio.m), acciones.deshacer)
         }
     }
