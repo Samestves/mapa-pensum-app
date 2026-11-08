@@ -69,6 +69,7 @@ import mpensum.plataforma.Preferencias
 import mpensum.tema.Alto
 import mpensum.tema.Espacio
 import mpensum.tema.Paleta
+import mpensum.tema.Tema
 import mpensum.tema.Tipo
 import mpensum.tema.colorDe
 import mpensum.tema.inter
@@ -172,7 +173,7 @@ private fun Titulo() {
         modifier = Modifier.fillMaxWidth().padding(start = margen, end = margen, top = Espacio.s).graphicsLayer {
             alpha = entrada.value
             translationY = (1f - entrada.value) * 18.dp.toPx()
-            renderEffect = desenfoque((12 * (1f - entrada.value)).dp.toPx())
+            renderEffect = if (Tema.sinDesenfoque) null else desenfoque((12 * (1f - entrada.value)).dp.toPx())
         },
     )
 }

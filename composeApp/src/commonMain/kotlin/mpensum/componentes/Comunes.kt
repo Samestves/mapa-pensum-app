@@ -108,6 +108,8 @@ private val SALIDA_LUZ = CubicBezierEasing(0.16f, 1f, 0.3f, 1f)
 private const val CUADRO_NS = 32_000_000L
 /** Cada luz, del centro al borde, con un final largo para que no se vea dónde acaba */
 private val RAMPA = floatArrayOf(1f, 0.8f, 0.52f, 0.26f, 0.08f, 0f)
+/** Los colores de la luz que se está dibujando, reutilizados en cada cuadro */
+private val COLORES_LUZ = ArrayList<Color>(RAMPA.size)
 
 private val AZULES = listOf(Color(0xFF6094FF), Color(0xFF8B7BFF), Color(0xFF5AA8FF), Color(0xFF6E84FF))
 private val AGUAS = listOf(Color(0xFF2FE8C6), Color(0xFF34C6EA), Color(0xFF3FD6A0), Color(0xFF2FD3C0))
@@ -200,8 +202,11 @@ private fun gama(colores: List<Color>, segundos: Float, periodo: Float, fase: Fl
 /** Una luz redonda con la rampa de la aurora */
 private fun DrawScope.luz(centro: Offset, radio: Float, color: Color, alfa: Float) {
     if (alfa <= 0f || radio <= 0f) return
-    val paradas = Array(RAMPA.size) { i -> i * 0.2f to color.copy(alpha = (alfa * RAMPA[i]).coerceIn(0f, 1f)) }
-    drawCircle(Brush.radialGradient(*paradas, center = centro, radius = radio), radio, centro)
+    // Las paradas de la rampa van repartidas a partes iguales: basta una lista de colores, que se reutiliza
+    // (el pincel se usa en el acto, dentro de esta misma llamada)
+    COLORES_LUZ.clear()
+    for (i in RAMPA.indices) COLORES_LUZ.add(color.copy(alpha = (alfa * RAMPA[i]).coerceIn(0f, 1f)))
+    drawCircle(Brush.radialGradient(COLORES_LUZ, center = centro, radius = radio), radio, centro)
 }
 
 /**

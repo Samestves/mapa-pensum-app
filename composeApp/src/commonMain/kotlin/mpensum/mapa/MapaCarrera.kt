@@ -36,7 +36,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.PathMeasure
 import androidx.compose.ui.graphics.PointMode
 import androidx.compose.ui.graphics.StrokeCap
@@ -89,6 +88,10 @@ private const val DURACION_DESCARGA = 1300
 private const val PASO_REJILLA = 34f
 /** «Lo aprobado: Atenuado»: la opacidad de las tarjetas aprobadas y de sus cables */
 private const val ATENUADO = 0.45f
+/** La luz de la frontera escribe su reloj a 30 cuadros por segundo, como la aurora */
+private const val CUADRO_LUZ_NS = 32_000_000L
+/** Sin tocar el mapa tanto tiempo, la luz se apaga hasta el siguiente gesto */
+private const val DORMIR_LUZ_MS = 8_000L
 
 @Composable
 fun MapaCarrera(
@@ -113,6 +116,8 @@ fun MapaCarrera(
     val abajo = with(densidad) { WindowInsets.navigationBars.getBottom(this).toDp().value }
     val tipos = rememberTiposMapa()
     val medidor = rememberTextMeasurer()
+    // Los Path de los cables se arman una vez para los cables y la luz, y de nuevo solo si cambian el mapa, sus colores o el tema
+    val cables = remember(layout, estado.colores, Tema.juego, Tema.contraste) { cablesDe(estado) }
 
     // El foco: lo que mira la ficha abierta o la ruta fijada; lo demás se aparta
     val mirada = seleccionado ?: efectos.ruta
@@ -188,13 +193,13 @@ fun MapaCarrera(
                     scaleX = camara.escala
                     scaleY = camara.escala
                     alpha = llegada.value
-                    // En modo ligero la entrada no pinta el plano entero aparte para fundirlo: cada trazo baja su alfa
-                    if (Tema.ligero) compositingStrategy = CompositingStrategy.ModulateAlpha
+                    // La entrada no pinta el plano entero aparte para fundirlo: cada trazo baja su alfa
+                    compositingStrategy = CompositingStrategy.ModulateAlpha
                 },
         ) {
-            Cables(estado, cadena = { cadenaVisible }, foco = { foco.value }, trazado = { trazado.value }, descarga = { efectos.descarga?.codigo to descarga.value })
+            Cables(estado, cables, cadena = { cadenaVisible }, foco = { foco.value }, trazado = { trazado.value }, descarga = { efectos.descarga?.codigo to descarga.value })
             // Al tocar no hay cables a la vista: tampoco la luz que viaja por ellos
-            if (!Tema.sinBucles && Tema.cables != FormaCables.AL_TOCAR) LuzDeFrontera(estado, congelada = { camara.enGesto || congelado || seleccionado != null }, cadena = { cadenaVisible }, foco = { foco.value })
+            if (!Tema.sinBucles && Tema.cables != FormaCables.AL_TOCAR) LuzDeFrontera(estado, cables, congelada = { camara.enGesto || congelado || seleccionado != null }, sinGesto = { !camara.enGesto }, cadena = { cadenaVisible }, foco = { foco.value })
 
             CabecerasSemestres(estado, tipos, medidor, alAlternarSemestre)
             estado.franja?.let { RotulosFranja(it, estado, tipos) }
@@ -209,9 +214,10 @@ fun MapaCarrera(
 private fun CabecerasSemestres(estado: EstadoCarrera, tipos: TiposMapa, medidor: TextMeasurer, alAlternarSemestre: (Int) -> Unit) {
     val layout = estado.layout
     val sit = estado.situaciones
-    val cuentas = marcasDeSemestres(layout.nodos.map { it.asignatura }, estado::enCasilla, estado.estados)
+    val porColumna = remember(layout) { layout.nodos.groupBy { it.semestre } }
+    val cuentas = remember(layout, estado.estados, estado.casillas) { marcasDeSemestres(layout.nodos.map { it.asignatura }, estado::enCasilla, estado.estados) }
     layout.columnas.forEach { columna ->
-        val delSemestre = layout.nodos.filter { it.semestre == columna.semestre }
+        val delSemestre = porColumna[columna.semestre].orEmpty()
         val materias = delSemestre.map { estado.materiaDe(it) }
         val situaciones = materias.map { m -> m?.let { sit[it.codigo] } ?: Situacion.LEJANA }
         CabeceraSemestre(
@@ -378,6 +384,15 @@ private class CableDibujo(val arista: Arista, val ruta: Path, val desde: Color, 
         medida.getSegment(0f, largo * f.coerceIn(0f, 1f), parte, true)
         return parte
     }
+
+    /** El trozo entre dos distancias, acotadas al largo del cable. Reutiliza siempre el mismo Path */
+    fun trozo(desde: Float, hasta: Float): Path {
+        parte.reset()
+        val ini = desde.coerceIn(0f, largo)
+        val fin = hasta.coerceIn(0f, largo)
+        if (fin > ini) medida.getSegment(ini, fin, parte, true)
+        return parte
+    }
 }
 
 private fun cablesDe(estado: EstadoCarrera): List<CableDibujo> {
@@ -446,6 +461,7 @@ private fun degradado(c: CableDibujo, vivo: Boolean): Brush {
 @Composable
 private fun Cables(
     estado: EstadoCarrera,
+    cables: List<CableDibujo>,
     cadena: () -> Set<String>?,
     foco: () -> Float,
     trazado: () -> Float,
@@ -454,7 +470,6 @@ private fun Cables(
     Spacer(
         // En su propia capa: la luz de la frontera, las cabeceras o el foco no la repintan, y moverla no la toca
         Modifier.fillMaxSize().graphicsLayer {}.drawWithCache {
-            val cables = cablesDe(estado)
             // Degradados y trazos se arman una vez: en cada cuadro solo se eligen
             val degradados = cables.map { degradado(it, false) }
             // El grosor elegido es un factor del trazo que ya se crea: no cuesta nada más
@@ -528,20 +543,37 @@ private fun DrawScope.descargaPor(c: CableDibujo, tiempo: Float) {
  * la luz corriendo durante un gesto le quita cuadros.
  */
 @Composable
-private fun LuzDeFrontera(estado: EstadoCarrera, congelada: () -> Boolean, cadena: () -> Set<String>?, foco: () -> Float) {
+private fun LuzDeFrontera(estado: EstadoCarrera, cables: List<CableDibujo>, congelada: () -> Boolean, sinGesto: () -> Boolean, cadena: () -> Set<String>?, foco: () -> Float) {
     // El reloj solo corre mientras la luz se ve moverse: congelada, el bucle se para y no pide cuadros;
     // al reanudar sigue desde donde iba, sin salto
     var reloj by remember { mutableFloatStateOf(0f) }
     val estaCongelada by rememberUpdatedState(congelada)
+    val estaSinGesto by rememberUpdatedState(sinGesto)
+    // Tras DORMIR_LUZ_MS sin gesto la luz se apaga del todo; el siguiente gesto la despierta
+    var dormida by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
-        snapshotFlow { estaCongelada() }.collectLatest { quieta ->
+        snapshotFlow { estaSinGesto() }.collectLatest { quieto ->
+            dormida = false
+            if (!quieto) return@collectLatest
+            delay(DORMIR_LUZ_MS)
+            dormida = true
+        }
+    }
+    LaunchedEffect(Unit) {
+        snapshotFlow { estaCongelada() || dormida }.collectLatest { quieta ->
             if (quieta) return@collectLatest
             var antes = -1L
+            var acumulado = 0L
             while (true) {
                 withFrameNanos { n ->
                     // Tras un cuadro perdido la luz no da un salto
-                    if (antes >= 0) reloj += minOf(n - antes, 100_000_000L) / 1e9f
+                    if (antes >= 0) acumulado += minOf(n - antes, 100_000_000L)
                     antes = n
+                    // A 30 cuadros como la aurora: cada escritura invalida el cristal de la barra
+                    if (acumulado >= CUADRO_LUZ_NS) {
+                        reloj += acumulado / 1e9f
+                        acumulado = 0L
+                    }
                 }
             }
         }
@@ -549,13 +581,13 @@ private fun LuzDeFrontera(estado: EstadoCarrera, congelada: () -> Boolean, caden
     Spacer(
         // En su propia capa: cada cuadro de la luz repinta solo la luz, no los cables ni las cabeceras de debajo
         Modifier.fillMaxSize().graphicsLayer {}.drawWithCache {
-            val cables = cablesDe(estado)
             // Las fronteras y su degradado cambian al marcar, no en cada cuadro
             val sit = estado.situaciones
             val fronteras = cables.withIndex().filter { (_, c) ->
                 tramoDe(sit[c.arista.origen] ?: Situacion.LEJANA, sit[c.arista.destino] ?: Situacion.LEJANA) == Tramo.FRONTERA
             }
             val vivos = fronteras.map { (_, c) -> degradado(c, true) }
+            val trazoLuz = Stroke(2.25f, cap = StrokeCap.Round)
             onDrawBehind {
                 val enFoco = cadena()
                 val f = foco()
@@ -576,13 +608,10 @@ private fun LuzDeFrontera(estado: EstadoCarrera, congelada: () -> Boolean, caden
                             bruto > 0.82f -> (1f - bruto) / 0.18f
                             else -> 1f
                         } * apagado
-                        val guion = c.largo * 0.09f
-                        // El guion entra por el origen y sale por el destino (dashoffset de 100 a 0)
-                        val fase = (c.largo * (1f - p)) % c.largo
-                        drawPath(
-                            c.ruta, vivos[k], alpha = alfa.coerceIn(0f, 1f),
-                            style = Stroke(2.25f, cap = StrokeCap.Round, pathEffect = PathEffect.dashPathEffect(floatArrayOf(guion, c.largo - guion), fase)),
-                        )
+                        // El guion (9 % del cable) entra por el origen y sale por el destino
+                        val fin = c.largo * p
+                        val trozo = c.trozo(fin - c.largo * 0.09f, fin)
+                        drawPath(trozo, vivos[k], alpha = alfa.coerceIn(0f, 1f), style = trazoLuz)
                     }
                 }
             }

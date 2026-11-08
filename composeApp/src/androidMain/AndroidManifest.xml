@@ -6,6 +6,8 @@
         android:icon="@mipmap/ic_launcher"
         android:roundIcon="@mipmap/ic_launcher"
         android:theme="@android:style/Theme.Material.NoActionBar">
+        <!-- Deja que Perfetto y Macrobenchmark miren la versión de release -->
+        <profileable android:shell="true" />
         <activity
             android:name="mpensum.MainActivity"
             android:exported="true"

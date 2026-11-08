@@ -1,11 +1,15 @@
 package mpensum.carrera
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.referentialEqualityPolicy
 import androidx.compose.runtime.remember
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.withContext
 import mpensum.datos.leerPensumDelPaquete
 import androidx.compose.runtime.derivedStateOf
@@ -205,6 +209,20 @@ class EstadoCarrera(
     }
 }
 
+/**
+ * Calcula los ocho planes de graduación fuera del hilo principal y los deja en la caché de `planes` y `graduacion`:
+ * cuando se abre «Tu avance» ya están listos y la hoja no los calcula en el primer cuadro de su subida.
+ * Se repite tras cada cambio de marcas, casillas o período, con una pausa para no calcular a cada toque.
+ */
+private suspend fun EstadoCarrera.precalentarGraduacion() {
+    snapshotFlow { Triple(marcas, casillas, hoy) }.collectLatest {
+        delay(PAUSA_PRECALENTADO_MS)
+        withContext(Dispatchers.Default) { graduacion }
+    }
+}
+
+private const val PAUSA_PRECALENTADO_MS = 600L
+
 /** La geometría de una carrera; compacto (horizontal) lleva la cabecera de una línea */
 private fun layoutDe(pensum: Pensum, compacto: Boolean, rectos: Boolean): LayoutMapa =
     calcularLayout(pensum.asignaturas, pensum.grupos, if (compacto) ALTO_ENCABEZADO_COMPACTO else ALTO_ENCABEZADO, rectos)
@@ -232,5 +250,6 @@ fun rememberEstadoCarrera(slug: String, horizontal: Boolean): EstadoCarrera? {
     }
     // Girar solo cambia el layout: el estado, el horario, la cámara y la lista siguen vivos
     estado?.compacto = horizontal
+    if (estado != null) LaunchedEffect(estado) { estado.precalentarGraduacion() }
     return estado
 }

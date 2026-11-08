@@ -41,6 +41,13 @@ kotlin {
     }
 }
 
+composeCompiler {
+    // Qué es estable de hecho (las listas y los datos de la app se comparan por equals), y los informes para revisarlo
+    stabilityConfigurationFiles.add(layout.projectDirectory.file("estabilidad-compose.conf"))
+    reportsDestination.set(layout.buildDirectory.dir("informes-compose"))
+    metricsDestination.set(layout.buildDirectory.dir("informes-compose"))
+}
+
 compose.resources {
     packageOfResClass = "mpensum.recursos"
 }
@@ -58,6 +65,10 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+    }
+    androidResources {
+        // Las fuentes van sin comprimir: Android las mapea del APK sin copiarlas a memoria en cada peso
+        noCompress += "ttf"
     }
     sourceSets {
         // El perfil de arranque propio, escrito a mano: en KMP la fuente de Android es src/androidMain, no src/main

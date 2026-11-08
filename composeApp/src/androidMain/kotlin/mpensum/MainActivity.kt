@@ -7,6 +7,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.ui.graphics.toArgb
+import mpensum.plataforma.ajustarRefresco
 import mpensum.plataforma.aplicarAlTema
 import mpensum.plataforma.Preferencias
 import mpensum.plataforma.estiloBarras
@@ -24,6 +25,8 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge(statusBarStyle = estiloBarras(claro), navigationBarStyle = estiloBarras(claro))
         super.onCreate(savedInstanceState)
         window.setBackgroundDrawable(ColorDrawable(Paleta.lienzo.toArgb()))
+        // Un teléfono flojo en modo ligero va a 60 Hz: a 120 no le alcanza el cuadro
+        ajustarRefresco(this, Tema.ligero)
         setContent { App() }
     }
 }

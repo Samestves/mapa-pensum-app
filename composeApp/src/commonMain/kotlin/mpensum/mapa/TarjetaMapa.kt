@@ -170,8 +170,8 @@ fun TarjetaMapa(
         .size(Nodo.ANCHO.toFloat().dp, Nodo.ALTO.toFloat().dp)
         .graphicsLayer {
             alpha = opacidad()
-            // En modo ligero, apagada por el foco no se pinta aparte para fundirla: cada trazo baja su alfa
-            if (Tema.ligero) compositingStrategy = CompositingStrategy.ModulateAlpha
+            // La tarjeta es opaca: modular el alfa evita una capa fuera de pantalla por tarjeta apagada
+            compositingStrategy = CompositingStrategy.ModulateAlpha
         }
         // Un nodo por tarjeta, no por trazo: el lector de pantalla lee «nombre, estado» y puede pulsarla
         .semantics(mergeDescendants = true) {

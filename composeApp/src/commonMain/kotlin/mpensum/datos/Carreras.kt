@@ -42,8 +42,10 @@ private val lector = Json { ignoreUnknownKeys = true }
 @Composable
 fun rememberCarreras(): List<Carrera> {
     val estado = produceState(emptyList<Carrera>()) {
-        val texto = Res.readBytes("files/indice.json").decodeToString()
-        value = lector.decodeFromString<List<Carrera>>(texto)
+        // Fuera del hilo principal: la primera pantalla espera a esta lista
+        value = withContext(Dispatchers.Default) {
+            lector.decodeFromString<List<Carrera>>(Res.readBytes("files/indice.json").decodeToString())
+        }
     }
     return estado.value
 }

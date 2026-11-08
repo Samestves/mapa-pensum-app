@@ -62,6 +62,7 @@ import mpensum.plataforma.ManejarAtras
 import mpensum.tema.Alto
 import mpensum.tema.Espacio
 import mpensum.tema.Paleta
+import mpensum.tema.Tema
 import mpensum.tema.Tipo
 import mpensum.tema.inter
 import mpensum.tema.jost
@@ -200,7 +201,7 @@ fun BloqueTexto(primera: String, segunda: String, boton: String, alPulsar: () ->
             modifier = Modifier.paddingFromBaseline(bottom = 48.dp).graphicsLayer {
                 alpha = entrada.value
                 translationY = (1f - entrada.value) * 18.dp.toPx()
-                renderEffect = desenfoque((12 * (1f - entrada.value)).dp.toPx())
+                renderEffect = if (Tema.sinDesenfoque) null else desenfoque((12 * (1f - entrada.value)).dp.toPx())
             },
         )
         BotonPrincipal(boton, alPulsar)
