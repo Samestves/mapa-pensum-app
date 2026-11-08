@@ -16,6 +16,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
@@ -64,11 +65,24 @@ fun BoxScope.FichaMateria(
     val medidas = remember { MedidasFicha() }
     // Lo que la hoja suma a sus dos contenidos: el asa (8 + 4 + 8) y la barra de gestos de abajo
     val restoPx = with(densidad) { (ASA_FICHA + WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()).roundToPx() }
-    // Lo que se enseña va un paso por detrás de lo que se pide: al cambiar de materia se espera (150 ms como mucho)
-    // a que su respuesta esté calculada, y así la hoja entra con el contenido final y su alto se anima una sola vez
+    // Lo que se enseña va un paso por detrás de lo que se pide: al cambiar de materia con la hoja arriba se espera
+    // (150 ms como mucho) a que su respuesta esté calculada, y así su alto se anima una sola vez, hacia el final
     var actual by remember { mutableStateOf(codigo) }
+    // Al abrirse (no al cambiar de materia con la hoja arriba) no hay nada que esperar: la hoja sube ya con la
+    // nueva, sin que la anterior asome mientras entra. Un reloj nuevo por apertura, que no anima de una a otra
+    var apertura by remember { mutableIntStateOf(0) }
+    var estabaAbierta by remember { mutableStateOf(codigo != null) }
+    if ((codigo != null) != estabaAbierta) {
+        estabaAbierta = codigo != null
+        if (codigo != null) {
+            apertura++
+            medidas.olvidar(codigo)
+            actual = codigo
+        }
+    }
     LaunchedEffect(codigo) {
-        if (codigo == null) return@LaunchedEffect
+        // Cerrada no hay nada que enseñar; recién abierta ya se puso arriba, en composición
+        if (codigo == null || actual == codigo) return@LaunchedEffect
         val situacion = estado.situaciones[codigo]
         if (actual != null && actual != codigo && situacion != null && situacion != Situacion.HECHA) {
             withTimeoutOrNull(150) { estado.respuestas.calcular(codigo, situacion) }
@@ -84,7 +98,7 @@ fun BoxScope.FichaMateria(
         alEncuadrar(codigo, with(densidad) { destino.toDp() })
     }
     val vista = actual ?: return
-    val transicion = updateTransition(vista, label = "materia")
+    val transicion = key(apertura) { updateTransition(vista, label = "materia") }
 
     HojaInferior(
         abierta = codigo != null,

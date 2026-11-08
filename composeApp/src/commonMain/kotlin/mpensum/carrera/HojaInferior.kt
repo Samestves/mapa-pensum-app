@@ -37,12 +37,15 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.movableContentOf
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
@@ -67,6 +70,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import dev.chrisbanes.haze.ExperimentalHazeApi
@@ -109,9 +113,9 @@ import kotlin.math.exp
 private val ENTRA = spring<Float>(dampingRatio = 1f, stiffness = 380f, visibilityThreshold = 0.5f)
 /** Vuelta cuando el tirón no llegó al umbral: algo más rígido, con la velocidad del dedo */
 private val VUELVE = spring<Float>(dampingRatio = 1f, stiffness = 420f, visibilityThreshold = 0.5f)
-/** Salida por atrás o por el aspa: aceleración (Material), arranca lenta y se va */
 /** Salida tras un tirón: arranca ya a la velocidad del dedo (pendiente 1) y acelera al final */
 private val SALE_DEDO = CubicBezierEasing(0.35f, 0.35f, 0.9f, 0.55f)
+/** Salida por atrás o por el aspa, desde arriba del todo: aceleración (Material), arranca lenta y se va */
 private const val SALE_MS = Movimiento.SALIDA_HOJA
 
 /** Cuánto hay que bajarla (fracción de su alto) o a qué velocidad (dp/s) basta un tirón corto */
@@ -129,7 +133,6 @@ private const val OCULTA = 1e6f
 /** El borde de los paneles (--panel-borde) */
 val BORDE_PANEL get() = Paleta.borde
 
-/** El cristal de la hoja flotante: casi opaco, para leerse sobre cualquier cosa, y con lo de detrás apenas sugerido */
 /** El vidrio de la hoja sobre el horario: el de la barra, con el filo más cerca del borde y la esquina de 32 dp */
 private val VIDRIO_HOJA = Vidrio(
     fondoOscuro = Brush.verticalGradient(listOf(Color.White.copy(alpha = 0.05f), Color.Black.copy(alpha = 0.1f))),
@@ -138,6 +141,7 @@ private val VIDRIO_HOJA = Vidrio(
     radioFilo = 32.dp,
 )
 
+/** El cristal de la hoja flotante: casi opaco, para leerse sobre cualquier cosa, y con lo de detrás apenas sugerido */
 private val ESTILO_CRISTAL get() = HazeStyle(
     backgroundColor = Paleta.lienzo,
     tint = HazeTint(Paleta.vidrio.copy(alpha = 0.86f)),
@@ -186,6 +190,8 @@ private class Hoja(private val alcance: CoroutineScope) {
     var insets: WindowInsets = WindowInsets(0, 0, 0, 0)
     var densidad: Density = Density(1f)
     var extraPx = 0f
+    /** Si la última composición la pintó a pantalla completa (acostado): al girar cambia */
+    var completa = false
 
     /** Donde está el dedo sin goma: negativo es por encima de su sitio */
     private var crudo = 0f
@@ -205,6 +211,13 @@ private class Hoja(private val alcance: CoroutineScope) {
     fun correr(bloque: suspend () -> Unit) {
         trabajo?.cancel()
         trabajo = alcance.launch { bloque() }
+    }
+
+    /** Fuera y sin medir, como antes de montarse: la próxima vez entra desde abajo con su alto nuevo */
+    fun recoger() {
+        trabajo?.cancel()
+        alto = 0f
+        desp = OCULTA
     }
 
     private suspend fun animar(hasta: Float, spec: AnimationSpec<Float>, velocidad: Float = 0f) {
@@ -307,7 +320,9 @@ private fun goma(x: Float, tope: Float) = tope * (1f - exp(-x / tope))
  * detrás: sube igual, pero ocupa la pantalla entera (como en el iPhone cuando
  * falta alto). Sin asa ni tirón para cerrarla, que con columnas que desplazan
  * cerraría sin querer: se cierra con su aspa o con atrás. El contenido se
- * aparta solo de la barra de estado, la cámara y la barra de gestos.
+ * aparta solo de la barra de estado, la cámara y la barra de gestos. Girar con
+ * la hoja abierta no la rehace: la cabecera y el contenido se mueven enteros
+ * de una forma a la otra, con su desplazamiento, lo escrito y sus `remember`.
  *
  * Con `sobreOtraHoja` (el selector de electiva sobre el progreso) no se desenfoca
  * nada: la hoja de debajo se ve atenuada por un velo a media fuerza, como las
@@ -317,7 +332,8 @@ private fun goma(x: Float, tope: Float) = tope * (1f - exp(-x / tope))
  * de debajo sigue vivo, los toques fuera de la hoja le llegan y la separación
  * es el color del panel con una sombra tenue por encima, pintada una vez. Con
  * `tope` (fracción del alto de la pantalla) la hoja no crece más y lo que
- * sobra se desplaza dentro. `alMedir` recibe su alto cada vez que cambia.
+ * sobra se desplaza dentro. `alMedir` recibe su alto cada vez que cambia, de
+ * pie y acostada.
  */
 @OptIn(ExperimentalHazeApi::class)
 @Composable
@@ -341,6 +357,15 @@ fun BoxScope.HojaInferior(
     val alcance = rememberCoroutineScope()
     val hoja = remember { Hoja(alcance) }
     val completa = ventana().apaisado
+    if (completa != hoja.completa) {
+        hoja.completa = completa
+        // Girar mientras sale: la que se va cambiaría de forma a medio camino (acostada, un panel liso
+        // que tapa el mapa unos 260 ms). Ya iba a desaparecer: se recoge en este mismo cuadro
+        if (!abierta && montada) {
+            hoja.recoger()
+            montada = false
+        }
+    }
     // A pantalla completa no hay hoja flotante: el cristal es para asomar por los bordes, y no hay bordes
     val flotante = cristal != null && !completa
     val densidad = LocalDensity.current
@@ -351,9 +376,11 @@ fun BoxScope.HojaInferior(
     hoja.insets = if (flotante) WindowInsets.ime.union(WindowInsets.navigationBars) else WindowInsets.ime
     hoja.extraPx = with(densidad) { (if (flotante) 8.dp else 0.dp).toPx() + 32.dp.toPx() }
 
+    // Solo cuenta si ya está medida, no cuánto mide: mientras la ficha anima su alto, la hoja no se recompone en cada cuadro
+    val medida by remember { derivedStateOf { hoja.alto > 0f } }
     // Se mide antes de moverla: entra desde fuera de la pantalla, sea cual sea su alto
-    LaunchedEffect(abierta, hoja.alto > 0f) {
-        if (hoja.alto <= 0f) return@LaunchedEffect
+    LaunchedEffect(abierta, medida) {
+        if (!medida) return@LaunchedEffect
         if (abierta) {
             hoja.correr { hoja.entrar() }
         } else if (montada) {
@@ -366,12 +393,33 @@ fun BoxScope.HojaInferior(
         }
     }
     ManejarAtras(abierta, alCerrar)
+
+    // La cabecera y el contenido se componen una sola vez y se mueven de la hoja flotante a la pantalla
+    // completa al girar: así no pierden el desplazamiento, lo escrito ni sus remember. Se descartan al desmontarse
+    val cabeceraActual by rememberUpdatedState(cabecera)
+    val contenidoActual by rememberUpdatedState(contenido)
+    val desplazableActual by rememberUpdatedState(desplazable)
+    val cabeceraMovil = remember { movableContentOf { cabeceraActual() } }
+    val cuerpoMovil = remember {
+        // `fuera` es lo que pone la columna de la hoja (el peso); `dentro`, lo que se desplaza con el contenido
+        movableContentOf { fuera: Modifier, dentro: Modifier ->
+            Column(
+                fuera.then(if (desplazableActual) Modifier.verticalScroll(rememberScrollState()) else Modifier).then(dentro),
+                content = contenidoActual,
+            )
+        }
+    }
+    val medir: (IntSize) -> Unit = {
+        hoja.alto = it.height.toFloat()
+        alMedir(with(densidad) { it.height.toDp() })
+    }
+
     if (!montada) return
 
     if (modal) FondoHoja(if (sobreOtraHoja) null else fondo, hoja, remember { MutableInteractionSource() }, alCerrar, if (sobreOtraHoja) 0.5f else 1f)
 
     if (completa) {
-        PantallaCompleta(hoja, desplazable, cabecera, contenido)
+        PantallaCompleta(hoja, medir, cabeceraMovil) { cuerpoMovil(Modifier.weight(1f), Modifier) }
         return
     }
 
@@ -394,10 +442,7 @@ fun BoxScope.HojaInferior(
                 .fillMaxWidth()
                 .then(if (altoMaximo != null) Modifier.heightIn(max = altoMaximo) else Modifier)
                 .then(if (altoFijo) Modifier.fillMaxHeight() else Modifier)
-                .onSizeChanged {
-                    hoja.alto = it.height.toFloat()
-                    alMedir(with(densidad) { it.height.toDp() })
-                }
+                .onSizeChanged(medir)
                 .graphicsLayer {
                     // Antes de medirla, o ya entera fuera, no asoma ni un píxel
                     translationY = minOf(hoja.desp, size.height + hoja.margen())
@@ -423,12 +468,11 @@ fun BoxScope.HojaInferior(
                 .nestedScroll(hoja.conexion)
                 .pointerInput(Unit) { detectTapGestures {} },
         ) {
-            AsaYCabecera(hoja, abierta, modal, cabecera)
-            Column(
-                (if (desplazable) Modifier.verticalScroll(rememberScrollState()) else Modifier.weight(1f, fill = altoFijo))
-                    // Pegada abajo, el contenido no queda bajo la barra de gestos; con teclado, sube con él
-                    .padding(bottom = if (flotante) 0.dp else WindowInsets.navigationBars.exclude(WindowInsets.ime).asPaddingValues().calculateBottomPadding()),
-                content = contenido,
+            AsaYCabecera(hoja, abierta, modal, cabeceraMovil)
+            cuerpoMovil(
+                if (desplazable) Modifier else Modifier.weight(1f, fill = altoFijo),
+                // Pegada abajo, el contenido no queda bajo la barra de gestos; con teclado, sube con él
+                Modifier.padding(bottom = if (flotante) 0.dp else WindowInsets.navigationBars.exclude(WindowInsets.ime).asPaddingValues().calculateBottomPadding()),
             )
         }
     }
@@ -437,19 +481,20 @@ fun BoxScope.HojaInferior(
 /**
  * La hoja acostada: sube como siempre, pero a toda la pantalla y lisa, del
  * color del panel. El contenido se aparta de la barra de estado, de la cámara
- * y de la barra de gestos; el fondo del panel sí llega a los bordes.
+ * y de la barra de gestos; el fondo del panel sí llega a los bordes. `cuerpo`
+ * ya trae su peso y su desplazamiento: es el mismo de la hoja de pie.
  */
 @Composable
 private fun PantallaCompleta(
     hoja: Hoja,
-    desplazable: Boolean,
+    medir: (IntSize) -> Unit,
     cabecera: @Composable () -> Unit,
-    contenido: @Composable ColumnScope.() -> Unit,
+    cuerpo: @Composable ColumnScope.() -> Unit,
 ) {
     Column(
         Modifier
             .fillMaxSize()
-            .onSizeChanged { hoja.alto = it.height.toFloat() }
+            .onSizeChanged(medir)
             .graphicsLayer { translationY = minOf(hoja.desp, size.height + hoja.margen()) }
             .background(Paleta.panel)
             // Se queda con los toques que caen en su fondo (si no, llegarían al velo y la cerrarían), sin volverse un botón
@@ -459,10 +504,7 @@ private fun PantallaCompleta(
             .padding(top = RESPIRO_COMPLETA),
     ) {
         Column(Modifier.testTag("hoja-cabecera")) { cabecera() }
-        Column(
-            if (desplazable) Modifier.weight(1f).verticalScroll(rememberScrollState()) else Modifier.weight(1f),
-            content = contenido,
-        )
+        cuerpo()
     }
 }
 

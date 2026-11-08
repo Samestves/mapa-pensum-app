@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.ContentTransform
 import androidx.compose.animation.core.updateTransition
+import androidx.compose.animation.core.Transition
 import androidx.compose.runtime.key
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
@@ -56,6 +57,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
@@ -186,15 +188,28 @@ fun BoxScope.HojaAvance(abierta: Boolean, estado: EstadoCarrera, alCerrar: () ->
     val apaisado = esApaisado()
     remember(apertura) { estado.actualizarHoy() }
     val hoy = estado.hoy
+    // Las páginas de pie van con un solo reloj, nuevo en cada apertura: no arrastra la página donde se cerró
+    val transicion = key(apertura) { updateTransition(detalle, label = "progreso") }
 
-    if (apaisado) {
-        // Acostada: índice y detalle a pantalla completa; lo elegido es el mismo detalle de pie, así girar no pierde dónde estabas
-        HojaInferior(abierta = abierta, alCerrar = alCerrar, desplazable = false, cabecera = {}) {
+    // Una sola hoja de pie y acostada: girar no la vuelve a subir ni rehace su atrás, que sigue por debajo del
+    // del selector. Solo cambia lo de dentro; lo elegido es el mismo detalle, así girar no pierde dónde estabas
+    HojaInferior(
+        abierta = abierta,
+        alCerrar = alCerrar,
+        desplazable = false,
+        altoFijo = true,
+        // Acostada, cada columna lleva su cabecera (AvanceIndice.kt)
+        cabecera = { if (!apaisado) CabeceraDelProgreso(transicion, estado, alCambiar = { detalle = it }, alCerrar, alVerEnMapa) },
+    ) {
+        if (apaisado) {
             IndiceYDetalle(estado, hoy, detalle, alElegir = { detalle = it }, alCerrar = alCerrar, alVerEnMapa = alVerEnMapa, alAbrirCasilla = { casilla = it })
+        } else {
+            PaginasDelProgreso(transicion, estado, hoy, alCambiar = { detalle = it }, alVerEnMapa = alVerEnMapa, alAbrirCasilla = { casilla = it })
         }
-    } else {
-        PaginasDelProgreso(abierta, apertura, estado, hoy, detalle, alCambiar = { detalle = it }, alCerrar = alCerrar, alVerEnMapa = alVerEnMapa, alAbrirCasilla = { casilla = it })
     }
+    // De pie, atrás vuelve del detalle a la hoja; ya en la hoja, la cierra (HojaInferior). Va entre la hoja y el
+    // selector, siempre compuesto: así se atiende antes que la hoja y después que el selector
+    ManejarAtras(abierta && !apaisado && detalle != null) { detalle = null }
     // Montado después de la hoja, el selector queda encima y su atrás se atiende primero
     SelectorElectiva(
         casilla = casilla,
@@ -209,68 +224,64 @@ fun BoxScope.HojaAvance(abierta: Boolean, estado: EstadoCarrera, alCerrar: () ->
     )
 }
 
-/**
- * La hoja de pie: alto fijo y, dentro, dos páginas (el índice y cada pantalla
- * interna) con un solo reloj (patrón A, docs/qa/transiciones.md). La cabecera
- * y el cuerpo son el mismo `Transition`; cada página lleva su desplazamiento,
- * que se guarda al salir: al volver, el índice está donde lo dejaste.
- */
+/** La cabecera de pie: en el índice, «Tu avance» con el aspa; en una pantalla interna, volver y «Ver en el mapa» */
 @Composable
-private fun BoxScope.PaginasDelProgreso(
-    abierta: Boolean,
-    apertura: Int,
+private fun CabeceraDelProgreso(
+    transicion: Transition<DetalleAvance?>,
     estado: EstadoCarrera,
-    hoy: Periodo,
-    detalle: DetalleAvance?,
     alCambiar: (DetalleAvance?) -> Unit,
     alCerrar: () -> Unit,
     alVerEnMapa: (List<String>) -> Unit,
+) {
+    val desplazoPx = with(LocalDensity.current) { Movimiento.DESPLAZO.roundToPx() }
+    CabeceraDeAltoEstable {
+        transicion.AnimatedContent(transitionSpec = { empujeDePagina(targetState != null, desplazoPx) }, contentAlignment = Alignment.TopStart) { d ->
+            if (d == null) {
+                CabeceraHoja(estado.pensum.nombre, alCerrar)
+            } else {
+                Row(Modifier.fillMaxWidth().padding(start = margenPantalla(), end = margenPantalla(), top = 7.dp), verticalAlignment = Alignment.CenterVertically) {
+                    BotonRedondo(Lucide.atras, "Volver") { alCambiar(null) }
+                    Spacer(Modifier.weight(1f))
+                    codigosDelMapa(d, estado.graduacion)?.let { codigos -> BotonMapa { alVerEnMapa(codigos) } }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * El cuerpo de pie: dos páginas (el índice y cada pantalla interna) con el
+ * mismo reloj que la cabecera (patrón A, docs/qa/transiciones.md). Cada
+ * página lleva su desplazamiento, que se guarda al salir: al volver, el índice
+ * está donde lo dejaste.
+ */
+@Composable
+private fun PaginasDelProgreso(
+    transicion: Transition<DetalleAvance?>,
+    estado: EstadoCarrera,
+    hoy: Periodo,
+    alCambiar: (DetalleAvance?) -> Unit,
+    alVerEnMapa: (List<String>) -> Unit,
     alAbrirCasilla: (String) -> Unit,
 ) {
-    // Un reloj nuevo en cada apertura: no arrastra la página donde se cerró
-    val transicion = key(apertura) { updateTransition(detalle, label = "progreso") }
     val desplazoPx = with(LocalDensity.current) { Movimiento.DESPLAZO.roundToPx() }
     val empuje: AnimatedContentTransitionScope<DetalleAvance?>.() -> ContentTransform = { empujeDePagina(targetState != null, desplazoPx) }
-    HojaInferior(
-        abierta = abierta,
-        alCerrar = alCerrar,
-        desplazable = false,
-        altoFijo = true,
-        cabecera = {
-            CabeceraDeAltoEstable {
-                transicion.AnimatedContent(transitionSpec = empuje, contentAlignment = Alignment.TopStart) { d ->
-                    if (d == null) {
-                        CabeceraHoja(estado.pensum.nombre, alCerrar)
-                    } else {
-                        Row(Modifier.fillMaxWidth().padding(start = margenPantalla(), end = margenPantalla(), top = 7.dp), verticalAlignment = Alignment.CenterVertically) {
-                            BotonRedondo(Lucide.atras, "Volver") { alCambiar(null) }
-                            Spacer(Modifier.weight(1f))
-                            codigosDelMapa(d, estado.graduacion)?.let { codigos -> BotonMapa { alVerEnMapa(codigos) } }
-                        }
-                    }
-                }
+    Box(Modifier.fillMaxSize()) {
+        // El índice no se descompone al entrar a una pantalla: al volver ya está, con su desplazamiento
+        transicion.IndiceRetenido(desplazoPx) {
+            val desplazo = rememberScrollState()
+            Column(Modifier.fillMaxSize().fundidoAbajo(desplazo).verticalScroll(desplazo)) {
+                ContenidoHoja(estado) { alCambiar(it) }
             }
-        },
-    ) {
-        // Atrás vuelve del detalle a la hoja; ya en la hoja, la cierra (HojaInferior)
-        ManejarAtras(detalle != null) { alCambiar(null) }
-        Box(Modifier.fillMaxSize()) {
-            // El índice no se descompone al entrar a una pantalla: al volver ya está, con su desplazamiento
-            transicion.IndiceRetenido(desplazoPx) {
+        }
+        val guardado = rememberSaveableStateHolder()
+        transicion.AnimatedContent(Modifier.fillMaxSize(), transitionSpec = empuje, contentAlignment = Alignment.TopStart) { d ->
+            if (d == null) return@AnimatedContent
+            guardado.SaveableStateProvider(d.clave()) {
                 val desplazo = rememberScrollState()
                 Column(Modifier.fillMaxSize().fundidoAbajo(desplazo).verticalScroll(desplazo)) {
-                    ContenidoHoja(estado) { alCambiar(it) }
-                }
-            }
-            val guardado = rememberSaveableStateHolder()
-            transicion.AnimatedContent(Modifier.fillMaxSize(), transitionSpec = empuje, contentAlignment = Alignment.TopStart) { d ->
-                if (d == null) return@AnimatedContent
-                guardado.SaveableStateProvider(d.clave()) {
-                    val desplazo = rememberScrollState()
-                    Column(Modifier.fillMaxSize().fundidoAbajo(desplazo).verticalScroll(desplazo)) {
-                        CabeceraInterna(cabeceraDe(d, estado, estado.graduacion, hoy), Modifier.padding(start = margenPantalla(), end = margenPantalla(), top = Espacio.m))
-                        ContenidoDetalle(d, estado, hoy, alVerEnMapa, alAbrirCasilla)
-                    }
+                    CabeceraInterna(cabeceraDe(d, estado, estado.graduacion, hoy), Modifier.padding(start = margenPantalla(), end = margenPantalla(), top = Espacio.m))
+                    ContenidoDetalle(d, estado, hoy, alVerEnMapa, alAbrirCasilla)
                 }
             }
         }
@@ -373,47 +384,57 @@ private fun ContenidoHoja(estado: EstadoCarrera, abrir: (DetalleAvance) -> Unit)
 // ─────────────────────────────────── La tarjeta de arriba ──────────────────────────────────
 
 /**
- * La cifra a la izquierda con lo aprobado debajo; la fecha arriba a la
- * derecha, con su tope a la altura del de la cifra, y «Te gradúas» debajo. Si
- * no caben a lo ancho, la fecha baja bajo la cifra. Luego la barra de
- * cápsulas y la frase, que sin `conBarra` todavía no se componen.
+ * Lo que comparten la tarjeta de pie y el resumen del índice acostado: la
+ * `cifra` a la izquierda con lo aprobado debajo («13 / 153 UC»), a `bajoCifra`
+ * de ella; la fecha arriba a la derecha, con su tope a la altura del de la
+ * cifra, y «Te gradúas» debajo. Si no caben a lo ancho, la fecha baja bajo la
+ * cifra.
  */
 @Composable
-private fun TarjetaHeroe(estado: EstadoCarrera, g: EstimacionGraduacion, semestres: List<SemestreCapsulas>, si: SiApruebas?, cursando: Int, conBarra: Boolean) {
+internal fun CifraYFecha(estado: EstadoCarrera, g: EstimacionGraduacion, bajoCifra: Dp, cifra: @Composable () -> Unit) {
     val progreso = estado.progreso
     val conUc = progreso.porcentaje != null
     val llevas = if (conUc) progreso.ucAprobadas + progreso.ucElectivas else progreso.aprobadas
     val de = if (conUc) progreso.ucTitulo!! else progreso.total
-    val porcentaje = progreso.avance.roundToInt()
+    DosALoAncho(
+        hueco = Espacio.m,
+        vertical = Espacio.m,
+        izquierda = {
+            Column {
+                cifra()
+                BasicText(
+                    buildAnnotatedString {
+                        withStyle(SpanStyle(color = Paleta.tinta, fontWeight = FontWeight.Medium)) { append("$llevas") }
+                        append(" / $de ${if (conUc) "UC" else "materias"}")
+                    },
+                    Modifier.padding(top = bajoCifra),
+                    style = estiloNota(),
+                )
+            }
+        },
+        derecha = {
+            val final = g.periodoFinal
+            if (!g.terminado && final != null) {
+                Column(horizontalAlignment = Alignment.End) {
+                    Fecha(final.mesYAnio())
+                    BasicText("Te gradúas", Modifier.padding(top = Espacio.xs), style = estiloNota())
+                }
+            }
+        },
+    )
+}
+
+/**
+ * La tarjeta de pie: la cifra y la fecha, luego la barra de cápsulas y la frase, que
+ * sin `conBarra` todavía no se componen.
+ */
+@Composable
+private fun TarjetaHeroe(estado: EstadoCarrera, g: EstimacionGraduacion, semestres: List<SemestreCapsulas>, si: SiApruebas?, cursando: Int, conBarra: Boolean) {
+    val progreso = estado.progreso
     val fuerte = SpanStyle(color = Paleta.tinta, fontWeight = FontWeight.Medium)
 
     Column(Modifier.fillMaxWidth().superficie().padding(Espacio.m)) {
-        DosALoAncho(
-            hueco = Espacio.m,
-            vertical = Espacio.m,
-            izquierda = {
-                Column {
-                    CifraHeroe(porcentaje)
-                    BasicText(
-                        buildAnnotatedString {
-                            withStyle(fuerte) { append("$llevas") }
-                            append(" / $de ${if (conUc) "UC" else "materias"}")
-                        },
-                        Modifier.padding(top = BAJO_CIFRA),
-                        style = estiloNota(),
-                    )
-                }
-            },
-            derecha = {
-                val final = g.periodoFinal
-                if (!g.terminado && final != null) {
-                    Column(horizontalAlignment = Alignment.End) {
-                        Fecha(final.mesYAnio())
-                        BasicText("Te gradúas", Modifier.padding(top = Espacio.xs), style = estiloNota())
-                    }
-                }
-            },
-        )
+        CifraYFecha(estado, g, BAJO_CIFRA) { CifraHeroe(progreso.avance.roundToInt()) }
         if (!conBarra) return@Column
         BarraCapsulas(semestres, Modifier.padding(top = Espacio.l))
         BasicText(

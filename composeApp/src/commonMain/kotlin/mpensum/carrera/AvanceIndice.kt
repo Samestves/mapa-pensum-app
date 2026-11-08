@@ -35,11 +35,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import mpensum.componentes.CifraConUnidad
@@ -174,37 +170,8 @@ private fun CabeceraPanel(d: DatosCabecera, alVerEnMapa: (() -> Unit)?) {
 /** Tu cifra con lo aprobado debajo y, enfrente, tu fecha: la tarjeta de pie sin la barra ni la frase, que no caben */
 @Composable
 private fun ResumenIndice(estado: EstadoCarrera, g: EstimacionGraduacion, modifier: Modifier) {
-    val progreso = estado.progreso
-    val conUc = progreso.porcentaje != null
-    val llevas = if (conUc) progreso.ucAprobadas + progreso.ucElectivas else progreso.aprobadas
-    val de = if (conUc) progreso.ucTitulo!! else progreso.total
     Column(modifier.fillMaxWidth().superficie().padding(Espacio.m)) {
-        DosALoAncho(
-            hueco = Espacio.m,
-            vertical = Espacio.m,
-            izquierda = {
-                Column {
-                    CifraConUnidad("${progreso.avance.roundToInt()}", "%", 40.sp, Modifier.recorteCap(40.sp))
-                    BasicText(
-                        buildAnnotatedString {
-                            withStyle(SpanStyle(color = Paleta.tinta, fontWeight = FontWeight.Medium)) { append("$llevas") }
-                            append(" / $de ${if (conUc) "UC" else "materias"}")
-                        },
-                        Modifier.padding(top = Espacio.s),
-                        style = estiloNota(),
-                    )
-                }
-            },
-            derecha = {
-                val final = g.periodoFinal
-                if (!g.terminado && final != null) {
-                    Column(horizontalAlignment = Alignment.End) {
-                        Fecha(final.mesYAnio())
-                        BasicText("Te gradúas", Modifier.padding(top = Espacio.xs), style = estiloNota())
-                    }
-                }
-            },
-        )
+        CifraYFecha(estado, g, Espacio.s) { CifraConUnidad("${estado.progreso.avance.roundToInt()}", "%", 40.sp, Modifier.recorteCap(40.sp)) }
     }
 }
 
