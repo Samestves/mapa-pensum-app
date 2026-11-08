@@ -179,3 +179,44 @@ Dónde va (todo en tinta, sin el color de la carrera ni el azul):
 - **Los 12 discos** son 12 `Canvas` de 40 dp con dos `radialGradient` cada uno. Es lo mismo que pintaban hoy los 13 `MiniTema` del carrusel, con menos trazos.
 - **La sombra de las dos pantallas** es una sola `shadow()` estática por pantalla. En modo ligero se quita y queda solo el filo.
 - **Navegar entre páginas** usa el `AnimatedContent` de hoy, con deslizamiento de 320 ms y fundido.
+
+## 9. Iconos nuevos para cuatro carreras
+
+Maqueta: `docs/maquetas/iconos-carrera.html` (PNG al lado). Lo que pidió Sam: para Petróleo, Sistemas, Administración y «Tu carrera», iconos «más acordes, más reconocibles y universitarios». Tienen que servir a 20 dp y también grandes (48 a 64 dp), porque quizá vayan al home.
+
+Son de la misma familia que §5: rejilla de 24, trazo 1,5 y puntas y uniones redondas. Van en tinta neutra. A 20 dp van con el 1,75 de `TeclaIcono` y a 56 dp con 1,5. Estas cuatro filas sustituyen a las de §5. El respaldo de `iconoCarrera(slug)` y el acento «Tu carrera» sin carrera pasan de `universidad` a `escudo`.
+
+| Para | Recomendado | Por qué, en una línea | Descartados |
+|---|---|---|---|
+| ingenieria-de-petroleo | **balancín de bombeo** | El «caballito» de los campos de Monagas solo puede ser petróleo, y su silueta aguanta a 20 | gota con estratos (se lee «agua»), barril (a 20 es una lata) |
+| ingenieria-de-sistemas | **monitor con consola `>_`** | Computación y programación de un vistazo, sin pisar el `</>` de «Código abierto» | diagrama de flujo (a 20 es el organigrama), servidor (solo redes) |
+| licenciatura-en-administracion | **organigrama** | Administrar es organizar; ninguna otra de la familia tiene esa pirámide | barras que suben (se lee «tu progreso»), edificio (pesa y choca con el escudo) |
+| Tu carrera (sin carrera y respaldo) | **escudo universitario** con la fachada dentro | Dice universidad sin birrete; las columnas evitan que se lea «seguridad» y de grande sirve de blasón | diploma con lazo (pegado al birrete), camino con meta (dice «ruta» en una app que ya es mapa) |
+
+Lo que no se usa, por choque de significado: la red de nodos (es `Lucide.mapa`), `</>` (es «Código abierto»), el birrete (es el grado), el libro (es cursando) y el sello (es aprobada).
+
+SVG (`viewBox="0 0 24 24"`, `fill="none"`, `stroke-linecap="round"`, `stroke-linejoin="round"`):
+
+| Icono | SVG |
+|---|---|
+| balancín | `<path d="M3 21h18"/><path d="m9 21 3-12.5 3 12.5"/><path d="M6.5 7.5 20 10"/><path d="M6.5 4a4 4 0 0 0 0 7z"/><path d="M4.5 7.5V21"/><path d="m20 10-1.7 5.6"/><path d="M18 15.5a1.5 1.5 0 1 0 0 3a1.5 1.5 0 1 0 0-3z"/>` |
+| consola | `<path d="M4 3h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M8 21h8"/><path d="M12 17v4"/><path d="m7 7.5 3 2.5-3 2.5"/><path d="M12.5 12.5h4.5"/>` |
+| organigrama | `<path d="M10 2h4a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z"/><path d="M12 7v8"/><path d="M5 15v-2a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v2"/><path d="M3.5 15h3a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-3a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1z"/><path d="M10.5 15h3a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-3a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1z"/><path d="M17.5 15h3a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-3a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1z"/>` |
+| escudo | `<path d="M5 3h14a1 1 0 0 1 1 1v7.5c0 5.2-3.6 8.4-8 10.2-4.4-1.8-8-5-8-10.2V4a1 1 0 0 1 1-1z"/><path d="M8 9.5h8L12 6.5z"/><path d="M9 11.5v4"/><path d="M12 11.5v4"/><path d="M15 11.5v4"/><path d="M8 17.5h8"/>` |
+
+En `Lucide` (Iconos.kt), tal cual. Todo es path y no hay ningún `<rect>` ni `<circle>` que convertir:
+
+```kotlin
+/** Petróleo: el balancín de bombeo (cabeza, viga, caballete y manivela) */
+val balancin = listOf(trazo("M3 21h18"), trazo("m9 21 3-12.5 3 12.5"), trazo("M6.5 7.5 20 10"), trazo("M6.5 4a4 4 0 0 0 0 7z"), trazo("M4.5 7.5V21"), trazo("m20 10-1.7 5.6"), trazo("M18 15.5a1.5 1.5 0 1 0 0 3a1.5 1.5 0 1 0 0-3z"))
+/** Sistemas: el monitor con la consola; el </> es de «Código abierto» */
+val consola = listOf(trazo("M4 3h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"), trazo("M8 21h8"), trazo("M12 17v4"), trazo("m7 7.5 3 2.5-3 2.5"), trazo("M12.5 12.5h4.5"))
+/** Administración: el organigrama, una caja arriba y tres abajo */
+val organigrama = listOf(trazo("M10 2h4a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z"), trazo("M12 7v8"), trazo("M5 15v-2a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v2"), trazo("M3.5 15h3a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-3a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1z"), trazo("M10.5 15h3a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-3a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1z"), trazo("M17.5 15h3a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-3a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1z"))
+/** Tu carrera: el escudo con la fachada dentro. El birrete es del grado */
+val escudo = listOf(trazo("M5 3h14a1 1 0 0 1 1 1v7.5c0 5.2-3.6 8.4-8 10.2-4.4-1.8-8-5-8-10.2V4a1 1 0 0 1 1-1z"), trazo("M8 9.5h8L12 6.5z"), trazo("M9 11.5v4"), trazo("M12 11.5v4"), trazo("M15 11.5v4"), trazo("M8 17.5h8"))
+```
+
+- **`iconoCarrera(slug)`:** `ingenieria-de-petroleo` pasa a `balancin`, `ingenieria-de-sistemas` a `consola`, `licenciatura-en-administracion` a `organigrama`, y el respaldo (`else`) a `escudo`.
+- **Lo que queda libre:** `universidad` se queda si otra pantalla la usa; si no, se borra. El chip, la torre y el maletín no llegaron a Kotlin.
+- **Ya grande (48 a 64 dp):** `IconoTrazo(icono, Paleta.tinta, 56.dp, 1.5f)`. No hace falta más grosor: a 56 dp, el 1,5 ya da 3,5 dp de línea.

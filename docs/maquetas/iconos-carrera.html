@@ -1,0 +1,145 @@
+<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><title>Iconos de carrera</title><style>@font-face { font-family: Jost; src: url(../../composeApp/src/commonMain/composeResources/font/jost.ttf); font-weight: 100 900; }
+@font-face { font-family: Inter; src: url(../../composeApp/src/commonMain/composeResources/font/inter.ttf); font-weight: 100 900; }
+@font-face { font-family: 'IBM Plex Mono'; src: url(../../composeApp/src/commonMain/composeResources/font/plex_mono_light.ttf); font-weight: 300; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #E6E7E9; color: #050608; font-family: Inter, sans-serif; padding: 56px 40px 72px; -webkit-font-smoothing: antialiased; }
+.pagina { width: 1640px; margin: 0 auto; }
+h1 { font: 300 40px/44px Jost; letter-spacing: -.01em; }
+.intro { font: 400 15px/22px Inter; color: #34383E; margin-top: 12px; max-width: 1180px; }
+.intro b { font-weight: 500; color: #050608; }
+code { font: 300 13px 'IBM Plex Mono'; background: rgb(0 0 0 / .06); padding: 1px 5px; border-radius: 4px; }
+.bloque { margin-top: 56px; }
+.bloque > h2 { font: 500 12px/16px Inter; letter-spacing: .08em; text-transform: uppercase; color: #52565C; margin-bottom: 16px; }
+.sello { font: 500 11px/16px Inter; letter-spacing: .08em; text-transform: uppercase; color: #fff; background: #050608; border-radius: 10px; padding: 2px 8px; }
+svg.i { fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; display: block; flex: none; }
+.th-oscuro{--lienzo:#0B0C0E;--panel:#121316;--panelSuave:#16181B;--borde:#262A2F;--tinta:#ECEEF1;--suave:#B6BBC2;--tenue:#858B94;--apagada:#5D636C;--azul:#5B8AF5;--azulClaro:#9DB8FF;--verde:#2EC27E;--verdeClaro:#96E0BE;--rojo:#E5403A;--aurora:#6094FF;--aurora2:#2FE8C6;--rejilla:#15171A;--vidrio:#15171A;--sombra:#000000;--cab-cb:#5BC0EB;--cab-est:#A78BFA;--cab-ges:#F0739B;--cab-comp:#3CCFA8;--t:236 238 241;--au:96 148 255;--au2:47 232 198;--a:91 138 245;--v:46 194 126;--acento:#6094FF;--fz:0.240;--nombre:380;--sombra-p:.55;color:var(--tinta)}
+.th-claro{--lienzo:#F3F4F6;--panel:#FFFFFF;--panelSuave:#F7F8F9;--borde:#DADDE1;--tinta:#171A20;--suave:#393C42;--tenue:#5B5F66;--apagada:#72767D;--azul:#3A66DC;--azulClaro:#2F57C9;--verde:#0F8A5F;--verdeClaro:#0B7350;--rojo:#CC1F24;--aurora:#2751CC;--aurora2:#0A9781;--rejilla:#E3E5E8;--vidrio:#FFFFFF;--sombra:#171A20;--cab-cb:#1B7FB0;--cab-est:#6F42C9;--cab-ges:#C2326A;--cab-comp:#0F8A75;--t:23 26 32;--au:39 81 204;--au2:10 151 129;--a:58 102 220;--v:15 138 95;--acento:#2751CC;--fz:0.084;--nombre:440;--sombra-p:.10;color:var(--tinta)}
+/* Familia */
+.familias { display: flex; gap: 24px; }
+.fam { flex: 1; padding: 20px; border-radius: 28px; background: var(--panel); display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+.ci { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 18px 4px 14px; border-radius: 16px; background: rgb(var(--t) / .035); color: var(--tinta); text-align: center; position: relative; }
+.ci .par { display: flex; align-items: flex-end; gap: 14px; }
+.ci .par .chico { color: var(--suave); }
+.ci b { font: 500 12px/15px Inter; color: var(--tinta); }
+.ci span { font: 400 11px/14px Inter; color: var(--tenue); margin-top: -6px; }
+.ci.nuevo::after { content: 'NUEVO'; position: absolute; top: 8px; right: 10px; font: 500 9px/12px Inter; letter-spacing: .08em; color: var(--tenue); }
+/* Opciones */
+.carrera { margin-top: 36px; }
+.carrera > h3 { font: 500 18px/24px Inter; letter-spacing: -.01em; display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.carrera > h3 .hoy { font: 400 13px/18px Inter; color: #52565C; display: flex; align-items: center; gap: 6px; }
+.tabla { display: grid; grid-template-columns: 300px 1fr 1fr; gap: 0 16px; }
+.cab { font: 500 11px/16px Inter; letter-spacing: .08em; text-transform: uppercase; color: #52565C; padding: 0 4px 8px; }
+.qu { padding: 14px 4px; border-top: 1px solid rgb(0 0 0 / .10); }
+.qu h4 { font: 500 15px/20px Inter; display: flex; align-items: center; gap: 8px; }
+.qu p { font: 400 13px/18px Inter; color: #34383E; margin-top: 6px; }
+.qu .tam { display: flex; align-items: flex-end; gap: 12px; margin-top: 10px; color: #050608; }
+.tema { display: flex; gap: 12px; align-items: center; padding: 12px; border-radius: 24px; background: var(--lienzo); margin: 6px 0; }
+.tema.rec { box-shadow: inset 0 0 0 2px var(--tinta); }
+.fcr { flex: 1; min-width: 0; display: flex; align-items: center; gap: 14px; height: 72px; padding: 0 14px; border-radius: 16px; background: var(--panel); box-shadow: inset 0 0 0 1px rgb(var(--t) / .065); }
+.fcr .t { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.tecla { width: 40px; height: 40px; border-radius: 12px; background: rgb(var(--t) / .06); color: var(--suave); display: grid; place-items: center; flex: none; }
+.nota { font: 400 13px/16px Inter; color: var(--tenue); white-space: nowrap; }
+.nomj { font: 300 17px/22px Jost; letter-spacing: -.01em; color: var(--tinta); white-space: nowrap; }
+.ch { color: var(--apagada); }
+.ficha { width: 300px; flex: none; height: 104px; display: flex; align-items: center; gap: 18px; padding: 0 20px; border-radius: 24px; background: var(--panel); box-shadow: inset 0 0 0 1px rgb(var(--t) / .065); color: var(--tinta); }
+.ficha .t { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.rot { font: 500 11px/16px Inter; letter-spacing: .08em; text-transform: uppercase; color: var(--tenue); }
+.nomg { font: 300 22px/26px Jost; letter-spacing: -.01em; color: var(--tinta); white-space: nowrap; }
+.pie { font: 400 13px/18px Inter; color: #34383E; margin-top: 40px; max-width: 1180px; }
+</style></head><body><div class="pagina">
+<h1>Iconos de carrera: Petróleo, Sistemas, Administración y Tu carrera</h1>
+<p class="intro">Tres opciones para cada uno de los cuatro, en la familia de siempre: <b>rejilla de 24, trazo 1,5 y puntas redondas, en tinta neutra</b>. Cada opción se ve en su sitio: a <b>20 dp</b> en la fila «Tu carrera» de Ajustes (tecla de 40, trazo 1,75 como <code>TeclaIcono</code>) y a <b>56 dp</b> en una ficha de portada (trazo 1,5), en oscuro y en claro. El marco grueso señala la recomendada. Arriba, la familia completa con las cuatro recomendadas ya puestas.</p>
+
+<div class="bloque"><h2>La familia completa, con las recomendadas (56 y 20 dp)</h2>
+<div class="familias"><div class="fam th-oscuro" id="fam-o"></div><div class="fam th-claro" id="fam-c"></div></div></div>
+
+<div class="bloque"><h2>Las cuatro, tres opciones cada una</h2><div id="opciones"></div></div>
+
+<p class="pie">Descartados por choque de significado: la red de nodos dentro del monitor (es el icono del Mapa, <code>Lucide.mapa</code>), <code>&lt;/&gt;</code> en una ventana (es «Código abierto», en la misma hoja) y el birrete sobre un libro (grado y cursando). El gráfico que sube queda como opción, no como recomendado: en una app de avance se lee «tu progreso».</p>
+</div>
+<script>
+const IC = {
+  // ---- Petróleo
+  p1: ["M3 21h18","m9 21 3-12.5 3 12.5","M6.5 7.5 20 10","M6.5 4a4 4 0 0 0 0 7z","M4.5 7.5V21","m20 10-1.7 5.6","M18 15.5a1.5 1.5 0 1 0 0 3a1.5 1.5 0 1 0 0-3z"],
+  p2: ["M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z","M5.2 16.5h13.6","M6.8 19.5h10.4"],
+  p3: ["M6.5 3h11c1.2 3.6 1.2 14.4 0 18h-11c-1.2-3.6-1.2-14.4 0-18z","M5.7 7.5h12.6","M5.7 16.5h12.6","M12 9.6c-.9 1.3-1.8 2.1-1.8 3.1a1.8 1.8 0 0 0 3.6 0c0-1-.9-1.8-1.8-3.1z"],
+  // ---- Sistemas
+  s1: ["M4 3h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z","M8 21h8","M12 17v4","m7 7.5 3 2.5-3 2.5","M12.5 12.5h4.5"],
+  s2: ["M10.5 2h3a2.5 2.5 0 0 1 0 5h-3a2.5 2.5 0 0 1 0-5z","M12 7v2.5","M12 9.5l3 3-3 3-3-3z","M9 12.5H6.5A1.5 1.5 0 0 0 5 14v3","M15 12.5h2.5A1.5 1.5 0 0 1 19 14v3","M3.5 17h3A1.5 1.5 0 0 1 8 18.5v2A1.5 1.5 0 0 1 6.5 22h-3A1.5 1.5 0 0 1 2 20.5v-2A1.5 1.5 0 0 1 3.5 17z","M17.5 17h3a1.5 1.5 0 0 1 1.5 1.5v2a1.5 1.5 0 0 1-1.5 1.5h-3a1.5 1.5 0 0 1-1.5-1.5v-2a1.5 1.5 0 0 1 1.5-1.5z"],
+  s3: ["M4 2h16a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z","M4 14h16a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2z","M6 6h.01","M6 18h.01","M10 6h8","M10 18h8"],
+  // ---- Administración
+  a1: ["M10 2h4a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z","M12 7v8","M5 15v-2a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v2","M3.5 15h3a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-3a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1z","M10.5 15h3a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-3a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1z","M17.5 15h3a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-3a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1z"],
+  a2: ["M6 21v-3","M12 21v-6","M18 21v-9","m3 12 6-5 4 3 8-7","M16 3h5v5"],
+  a3: ["M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z","M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2","M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2","M10 6h4","M10 10h4","M10 14h4","M10 18h4"],
+  // ---- Mi carrera
+  m1: ["M5 3h14a1 1 0 0 1 1 1v7.5c0 5.2-3.6 8.4-8 10.2-4.4-1.8-8-5-8-10.2V4a1 1 0 0 1 1-1z","M8 9.5h8L12 6.5z","M9 11.5v4","M12 11.5v4","M15 11.5v4","M8 17.5h8"],
+  m2: ["M6 5h12","M6 11h12","M6 5a1.5 3 0 0 0 0 6a1.5 3 0 0 0 0-6z","M18 5a1.5 3 0 0 1 0 6","M11 5v6","M13 5v6","M11 11l-1.5 8.5 2.5-2 2.5 2L13 11"],
+  m3: ["M6 17a2 2 0 1 0 0 4a2 2 0 1 0 0-4z","M8 19h8.5a3.5 3.5 0 0 0 0-7h-9a3.5 3.5 0 0 1 0-7H15","M18 9V2.5","M18 2.5h3.5l-1 1.75 1 1.75H18"],
+  // ---- Hoy (para comparar)
+  hoyP: ["M8 21 11 3h2l3 18","M9.7 11h4.6","M9 15h6","m9.7 11 5.3 4","m14.3 11-5.3 4","M4 21h16","m8.6 18.5 6.8-3.5"],
+  hoyS: ["M7 5h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z","M10 9h4a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1z","M9 2v3","M15 2v3","M9 19v3","M15 19v3","M2 9h3","M2 15h3","M19 9h3","M19 15h3"],
+  hoyA: ["M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16","M4 6h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z"],
+  hoyM: ["M10 18v-7","M14 18v-7","M18 18v-7","M6 18v-7","M11.12 2.198a2 2 0 0 1 1.76.006l7.866 3.847c.476.233.31.949-.22.949H3.474c-.53 0-.695-.716-.22-.949z","M3 22h18"],
+  // ---- Los que se quedan
+  agro: ["M2 22 16 8","M3.47 12.53 5 11l1.53 1.53a3.5 3.5 0 0 1 0 4.94L5 19l-1.53-1.53a3.5 3.5 0 0 1 0-4.94Z","M7.47 8.53 9 7l1.53 1.53a3.5 3.5 0 0 1 0 4.94L9 15l-1.53-1.53a3.5 3.5 0 0 1 0-4.94Z","M11.47 4.53 13 3l1.53 1.53a3.5 3.5 0 0 1 0 4.94L13 11l-1.53-1.53a3.5 3.5 0 0 1 0-4.94Z","M20 2h2v2a4 4 0 0 1-4 4h-2V6a4 4 0 0 1 4-4Z","M11.47 17.47 13 19l-1.53 1.53a3.5 3.5 0 0 1-4.94 0L5 19l1.53-1.53a3.5 3.5 0 0 1 4.94 0Z","M15.47 13.47 17 15l-1.53 1.53a3.5 3.5 0 0 1-4.94 0L9 15l1.53-1.53a3.5 3.5 0 0 1 4.94 0Z","M19.47 9.47 21 11l-1.53 1.53a3.5 3.5 0 0 1-4.94 0L13 11l1.53-1.53a3.5 3.5 0 0 1 4.94 0Z"],
+  amb: ["M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z","M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"],
+  res: ["M8.5 7C6.5 7 5 5.5 5 3.5","M15.5 7c2 0 3.5-1.5 3.5-3.5","M7 13V8.5A1.5 1.5 0 0 1 8.5 7h7A1.5 1.5 0 0 1 17 8.5V13","M7 9.5H4.5c0 1.7 1 2.5 2.5 2.5","M17 9.5h2.5c0 1.7-1 2.5-2.5 2.5","M10.5 13h3a4 4 0 0 1 0 8h-3a4 4 0 0 1 0-8z","M10 17h.01","M14 17h.01","M9.8 10.2h.01","M14.2 10.2h.01"],
+  cont: ["M6 2h12a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z","M8 6h8","M16 14v4","M16 10h.01","M12 10h.01","M8 10h.01","M12 14h.01","M8 14h.01","M12 18h.01","M8 18h.01"],
+  alim: ["M14 2v6a2 2 0 0 0 .245.96l5.51 10.08A2 2 0 0 1 18 22H6a2 2 0 0 1-1.755-2.96l5.51-10.08A2 2 0 0 0 10 8V2","M6.453 15h11.094","M8.5 2h7"],
+  rrhh: ["m11 17 2 2a1 1 0 1 0 3-3","m14 14 2.5 2.5a1 1 0 1 0 3-3l-3.88-3.88a3 3 0 0 0-4.24 0l-.88.88a1 1 0 1 1-3-3l2.81-2.81a5.79 5.79 0 0 1 7.06-.87l.47.28a2 2 0 0 0 1.42.25L21 4","m21 3 1 11h-2","M3 3 2 14l6.5 6.5a1 1 0 1 0 3-3","M3 4h8"],
+};
+function svg(k, tam, grosor, cls) {
+  return `<svg class="i ${cls || ''}" width="${tam}" height="${tam}" viewBox="0 0 24 24" stroke-width="${grosor}">` + IC[k].map(d => `<path d="${d}"/>`).join('') + `</svg>`;
+}
+const CH = `<span class="ch"><svg class="i" width="16" height="16" viewBox="0 0 24 24" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg></span>`;
+
+// La familia: los nueve de la carrera y el genérico
+const FAM = [
+  ['s1', 'Sistemas', 'monitor y consola', 1], ['p1', 'Petróleo', 'balancín de bombeo', 1], ['agro', 'Agronómica', 'espiga'], ['amb', 'Ambiental', 'hoja'], ['res', 'Prod. Animal', 'cabeza de res'],
+  ['a1', 'Administración', 'organigrama', 1], ['cont', 'Contaduría', 'calculadora'], ['alim', 'Alimentos', 'matraz'], ['rrhh', 'RR. HH.', 'apretón de manos'], ['m1', 'Tu carrera', 'escudo universitario', 1],
+];
+for (const id of ['fam-o', 'fam-c']) {
+  document.getElementById(id).innerHTML = FAM.map(([k, n, d, nuevo]) =>
+    `<div class="ci ${nuevo ? 'nuevo' : ''}"><div class="par">${svg(k, 56, 1.5)}${svg(k, 20, 1.75, 'chico')}</div><b>${n}</b><span>${d}</span></div>`).join('');
+}
+
+// Las opciones
+const OP = [
+  { nombre: 'Petróleo', hoy: 'hoyP', hoyN: 'torre de perforación', rot: 'Ingeniería', corto: 'Petróleo', ops: [
+    ['p1', 'A · Balancín de bombeo', 'El «caballito» de los campos de Monagas: solo puede ser petróleo. Silueta propia (cabeza, viga y manivela) que aguanta a 20 y luce a 56.', 1],
+    ['p2', 'B · Gota con estratos', 'La gota con dos capas abajo. Fuerte de lejos, pero sin las capas se lee «agua», cerca de Ambiental.'],
+    ['p3', 'C · Barril con gota', 'Muy claro a 56. A 20 la gota se pierde y queda una lata; habla del mercado más que de la ingeniería.'],
+  ]},
+  { nombre: 'Sistemas', hoy: 'hoyS', hoyN: 'chip', rot: 'Ingeniería', corto: 'Sistemas', ops: [
+    ['s1', 'A · Monitor con consola', 'El ordenador con su <code>&gt;_</code>: computación y programación de un vistazo, sin pisar el <code>&lt;/&gt;</code> de «Código abierto». El más legible a 20.', 1],
+    ['s2', 'B · Diagrama de flujo', 'Inicio, decisión y dos ramas: el algoritmo. Muy de la carrera, pero a 20 se confunde con el organigrama.'],
+    ['s3', 'C · Servidor', 'Dos bandejas de rack. Se reconoce, pero dice infraestructura y redes, no la carrera entera.'],
+  ]},
+  { nombre: 'Administración', hoy: 'hoyA', hoyN: 'maletín', rot: 'Licenciatura', corto: 'Administración', ops: [
+    ['a1', 'A · Organigrama', 'Administrar es organizar: el esquema que se estudia en el primer semestre. Una pirámide que nadie más tiene en la familia.', 1],
+    ['a2', 'B · Barras y flecha que sube', 'El más «negocios», pero en una app de avance se lee «tu progreso», y queda cerca de Contaduría.'],
+    ['a3', 'C · Edificio de oficinas', 'La empresa. Pesa mucho a 20 y compite con el escudo de Tu carrera, que también es un edificio.'],
+  ]},
+  { nombre: 'Tu carrera', hoy: 'hoyM', hoyN: 'fachada de columnas', mi: 1, ops: [
+    ['m1', 'A · Escudo universitario', 'El blasón con la fachada dentro: universidad sin birrete. Sirve de emblema grande en la portada, y las columnas evitan que se lea «seguridad».', 1],
+    ['m2', 'B · Diploma con lazo', 'El título enrollado. Claro a 56, pero es la meta y no la carrera, y queda pegado al birrete del grado.'],
+    ['m3', 'C · Camino con meta', 'Del punto a la bandera: tu carrera como recorrido. Buena idea, pero dice «ruta» y la app ya es un mapa.'],
+  ]},
+];
+const contenedor = document.getElementById('opciones');
+for (const c of OP) {
+  let h = `<div class="carrera"><h3>${c.nombre}<span class="hoy">hoy: ${svg(c.hoy, 18, 1.5)} ${c.hoyN}</span></h3><div class="tabla">
+    <div class="cab">Opción · 16, 20, 24 y 32 dp</div><div class="cab">Oscuro · Ajustes a 20 dp y ficha a 56 dp</div><div class="cab">Claro · Ajustes a 20 dp y ficha a 56 dp</div>`;
+  for (const [k, t, p, rec] of c.ops) {
+    const fila = c.mi
+      ? `<div class="fcr"><span class="tecla">${svg(k, 20, 1.75)}</span><div class="t"><span class="nota">Tu carrera</span><span class="nomj">Elige la tuya</span></div>${CH}</div>`
+      : `<div class="fcr"><span class="tecla">${svg(k, 20, 1.75)}</span><div class="t"><span class="nota">Tu carrera</span><span class="nomj">${c.corto}</span></div><span class="nota">Cambiar</span>${CH}</div>`;
+    const ficha = c.mi
+      ? `<div class="ficha">${svg(k, 56, 1.5)}<div class="t"><span class="rot">Sin carrera</span><span class="nomg">Elige la tuya</span><span class="nota">Núcleo de Monagas</span></div></div>`
+      : `<div class="ficha">${svg(k, 56, 1.5)}<div class="t"><span class="rot">${c.rot}</span><span class="nomg">${c.corto}</span><span class="nota">41 % · 5.º semestre</span></div></div>`;
+    h += `<div class="qu"><h4>${t}${rec ? '<span class="sello">Recomendada</span>' : ''}</h4><p>${p}</p><div class="tam">${svg(k, 16, 1.75)}${svg(k, 20, 1.75)}${svg(k, 24, 1.5)}${svg(k, 32, 1.5)}</div></div>`;
+    for (const th of ['th-oscuro', 'th-claro']) h += `<div class="${th}"><div class="tema ${rec ? 'rec' : ''}">${fila}${ficha}</div></div>`;
+  }
+  contenedor.insertAdjacentHTML('beforeend', h + '</div></div>');
+}
+</script></body></html>
