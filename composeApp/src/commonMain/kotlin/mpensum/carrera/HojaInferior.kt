@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.exclude
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -295,7 +296,10 @@ private fun goma(x: Float, tope: Float) = tope * (1f - exp(-x / tope))
  *
  * `ancho` es lo más ancha que llega (centrada). Con `desplazable` en falso
  * la hoja no desplaza su contenido: lo estira a su alto y cada columna del
- * contenido se desplaza por su cuenta.
+ * contenido se desplaza por su cuenta. Con `altoFijo` la hoja va siempre a su
+ * alto grande (la pantalla menos lo que asoma arriba) y no mide su contenido:
+ * navegar dentro de ella no mueve su borde. Es lo que hace iOS con las hojas
+ * que tienen páginas.
  *
  * Con el teléfono acostado no hay alto para una hoja que deja asomar lo de
  * detrás: sube igual, pero ocupa la pantalla entera (como en el iPhone cuando
@@ -318,6 +322,7 @@ fun BoxScope.HojaInferior(
     fondo: HazeState? = cristal ?: LocalFondoHoja.current,
     ancho: Dp = ANCHO_HOJA,
     desplazable: Boolean = true,
+    altoFijo: Boolean = false,
     modal: Boolean = true,
     tope: Float? = null,
     alMedir: (Dp) -> Unit = {},
@@ -381,6 +386,7 @@ fun BoxScope.HojaInferior(
                 .widthIn(max = ancho)
                 .fillMaxWidth()
                 .then(if (altoMaximo != null) Modifier.heightIn(max = altoMaximo) else Modifier)
+                .then(if (altoFijo) Modifier.fillMaxHeight() else Modifier)
                 .onSizeChanged {
                     hoja.alto = it.height.toFloat()
                     alMedir(with(densidad) { it.height.toDp() })
@@ -410,7 +416,7 @@ fun BoxScope.HojaInferior(
         ) {
             AsaYCabecera(hoja, abierta, modal, cabecera)
             Column(
-                (if (desplazable) Modifier.verticalScroll(rememberScrollState()) else Modifier.weight(1f, fill = false))
+                (if (desplazable) Modifier.verticalScroll(rememberScrollState()) else Modifier.weight(1f, fill = altoFijo))
                     // Pegada abajo, el contenido no queda bajo la barra de gestos; con teclado, sube con él
                     .padding(bottom = if (flotante) 0.dp else WindowInsets.navigationBars.exclude(WindowInsets.ime).asPaddingValues().calculateBottomPadding()),
                 content = contenido,

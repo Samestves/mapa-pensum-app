@@ -210,14 +210,19 @@ class EstadoCarrera(
 }
 
 /**
- * Calcula los ocho planes de graduación fuera del hilo principal y los deja en la caché de `planes` y `graduacion`:
- * cuando se abre «Tu avance» ya están listos y la hoja no los calcula en el primer cuadro de su subida.
- * Se repite tras cada cambio de marcas, casillas o período, con una pausa para no calcular a cada toque.
+ * Calcula fuera del hilo principal lo pesado que piden las hojas: los ocho planes de graduación
+ * (caché de `planes` y `graduacion`), «Tu próximo semestre» y «No puedes atrasar» (caché del simulador).
+ * Cuando se abre «Tu avance» o una de sus pantallas ya están listos y nada se calcula mientras la hoja sube.
+ * Se repite tras cada cambio de marcas, casillas, carga o período, con una pausa para no calcular a cada toque.
  */
-private suspend fun EstadoCarrera.precalentarGraduacion() {
-    snapshotFlow { Triple(marcas, casillas, hoy) }.collectLatest {
+internal suspend fun EstadoCarrera.precalentar() {
+    snapshotFlow { listOf(marcas, casillas, hoy, carga) }.collectLatest {
         delay(PAUSA_PRECALENTADO_MS)
-        withContext(Dispatchers.Default) { graduacion }
+        withContext(Dispatchers.Default) {
+            val sim = simulador
+            sim.proximo
+            sim.cadena
+        }
     }
 }
 
@@ -250,6 +255,6 @@ fun rememberEstadoCarrera(slug: String, horizontal: Boolean): EstadoCarrera? {
     }
     // Girar solo cambia el layout: el estado, el horario, la cámara y la lista siguen vivos
     estado?.compacto = horizontal
-    if (estado != null) LaunchedEffect(estado) { estado.precalentarGraduacion() }
+    if (estado != null) LaunchedEffect(estado) { estado.precalentar() }
     return estado
 }

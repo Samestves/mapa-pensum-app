@@ -1,15 +1,14 @@
 package mpensum.carrera
 
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.ContentTransform
+import androidx.compose.animation.core.updateTransition
+import androidx.compose.runtime.key
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -199,45 +198,8 @@ fun BoxScope.HojaAvance(abierta: Boolean, estado: EstadoCarrera, alCerrar: () ->
         HojaInferior(abierta = abierta, alCerrar = alCerrar, desplazable = false, cabecera = {}) {
             IndiceYDetalle(estado, hoy, detalle, alElegir = { detalle = it }, alCerrar = alCerrar, alVerEnMapa = alVerEnMapa, alAbrirCasilla = { casilla = it })
         }
-    } else HojaInferior(
-        abierta = abierta,
-        alCerrar = alCerrar,
-        cabecera = {
-            AnimatedContent(detalle, transitionSpec = { fadeIn(tween(220, 60)) togetherWith fadeOut(tween(120)) }, label = "cabecera") { d ->
-                if (d == null) {
-                    CabeceraHoja(estado.pensum.nombre, alCerrar)
-                } else {
-                    Row(Modifier.fillMaxWidth().padding(start = margenPantalla(), end = margenPantalla(), top = 7.dp), verticalAlignment = Alignment.CenterVertically) {
-                        BotonRedondo(Lucide.atras, "Volver") { detalle = null }
-                        Spacer(Modifier.weight(1f))
-                        codigosDelMapa(d, estado.graduacion)?.let { codigos -> BotonMapa { alVerEnMapa(codigos) } }
-                    }
-                }
-            }
-        },
-    ) {
-        // Atrás vuelve del detalle a la hoja; ya en la hoja, la cierra (HojaInferior)
-        ManejarAtras(detalle != null) { detalle = null }
-        AnimatedContent(
-            targetState = detalle,
-            transitionSpec = {
-                val entra = if (targetState != null) 3 else -6
-                val sale = if (targetState != null) -6 else 3
-                ((slideInHorizontally(tween(340, easing = Movimiento.ESTANDAR)) { it / entra } + fadeIn(tween(260))) togetherWith
-                    (slideOutHorizontally(tween(340, easing = Movimiento.ESTANDAR)) { it / sale } + fadeOut(tween(160)))).using(SizeTransform(clip = true) { _, _ -> snap() })
-            },
-            contentAlignment = Alignment.TopStart,
-            label = "detalle",
-        ) { d ->
-            if (d == null) {
-                ContenidoHoja(estado, hoy) { detalle = it }
-            } else {
-                Column {
-                    CabeceraInterna(cabeceraDe(d, estado, estado.graduacion, hoy), Modifier.padding(start = margenPantalla(), end = margenPantalla(), top = Espacio.m))
-                    ContenidoDetalle(d, estado, hoy, alVerEnMapa) { casilla = it }
-                }
-            }
-        }
+    } else {
+        PaginasDelProgreso(abierta, apertura, estado, hoy, detalle, alCambiar = { detalle = it }, alCerrar = alCerrar, alVerEnMapa = alVerEnMapa, alAbrirCasilla = { casilla = it })
     }
     // Montado después de la hoja, el selector queda encima y su atrás se atiende primero
     SelectorElectiva(
@@ -250,6 +212,68 @@ fun BoxScope.HojaAvance(abierta: Boolean, estado: EstadoCarrera, alCerrar: () ->
         },
         alCerrar = { casilla = null },
     )
+}
+
+/**
+ * La hoja de pie: alto fijo y, dentro, dos páginas (el índice y cada pantalla
+ * interna) con un solo reloj (patrón A, docs/qa/transiciones.md). La cabecera
+ * y el cuerpo son el mismo `Transition`; cada página lleva su desplazamiento,
+ * que se guarda al salir: al volver, el índice está donde lo dejaste.
+ */
+@Composable
+private fun BoxScope.PaginasDelProgreso(
+    abierta: Boolean,
+    apertura: Int,
+    estado: EstadoCarrera,
+    hoy: Periodo,
+    detalle: DetalleAvance?,
+    alCambiar: (DetalleAvance?) -> Unit,
+    alCerrar: () -> Unit,
+    alVerEnMapa: (List<String>) -> Unit,
+    alAbrirCasilla: (String) -> Unit,
+) {
+    // Un reloj nuevo en cada apertura: no arrastra la página donde se cerró
+    val transicion = key(apertura) { updateTransition(detalle, label = "progreso") }
+    val desplazoPx = with(LocalDensity.current) { Movimiento.DESPLAZO.roundToPx() }
+    val empuje: AnimatedContentTransitionScope<DetalleAvance?>.() -> ContentTransform = { empujeDePagina(targetState != null, desplazoPx) }
+    HojaInferior(
+        abierta = abierta,
+        alCerrar = alCerrar,
+        desplazable = false,
+        altoFijo = true,
+        cabecera = {
+            CabeceraDeAltoEstable {
+                transicion.AnimatedContent(transitionSpec = empuje, contentAlignment = Alignment.TopStart) { d ->
+                    if (d == null) {
+                        CabeceraHoja(estado.pensum.nombre, alCerrar)
+                    } else {
+                        Row(Modifier.fillMaxWidth().padding(start = margenPantalla(), end = margenPantalla(), top = 7.dp), verticalAlignment = Alignment.CenterVertically) {
+                            BotonRedondo(Lucide.atras, "Volver") { alCambiar(null) }
+                            Spacer(Modifier.weight(1f))
+                            codigosDelMapa(d, estado.graduacion)?.let { codigos -> BotonMapa { alVerEnMapa(codigos) } }
+                        }
+                    }
+                }
+            }
+        },
+    ) {
+        // Atrás vuelve del detalle a la hoja; ya en la hoja, la cierra (HojaInferior)
+        ManejarAtras(detalle != null) { alCambiar(null) }
+        val guardado = rememberSaveableStateHolder()
+        transicion.AnimatedContent(Modifier.fillMaxSize(), transitionSpec = empuje, contentAlignment = Alignment.TopStart) { d ->
+            guardado.SaveableStateProvider(d.clave()) {
+                val desplazo = rememberScrollState()
+                Column(Modifier.fillMaxSize().fundidoAbajo(desplazo).verticalScroll(desplazo)) {
+                    if (d == null) {
+                        ContenidoHoja(estado, hoy) { alCambiar(it) }
+                    } else {
+                        CabeceraInterna(cabeceraDe(d, estado, estado.graduacion, hoy), Modifier.padding(start = margenPantalla(), end = margenPantalla(), top = Espacio.m))
+                        ContenidoDetalle(d, estado, hoy, alVerEnMapa, alAbrirCasilla)
+                    }
+                }
+            }
+        }
+    }
 }
 
 /** «TU AVANCE», el nombre de la carrera en Jost Light 28 y el botón de cerrar */
@@ -422,8 +446,14 @@ private fun TarjetaHeroe(estado: EstadoCarrera, g: EstimacionGraduacion, semestr
  */
 @Composable
 private fun CifraHeroe(porcentaje: Int) {
-    val cuenta = remember { Animatable(0f) }
-    LaunchedEffect(porcentaje) { cuenta.animateTo(1f, tween(ENTRADA_CIFRA, easing = Movimiento.ESTANDAR)) }
+    // Cuenta una vez por apertura: al volver de una pantalla interna el 41 % ya está puesto (se guarda con la página)
+    var yaContó by rememberSaveable { mutableStateOf(false) }
+    val cuenta = remember { Animatable(if (yaContó || Movimiento.reducido) 1f else 0f) }
+    LaunchedEffect(porcentaje) {
+        if (cuenta.value >= 1f) return@LaunchedEffect
+        yaContó = true
+        cuenta.animateTo(1f, tween(ENTRADA_CIFRA, easing = Movimiento.ESTANDAR))
+    }
     val medidor = rememberTextMeasurer()
     val numero = estiloCifra(64.sp, interlinea = 64.sp)
     val signo = estiloUnidad(64.sp)

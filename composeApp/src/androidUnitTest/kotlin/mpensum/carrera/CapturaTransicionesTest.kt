@@ -9,6 +9,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -62,13 +63,12 @@ import kotlin.test.assertTrue
  * va con borde rojo) y un .txt con el borde de arriba de la hoja en cada
  * cuadro, que es lo que el ojo ve saltar.
  *
- * Hoy solo registra: con EXIGIR en true, además falla si la hoja asentada
- * salta más de SALTO_MAXIMO_DP en un solo cuadro. Se enciende cuando la tanda
- * 2 del plan (docs/qa/transiciones.md) esté hecha.
+ * Con EXIGIR en true, además falla si la hoja asentada salta más de
+ * SALTO_MAXIMO_DP en un solo cuadro: es la regresión de la hoja del progreso.
  */
 
 /** Encender cuando la hoja deje de saltar: a partir de ahí, esta prueba es la regresión */
-private const val EXIGIR = false
+private const val EXIGIR = true
 
 /** Lo que puede moverse el borde de la hoja asentada en un cuadro sin que se lea como salto */
 private const val SALTO_MAXIMO_DP = 12f
@@ -229,6 +229,8 @@ class CapturaTransicionesTest {
                 Box(Modifier.fillMaxSize().hazeSource(cristal)) {
                     MapaCarrera(estado, camara, EfectosMapa(), null, congelado = true, alTocarMateria = {}, alTocarVacio = {}, alAbrirCasilla = {}, alAlternarSemestre = {})
                 }
+                // Como en la carrera de verdad: lo pesado se calcula en segundo plano antes de abrir nada
+                LaunchedEffect(estado) { estado.precalentar() }
                 CompositionLocalProvider(LocalFondoHoja provides cristal) {
                     HojaAvance(true, estado, alCerrar = {}, alVerEnMapa = {})
                 }
@@ -236,6 +238,8 @@ class CapturaTransicionesTest {
         }
         // La hoja sube, la cifra cuenta y los planes se calculan: todo quieto antes de grabar
         esperar(1600)
+        var intentos = 0
+        while (!(estado.simulador.proximoListo && estado.simulador.cadenaLista) && intentos++ < 300) esperar(32)
     }
 
     /** De la hoja a una pregunta y de vuelta: la ida y la vuelta van en tiras aparte */

@@ -49,13 +49,25 @@ class Simulador(
     val pensum: Pensum,
     val marcas: Map<String, Marca>,
     val casillas: Map<String, String>,
-    carga: Int?,
+    private val carga: Int?,
     val hoy: Periodo,
     planes: List<EstimacionGraduacion>? = null,
     base: EstimacionGraduacion? = null,
 ) {
     val planes: List<EstimacionGraduacion> by lazy { planes ?: planesPorCarga(pensum, marcas, casillas, hoy) }
     val base: EstimacionGraduacion = base ?: estimarGraduacion(pensum, marcas, casillas, carga, hoy)
+
+    private val proximoPerezoso = lazy { proximoSemestre(pensum, marcas, casillas, carga, hoy, this) }
+    private val cadenaPerezosa = lazy { cadenaExplicada(pensum, marcas, casillas, carga, hoy, this) }
+
+    /** «Tu próximo semestre», calculado una sola vez por simulador: la hoja lo precalienta en segundo plano antes de que nadie lo abra */
+    val proximo: ProximoSemestre by proximoPerezoso
+    /** «No puedes atrasar», con el mismo trato */
+    val cadena: CadenaExplicada by cadenaPerezosa
+
+    /** Si ya están calculados: leerlos entonces no cuesta nada y la pantalla puede entrar con los datos puestos */
+    val proximoListo: Boolean get() = proximoPerezoso.isInitialized()
+    val cadenaLista: Boolean get() = cadenaPerezosa.isInitialized()
 
     /** Los márgenes ya medidos; un mapa de estado porque dos pantallas pueden pedirlos desde hilos distintos */
     private val medidos = mutableStateMapOf<String, Int>()

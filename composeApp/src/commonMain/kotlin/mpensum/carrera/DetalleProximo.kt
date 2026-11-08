@@ -78,7 +78,7 @@ private fun DrawScope.capsula(motivo: Motivo, x: Float, ancho: Float, alto: Floa
 @Composable
 internal fun DetalleProximo(estado: EstadoCarrera, hoy: Periodo) {
     val sim = estado.simulador
-    Calculado(clave = sim, calculo = { proximoSemestre(sim.pensum, sim.marcas, sim.casillas, estado.carga, sim.hoy, sim) }) { proximo ->
+    Calculado(clave = sim, listo = { sim.proximoListo }, calculo = { sim.proximo }) { proximo ->
         ContenidoProximo(estado, proximo)
     }
 }
