@@ -107,8 +107,8 @@ internal fun IndiceYDetalle(
     alAbrirCasilla: (String) -> Unit,
 ) {
     val g = estado.graduacion
-    val electivas = remember(estado.marcas) { electivasDe(estado) }
-    val filas = rememberPreguntas(estado, hoy) + electivas
+    val resumen = estado.resumen
+    val filas = remember(resumen) { resumen.preguntas + resumen.electivas }
     // Siempre hay una elegida: la que se abrió (también de pie, al girar) o la primera
     val elegido = detalle?.takeIf { d -> filas.any { it.detalle == d } } ?: filas.firstOrNull()?.detalle
     val margen = margenPantalla()

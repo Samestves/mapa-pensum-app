@@ -4,6 +4,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
@@ -55,21 +56,24 @@ internal fun BarraCapsulas(semestres: List<SemestreCapsulas>, modifier: Modifier
     val pendiente = tinta.copy(alpha = Velo.pendiente)
     // La regla es un dibujo: su número no crece con la letra del sistema, como el círculo que lo rodea
     val tamNumero = with(LocalDensity.current) { 11.dp.toSp() }
-    val numeros = semestres.map { s ->
-        val fuerte = s.numero == actual || s.completo
-        medidor.measure(
-            "${s.numero}",
-            TextStyle(
-                fontFamily = familia,
-                fontWeight = if (fuerte) FontWeight.Medium else FontWeight.Normal,
-                fontSize = tamNumero,
-                color = when {
-                    s.numero == actual -> panel
-                    s.completo -> tinta
-                    else -> apagada
-                },
-            ),
-        )
+    // Los números se miden una vez por barra y tema, no en cada recomposición (son más que la caché del medidor)
+    val numeros = remember(semestres, actual, medidor, familia, tamNumero, panel, tinta, apagada) {
+        semestres.map { s ->
+            val fuerte = s.numero == actual || s.completo
+            medidor.measure(
+                "${s.numero}",
+                TextStyle(
+                    fontFamily = familia,
+                    fontWeight = if (fuerte) FontWeight.Medium else FontWeight.Normal,
+                    fontSize = tamNumero,
+                    color = when {
+                        s.numero == actual -> panel
+                        s.completo -> tinta
+                        else -> apagada
+                    },
+                ),
+            )
+        }
     }
     val aprobadas = semestres.sumOf { s -> s.capsulas.count { it.estado == EstadoCapsula.APROBADA } }
     val cursando = semestres.sumOf { s -> s.capsulas.count { it.estado == EstadoCapsula.CURSANDO } }

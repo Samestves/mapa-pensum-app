@@ -106,6 +106,18 @@ fun cargaMasRapida(planes: List<EstimacionGraduacion>): Int {
 fun fechaSiRepruebas(pensum: Pensum, marcas: Map<String, Marca>, casillas: Map<String, String>, carga: Int, hoy: Periodo, codigo: String): Periodo? =
     estimarGraduacion(pensum, marcas - codigo, casillas, carga, hoy).periodoFinal
 
+/**
+ * Las que cursas que, si las repruebas, corren tu fecha `g`, cada una con la
+ * fecha a la que la corren: las que están en tu cadena. Una simulación por
+ * materia en curso, con la carga de `g`.
+ */
+fun retrasosSiRepruebas(pensum: Pensum, marcas: Map<String, Marca>, casillas: Map<String, String>, g: EstimacionGraduacion, hoy: Periodo): List<Pair<Asignatura, Periodo>> {
+    val final = g.periodoFinal ?: return emptyList()
+    return cursandoDe(pensum, marcas).mapNotNull { c ->
+        fechaSiRepruebas(pensum, marcas, casillas, g.carga, hoy, c.codigo)?.takeIf { it > final }?.let { c to it }
+    }
+}
+
 /** Las UC más repetidas entre las electivas del grupo: las de una casilla sin elegir */
 fun ucTipicaDe(grupo: Grupo): Int =
     grupo.asignaturas.mapNotNull { it.uc }.groupingBy { it }.eachCount().maxByOrNull { it.value }?.key ?: 3

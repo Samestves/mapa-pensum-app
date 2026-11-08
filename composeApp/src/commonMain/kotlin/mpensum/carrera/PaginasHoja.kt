@@ -8,12 +8,16 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.core.Transition
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.layout
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import mpensum.tema.Movimiento
 
 /*
@@ -67,4 +71,45 @@ internal fun DetalleAvance?.clave(): String = when (this) {
     DetalleAvance.Cadena -> "cadena"
     DetalleAvance.Graduacion -> "graduacion"
     is DetalleAvance.Electivas -> "electivas-$clave"
+}
+
+/**
+ * El índice de una hoja con páginas: no sale de la composición al entrar a
+ * otra página, así que volver no compone nada y el desplazamiento sigue donde
+ * estaba. Se aparta con el mismo reloj y las mismas curvas que
+ * [empujeDePagina] (el índice siempre queda «detrás», a la izquierda) y,
+ * apartado del todo, no se coloca: ni se dibuja ni recibe toques, y la
+ * semántica lo ignora mientras la página de encima es otra.
+ */
+@Composable
+internal fun <T : Any> Transition<T?>.IndiceRetenido(desplazoPx: Int, contenido: @Composable () -> Unit) {
+    val visible = animateFloat(
+        transitionSpec = {
+            when {
+                Movimiento.reducido -> tween(Movimiento.CORTA)
+                targetState == null -> tween(Movimiento.MEDIA, Movimiento.SALIDA_RAPIDA, Movimiento.ENTRA)
+                else -> tween(Movimiento.SALIDA_RAPIDA, easing = Movimiento.SALE)
+            }
+        },
+        label = "indice",
+    ) { if (it == null) 1f else 0f }
+    val delante = targetState == null
+    Box(
+        Modifier
+            .fillMaxSize()
+            .then(if (delante) Modifier else Modifier.clearAndSetSemantics {})
+            .layout { medible, restriccion ->
+                val colocable = medible.measure(restriccion)
+                layout(colocable.width, colocable.height) {
+                    // Se lee al colocar: apartarlo o traerlo no recompone
+                    if (targetState == null || visible.value > 0f) {
+                        colocable.placeWithLayer(0, 0) {
+                            val v = visible.value
+                            alpha = v
+                            if (!Movimiento.reducido) translationX = -(1f - v) * desplazoPx
+                        }
+                    }
+                }
+            },
+    ) { contenido() }
 }

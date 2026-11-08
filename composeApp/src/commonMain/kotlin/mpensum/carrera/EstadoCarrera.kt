@@ -139,6 +139,9 @@ class EstadoCarrera(
     /** Las simulaciones con veto que comparten «Tu próximo semestre» y «No puedes atrasar» */
     val simulador: Simulador by derivedStateOf { Simulador(pensum, marcas, casillas, carga, hoy, planes, graduacion) }
 
+    /** Lo que enseña el índice de «Tu avance» al abrirse; `precalentar` lo deja listo fuera del hilo principal */
+    internal val resumen: ResumenAvance by derivedStateOf { ResumenAvance(this) }
+
     /** Las respuestas de la ficha ya calculadas para el simulador de ahora */
     internal val respuestas: RespuestasFicha by derivedStateOf { RespuestasFicha(this) }
 
@@ -218,7 +221,8 @@ class EstadoCarrera(
 
 /**
  * Calcula fuera del hilo principal lo pesado que piden las hojas: los ocho planes de graduación
- * (caché de `planes` y `graduacion`), «Tu próximo semestre» y «No puedes atrasar» (caché del simulador).
+ * (caché de `planes` y `graduacion`), el índice de «Tu avance» (`resumen`), y «Tu próximo semestre»,
+ * «No puedes atrasar» y lo que corre tu fecha en «Este semestre» (caché del simulador).
  * Cuando se abre «Tu avance» o una de sus pantallas ya están listos y nada se calcula mientras la hoja sube.
  * Se repite tras cada cambio de marcas, casillas, carga o período, con una pausa para no calcular a cada toque.
  */
@@ -226,9 +230,11 @@ internal suspend fun EstadoCarrera.precalentar() {
     snapshotFlow { listOf(marcas, casillas, hoy, carga) }.collectLatest {
         delay(PAUSA_PRECALENTADO_MS)
         withContext(Dispatchers.Default) {
+            resumen
             val sim = simulador
             sim.proximo
             sim.cadena
+            sim.retrasos
         }
     }
 }

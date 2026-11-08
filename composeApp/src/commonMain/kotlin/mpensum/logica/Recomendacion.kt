@@ -1,6 +1,7 @@
 package mpensum.logica
 
 import androidx.compose.runtime.mutableStateMapOf
+import mpensum.datos.Asignatura
 import mpensum.datos.Pensum
 
 /*
@@ -59,15 +60,19 @@ class Simulador(
 
     private val proximoPerezoso = lazy { proximoSemestre(pensum, marcas, casillas, carga, hoy, this) }
     private val cadenaPerezosa = lazy { cadenaExplicada(pensum, marcas, casillas, carga, hoy, this) }
+    private val retrasosPerezosos = lazy { retrasosSiRepruebas(pensum, marcas, casillas, this.base, hoy) }
 
     /** «Tu próximo semestre», calculado una sola vez por simulador: la hoja lo precalienta en segundo plano antes de que nadie lo abra */
     val proximo: ProximoSemestre by proximoPerezoso
     /** «No puedes atrasar», con el mismo trato */
     val cadena: CadenaExplicada by cadenaPerezosa
+    /** «Este semestre»: las que cursas que, si las repruebas, corren tu fecha */
+    val retrasos: List<Pair<Asignatura, Periodo>> by retrasosPerezosos
 
     /** Si ya están calculados: leerlos entonces no cuesta nada y la pantalla puede entrar con los datos puestos */
     val proximoListo: Boolean get() = proximoPerezoso.isInitialized()
     val cadenaLista: Boolean get() = cadenaPerezosa.isInitialized()
+    val retrasosListos: Boolean get() = retrasosPerezosos.isInitialized()
 
     /** Los márgenes ya medidos; un mapa de estado porque dos pantallas pueden pedirlos desde hilos distintos */
     private val medidos = mutableStateMapOf<String, Int>()

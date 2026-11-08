@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import mpensum.componentes.esApaisado
 import mpensum.componentes.fundidoAbajo
 import mpensum.componentes.margenPantalla
+import mpensum.componentes.rememberPartesListas
 import mpensum.logica.MAX_CARGA
 import mpensum.logica.Periodo
 import mpensum.logica.cargaMasRapida
@@ -77,10 +78,13 @@ internal fun DetalleGraduacion(estado: EstadoCarrera, hoy: Periodo) {
     val pensum = estado.pensum
     // Los planes son los del estado (los mismos de la hoja); aquí solo se dibuja cada uno con su anillo
     val planes = estado.planes
-    val anillos = remember(planes) { planes.map { anilloDe(estado, it, hoy) } }
     val habitual = estado.habitual
     var elegida by remember { mutableIntStateOf((estado.carga ?: habitual).coerceIn(1, MAX_CARGA)) }
     val g = planes[elegida - 1]
+    // Solo el anillo que se ve: los otros siete se arman si se elige su chip
+    val delAnillo = remember(planes, elegida) { anilloDe(estado, g, hoy) }
+    // El ritmo entra al final de la entrada: se compone un cuadro después del anillo
+    val conRitmo = rememberPartesListas(2) > 1
     val porcentaje = estado.progreso.avance.roundToInt()
     val rapida = remember(planes) { cargaMasRapida(planes) }
 
@@ -88,10 +92,11 @@ internal fun DetalleGraduacion(estado: EstadoCarrera, hoy: Periodo) {
     LaunchedEffect(Unit) { entrada.animateTo(1f, tween(ENTRADA_MS, easing = LinearEasing)) }
 
     val anillo: @Composable (Modifier) -> Unit = { modifier ->
-        AnilloGraduacion(anillos[elegida - 1], porcentaje, g.periodoFinal?.anio, hoy.anio, { entrada.value }, modifier)
+        AnilloGraduacion(delAnillo, porcentaje, g.periodoFinal?.anio, hoy.anio, { entrada.value }, modifier)
     }
     // El ritmo entra al final, cuando el anillo ya se llenó
-    val ritmo: @Composable (Boolean) -> Unit = { apilada ->
+    val ritmo: @Composable (Boolean) -> Unit = ritmo@{ apilada ->
+        if (!conRitmo) return@ritmo
         Column(
             Modifier.graphicsLayer {
                 val o = suavizar((entrada.value - 0.7f) / 0.3f)

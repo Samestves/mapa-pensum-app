@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import mpensum.componentes.CifraConUnidad
 import mpensum.componentes.esApaisado
+import mpensum.componentes.rememberPartesListas
 import mpensum.logica.Motivo
 import mpensum.logica.Periodo
 import mpensum.logica.ProximoSemestre
@@ -100,7 +101,9 @@ private fun ContenidoProximo(estado: EstadoCarrera, proximo: ProximoSemestre) {
         arriba = { TarjetaProximo(proximo, grupos, final, uc) },
         dosColumnas = true,
         izquierda = {
-            grupos.forEach { (motivo, recomendadas) -> GrupoMotivo(motivo, recomendadas, nombre, uc, esCasilla) }
+            // Un grupo por cuadro: son la mayor parte de las filas de la pantalla
+            val listos = rememberPartesListas(grupos.size)
+            grupos.take(listos).forEach { (motivo, recomendadas) -> GrupoMotivo(motivo, recomendadas, nombre, uc, esCasilla) }
         },
         derecha = {
             SiNoPuedes(proximo, estado.graduacion.carga, final, nombre)

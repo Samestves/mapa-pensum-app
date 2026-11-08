@@ -68,7 +68,9 @@ import mpensum.componentes.fundidoAbajo
 import mpensum.componentes.estiloCifra
 import mpensum.componentes.estiloUnidad
 import mpensum.componentes.margenPantalla
+import mpensum.componentes.rememberPartesListas
 import mpensum.componentes.ventana
+import mpensum.datos.Asignatura
 import mpensum.datos.Grupo
 import mpensum.datos.Pensum
 import mpensum.logica.AvanceGrupo
@@ -252,14 +254,20 @@ private fun BoxScope.PaginasDelProgreso(
     ) {
         // Atrás vuelve del detalle a la hoja; ya en la hoja, la cierra (HojaInferior)
         ManejarAtras(detalle != null) { alCambiar(null) }
-        val guardado = rememberSaveableStateHolder()
-        transicion.AnimatedContent(Modifier.fillMaxSize(), transitionSpec = empuje, contentAlignment = Alignment.TopStart) { d ->
-            guardado.SaveableStateProvider(d.clave()) {
+        Box(Modifier.fillMaxSize()) {
+            // El índice no se descompone al entrar a una pantalla: al volver ya está, con su desplazamiento
+            transicion.IndiceRetenido(desplazoPx) {
                 val desplazo = rememberScrollState()
                 Column(Modifier.fillMaxSize().fundidoAbajo(desplazo).verticalScroll(desplazo)) {
-                    if (d == null) {
-                        ContenidoHoja(estado, hoy) { alCambiar(it) }
-                    } else {
+                    ContenidoHoja(estado) { alCambiar(it) }
+                }
+            }
+            val guardado = rememberSaveableStateHolder()
+            transicion.AnimatedContent(Modifier.fillMaxSize(), transitionSpec = empuje, contentAlignment = Alignment.TopStart) { d ->
+                if (d == null) return@AnimatedContent
+                guardado.SaveableStateProvider(d.clave()) {
+                    val desplazo = rememberScrollState()
+                    Column(Modifier.fillMaxSize().fundidoAbajo(desplazo).verticalScroll(desplazo)) {
                         CabeceraInterna(cabeceraDe(d, estado, estado.graduacion, hoy), Modifier.padding(start = margenPantalla(), end = margenPantalla(), top = Espacio.m))
                         ContenidoDetalle(d, estado, hoy, alVerEnMapa, alAbrirCasilla)
                     }
@@ -292,6 +300,10 @@ private fun CabeceraHoja(nombre: String, alCerrar: () -> Unit) {
  * cabecera; acostado va en el panel del detalle, que ya trae sus márgenes, y
  * se desplaza por su cuenta bajo su cabecera fija. Con `dosColumnas`, si el
  * panel pasa de 500 dp, las dos partes van lado a lado bajo la respuesta.
+ *
+ * Se compone por partes, una por cuadro: la pantalla entra 100 ms después de
+ * salir la anterior (`empujeDePagina`) y en ese hueco ya está entera, sin que
+ * un solo cuadro cargue con todas sus filas.
  */
 @Composable
 internal fun CuerpoDetalle(
@@ -300,11 +312,16 @@ internal fun CuerpoDetalle(
     izquierda: @Composable ColumnScope.() -> Unit,
     derecha: @Composable ColumnScope.() -> Unit,
 ) {
+    // La respuesta (si hay) entra con el toque; cada una de las dos partes, un cuadro después
+    val primera = if (arriba != null) 1 else 0
+    val partes = rememberPartesListas(primera + 2)
+    val conIzquierda = partes > primera
+    val conDerecha = partes > primera + 1
     if (!esApaisado()) {
         Column(Modifier.padding(start = margenPantalla(), end = margenPantalla(), top = Espacio.xl, bottom = Espacio.xxl)) {
             arriba?.invoke(this)
-            izquierda()
-            derecha()
+            if (conIzquierda) izquierda()
+            if (conDerecha) derecha()
         }
         return
     }
@@ -315,12 +332,12 @@ internal fun CuerpoDetalle(
             arriba?.invoke(this)
             if (lado) {
                 Row(horizontalArrangement = Arrangement.spacedBy(Espacio.m)) {
-                    Column(Modifier.weight(1f), content = izquierda)
-                    Column(Modifier.weight(1f), content = derecha)
+                    Column(Modifier.weight(1f)) { if (conIzquierda) izquierda() }
+                    Column(Modifier.weight(1f)) { if (conDerecha) derecha() }
                 }
             } else {
-                izquierda()
-                derecha()
+                if (conIzquierda) izquierda()
+                if (conDerecha) derecha()
             }
         }
     }
@@ -331,20 +348,23 @@ private val ANCHO_DOS_COLUMNAS = 500.dp
 
 // ─────────────────────────────────── La hoja ──────────────────────────────────
 
+/**
+ * El índice. Lo que cuenta ya viene calculado (`EstadoCarrera.resumen`) y se
+ * compone en cuatro partes, una por cuadro: la cifra y la fecha al tocar, y
+ * la barra, las filas y el resto mientras la hoja todavía sube desde abajo.
+ */
 @Composable
-private fun ContenidoHoja(estado: EstadoCarrera, hoy: Periodo, abrir: (DetalleAvance) -> Unit) {
-    val pensum = estado.pensum
-    val g = estado.graduacion
-    val semestres = remember(estado.marcas, estado.casillas) { capsulasDe(pensum, estado.marcas, estado::enCasilla) }
-    val cursando = remember(estado.marcas) { cursandoDe(pensum, estado.marcas).size }
-    val si = remember(estado.marcas) { if (cursando > 0) siApruebasLoQueCursas(pensum, estado.marcas) else null }
-    val preguntas = rememberPreguntas(estado, hoy)
+private fun ContenidoHoja(estado: EstadoCarrera, abrir: (DetalleAvance) -> Unit) {
+    val resumen = estado.resumen
+    val partes = rememberPartesListas(4)
 
     Column(Modifier.padding(start = margenPantalla(), end = margenPantalla(), top = Espacio.l, bottom = Espacio.xl)) {
-        TarjetaHeroe(estado, g, semestres, si, cursando)
+        TarjetaHeroe(estado, estado.graduacion, resumen.semestres, resumen.si, resumen.cursando.size, conBarra = partes >= 2)
+        if (partes < 3) return@Column
         Spacer(Modifier.height(Espacio.m))
-        ListaDeFilas(preguntas, abrir)
-        TarjetaElectivas(estado, abrir)
+        ListaDeFilas(resumen.preguntas, abrir)
+        if (partes < 4) return@Column
+        TarjetaElectivas(resumen.electivas, abrir)
         Spacer(Modifier.height(Espacio.xl))
         BotonReinicio(estado)
     }
@@ -356,10 +376,10 @@ private fun ContenidoHoja(estado: EstadoCarrera, hoy: Periodo, abrir: (DetalleAv
  * La cifra a la izquierda con lo aprobado debajo; la fecha arriba a la
  * derecha, con su tope a la altura del de la cifra, y «Te gradúas» debajo. Si
  * no caben a lo ancho, la fecha baja bajo la cifra. Luego la barra de
- * cápsulas y la frase.
+ * cápsulas y la frase, que sin `conBarra` todavía no se componen.
  */
 @Composable
-private fun TarjetaHeroe(estado: EstadoCarrera, g: EstimacionGraduacion, semestres: List<SemestreCapsulas>, si: SiApruebas?, cursando: Int) {
+private fun TarjetaHeroe(estado: EstadoCarrera, g: EstimacionGraduacion, semestres: List<SemestreCapsulas>, si: SiApruebas?, cursando: Int, conBarra: Boolean) {
     val progreso = estado.progreso
     val conUc = progreso.porcentaje != null
     val llevas = if (conUc) progreso.ucAprobadas + progreso.ucElectivas else progreso.aprobadas
@@ -394,6 +414,7 @@ private fun TarjetaHeroe(estado: EstadoCarrera, g: EstimacionGraduacion, semestr
                 }
             },
         )
+        if (!conBarra) return@Column
         BarraCapsulas(semestres, Modifier.padding(top = Espacio.l))
         BasicText(
             buildAnnotatedString {
@@ -494,29 +515,30 @@ internal fun preguntasDe(g: EstimacionGraduacion, hoy: Periodo, cursando: Int, s
     } ?: "A tu ritmo", null, null, DetalleAvance.Graduacion))
 }
 
-/** Las preguntas con lo que piden calculado: lo mismo de pie que en el índice acostado */
-@Composable
-internal fun rememberPreguntas(estado: EstadoCarrera, hoy: Periodo): List<Pregunta> {
-    val pensum = estado.pensum
-    val cursando = remember(estado.marcas) { cursandoDe(pensum, estado.marcas).size }
-    val seAbren = remember(estado.marcas) { if (cursando > 0) siApruebasLoQueCursas(pensum, estado.marcas).seAbren.size else 0 }
-    val nombre = remember(pensum) { nombresDelPlan(pensum) }
-    val rapida = rememberRapida(estado)
-    return preguntasDe(estado.graduacion, hoy, cursando, seAbren, rapida, nombre)
+/**
+ * Lo que enseña el índice de «Tu avance», de pie y acostado, calculado de una
+ * vez por marcas, casillas, carga y período: la barra de cápsulas, lo que
+ * cursas y lo que te da aprobarlo, las preguntas y las electivas. Es lógica
+ * pura y se crea dentro de un derivedStateOf (`EstadoCarrera.resumen`), que
+ * `precalentar` lee en segundo plano: al abrir la hoja ya está.
+ */
+internal class ResumenAvance(estado: EstadoCarrera) {
+    val semestres: List<SemestreCapsulas> = capsulasDe(estado.pensum, estado.marcas, estado::enCasilla)
+    val cursando: List<Asignatura> = cursandoDe(estado.pensum, estado.marcas)
+    val si: SiApruebas? = if (cursando.isNotEmpty()) siApruebasLoQueCursas(estado.pensum, estado.marcas) else null
+    val preguntas: List<Pregunta> = preguntasDe(
+        estado.graduacion, estado.hoy, cursando.size, si?.seAbren?.size ?: 0,
+        estado.planes[cargaMasRapida(estado.planes) - 1].periodoFinal, nombresDelPlan(estado.pensum),
+    )
+    val electivas: List<Pregunta> = electivasDe(estado)
 }
 
 /** Las electivas con cuota: una fila por grupo, con lo que llevas de lo que pide el título */
-internal fun electivasDe(estado: EstadoCarrera): List<Pregunta> =
+private fun electivasDe(estado: EstadoCarrera): List<Pregunta> =
     avanceDeGrupos(estado.pensum.grupos, estado.marcas).values.filter { it.meta != null }.map { c ->
         val grupo = estado.pensum.grupos.first { it.clave == c.clave }
         Pregunta(iconoDeGrupo(grupo), false, nombreCorto(c.titulo), subtituloDeGrupo(estado, grupo, c), "${c.uc}", "/${c.meta} UC", DetalleAvance.Electivas(c.clave))
     }
-
-/** Lo más rápido que dejan las prelaciones, probando de 1 a 8 materias por semestre */
-@Composable
-internal fun rememberRapida(estado: EstadoCarrera): Periodo? = remember(estado.planes) {
-    estado.planes[cargaMasRapida(estado.planes) - 1].periodoFinal
-}
 
 /** Las filas agrupadas de la hoja de pie: cada una abre su pantalla */
 @Composable
@@ -558,8 +580,7 @@ private fun subtituloDeGrupo(estado: EstadoCarrera, grupo: Grupo, avance: Avance
 
 /** ELECTIVAS: una fila por grupo con cuota */
 @Composable
-private fun TarjetaElectivas(estado: EstadoCarrera, abrir: (DetalleAvance) -> Unit) {
-    val electivas = remember(estado.marcas) { electivasDe(estado) }
+private fun TarjetaElectivas(electivas: List<Pregunta>, abrir: (DetalleAvance) -> Unit) {
     if (electivas.isEmpty()) return
     RotuloSeccion("ELECTIVAS")
     ListaDeFilas(electivas, abrir)

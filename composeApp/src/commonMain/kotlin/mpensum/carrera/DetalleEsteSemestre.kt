@@ -2,7 +2,6 @@ package mpensum.carrera
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -10,11 +9,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.sp
 import mpensum.componentes.CifraConUnidad
+import mpensum.datos.Asignatura
 import mpensum.logica.Periodo
 import mpensum.logica.abreAlAprobar
-import mpensum.logica.cursandoDe
-import mpensum.logica.fechaSiRepruebas
-import mpensum.logica.siApruebasLoQueCursas
 import mpensum.tema.Paleta
 import kotlin.math.roundToInt
 
@@ -28,19 +25,19 @@ import kotlin.math.roundToInt
 
 @Composable
 internal fun DetalleEsteSemestre(estado: EstadoCarrera, hoy: Periodo) {
-    val pensum = estado.pensum
-    val g = estado.graduacion
-    val cursando = remember(estado.marcas) { cursandoDe(pensum, estado.marcas) }
-    val si = remember(estado.marcas) { siApruebasLoQueCursas(pensum, estado.marcas) }
-    val conUc = estado.progreso.porcentaje != null
-    // Reprobar una la vuelve a poner en lo que falta: si eso mueve la fecha, está en tu cadena
-    val retrasos = remember(estado.marcas, estado.casillas, g) {
-        val final = g.periodoFinal
-        cursando.mapNotNull { c ->
-            val f = fechaSiRepruebas(pensum, estado.marcas, estado.casillas, g.carga, hoy, c.codigo)
-            if (final != null && f != null && f > final) c to f else null
-        }
+    // Reprobar una la vuelve a poner en lo que falta: si eso mueve la fecha, está en tu cadena. Una simulación por materia, precalculada
+    val sim = estado.simulador
+    Calculado(clave = sim, listo = { sim.retrasosListos }, calculo = { sim.retrasos }) { retrasos ->
+        ContenidoEsteSemestre(estado, hoy, retrasos)
     }
+}
+
+@Composable
+private fun ContenidoEsteSemestre(estado: EstadoCarrera, hoy: Periodo, retrasos: List<Pair<Asignatura, Periodo>>) {
+    val resumen = estado.resumen
+    val cursando = resumen.cursando
+    val si = resumen.si ?: return
+    val conUc = estado.progreso.porcentaje != null
     val fuerte = SpanStyle(color = Paleta.tinta, fontWeight = FontWeight.Medium)
     val abren = si.seAbren.size
 

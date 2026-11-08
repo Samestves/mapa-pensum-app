@@ -157,7 +157,8 @@ private fun Domino(c: CadenaExplicada, modifier: Modifier) {
     val columnas = maxOf(despues.last(), limite + 1) + 1
     val tarde = c.siAtrasas?.let { it > final } ?: false
 
-    val medidor = rememberTextMeasurer()
+    // Rótulos, una ficha por eslabón en cada carril y los años: más que la caché de 8 de serie, que se vaciaría en cada dibujo
+    val medidor = rememberTextMeasurer(cacheSize = 48)
     val tinta = Paleta.tinta
     val azul = Paleta.azul
     val rojo = Paleta.rojo
