@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -74,7 +75,7 @@ internal fun MuelleDePie(situacion: Situacion, plan: PlanMuelle, abajo: Dp, alMa
                     Modifier.fillMaxWidth().height(ALTO_TEXTO).padding(top = 6.dp)
                         .clickable(role = Role.Button) { alMarcar(plan.secundaria.marca) },
                     contentAlignment = Alignment.Center,
-                ) { BasicText(plan.secundaria.texto, style = estiloBoton(15.sp, Paleta.tinta)) }
+                ) { BasicText(plan.secundaria.texto, Modifier.padding(horizontal = DENTRO_BOTON), style = estiloBoton(15.sp, Paleta.tinta), maxLines = 1, autoSize = TextAutoSize.StepBased(12.sp, 15.sp, 0.5.sp)) }
             }
         }
     }
@@ -93,7 +94,7 @@ internal fun MuelleAcostado(situacion: Situacion, plan: PlanMuelle, alMarcar: (M
                     Modifier.weight(1f).height(50.dp).clip(RoundedCornerShape(25.dp)).background(BOTON)
                         .clickable(role = Role.Button) { alMarcar(plan.secundaria.marca) },
                     contentAlignment = Alignment.Center,
-                ) { BasicText(plan.secundaria.texto, style = estiloBoton(15.sp, Paleta.tinta)) }
+                ) { BasicText(plan.secundaria.texto, Modifier.padding(horizontal = DENTRO_BOTON), style = estiloBoton(15.sp, Paleta.tinta), maxLines = 1, autoSize = TextAutoSize.StepBased(12.sp, 15.sp, 0.5.sp)) }
             }
         }
     }
@@ -122,14 +123,19 @@ private fun Principal(accion: AccionMarca, lleno: Boolean, modifier: Modifier, a
             .clickable(role = Role.Button) {
                 haptica.performHapticFeedback(HapticFeedbackType.Confirm)
                 alMarcar(accion.marca)
-            },
+            }
+            .padding(horizontal = DENTRO_BOTON),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterHorizontally),
     ) {
         accion.marca?.let { IconoDeEstadoSobre(if (it == Marca.APROBADA) Situacion.HECHA else Situacion.CURSANDO, letra, if (lleno) Paleta.tinta else Paleta.lienzo, icono) }
-        BasicText(accion.texto, style = estiloBoton(16.sp, letra), maxLines = 1)
+        // Acostado el botón es más estrecho: la letra baja antes de tocar el borde, nunca se corta
+        BasicText(accion.texto, Modifier.weight(1f, fill = false), style = estiloBoton(16.sp, letra), maxLines = 1, autoSize = TextAutoSize.StepBased(12.sp, 16.sp, 0.5.sp))
     }
 }
+
+/** Lo que el texto de un botón se aparta de sus bordes redondos */
+private val DENTRO_BOTON = 18.dp
 
 @Composable
 private fun estiloBoton(tam: androidx.compose.ui.unit.TextUnit, color: Color) =
