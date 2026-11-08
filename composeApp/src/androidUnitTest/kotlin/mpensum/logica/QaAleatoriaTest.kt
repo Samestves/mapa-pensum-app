@@ -93,14 +93,21 @@ class QaAleatoriaTest {
                 val marcas = azar(p, semilla)
                 val estados = estadosDe(p.todas, marcas)
                 val situaciones = p.todas.associate { it.codigo to situacionDe(it.codigo, it.prerrequisitos, estados) }
-                for (filtro in listOf(null) + FiltroLista.entries) {
-                    val m = modeloLista(nodos, p.grupos, { null }, estados, situaciones, { c -> p.todas.firstOrNull { it.codigo == c }?.nombre }, filtro)
-                    // Sin electivas puestas, las únicas filas son las obligatorias con semestre
-                    assertEquals(p.obligatorias.count { it.semestre != null }, m.cuentas.values.sum(), "${p.slug} semilla $semilla filtro $filtro")
-                    if (filtro != null) {
-                        for (s in m.secciones) for (f in s.materias) assertEquals(filtro, filtroDe(f.situacion))
-                    }
+                val u = universoDeLista(nodos, p.grupos, { null }, estados, situaciones) { c -> p.todas.firstOrNull { it.codigo == c }?.nombre }
+                val actual = semestreActualDeLista(nodos, { null }, estados)
+                // Sin electivas puestas, las únicas materias son las obligatorias con semestre; las casillas salen aparte
+                val esperadas = p.obligatorias.count { it.semestre != null }
+                assertEquals(esperadas, u.materias.size, "${p.slug} semilla $semilla")
+                val porEstado = estructuraPorEstado(u, emptyMap(), actual)
+                val porSemestre = estructuraPorSemestre(u)
+                // Cada materia sale en una sola sección de cada orden; las casillas, a lo sumo una vez
+                for (grupos in listOf(porEstado, porSemestre)) {
+                    val codigos = grupos.flatMap { it.codigos }
+                    assertEquals(codigos.size, codigos.toSet().size, "${p.slug} semilla $semilla: un código repetido")
+                    assertTrue(u.materias.all { it.codigo in codigos }, "${p.slug} semilla $semilla: una materia no sale")
                 }
+                // Cada materia cae en la sección de su estado
+                for (g in porEstado) for (c in g.codigos) u.materia(c)?.let { assertEquals(g.clave, seccionDe(it.situacion).clave, "${p.slug} semilla $semilla $c") }
             }
         }
     }

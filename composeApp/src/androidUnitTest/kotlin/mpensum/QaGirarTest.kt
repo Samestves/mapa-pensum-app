@@ -34,7 +34,7 @@ import kotlin.test.assertTrue
 
 /**
  * Girar el teléfono con la carrera abierta no debe rehacer su estado: el
- * filtro de la lista y la hoja del horario a medio llenar siguen donde
+ * página de la lista y la hoja del horario a medio llenar siguen donde
  * estaban (antes nacía un EstadoCarrera, un EstadoHorario y una lista nuevos).
  */
 @RunWith(RobolectricTestRunner::class)
@@ -66,7 +66,7 @@ class QaGirarTest {
     private fun textos(t: String) = regla.onAllNodesWithText(t, substring = true).fetchSemanticsNodes().size
 
     @Test
-    fun girarNoPierdeElFiltroDeLaListaNiLaHojaDelHorario() {
+    fun girarNoPierdeLaMateriaDeLaListaNiLaHojaDelHorario() {
         val slug = "ingenieria-de-sistemas"
         for (k in listOf("marcas", "casillas", "carga", "horario")) Preferencias.guardarTexto("mapa-pensum:$k:$slug", "null")
         var ventana by mutableStateOf(Ventana(390.dp, 844.dp))
@@ -76,21 +76,25 @@ class QaGirarTest {
         regla.onNodeWithContentDescription("Lista").performClick()
         regla.waitForIdle()
         correr(900)
-        regla.onNodeWithContentDescription("Disponibles", substring = true).performClick()
+        // Se abre la página de una materia (de pie) y se gira: acostada es el panel de la derecha, con la misma materia
+        regla.onNodeWithContentDescription("Matemáticas I, Puedes inscribirla").performClick()
         regla.waitForIdle()
-        correr(600)
-        assertEquals(1, regla.onAllNodesWithContentDescription("Quitar el filtro", substring = true).fetchSemanticsNodes().size)
-
-        // Se gira el teléfono con el filtro puesto
+        correr(900)
+        assertTrue(textos("Por hacer") > 0, "no se empujó la página")
         ventana = Ventana(844.dp, 390.dp)
         regla.waitForIdle()
         correr(1500)
-        assertTrue(regla.onAllNodesWithContentDescription("Quitar el filtro", substring = true).fetchSemanticsNodes().isNotEmpty(), "el filtro de la lista se perdió al girar")
+        assertTrue(textos("SEMESTRE 1 · 0081814") > 0, "el panel perdió la materia al girar")
+        assertEquals(0, textos("Por hacer"), "acostada no hay página empujada")
 
-        // Y con la hoja de una clase a medio llenar: se abre de pie y se gira
+        // De vuelta de pie la página sigue abierta: el estado vive en el interior, no en la vista
         ventana = Ventana(390.dp, 844.dp)
         regla.waitForIdle()
-        correr(1000)
+        correr(1200)
+        assertTrue(textos("Por hacer") > 0, "la página no sobrevivió al giro")
+        regla.onNodeWithText("Por hacer").performClick()
+        correr(900)
+        // Y con la hoja de una clase a medio llenar: se abre de pie y se gira
         regla.onNodeWithContentDescription("Horario").performClick()
         regla.waitForIdle()
         correr(900)

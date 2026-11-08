@@ -10,6 +10,8 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.swipeRight
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.activity.ComponentActivity
@@ -235,67 +237,92 @@ class QaAppTest {
 
     private fun sistemas() = pensumDe("ingenieria-de-sistemas")
 
+    private fun hayPagina() = textos("Por hacer") > 0
+
     @Test
-    fun atrasConUnaHojaAbiertaSobreLaListaConFiltroCierraLaHoja() {
+    fun atrasCierraLaPaginaDeLaMateriaYVuelveALaLista() {
         interiorDeSistemas(sistemas().obligatorias.filter { it.semestre == 1 }.associate { it.codigo to Marca.APROBADA })
         regla.onNodeWithContentDescription("Lista").performClick()
         correr(900)
-        regla.onNodeWithContentDescription("Aprobadas", substring = true).performClick()
-        correr(600)
-        regla.onNodeWithContentDescription("Tu avance", substring = true).performClick()
-        correr(1200)
-        regla.onNodeWithText("TU AVANCE").assertExists()
-        atras()
+        regla.onNodeWithContentDescription("Matemáticas II, Puedes inscribirla").performClick()
+        regla.waitForIdle()
         correr(900)
-        // Atrás debe cerrar la hoja de arriba, no quitar el filtro que hay debajo
-        hasta("que la hoja de avance se cierre") { textos("TU AVANCE") == 0 }
-        assertEquals(1, regla.onAllNodesWithContentDescription("Quitar el filtro", substring = true).fetchSemanticsNodes().size, "Atrás se llevó el filtro en vez de la hoja")
+        assertTrue(hayPagina(), "no se empujó la página")
+        atras()
+        hasta("que la página se vaya") { !hayPagina() }
+        // Seguimos dentro de la carrera, en la lista: la lista sigue ahí
+        regla.onNodeWithContentDescription("Matemáticas II, Puedes inscribirla").assertExists()
+        regla.onNodeWithContentDescription("Tu avance", substring = true).assertExists()
     }
 
     @Test
-    fun marcarDesdeLaFichaDeLaListaSeGuarda() {
+    fun marcarDesdeLaPaginaDeLaListaSeGuardaYLaFilaSeQuedaEnSuSitio() {
         interiorDeSistemas()
         regla.onNodeWithContentDescription("Lista").performClick()
         correr(900)
-        // Tocar una fila abre su ficha; los botones de estado de la ficha son los que marcan
+        // Tocar la fila abre la página; el muelle es el que marca
         regla.onNodeWithContentDescription("Matemáticas I, Puedes inscribirla").performClick()
         regla.waitForIdle()
         correr(900)
         regla.onNodeWithText("La estoy cursando").performClick()
+        regla.waitForIdle()
         correr(500)
         assertEquals(Marca.CURSANDO, Guardado.marcas(sistemas())["0081814"])
         regla.onNodeWithText("Ya la aprobé").performClick()
+        regla.waitForIdle()
         correr(500)
         assertEquals(Marca.APROBADA, Guardado.marcas(sistemas())["0081814"])
+        atras()
+        hasta("que la página se vaya") { !hayPagina() }
+        // La fila sigue donde estaba, con su «Deshacer» en línea, y Deshacer devuelve lo anterior
+        regla.onNodeWithText("Deshacer").performClick()
+        regla.waitForIdle()
+        correr(600)
+        assertEquals(Marca.CURSANDO, Guardado.marcas(sistemas())["0081814"])
     }
 
     @Test
-    fun aprobarUnSemestreEnteroConSuAro() {
+    fun deslizarUnaFilaALaDerechaDaElPasoSiguiente() {
         interiorDeSistemas()
         regla.onNodeWithContentDescription("Lista").performClick()
         correr(900)
-        regla.onNodeWithContentDescription("Aprobar el semestre 1").performClick()
-        correr(600)
-        val s1 = sistemas().obligatorias.filter { it.semestre == 1 }
-        val guardadas = Guardado.marcas(sistemas())
-        assertTrue(s1.all { guardadas[it.codigo] == Marca.APROBADA }, "el aro no aprobó todo el semestre 1")
-        regla.onNodeWithText("Deshacer").performClick()
-        correr(900)
-        assertTrue(Guardado.marcas(sistemas()).isEmpty(), "deshacer no devolvió el semestre")
+        regla.onNodeWithContentDescription("Matemáticas I, Puedes inscribirla").performTouchInput { swipeRight() }
+        regla.waitForIdle()
+        correr(700)
+        assertEquals(Marca.CURSANDO, Guardado.marcas(sistemas())["0081814"])
+        assertTrue(!hayPagina(), "el gesto no debe abrir la página")
     }
 
     @Test
-    fun elAroDelSemestreConSoloLaElectivaPendienteAbreElSelector() {
+    fun apruebaLasQueCursasDesdeElEncabezadoYDeshacer() {
+        val s1 = sistemas().obligatorias.filter { it.semestre == 1 }
+        interiorDeSistemas(s1.associate { it.codigo to Marca.APROBADA } + mapOf("0081824" to Marca.CURSANDO, "0051324" to Marca.CURSANDO))
+        regla.onNodeWithContentDescription("Lista").performClick()
+        correr(900)
+        regla.onNodeWithText("Aprobé las 2").performClick()
+        regla.waitForIdle()
+        correr(600)
+        val guardadas = Guardado.marcas(sistemas())
+        assertEquals(Marca.APROBADA, guardadas["0081824"])
+        assertEquals(Marca.APROBADA, guardadas["0051324"])
+        regla.onNodeWithText("Deshacer").performClick()
+        regla.waitForIdle()
+        correr(600)
+        assertEquals(Marca.CURSANDO, Guardado.marcas(sistemas())["0081824"])
+    }
+
+    @Test
+    fun laFilaDeLaElectivaSinElegirAbreElSelector() {
         val p = sistemas()
         interiorDeSistemas(p.obligatorias.filter { it.semestre == 1 || it.semestre == 2 }.associate { it.codigo to Marca.APROBADA })
         regla.onNodeWithContentDescription("Lista").performClick()
         correr(900)
-        // Semestre 2: todo aprobado salvo la electiva sociohumanística, así que el aro pide elegirla
-        regla.onNodeWithContentDescription("Aprobar el semestre 2").performClick()
+        regla.onNodeWithText("Elegir").performClick()
+        regla.waitForIdle()
         correr(1200)
-        hasta("el selector de electivas") { textos("Es lo único que le falta") == 1 }
+        hasta("el selector de electivas") { textos("Buscar por nombre o código") == 1 }
         atras()
-        hasta("que el selector se cierre") { textos("Es lo único que le falta") == 0 }
+        hasta("que el selector se cierre") { textos("Buscar por nombre o código") == 0 }
         assertTrue(Guardado.casillas(p).isEmpty())
     }
 

@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -48,6 +49,9 @@ import mpensum.datos.Carrera
 import mpensum.logica.AccionSemestre
 import mpensum.logica.Marca
 import mpensum.logica.accionDeSemestre
+import mpensum.carrera.lista.NavegacionLista
+import mpensum.carrera.lista.VistaLista
+import mpensum.carrera.lista.rememberNavegacionLista
 import mpensum.mapa.Camara
 import mpensum.mapa.EfectosMapa
 import kotlinx.coroutines.delay
@@ -105,6 +109,8 @@ fun Interior(carrera: Carrera, alVolver: () -> Unit, vistaInicial: Vista = Vista
     val efectos = remember(carrera.slug) { EfectosMapa() }
     val alcance = rememberCoroutineScope()
     var seleccionado by remember(carrera.slug) { mutableStateOf<String?>(null) }
+    // La lista vive aquí: la barra Núcleo y el Atrás dependen de si su página está abierta, y sobrevive al giro
+    val lista = rememberNavegacionLista(carrera.slug)
     var casillaAbierta by remember(carrera.slug) { mutableStateOf<String?>(null) }
     var aprobarAlElegir by remember { mutableStateOf(false) }
     var avanceAbierto by remember { mutableStateOf(false) }
@@ -115,8 +121,11 @@ fun Interior(carrera: Carrera, alVolver: () -> Unit, vistaInicial: Vista = Vista
 
     // Una hoja encima (electivas, avance o clase del horario) se cierra con su propio Atrás
     val hojaAbierta = casillaAbierta != null || avanceAbierto || horario?.hoja != null
-    // Atrás, en este orden: la hoja (la de la ficha lleva su propio Atrás), la ruta fijada; después sale de la carrera
-    ManejarAtras(!hojaAbierta && seleccionado == null && efectos.ruta != null) { efectos.ruta = null }
+    // De pie, la página de la materia de la lista se cierra con Atrás. Cada Atrás tiene su condición propia y excluyente
+    // (hoja, página, ruta del mapa): ninguno depende del orden en que se monten
+    val paginaDeLista = vista == Vista.LISTA && !horizontal && lista.abierta
+    ManejarAtras(paginaDeLista && !hojaAbierta) { lista.abierta = false }
+    ManejarAtras(vista == Vista.MAPA && !hojaAbierta && seleccionado == null && efectos.ruta != null) { efectos.ruta = null }
     // Con otra orientación el panel de la ficha cambia de sitio: la materia se vuelve a encuadrar
     LaunchedEffect(horizontal) { encuadrada = null }
     // Cambiar de vista suelta la materia abierta: la ficha es de la vista en la que se pidió
@@ -162,10 +171,8 @@ fun Interior(carrera: Carrera, alVolver: () -> Unit, vistaInicial: Vista = Vista
         // En horizontal la lista y el horario empiezan donde la cámara del mapa, tras el riel; el mapa pasa por detrás
         val inicio = if (horizontal) izquierda + RESERVA_RIEL else 0.dp
         val tapa = if (horizontal) abajo + Espacio.m else tapaBarra
-        val enLista = horizontal && vista == Vista.LISTA
-        // Acostado, sobre el mapa la ficha es una burbuja pegada a su tarjeta; en la lista, de momento, la hoja a pantalla completa
+        // Acostado, sobre el mapa la ficha es una burbuja pegada a su tarjeta; la lista lleva su propia página
         val burbuja = horizontal && vista == Vista.MAPA
-        val reparto = if (enLista) repartoLista(maxWidth, inicio, derecha, arriba) else null
         CapaVista(
             vista = vista,
             estado = estado,
@@ -177,11 +184,16 @@ fun Interior(carrera: Carrera, alVolver: () -> Unit, vistaInicial: Vista = Vista
             izquierda = izquierda,
             inicio = inicio,
             tapa = tapa,
-            reparto = reparto,
+            derecha = derecha,
+            lista = lista,
             seleccionado = seleccionado,
             hojaAbierta = hojaAbierta,
             alSeleccionar = { seleccionado = it },
             alAbrirCasilla = ::abrirCasilla,
+            alVerEnMapa = { codigo ->
+                vista = Vista.MAPA
+                porEncuadrar = listOf(codigo)
+            },
         )
 
         NavegacionCarrera(
@@ -195,7 +207,8 @@ fun Interior(carrera: Carrera, alVolver: () -> Unit, vistaInicial: Vista = Vista
             alVolver = alVolver,
             alCambiar = { vista = it },
             alAvance = { if (estado != null) avanceAbierto = true },
-            oculta = seleccionado != null && vista != Vista.HORARIO && !horizontal,
+            // La página de la materia de la lista ocupa el sitio de la barra, igual que la ficha del mapa
+            oculta = (seleccionado != null && vista != Vista.HORARIO && !horizontal) || paginaDeLista,
         )
 
         if (estado != null) {
@@ -288,13 +301,16 @@ private fun CapaVista(
     izquierda: Dp,
     inicio: Dp,
     tapa: Dp,
-    /** Acostada y en la lista: cómo se reparte el ancho entre la lista y su panel */
-    reparto: RepartoLista?,
+    /** El recorte seguro de la derecha, para el panel de la lista acostada */
+    derecha: Dp,
+    /** La lista: qué materia está elegida y si su página está empujada; vive aquí para sobrevivir al giro */
+    lista: NavegacionLista,
     seleccionado: String?,
     /** Si hay una hoja abierta encima: el mapa se congela y la lista se da por tapada */
     hojaAbierta: Boolean,
     alSeleccionar: (String?) -> Unit,
     alAbrirCasilla: (String, Boolean) -> Unit,
+    alVerEnMapa: (String) -> Unit,
 ) {
 AnimatedContent(
     targetState = vista,
@@ -334,29 +350,21 @@ AnimatedContent(
                 }
             },
         )
-        // El Box suelta el mínimo que fija AnimatedContent: sin él el ancho de la lista se ignora
         Vista.LISTA -> {
-            var semestre by remember { mutableStateOf<Int?>(null) }
+            // La página empujada es de la lista: al irse ella (cuando acaba su fundido), la página se cierra
+            DisposableEffect(Unit) { onDispose { lista.abierta = false } }
+            // El Box suelta el mínimo que fija AnimatedContent: sin él el ancho de la lista se ignora
             Box(Modifier.fillMaxSize().padding(start = inicio)) {
                 VistaLista(
                     estado = estado,
+                    navegacion = lista,
                     abajo = tapa,
-                    modifier = if (reparto != null) Modifier.width(reparto.anchoLista) else Modifier,
-                    tapada = seleccionado != null || hojaAbierta,
-                    alAbrirFicha = alSeleccionar,
+                    acostada = horizontal,
+                    derecha = derecha,
                     alElegirElectiva = alAbrirCasilla,
-                    alCambiarSemestre = { semestre = it },
+                    alVerEnMapa = alVerEnMapa,
                 )
             }
-            // Acostada, la mitad derecha nunca queda vacía: sin ficha, el resumen del semestre
-            if (reparto != null) PanelResumenLista(
-                estado = estado,
-                semestre = semestre,
-                visible = seleccionado == null,
-                panel = reparto.panel,
-                abajo = tapa,
-                alElegir = alSeleccionar,
-            )
         }
         Vista.HORARIO -> if (horario != null) VistaHorario(horario, abajo = tapa, modifier = Modifier.padding(start = inicio), horizontal = horizontal)
     }

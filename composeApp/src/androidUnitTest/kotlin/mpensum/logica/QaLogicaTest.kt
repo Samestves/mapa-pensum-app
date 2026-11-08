@@ -143,7 +143,7 @@ class QaLogicaTest {
         val estados = estadosDe(sistemas.todas, marcas)
         val situaciones = sistemas.todas.associate { it.codigo to situacionDe(it.codigo, it.prerrequisitos, estados) }
         val layout = calcularLayout(sistemas.asignaturas, sistemas.grupos)
-        val lista = modeloLista(layout.nodos.map { it.asignatura }, sistemas.grupos, { null }, estados, situaciones, { null }, null).actual
+        val lista = semestreActualDeLista(layout.nodos.map { it.asignatura }, { null }, estados)
         assertEquals(3, barra)
         assertEquals(barra, portada)
         assertEquals(barra, lista)

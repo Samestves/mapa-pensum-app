@@ -1,33 +1,35 @@
 package mpensum
 
 import androidx.compose.ui.test.onNodeWithContentDescription
-import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
 import com.github.takahirom.roborazzi.captureRoboImage
+import mpensum.tema.Juego
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
 import kotlin.test.Test
 
-/** La lista en horizontal a 915x412 dp: columna de lectura y, al lado, el resumen del semestre o la ficha */
+/** La lista acostada a 915x412 dp: el riel, la lista de unos 400 dp y la página de la materia como panel a la derecha */
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 @Config(sdk = [35], qualifiers = "w915dp-h412dp-land-xxhdpi")
 class CapturaHorizontalListaTest : BaseExtras() {
 
     private fun captura(nombre: String) {
-        correr(600)
+        correr(1200)
         regla.onRoot().captureRoboImage("build/capturas/horizontal-lista-$nombre.png")
     }
 
     private fun abrirLista() {
         interior()
         regla.onNodeWithContentDescription("Lista").performClick()
-        correr(1500)
+        correr(2500)
     }
 
+    /** Al entrar se elige la primera de «Puedes inscribir»: el panel nunca queda vacío */
     @Test
     fun lista() {
         abrirLista()
@@ -35,19 +37,17 @@ class CapturaHorizontalListaTest : BaseExtras() {
     }
 
     @Test
-    fun listaConFicha() {
+    fun listaClaro() {
+        juego(Juego.CLARO)
         abrirLista()
-        // Hay dos con ese nombre: la fila de la lista y el renglón del resumen; aquí se toca la fila
-        regla.onAllNodesWithText("Sistemas de Costo")[0].performClick()
-        correr(1200)
-        captura("ficha")
+        captura("lista-claro")
     }
 
+    /** Tocar otra fila cambia el panel con un fundido */
     @Test
-    fun fichaDesdeElResumen() {
+    fun otraMateria() {
         abrirLista()
-        regla.onAllNodesWithText("Sistemas de Costo")[1].performClick()
-        correr(1200)
-        captura("ficha-desde-resumen")
+        regla.onNodeWithText("Circuitos y Sistemas").performClick()
+        captura("otra-materia")
     }
 }

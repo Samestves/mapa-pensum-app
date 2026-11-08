@@ -37,7 +37,7 @@ data class ProximoSemestre(
 )
 
 /** Lo más que se espera una materia al medir su margen: pasado esto no se sigue simulando */
-private const val TOPE_MARGEN = 8
+internal const val TOPE_MARGEN = 8
 
 /**
  * Un plan base y las simulaciones con veto sobre él, con la misma carga y el

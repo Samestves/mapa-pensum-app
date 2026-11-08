@@ -37,7 +37,8 @@ import mpensum.carrera.HojasHorario
 import mpensum.carrera.LocalFondoHoja
 import mpensum.carrera.Vista
 import mpensum.carrera.VistaHorario
-import mpensum.carrera.VistaLista
+import mpensum.carrera.lista.NavegacionLista
+import mpensum.carrera.lista.VistaLista
 import mpensum.datos.Carrera
 import mpensum.datos.Guardado
 import mpensum.datos.HorarioGuardado
@@ -222,7 +223,7 @@ class CapturaTemaClaroTest {
         regla.setContent {
             Interior(estado) { cristal ->
                 Box(Modifier.fillMaxSize().hazeSource(cristal)) {
-                    VistaLista(estado, abajo = 14.dp + ALTO_BARRA, alAbrirFicha = {}, alElegirElectiva = { _, _ -> })
+                    VistaLista(estado, NavegacionLista(), abajo = 14.dp + ALTO_BARRA, acostada = false, derecha = 0.dp, alElegirElectiva = { _, _ -> }, alVerEnMapa = {})
                 }
                 BarraCarrera(Vista.LISTA, estado.progreso, cristal, alInicio = {}, alCambiar = {}, alAvance = {}, modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 14.dp), vertical = false)
             }

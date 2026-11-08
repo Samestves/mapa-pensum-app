@@ -66,6 +66,8 @@ import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import mpensum.componentes.iconoEstado
+import mpensum.componentes.colorEstado
 import mpensum.componentes.Lucide
 import mpensum.componentes.margenPantalla
 import mpensum.componentes.pulsable
@@ -128,7 +130,7 @@ private fun situacionDeFicha(e: EstadoFicha) = when (e) {
     else -> Situacion.LEJANA
 }
 
-private fun nombreArea(area: String?) = when (area) {
+internal fun nombreArea(area: String?) = when (area) {
     "generales" -> "Generales"
     "ciencias-basicas" -> "Ciencias básicas"
     "estadistica" -> "Estadística"
@@ -309,7 +311,9 @@ internal fun PildoraEstado(e: EstadoFicha) {
 /** El icono de estado (sello, libro, candados, reloj) de `lado`: el mismo de la lista y del mapa */
 @Composable
 internal fun IconoSituacion(s: Situacion, lado: Dp) {
-    Canvas(Modifier.size(lado)) { iconoFila(s, size.minDimension) }
+    Canvas(Modifier.size(lado)) {
+        iconoEstado(s, 0f, 0f, size.minDimension, Paleta.panel, color = if (s == Situacion.PROXIMA) Paleta.tenue else colorEstado(s))
+    }
 }
 
 // ─────────────────────────────────── Respuesta ──────────────────────────────────
