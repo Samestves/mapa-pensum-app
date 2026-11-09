@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@200..700&display=swap" rel="stylesheet">
 <style>
-/* Minimalista: fondo plano, una superficie, una acción. Una sola familia (Geist). El color de la carrera solo en su icono y su anillo. */
+/* Fondo plano y una sola familia (Geist). La portada de tu carrera es la única pieza con color: su campo y su ruta de semestres. */
 :root {
   --fondo: #000000; --superficie: #141416; --linea: rgb(255 255 255 / .07);
   --tinta: #F5F5F7; --tenue: #8E8E93; --apagada: #48484A;
@@ -44,36 +44,33 @@ button:focus-visible { outline: 2px solid var(--tenue); outline-offset: 3px; }
 .cabecera h1 { font: 650 32px/38px var(--display); letter-spacing: -.035em; margin-top: 2px; }
 .circulo { width: 40px; height: 40px; border-radius: 20px; display: grid; place-items: center; background: var(--superficie); flex: none; --s: 20px; }
 
-/* Tu carrera */
-.tarjeta { margin-top: 20px; padding: 20px; border-radius: 28px; background: var(--superficie); }
-.app.claro .tarjeta, .app.claro .lista, .app.claro .datos { box-shadow: 0 1px 2px rgb(0 0 0 / .04), 0 8px 24px -12px rgb(0 0 0 / .08); }
-.ident { display: flex; align-items: center; gap: 12px; }
+/* Tu carrera: una portada con el campo de color de la carrera y su ruta de diez semestres */
 .icono { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; color: var(--k); background: color-mix(in srgb, var(--k) 14%, transparent); flex: none; }
-.ident { justify-content: flex-start; }
-.ident b { display: block; font: 600 17px/22px var(--texto); letter-spacing: -.02em; }
-.ident .nota { display: block; }
-/* El anillo, como los de Actividad: trazo redondo, se dibuja al entrar y la cifra sube con él */
-.anillo { position: relative; width: 196px; height: 196px; margin: 28px auto 0; }
-.anillo svg { width: 100%; height: 100%; transform: rotate(-90deg); overflow: visible; }
-.anillo .pista { stroke: var(--linea); }
-.anillo .arco { stroke: var(--k); transition: stroke-dashoffset 1.4s cubic-bezier(.25, .8, .25, 1); filter: drop-shadow(0 0 10px color-mix(in srgb, var(--k) 35%, transparent)); }
-.app.claro .anillo .arco { filter: none; }
-.centro { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-.pct { font: 250 60px/1 var(--display); letter-spacing: -.055em; font-variant-numeric: tabular-nums; display: flex; align-items: flex-start; }
-.pct small { font: 400 22px/1 var(--display); letter-spacing: -.02em; color: var(--tenue); margin: 7px 0 0 3px; }
-.centro .nota { margin-top: 6px; }
-.hechos { display: grid; grid-template-columns: 1fr 1fr; margin-top: 28px; }
-.hechos > div { display: flex; flex-direction: column; align-items: center; gap: 2px; }
-.hechos > div + div { border-left: 1px solid var(--linea); }
-.hechos b { font: 500 20px/26px var(--texto); letter-spacing: -.025em; font-variant-numeric: tabular-nums; }
-.hechos b span { color: var(--tenue); font-weight: 400; }
-.grande { font: 200 64px/1 var(--texto); font-variation-settings: 'opsz' 32; letter-spacing: -.04em; font-variant-numeric: tabular-nums; margin-top: 28px; }
-.grande small { font-size: 24px; font-weight: 300; color: var(--tenue); letter-spacing: 0; margin-left: 2px; }
-.barra { height: 4px; border-radius: 2px; background: var(--linea); margin-top: 16px; overflow: hidden; }
-.barra i { display: block; height: 100%; width: var(--p); border-radius: 2px; background: var(--k); transform-origin: left; animation: llena .9s cubic-bezier(.2, .8, .2, 1) .15s backwards; }
-@keyframes llena { from { transform: scaleX(0); } }
-.boton { width: 100%; height: 54px; border-radius: 27px; display: grid; place-items: center; margin-top: 24px; font: 600 16px/20px var(--texto); letter-spacing: -.01em; background: var(--tinta); color: var(--fondo); text-align: center; }
-.boton.sec { background: transparent; color: var(--tinta); margin-top: 8px; }
+.app.claro .lista { box-shadow: 0 1px 2px rgb(0 0 0 / .04), 0 8px 24px -12px rgb(0 0 0 / .08); }
+.heroe { position: relative; margin-top: 20px; border-radius: 32px; overflow: hidden; isolation: isolate; color: #fff; background: #09090b; cursor: pointer; box-shadow: 0 24px 48px -28px color-mix(in srgb, var(--k) 70%, transparent); }
+.campo { position: absolute; inset: 0; z-index: -1;
+  background:
+    linear-gradient(transparent 30%, color-mix(in srgb, var(--k) 10%, #09090b) 72%),
+    radial-gradient(85% 55% at 12% 0%, color-mix(in srgb, var(--k) 92%, #000), transparent 72%),
+    radial-gradient(70% 50% at 100% 8%, color-mix(in srgb, var(--k) 60%, #fff), transparent 70%),
+    radial-gradient(60% 40% at 55% 38%, color-mix(in srgb, var(--k) 45%, #000), transparent 75%); }
+.heroe::after { content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; box-shadow: inset 0 0 0 1px rgb(255 255 255 / .1), inset 0 1px 0 rgb(255 255 255 / .22); }
+.ruta { display: block; width: 100%; height: auto; margin-top: 18px; overflow: visible; }
+.ruta .hecha { stroke-dasharray: 400; stroke-dashoffset: 400; animation: traza 1.2s cubic-bezier(.3, .7, .2, 1) .15s forwards; }
+@keyframes traza { to { stroke-dashoffset: 0; } }
+.ruta .pulso { transform-box: fill-box; transform-origin: center; animation: pulso 2.4s ease-out infinite; }
+@keyframes pulso { from { transform: scale(.6); opacity: .55; } to { transform: scale(1.5); opacity: 0; } }
+.ruta text { font: 600 11px/1 var(--texto); fill: #fff; letter-spacing: .02em; }
+.heroe-pie { padding: 4px 20px 20px; }
+.heroe h2 { font: 650 40px/44px var(--display); letter-spacing: -.04em; text-wrap: balance; }
+.heroe .sub { font: 400 15px/20px var(--texto); color: rgb(255 255 255 / .62); margin-top: 2px; }
+.cifras { display: grid; grid-template-columns: repeat(3, auto); justify-content: space-between; margin-top: 22px; }
+.cifras b { display: block; font: 500 22px/28px var(--texto); letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+.cifras span { font: 400 13px/18px var(--texto); color: rgb(255 255 255 / .58); }
+.acciones { display: flex; gap: 10px; margin-top: 22px; }
+.boton { flex: 1; width: 100%; height: 54px; border-radius: 27px; display: grid; place-items: center; font: 600 16px/20px var(--texto); letter-spacing: -.01em; background: #fff; color: #09090b; text-align: center; }
+.boton.sec { background: transparent; color: var(--tinta); margin-top: 8px; flex: none; }
+.redondo { width: 54px; height: 54px; border-radius: 27px; display: grid; place-items: center; flex: none; background: rgb(255 255 255 / .14); box-shadow: inset 0 0 0 1px rgb(255 255 255 / .16); color: #fff; }
 
 /* Lista */
 .seccion { margin-top: 32px; }
@@ -87,12 +84,7 @@ button:focus-visible { outline: 2px solid var(--tenue); outline-offset: 3px; }
 .fila > .ph:last-child { color: var(--apagada); --s: 16px; }
 
 /* Ficha */
-.atras { margin-bottom: 28px; }
-.ficha-nombre { font: 650 34px/40px var(--display); letter-spacing: -.035em; margin-top: 20px; text-wrap: balance; }
-.datos { display: grid; grid-template-columns: repeat(3, 1fr); margin-top: 24px; padding: 18px 0; border-radius: 20px; background: var(--superficie); }
-.datos > div { padding: 0 18px; }
-.datos > div + div { border-left: 1px solid var(--linea); }
-.datos b { display: block; font: 300 28px/32px var(--display); letter-spacing: -.04em; font-variant-numeric: tabular-nums; }
+.atras { margin-bottom: 0; }
 
 /* Barra inferior */
 .barra-inf { position: absolute; z-index: 10; left: 50%; bottom: calc(env(safe-area-inset-bottom) + 16px); transform: translateX(-50%); display: flex; padding: 4px; border-radius: 30px; background: color-mix(in srgb, var(--superficie) 82%, transparent); -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px); box-shadow: 0 0 0 1px var(--linea), 0 10px 30px -10px rgb(0 0 0 / .5); transition: transform .35s cubic-bezier(.2, .8, .2, 1), opacity .25s; }
@@ -176,42 +168,45 @@ const color = c => estado.claro ? c.cla : c.osc;
 const toque = () => { try { navigator.vibrate && navigator.vibrate(6); } catch (e) {} };
 const pasar = f => (document.startViewTransition && !matchMedia('(prefers-reduced-motion: reduce)').matches) ? document.startViewTransition(f) : f();
 
-const C = +(2 * Math.PI * 88).toFixed(1);
-function animarAnillo(p) {
-  const arco = document.getElementById('arco'), num = document.getElementById('pct');
-  const reducido = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  requestAnimationFrame(() => requestAnimationFrame(() => { arco.style.strokeDashoffset = C * (1 - p / 100); }));
-  if (reducido || !p) { num.textContent = p; return; }
-  const t0 = performance.now(), dur = 1400, ease = t => 1 - Math.pow(1 - t, 3);
-  const paso = t => { const x = Math.min(1, (t - t0) / dur); num.textContent = Math.round(p * ease(x)); if (x < 1) requestAnimationFrame(paso); };
-  requestAnimationFrame(paso);
+const X = i => 26 + i * 34, Y = [132, 132, 98, 98, 98, 64, 64, 64, 30, 30];
+/* La ruta: diez semestres como paradas. `actual` es el índice del semestre en curso (-1: sin avance) */
+function ruta(actual) {
+  const pt = i => `${X(i)} ${Y[i]}`, tramo = (a, b) => 'M' + Array.from({ length: b - a + 1 }, (_, j) => pt(a + j)).join('L');
+  let s = `<svg class="ruta" viewBox="0 0 358 158" aria-hidden="true"><path d="${tramo(Math.max(actual, 0), 9)}" fill="none" stroke="rgb(255 255 255 / .24)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>`;
+  if (actual > 0) s += `<path class="hecha" d="${tramo(0, actual)}" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>`;
+  for (let i = 0; i < 10; i++) {
+    if (i < actual) s += `<circle cx="${X(i)}" cy="${Y[i]}" r="6" fill="#fff"/>`;
+    else if (i === actual) s += `<circle class="pulso" cx="${X(i)}" cy="${Y[i]}" r="13" fill="#fff"/><circle cx="${X(i)}" cy="${Y[i]}" r="10" fill="var(--k)" stroke="#fff" stroke-width="4.5"/><text x="${X(i)}" y="${Y[i] - 22}" text-anchor="middle">Semestre ${i + 1}</text>`;
+    else s += `<circle cx="${X(i)}" cy="${Y[i]}" r="${i === 9 ? 7 : 4.5}" fill="${i === 9 ? 'none' : 'rgb(255 255 255 / .45)'}" stroke="rgb(255 255 255 / .6)" stroke-width="${i === 9 ? 3 : 0}"/>`;
+  }
+  return s + '</svg>';
 }
+const portada = (c, o) => `<div class="heroe" style="--k:${c.osc}" ${o.slug ? `data-slug="${c.slug}"` : ''}>
+  <div class="campo"></div>${o.arriba || ''}${ruta(o.actual)}
+  <div class="heroe-pie"><h2>${c.corto}</h2><p class="sub">${o.sub}</p>
+    <div class="cifras">${o.cifras.map(([n, t]) => `<div><b>${n}</b><span>${t}</span></div>`).join('')}</div>
+    <div class="acciones">${o.acciones}</div></div></div>`;
 function pintar() {
   document.getElementById('fecha').textContent = new Date().toLocaleDateString('es', { weekday: 'long', day: 'numeric', month: 'long' }).replace(/^./, c => c.toUpperCase());
   const h = new Date().getHours();
   document.getElementById('saludo').textContent = h < 12 ? 'Buenos días' : h < 19 ? 'Buenas tardes' : 'Buenas noches';
   const c = k(estado.mia), ejemplo = c.slug === 'sistemas';
-  document.getElementById('mia').innerHTML = `<button class="tarjeta pulsable" style="--k:${color(c)};display:block;width:100%" data-slug="${c.slug}">
-    <div class="ident"><span class="icono">${ico(c.ic)}</span><div><b>${c.corto}</b><span class="nota">${c.tipo}</span></div></div>
-    <div class="anillo"><svg viewBox="0 0 196 196" aria-hidden="true"><circle class="pista" cx="98" cy="98" r="88" fill="none" stroke-width="14"/><circle class="arco" id="arco" cx="98" cy="98" r="88" fill="none" stroke-width="14" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${C}"/></svg>
-      <div class="centro"><div class="pct"><span id="pct">0</span><small>%</small></div><span class="nota">${ejemplo ? 'de la carrera' : 'Marca lo aprobado'}</span></div></div>
-    <div class="hechos"><div><b>${ejemplo ? '5 <span>/ 10</span>' : '1 <span>/ 10</span>'}</b><span class="nota">Semestre</span></div><div><b>${ejemplo ? 'Dic 2029' : '—'}</b><span class="nota">Te gradúas</span></div></div>
-    <span class="boton" data-aviso="${ejemplo ? 'Abre tu mapa donde lo dejaste' : 'Abre tu mapa para empezar'}">${ejemplo ? 'Seguir donde ibas' : 'Empezar'}</span>
-  </button>`;
-  animarAnillo(ejemplo ? 41 : 0);
+  document.getElementById('mia').innerHTML = portada(c, {
+    slug: true, actual: ejemplo ? 4 : 0, sub: c.tipo,
+    cifras: ejemplo ? [['41%', 'Avance'], ['6', 'Por inscribir'], ['Dic 2029', 'Te gradúas']] : [['0%', 'Avance'], [c.mat, 'Materias'], [c.uc, 'UC']],
+    acciones: `<button class="boton pulsable" data-aviso="${ejemplo ? 'Abre tu mapa donde lo dejaste' : 'Abre tu mapa para empezar'}">${ejemplo ? 'Seguir donde ibas' : 'Empezar'}</button><button class="redondo pulsable" aria-label="Horario" data-aviso="Abre tu horario de esta semana">${ico('calendar-dots')}</button>`,
+  });
   document.getElementById('lista').innerHTML = CARRERAS.filter(c => c.slug !== estado.mia).map(c =>
     `<button class="fila" data-slug="${c.slug}" style="--k:${color(c)}"><span class="icono">${ico(c.ic)}</span><span class="nm">${c.corto}<span class="nota">${c.mat} materias</span></span>${ico('caret-right')}</button>`).join('');
 }
 function ficha(c) {
   const f = document.getElementById('ficha'), mia = c.slug === estado.mia;
-  f.style.setProperty('--k', color(c));
-  f.innerHTML = `<button class="circulo pulsable atras" id="volver" aria-label="Volver">${ico('caret-left')}</button>
-    <span class="icono" style="width:56px;height:56px;border-radius:16px;--s:30px">${ico(c.ic)}</span>
-    <h1 class="ficha-nombre">${c.corto}</h1>
-    <p class="nota" style="font-size:15px;line-height:20px;margin-top:4px">${c.nombre}</p>
-    <div class="datos"><div><b>${c.mat}</b><span class="nota">Materias</span></div><div><b>${c.uc}</b><span class="nota">UC</span></div><div><b>10</b><span class="nota">Semestres</span></div></div>
-    <button class="boton pulsable" data-aviso="Abre el mapa de ${c.corto}">Ver el mapa</button>
-    ${mia ? '' : '<button class="boton sec pulsable" id="hacer-mia">Hacerla mi carrera</button>'}`;
+  f.innerHTML = portada(c, {
+    actual: -1, sub: c.nombre,
+    arriba: `<button class="redondo pulsable atras" id="volver" aria-label="Volver" style="width:40px;height:40px;margin:16px 0 0 16px">${ico('caret-left')}</button>`,
+    cifras: [[c.mat, 'Materias'], [c.uc, 'UC'], ['10', 'Semestres']],
+    acciones: `<button class="boton pulsable" data-aviso="Abre el mapa de ${c.corto}">Ver el mapa</button>`,
+  }) + (mia ? '' : '<button class="boton sec pulsable" id="hacer-mia">Hacerla mi carrera</button>');
 }
 function ir(vista) {
   pasar(() => {
