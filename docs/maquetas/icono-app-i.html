@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8"><title>Icono de la app · B1 sin estrella, pulida</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#E6E7E9;font-family:system-ui,sans-serif;padding:48px;color:#050608}
+h1{font-weight:300;font-size:36px;letter-spacing:-.01em}
+p{font-size:15px;line-height:22px;color:#34383E;margin-top:10px;max-width:900px}
+.fila{display:flex;gap:56px;margin-top:40px}
+.op{width:420px}
+.op h3{font-size:16px;font-weight:600;margin-bottom:18px}
+.grande svg{width:420px;height:420px;display:block;border-radius:95px;box-shadow:0 30px 60px -24px rgb(0 0 0/.45)}
+.tiras{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:20px}
+.tira{display:flex;gap:16px;align-items:center;padding:16px;border-radius:20px;background:linear-gradient(135deg,#27364f,#5a4a6b)}
+.tira svg{border-radius:23%;display:block}
+.tira.clara{background:linear-gradient(135deg,#dfe6ee,#f3e9df)}
+</style></head><body>
+<h1>Icono de la app · la B1 sin estrella, pulida</h1>
+<p>A la izquierda, la B1 tal cual, sin la estrella. A la derecha, la misma con seis retoques pequeños. No cambia la idea ni la paleta.</p>
+<div class="fila" id="fila"></div>
+<script>
+let n=0;
+function base(k,extraDefs=''){return `<defs>
+ <linearGradient id="f${k}" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#1d2026"/><stop offset="1" stop-color="#040405"/></linearGradient>
+ <radialGradient id="l${k}" cx=".5" cy="0" r=".9"><stop stop-color="#6699FF" stop-opacity=".24"/><stop offset="1" stop-color="#6699FF" stop-opacity="0"/></radialGradient>
+ <linearGradient id="a${k}" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#FFFFFF"/><stop offset="1" stop-color="#E9EDF3"/></linearGradient>
+ <linearGradient id="b${k}" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#D5DAE3"/><stop offset="1" stop-color="#BFC6D2"/></linearGradient>
+ <filter id="s${k}" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="14" stdDeviation="14" flood-color="#000" flood-opacity=".55"/></filter>${extraDefs}</defs>
+ <rect width="512" height="512" fill="url(#f${k})"/><rect width="512" height="512" fill="url(#l${k})"/>`;}
+const hojas=(k,c='b')=>`<g filter="url(#s${k})" stroke-linejoin="round" stroke-width="14">
+  <path d="M116 158 206 124V362L116 396Z" fill="url(#a${k})" stroke="url(#a${k})"/>
+  <path d="M206 124 306 158V396L206 362Z" fill="url(#${c}${k})" stroke="url(#${c}${k})"/>
+  <path d="M306 158 396 124V362L306 396Z" fill="url(#a${k})" stroke="url(#a${k})"/></g>`;
+function antes(t){const k='a'+(n++);
+ return `<svg viewBox="0 0 512 512" ${t?`width="${t}" height="${t}"`:''}>${base(k,`<linearGradient id="r${k}" x1="0" y1="1" x2="1" y2="0"><stop stop-color="#2751CC"/><stop offset="1" stop-color="#6699FF"/></linearGradient>`)}${hojas(k)}
+ <path d="M158 326 238 252 346 200" fill="none" stroke="url(#r${k})" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+ <circle cx="158" cy="326" r="17" fill="#2751CC"/><circle cx="238" cy="252" r="17" fill="#2751CC"/>
+ <circle cx="346" cy="200" r="20" fill="#fff" stroke="#6699FF" stroke-width="12"/></svg>`;}
+function despues(t){const k='d'+(n++);
+ const R='M152 340 206 288 306 248 360 192';
+ return `<svg viewBox="0 0 512 512" ${t?`width="${t}" height="${t}"`:''}>${base(k,`
+ <linearGradient id="r${k}" gradientUnits="userSpaceOnUse" x1="152" y1="340" x2="360" y2="192"><stop stop-color="#1F3FA6"/><stop offset=".5" stop-color="#2F5BE0"/><stop offset="1" stop-color="#6699FF"/></linearGradient>
+ <linearGradient id="c${k}" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#DCE0E8"/><stop offset="1" stop-color="#BCC3CF"/></linearGradient>
+ <linearGradient id="d${k}" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#E4E8EE"/><stop offset=".35" stop-color="#FFFFFF"/></linearGradient>
+ <radialGradient id="h${k}"><stop stop-color="#6699FF" stop-opacity=".5"/><stop offset="1" stop-color="#6699FF" stop-opacity="0"/></radialGradient>
+ <radialGradient id="g${k}"><stop stop-color="#3D6BF0" stop-opacity=".35"/><stop offset="1" stop-color="#3D6BF0" stop-opacity="0"/></radialGradient>
+ <filter id="t${k}" x="-30%" y="-30%" width="160%" height="170%"><feDropShadow dx="0" dy="3" stdDeviation="3.5" flood-color="#0B1E5C" flood-opacity=".28"/></filter>`)}
+ <ellipse cx="256" cy="418" rx="150" ry="26" fill="url(#g${k})"/>
+ <g filter="url(#s${k})" stroke-linejoin="round" stroke-width="14">
+  <path d="M116 158 206 124V362L116 396Z" fill="url(#a${k})" stroke="url(#a${k})"/>
+  <path d="M206 124 306 158V396L206 362Z" fill="url(#c${k})" stroke="url(#c${k})"/>
+  <path d="M306 158 396 124V362L306 396Z" fill="url(#d${k})" stroke="url(#d${k})"/></g>
+ <path d="M206 120V366" stroke="#fff" stroke-width="2.5" stroke-linecap="round" opacity=".9"/>
+ <path d="M306 154V400" stroke="#6B7484" stroke-width="2" stroke-linecap="round" opacity=".28"/>
+ <circle cx="360" cy="192" r="52" fill="url(#h${k})"/>
+ <g filter="url(#t${k})">
+  <path d="${R}" fill="none" stroke="url(#r${k})" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="152" cy="340" r="15" fill="#1F3FA6"/>
+  <circle cx="256" cy="268" r="18" fill="#2F5BE0"/>
+  <circle cx="360" cy="192" r="22" fill="#fff" stroke="#6699FF" stroke-width="12"/></g>
+ <circle cx="360" cy="192" r="7" fill="#6699FF"/></svg>`;}
+const tiras=f=>`<div class="tiras"><div class="tira">${f(64)}${f(48)}</div><div class="tira clara">${f(64)}${f(48)}</div></div>`;
+document.getElementById('fila').innerHTML=`<div class="op"><h3>Antes · B1 sin estrella</h3><div class="grande">${antes()}</div>${tiras(antes)}</div>
+<div class="op"><h3>Después · pulida</h3><div class="grande">${despues()}</div>${tiras(despues)}</div>`;
+</script></body></html>
