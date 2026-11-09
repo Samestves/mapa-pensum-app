@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Inicio nuevo · tres propuestas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,100..900&family=Jost:wght@100..900&display=block" rel="stylesheet">
+<style>
+/* ============ La página (presentación; no es la app) ============ */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #E6E7E9; color: #050608; font-family: Inter, sans-serif; padding: 56px 40px 72px; -webkit-font-smoothing: antialiased; }
+.pagina { width: 1620px; margin: 0 auto; }
+.portada h1 { font: 300 40px/44px Jost; letter-spacing: -.01em; }
+.portada p { font: 400 15px/22px Inter; letter-spacing: -.009em; color: #34383E; margin-top: 12px; max-width: 1180px; }
+.portada b, .op b, .porque b { font-weight: 500; color: #050608; }
+.bloque { margin-top: 56px; }
+.bloque > h2 { font: 500 11px/16px Inter; letter-spacing: .08em; text-transform: uppercase; color: #52565C; margin-bottom: 20px; }
+.fila { display: flex; gap: 40px; align-items: flex-start; }
+.op { width: 375px; flex: none; }
+.op > h3 { font: 500 15px/20px Inter; letter-spacing: -.009em; display: flex; align-items: center; gap: 8px; }
+.op > p { font: 400 13px/18px Inter; color: #34383E; margin: 4px 0 16px; min-height: 126px; }
+.sello { font: 500 11px/16px Inter; letter-spacing: .08em; text-transform: uppercase; color: #fff; background: #1A47C2; border-radius: 10px; padding: 2px 8px; }
+.porque { margin-top: 32px; font: 400 15px/22px Inter; letter-spacing: -.009em; color: #1C1F23; max-width: 1280px; }
+.porque + .porque { margin-top: 10px; }
+
+/* ============ Paleta Acero (la de la app) ============ */
+.osc { --lienzo:#0B0C0E; --panel:#16171A; --tinta:#ECEEF1; --suave:#B6BBC2; --tenue:#858B94; --apagada:#5D636C; --azul:#5B8AF5; --verde:#2EC27E; --rojo:#E5403A;
+       --t: 236 238 241; --l: 11 12 14; --a: 91 138 245; color: var(--tinta); }
+.cla { --lienzo:#F2F2F4; --panel:#FFFFFF; --tinta:#171A20; --suave:#393C41; --tenue:#5C5E62; --apagada:#8A8D92; --azul:#3E6AE1; --verde:#0F8A5F; --rojo:#CC1F24;
+       --t: 23 26 32; --l: 242 242 244; --a: 62 106 225; color: var(--tinta); }
+
+/* ============ El teléfono ============ */
+.tel { width: 375px; height: 812px; position: relative; overflow: hidden; border-radius: 44px; background: var(--lienzo); box-shadow: 0 0 0 1px rgb(0 0 0 / .07), 0 32px 64px -28px rgb(0 0 0 / .32); }
+.sis { position: absolute; top: 0; left: 0; right: 0; height: 32px; display: flex; align-items: center; justify-content: space-between; padding: 0 24px 0 28px; font: 500 13px/1 Inter; color: var(--tinta); z-index: 9; font-feature-settings: 'tnum'; }
+.sis .der { display: flex; gap: 6px; align-items: center; }
+.gestos { position: absolute; bottom: 8px; left: 50%; width: 108px; height: 4px; margin-left: -54px; border-radius: 2px; background: rgb(var(--t) / .55); z-index: 9; }
+.fundido { position: absolute; left: 0; right: 0; bottom: 0; height: 72px; z-index: 5; pointer-events: none; background: linear-gradient(rgb(var(--l) / 0), rgb(var(--l) / 1)); }
+.cont { position: absolute; left: 16px; right: 16px; top: 44px; }
+
+/* ============ Roles de texto (docs/reglas-diseno.md §1) ============ */
+.titular { font: 300 34px/40px Jost; letter-spacing: -.02em; color: var(--tinta); }
+.titulo { font: 300 28px/32px Jost; letter-spacing: -.005em; }
+.encab { font: 300 17px/22px Jost; letter-spacing: -.01em; }
+.cla .encab { font-weight: 400; }
+.fila-t { font: 500 15px/20px Inter; letter-spacing: -.009em; }
+.rot { font: 500 11px/16px Inter; letter-spacing: .08em; text-transform: uppercase; color: var(--tenue); font-feature-settings: 'tnum'; }
+.nota { font: 400 13px/16px Inter; letter-spacing: -.003em; color: var(--tenue); font-feature-settings: 'tnum'; }
+.cifra { font-family: Inter; font-feature-settings: 'tnum'; white-space: nowrap; font-variation-settings: 'opsz' 32; }
+.c40 { font-size: 40px; line-height: 44px; font-weight: 200; letter-spacing: -.02em; }
+.c32 { font-size: 32px; line-height: 36px; font-weight: 200; letter-spacing: -.02em; }
+.u { font-size: 15px; font-weight: 300; opacity: .7; margin-left: 2px; letter-spacing: 0; }
+.f24 { font-size: 24px; line-height: 28px; font-weight: 300; letter-spacing: -.015em; }
+
+svg.i { fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; flex: none; display: block; }
+.btn { height: 52px; border-radius: 26px; display: flex; align-items: center; justify-content: center; gap: 8px; font: 500 15px/20px Inter; letter-spacing: -.009em; white-space: nowrap; }
+
+/* Cabecera común: placa a la izquierda, ajustes a la derecha */
+.top { height: 48px; display: flex; align-items: center; justify-content: space-between; }
+.boton-r { width: 40px; height: 40px; border-radius: 20px; display: grid; place-items: center; background: rgb(var(--t) / .08); color: var(--tinta); }
+.cla .boton-r { background: #fff; box-shadow: 0 1px 2px rgb(0 0 0 / .06); }
+
+/* La tarjeta héroe de tu carrera, en su color */
+.heroe { position: relative; border-radius: 28px; overflow: hidden; color: #fff; padding: 20px;
+  background:
+    radial-gradient(120% 90% at 100% 0%, rgb(255 255 255 / .28), transparent 55%),
+    linear-gradient(150deg, var(--c1), var(--c2) 70%, var(--c3)); }
+.heroe::after { content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; box-shadow: inset 0 0 0 1px rgb(255 255 255 / .18), inset 0 1px 0 rgb(255 255 255 / .3); }
+.heroe > * { position: relative; z-index: 1; }
+.tecla { width: 44px; height: 44px; border-radius: 13px; display: grid; place-items: center; background: rgb(255 255 255 / .2); box-shadow: inset 0 0 0 1px rgb(255 255 255 / .25); backdrop-filter: blur(8px); }
+.chip-v { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 12px; border-radius: 14px; background: rgb(255 255 255 / .18); font: 500 13px/16px Inter; font-feature-settings: 'tnum'; white-space: nowrap; }
+.btn.blanco { background: #fff; color: #0B0C0E; }
+.btn.vidrio { background: rgb(255 255 255 / .18); color: #fff; width: 52px; flex: none; }
+
+/* Tarjetas sueltas (la superficie de la app) */
+.tarj { border-radius: 24px; background: rgb(var(--t) / .055); box-shadow: inset 0 0 0 1px rgb(var(--t) / .07); }
+.cla .tarj { background: #fff; box-shadow: 0 1px 2px rgb(0 0 0 / .05), 0 8px 24px -12px rgb(0 0 0 / .12); }
+.pas { width: 32px; height: 32px; border-radius: 8px; display: grid; place-items: center; background: rgb(var(--t) / .08); flex: none; }
+.pas.azul { background: rgb(var(--a) / .16); color: var(--azul); }
+.cla .pas { background: rgb(var(--t) / .06); }
+
+/* ============ A · Resumen ============ */
+.dos { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.mini { padding: 16px; height: 132px; display: flex; flex-direction: column; justify-content: space-between; }
+.accesos { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.acc { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.acc .boton { width: 60px; height: 60px; border-radius: 20px; display: grid; place-items: center; background: rgb(var(--t) / .07); box-shadow: inset 0 0 0 1px rgb(var(--t) / .07); }
+.cla .acc .boton { background: #fff; box-shadow: 0 1px 2px rgb(0 0 0 / .06); }
+.acc span { font: 500 12px/16px Inter; color: var(--suave); }
+.vidrio-sup { position: absolute; top: 0; left: 0; right: 0; height: 84px; z-index: 8; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 14px; background: rgb(var(--l) / .78); backdrop-filter: blur(20px) saturate(1.6); -webkit-backdrop-filter: blur(20px) saturate(1.6); box-shadow: 0 1px 0 rgb(var(--t) / .08); }
+.cabsec { display: flex; justify-content: space-between; align-items: baseline; padding: 0 4px; margin-bottom: 12px; }
+.cabsec .ver { font: 500 13px/16px Inter; color: var(--azul); }
+.nueve { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px 8px; }
+.app { display: flex; flex-direction: column; align-items: center; gap: 8px; position: relative; }
+.app .icono { width: 64px; height: 64px; border-radius: 18px; display: grid; place-items: center; color: #fff; position: relative;
+  background: linear-gradient(160deg, color-mix(in srgb, var(--c) 100%, #fff 18%), color-mix(in srgb, var(--c) 78%, #000));
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / .16), inset 0 1px 0 rgb(255 255 255 / .28), 0 6px 14px -8px var(--c); }
+.app .nom { font: 500 12px/15px Inter; letter-spacing: -.003em; color: var(--suave); text-align: center; max-width: 100px; }
+.app.tuya .icono::after { content: ''; position: absolute; inset: -4px; border-radius: 22px; box-shadow: 0 0 0 2px var(--c); }
+.app.tuya .nom { color: var(--tinta); }
+
+/* ============ B · Hoy ============ */
+.clase { padding: 16px; display: flex; gap: 14px; align-items: stretch; }
+.clase .barra { width: 4px; border-radius: 2px; background: var(--c); flex: none; }
+.carrusel { display: flex; gap: 12px; margin-right: -16px; }
+.cartel { width: 150px; height: 196px; flex: none; border-radius: 22px; padding: 14px; color: #fff; position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between;
+  background: radial-gradient(100% 80% at 100% 0%, rgb(255 255 255 / .22), transparent 60%), linear-gradient(160deg, var(--c), color-mix(in srgb, var(--c) 55%, #000)); }
+.cartel::after { content: ''; position: absolute; inset: 0; border-radius: inherit; box-shadow: inset 0 0 0 1px rgb(255 255 255 / .16); pointer-events: none; }
+.cartel .tecla { width: 36px; height: 36px; border-radius: 11px; }
+.seg { display: flex; padding: 3px; border-radius: 12px; background: rgb(var(--t) / .08); }
+.seg > span { flex: 1; height: 30px; border-radius: 9px; display: grid; place-items: center; font: 500 13px/16px Inter; color: var(--suave); }
+.seg > span.on { background: rgb(var(--t) / .14); color: var(--tinta); }
+
+/* ============ C · Ordenada (lista agrupada) ============ */
+.buscar { height: 40px; border-radius: 12px; background: rgb(var(--t) / .08); display: flex; align-items: center; gap: 8px; padding: 0 12px; color: var(--tenue); font: 400 15px/20px Inter; }
+.grupo { border-radius: 20px; overflow: hidden; }
+.renglon { height: 56px; display: flex; align-items: center; gap: 12px; padding: 0 14px 0 12px; position: relative; }
+.renglon + .renglon::before { content: ''; position: absolute; top: 0; left: 56px; right: 0; height: 1px; background: rgb(var(--t) / .08); }
+.renglon .ic { width: 32px; height: 32px; border-radius: 9px; display: grid; place-items: center; color: #fff; flex: none; background: linear-gradient(160deg, color-mix(in srgb, var(--c) 100%, #fff 15%), color-mix(in srgb, var(--c) 80%, #000)); }
+.renglon .nm { flex: 1; min-width: 0; font: 400 16px/20px Inter; letter-spacing: -.01em; color: var(--tinta); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.renglon .dt { font: 400 15px/20px Inter; color: var(--tenue); font-feature-settings: 'tnum'; }
+.metricas { display: grid; grid-template-columns: repeat(3, 1fr); }
+.metricas > div + div { border-left: 1px solid rgb(255 255 255 / .2); padding-left: 12px; }
+</style>
+</head>
+<body>
+<div class="pagina">
+
+<header class="portada">
+  <h1>Inicio nuevo · tres propuestas</h1>
+  <p>Un inicio amable, al estilo Apple: <b>saludo grande, tu carrera arriba en su color</b>, tus cifras en tarjetas cortas y <b>las nueve carreras</b> a un toque. La referencia (la app de la Univalle) da la estructura —saludo, tarjeta héroe, dos cifras, accesos rápidos—; el lenguaje lo pone Mapa de Pensum: Jost y Inter, la silueta del pensum, los iconos de carrera y el color de cada una. Datos de ejemplo: <b>Ingeniería de Sistemas</b>, 41 % (54 / 132 UC), semestre 5, 2 cursando, 6 por inscribir, te gradúas en <b>Dic 2029</b>.</p>
+</header>
+
+<section class="bloque">
+  <h2>De pie · 375 × 812 · oscuro, y A también en claro</h2>
+  <div class="fila" id="fila"></div>
+  <p class="porque"><b>Por qué A:</b> es la que más se parece a lo que mostraste y la más fácil de leer de un vistazo. Arriba, una sola acción («Seguir donde ibas»); en el medio, las dos respuestas que más se preguntan (¿cuándo me gradúo? ¿qué inscribo?); al deslizar, las nueve carreras como iconos de app en una rejilla de 3 × 3 que se ve entera, con la tuya marcada con un aro. El anillo de avance es el mismo gesto que los anillos de Actividad de Apple.</p>
+  <p class="porque"><b>B</b> pone el día primero (tu próxima clase, sacada del horario) y las carreras en un carrusel de carteles, como la pestaña Hoy de la App Store: más vistoso, pero las nueve no se ven a la vez. <b>C</b> es la más «Ajustes de iPhone»: buscador, una tarjeta compacta y las carreras en lista agrupada por Ingenierías y Licenciaturas; es la que mejor aguanta 320 dp y letra grande, pero es la menos emocionante.</p>
+</section>
+
+</div>
+
+<script>
+/* ---------- Datos (indice.json) ---------- */
+const CARRERAS = [
+  { slug: 'ingenieria-de-sistemas', corto: 'Sistemas', tipo: 'Ingeniería', osc: '#6094ff', cla: '#2751cc', ic: 'consola', sil: [6,5,6,6,7,6,5,5,2,1], mat: 49 },
+  { slug: 'ingenieria-agronomica', corto: 'Agronómica', tipo: 'Ingeniería', osc: '#3fcb74', cla: '#1b7a44', ic: 'espiga', sil: [9,7,7,6,6,6,5,6,3,3], mat: 58 },
+  { slug: 'ingenieria-ambiental', corto: 'Ambiental', tipo: 'Ingeniería', osc: '#34c6ea', cla: '#0b7391', ic: 'hoja', sil: [8,6,7,7,5,6,4,5,5,2], mat: 55 },
+  { slug: 'ingenieria-de-petroleo', corto: 'Petróleo', tipo: 'Ingeniería', osc: '#e8a33d', cla: '#9a6410', ic: 'balancin', sil: [7,5,7,5,5,6,4,6,5,3], mat: 53 },
+  { slug: 'ingenieria-en-produccion-animal', corto: 'Producción Animal', tipo: 'Ingeniería', osc: '#a9c23f', cla: '#5f7a16', ic: 'res', sil: [8,7,6,7,6,5,5,6,7,3], mat: 60 },
+  { slug: 'licenciatura-en-administracion', corto: 'Administración', tipo: 'Licenciatura', osc: '#8a7cf0', cla: '#4b3bc4', ic: 'organigrama', sil: [7,6,6,5,6,5,5,5,6,5], mat: 56 },
+  { slug: 'licenciatura-en-contaduria-publica', corto: 'Contaduría', tipo: 'Licenciatura', osc: '#2fd3c0', cla: '#0a8577', ic: 'calculadora', sil: [7,6,6,5,5,6,5,6,6,4], mat: 56 },
+  { slug: 'licenciatura-en-tecnologia-de-los-alimentos', corto: 'Tec. de Alimentos', tipo: 'Licenciatura', osc: '#ff7a6b', cla: '#c03a2b', ic: 'matraz', sil: [7,5,4,5,5,5,4,4,3,3], mat: 45 },
+  { slug: 'gerencia-de-recursos-humanos', corto: 'Recursos Humanos', tipo: 'Licenciatura', osc: '#f072b0', cla: '#b32c74', ic: 'apreton', sil: [6,5,5,5,5,4,5,5,5,4], mat: 49 },
+];
+
+/* ---------- Iconos (componentes/Iconos.kt, rejilla de 24) ---------- */
+const P = {
+  consola: ['M4 3h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z','M8 21h8','M12 17v4','m7 7.5 3 2.5-3 2.5','M12.5 12.5h4.5'],
+  espiga: ['M2 22 16 8','M3.47 12.53 5 11l1.53 1.53a3.5 3.5 0 0 1 0 4.94L5 19l-1.53-1.53a3.5 3.5 0 0 1 0-4.94Z','M7.47 8.53 9 7l1.53 1.53a3.5 3.5 0 0 1 0 4.94L9 15l-1.53-1.53a3.5 3.5 0 0 1 0-4.94Z','M11.47 4.53 13 3l1.53 1.53a3.5 3.5 0 0 1 0 4.94L13 11l-1.53-1.53a3.5 3.5 0 0 1 0-4.94Z','M20 2h2v2a4 4 0 0 1-4 4h-2V6a4 4 0 0 1 4-4Z','M11.47 17.47 13 19l-1.53 1.53a3.5 3.5 0 0 1-4.94 0L5 19l1.53-1.53a3.5 3.5 0 0 1 4.94 0Z','M15.47 13.47 17 15l-1.53 1.53a3.5 3.5 0 0 1-4.94 0L9 15l1.53-1.53a3.5 3.5 0 0 1 4.94 0Z','M19.47 9.47 21 11l-1.53 1.53a3.5 3.5 0 0 1-4.94 0L13 11l1.53-1.53a3.5 3.5 0 0 1 4.94 0Z'],
+  hoja: ['M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z','M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12'],
+  balancin: ['M3 21h18','m9 21 3-12.5 3 12.5','M6.5 7.5 20 10','M6.5 4a4 4 0 0 0 0 7z','M4.5 7.5V21','m20 10-1.7 5.6','M18 15.5a1.5 1.5 0 1 0 0 3a1.5 1.5 0 1 0 0-3z'],
+  res: ['M8.5 7C6.5 7 5 5.5 5 3.5','M15.5 7c2 0 3.5-1.5 3.5-3.5','M7 13V8.5A1.5 1.5 0 0 1 8.5 7h7A1.5 1.5 0 0 1 17 8.5V13','M7 9.5H4.5c0 1.7 1 2.5 2.5 2.5','M17 9.5h2.5c0 1.7-1 2.5-2.5 2.5','M10.5 13h3a4 4 0 0 1 0 8h-3a4 4 0 0 1 0-8z','M10 17h.01','M14 17h.01','M9.8 10.2h.01','M14.2 10.2h.01'],
+  organigrama: ['M10 2h4a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z','M12 7v8','M5 15v-2a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v2','M3.5 15h3a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-3a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1z','M10.5 15h3a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-3a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1z','M17.5 15h3a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-3a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1z'],
+  calculadora: ['M6 2h12a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z','M8 6h8','M16 14v4','M16 10h.01','M12 10h.01','M8 10h.01','M12 14h.01','M8 14h.01','M12 18h.01','M8 18h.01'],
+  matraz: ['M14 2v6a2 2 0 0 0 .245.96l5.51 10.08A2 2 0 0 1 18 22H6a2 2 0 0 1-1.755-2.96l5.51-10.08A2 2 0 0 0 10 8V2','M6.453 15h11.094','M8.5 2h7'],
+  apreton: ['m11 17 2 2a1 1 0 1 0 3-3','m14 14 2.5 2.5a1 1 0 1 0 3-3l-3.88-3.88a3 3 0 0 0-4.24 0l-.88.88a1 1 0 1 1-3-3l2.81-2.81a5.79 5.79 0 0 1 7.06-.87l.47.28a2 2 0 0 0 1.42.25L21 4','m21 3 1 11h-2','M3 3 2 14l6.5 6.5a1 1 0 1 0 3-3','M3 4h8'],
+  engranaje: ['M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z','M9 12a3 3 0 1 0 6 0a3 3 0 1 0-6 0z'],
+  birrete: ['M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z','M22 10v6','M6 12.5V16a6 3 0 0 0 12 0v-3.5'],
+  candado: ['M5 11h14a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2z','M7 11V7a5 5 0 0 1 9.9-1'],
+  mapa: ['M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z','M15 5.764v15','M9 3.236v15'],
+  lista: ['M8 6h13','M8 12h13','M8 18h13','M3 6h.01','M3 12h.01','M3 18h.01'],
+  calendario: ['M8 2v4','M16 2v4','M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z','M3 10h18','M8 14h.01','M12 14h.01','M16 14h.01','M8 18h.01','M12 18h.01','M16 18h.01'],
+  anillo: ['M21 12a9 9 0 1 1-9-9','M21 12a9 9 0 0 0-9-9','M12 7v5l3 2'],
+  flecha: ['M5 12h14','m12 5 7 7-7 7'],
+  siguiente: ['m9 18 6-6-6-6'],
+  lupa: ['M11 4a7 7 0 1 0 0 14a7 7 0 1 0 0-14z','m20 20-4-4'],
+  reloj: ['M12 2a10 10 0 1 0 0 20a10 10 0 1 0 0-20z','M12 6v6l4 2'],
+  pin: ['M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0','M12 7a3 3 0 1 0 0 6a3 3 0 1 0 0-6z'],
+};
+const ico = (n, tam = 20, gr = 1.5, extra = '') => `<svg class="i" width="${tam}" height="${tam}" viewBox="0 0 24 24" stroke-width="${gr * 24 / tam}" ${extra}>${P[n].map(d => `<path d="${d}"/>`).join('')}</svg>`;
+
+const barraSistema = () => `<div class="sis"><span>9:41</span><span class="der">
+  <svg width="17" height="11" viewBox="0 0 17 11"><g fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="1"/><rect x="4.5" y="5" width="3" height="6" rx="1"/><rect x="9" y="2.5" width="3" height="8.5" rx="1"/><rect x="13.5" y="0" width="3" height="11" rx="1"/></g></svg>
+  <svg width="25" height="12" viewBox="0 0 25 12"><rect x=".5" y=".5" width="21" height="11" rx="3.5" fill="none" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="15" height="8" rx="2" fill="currentColor"/><rect x="23" y="4" width="1.5" height="4" rx=".75" fill="currentColor" opacity=".4"/></svg></span></div>`;
+
+/* ---------- La silueta del pensum: un punto por materia, columna por semestre ---------- */
+function silueta(sil, { paso = 9, r = 2.6, aprob = 4, curso = 5, cursando = 2, color = '#fff', apag = 'rgb(255 255 255 / .28)', insc = null } = {}) {
+  const alto = Math.max(...sil) * paso;
+  let s = `<svg width="${sil.length * paso * 1.35}" height="${alto}" viewBox="0 0 ${sil.length * paso * 1.35} ${alto}" style="display:block;overflow:visible">`;
+  sil.forEach((n, i) => {
+    for (let j = 0; j < n; j++) {
+      const x = i * paso * 1.35 + r + 1, y = j * paso + r + 1;
+      if (i < aprob) s += `<circle cx="${x}" cy="${y}" r="${r}" fill="${color}"/>`;
+      else if (i === curso - 1 && j < cursando) s += `<circle cx="${x}" cy="${y}" r="${r - .6}" fill="none" stroke="${color}" stroke-width="1.3"/>`;
+      else if (insc && ((i === curso - 1) || (i === curso && j < 2))) s += `<circle cx="${x}" cy="${y}" r="${r}" fill="${insc}"/>`;
+      else s += `<circle cx="${x}" cy="${y}" r="${r * .8}" fill="${apag}"/>`;
+    }
+  });
+  return s + '</svg>';
+}
+
+/* El anillo de avance, como los de Actividad */
+function anillo(pct, tam = 76, gr = 8, color = '#fff', pista = 'rgb(255 255 255 / .22)') {
+  const r = (tam - gr) / 2, c = 2 * Math.PI * r;
+  return `<svg width="${tam}" height="${tam}" viewBox="0 0 ${tam} ${tam}" style="display:block;transform:rotate(-90deg)">
+    <circle cx="${tam/2}" cy="${tam/2}" r="${r}" fill="none" stroke="${pista}" stroke-width="${gr}"/>
+    <circle cx="${tam/2}" cy="${tam/2}" r="${r}" fill="none" stroke="${color}" stroke-width="${gr}" stroke-linecap="round" stroke-dasharray="${c * pct} ${c}"/></svg>`;
+}
+
+const tuya = CARRERAS[0];
+const grad = (k, claro) => {
+  const c = claro ? k.cla : k.osc;
+  return `--c1:color-mix(in srgb, ${c} 88%, #fff); --c2:${claro ? c : `color-mix(in srgb, ${c} 70%, #000)`}; --c3:color-mix(in srgb, ${c} 45%, #000);`;
+};
+
+/* ============ A · Resumen ============ */
+function modeloA(claro, desplazada = false) {
+  const col = k => claro ? k.cla : k.osc;
+  return `<div class="tel ${claro ? 'cla' : 'osc'}">${barraSistema()}
+  ${desplazada ? `<div class="vidrio-sup"><span class="fila-t">Buenas tardes</span></div>` : ''}
+  <div class="cont" style="${desplazada ? 'top:-300px' : ''}">
+    <div class="top">
+      <span class="rot">Lunes 9 de noviembre</span>
+      <span class="boton-r">${ico('engranaje', 20)}</span>
+    </div>
+    <div class="titular" style="margin-top:-4px">Buenas tardes</div>
+
+    <div class="heroe" style="${grad(tuya, claro)} margin-top:16px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div>
+          <div class="tecla">${ico('consola', 24)}</div>
+          <div class="rot" style="color:rgb(255 255 255 / .75);margin-top:14px">Ingeniería</div>
+          <div class="titulo" style="margin-top:2px">Sistemas</div>
+        </div>
+        <div style="position:relative;width:84px;height:84px">
+          ${anillo(.41, 84, 9)}
+          <div class="cifra" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:24px;line-height:28px;font-weight:300;letter-spacing:-.02em">41<span style="font-size:12px;opacity:.75;margin:6px 0 0 1px">%</span></div>
+        </div>
+      </div>
+      <div style="margin-top:14px">${silueta(tuya.sil, { paso: 8, r: 2.3, insc: claro ? null : null })}</div>
+      <div style="display:flex;gap:8px;margin-top:16px">
+        <span class="chip-v">Semestre 5</span><span class="chip-v">54 / 132 UC</span>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:16px">
+        <div class="btn blanco" style="flex:1">Seguir donde ibas ${ico('flecha', 18)}</div>
+        <div class="btn vidrio">${ico('calendario', 20)}</div>
+      </div>
+    </div>
+
+    <div class="dos" style="margin-top:12px">
+      <div class="tarj mini">
+        <span class="pas">${ico('birrete', 18)}</span>
+        <div><div class="cifra f24">Dic 2029</div><div class="nota mt4">Te gradúas</div></div>
+      </div>
+      <div class="tarj mini">
+        <span class="pas azul">${ico('candado', 18)}</span>
+        <div><div class="cifra f24" style="color:var(--azul)">6 <span style="font-size:15px">materias</span></div><div class="nota mt4">Puedes inscribir</div></div>
+      </div>
+    </div>
+
+    <div class="accesos" style="margin-top:24px">
+      ${[['mapa','Mapa'],['lista','Por hacer'],['calendario','Horario'],['anillo','Progreso']].map(([i, t]) => `<div class="acc"><div class="boton">${ico(i, 22)}</div><span>${t}</span></div>`).join('')}
+    </div>
+
+    <div class="cabsec" style="margin-top:28px"><span class="encab">Las nueve carreras</span><span class="ver">UDO Monagas</span></div>
+    <div class="nueve">
+      ${CARRERAS.map(k => `<div class="app ${k === tuya ? 'tuya' : ''}" style="--c:${col(k)}"><div class="icono">${ico(k.ic, 28)}</div><div class="nom">${k.corto}</div></div>`).join('')}
+    </div>
+  </div>
+  <div class="fundido"></div><div class="gestos"></div></div>`;
+}
+
+/* ============ B · Hoy ============ */
+function modeloB() {
+  const otras = CARRERAS.slice(1);
+  return `<div class="tel osc">${barraSistema()}
+  <div class="cont">
+    <div class="top">
+      <span class="rot">Lunes 9 nov · Semestre 5</span>
+      <span class="boton-r">${ico('engranaje', 20)}</span>
+    </div>
+    <div class="titular" style="margin-top:-4px">Hoy</div>
+
+    <div class="heroe" style="${grad(tuya)} margin-top:16px;padding:0;height:252px">
+      <div style="position:absolute;right:18px;bottom:22px;opacity:.95">${silueta(tuya.sil, { paso: 11.5, r: 3.3, apag: 'rgb(255 255 255 / .22)' })}</div>
+      <div style="padding:20px">
+        <div style="display:flex;align-items:center;gap:10px"><div class="tecla" style="width:36px;height:36px;border-radius:11px">${ico('consola', 20)}</div><span class="rot" style="color:rgb(255 255 255 / .8)">Tu carrera</span></div>
+        <div class="titulo" style="margin-top:14px">Ingeniería<br>de Sistemas</div>
+        <div class="cifra c40" style="margin-top:8px">41<span class="u">%</span></div>
+      </div>
+      <div style="position:absolute;left:20px;bottom:20px"><div class="btn blanco" style="height:44px;padding:0 18px;font-size:14px">Abrir el mapa ${ico('flecha', 16)}</div></div>
+    </div>
+
+    <div class="rot" style="margin:24px 4px 8px">Siguiente clase</div>
+    <div class="tarj clase" style="--c:${tuya.osc}">
+      <div class="barra"></div>
+      <div style="flex:1;min-width:0">
+        <div class="fila-t">Estadística II</div>
+        <div class="nota mt4" style="display:flex;gap:12px"><span style="display:flex;gap:4px;align-items:center">${ico('reloj', 13)} 10:00 – 11:40</span><span style="display:flex;gap:4px;align-items:center">${ico('pin', 13)} Aula 12</span></div>
+      </div>
+      <div style="text-align:right"><div class="cifra" style="font-size:20px;font-weight:300;line-height:24px">en 25</div><div class="nota">min</div></div>
+    </div>
+
+    <div class="cabsec" style="margin-top:24px"><span class="encab">Explora las carreras</span><span class="ver">Ver las 9</span></div>
+    <div class="carrusel">
+      ${otras.slice(0, 3).map(k => `<div class="cartel" style="--c:${k.osc}">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start"><div class="tecla">${ico(k.ic, 20)}</div><span class="nota" style="color:rgb(255 255 255 / .75)">${k.mat} mat.</span></div>
+        <div style="opacity:.9">${silueta(k.sil, { paso: 6, r: 1.6, aprob: 0, curso: 0, apag: 'rgb(255 255 255 / .55)' })}</div>
+        <div><div class="rot" style="color:rgb(255 255 255 / .7)">${k.tipo}</div><div class="encab" style="font-weight:400">${k.corto}</div></div>
+      </div>`).join('')}
+    </div>
+  </div>
+  <div class="fundido"></div><div class="gestos"></div></div>`;
+}
+
+/* ============ C · Ordenada ============ */
+function modeloC() {
+  const ing = CARRERAS.filter(k => k.tipo === 'Ingeniería' && k !== tuya), lic = CARRERAS.filter(k => k.tipo === 'Licenciatura');
+  const renglones = l => l.map(k => `<div class="renglon" style="--c:${k.osc}"><span class="ic">${ico(k.ic, 18)}</span><span class="nm">${k.corto}</span><span class="dt">${k.mat}</span><span style="color:var(--apagada)">${ico('siguiente', 16)}</span></div>`).join('');
+  return `<div class="tel osc">${barraSistema()}
+  <div class="cont">
+    <div class="top"><span></span><span class="boton-r">${ico('engranaje', 20)}</span></div>
+    <div class="titular" style="margin-top:-6px">Mapa de Pensum</div>
+    <div class="buscar" style="margin-top:12px">${ico('lupa', 18)} Busca una materia o carrera</div>
+
+    <div class="heroe" style="${grad(tuya)} margin-top:16px;padding:16px 16px 14px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div class="tecla">${ico('consola', 24)}</div>
+        <div style="flex:1;min-width:0"><div class="encab" style="font-weight:400;font-size:19px">Ingeniería de Sistemas</div><div class="nota" style="color:rgb(255 255 255 / .75)">Semestre 5 · 2 cursando</div></div>
+        ${ico('siguiente', 18)}
+      </div>
+      <div style="height:6px;border-radius:3px;background:rgb(255 255 255 / .22);margin-top:16px;overflow:hidden"><div style="width:41%;height:100%;border-radius:3px;background:#fff"></div></div>
+      <div class="metricas" style="margin-top:14px">
+        <div><div class="cifra" style="font-size:22px;line-height:26px;font-weight:300">41<span style="font-size:12px;opacity:.75">%</span></div><div class="nota" style="color:rgb(255 255 255 / .75)">Avance</div></div>
+        <div><div class="cifra" style="font-size:22px;line-height:26px;font-weight:300">6</div><div class="nota" style="color:rgb(255 255 255 / .75)">Por inscribir</div></div>
+        <div><div class="cifra" style="font-size:22px;line-height:26px;font-weight:300">Dic 29</div><div class="nota" style="color:rgb(255 255 255 / .75)">Te gradúas</div></div>
+      </div>
+    </div>
+
+    <div class="rot" style="margin:24px 4px 8px">Ingenierías</div>
+    <div class="grupo tarj">${renglones(ing)}</div>
+    <div class="rot" style="margin:24px 4px 8px">Licenciaturas</div>
+    <div class="grupo tarj">${renglones(lic)}</div>
+  </div>
+  <div class="fundido"></div><div class="gestos"></div></div>`;
+}
+
+const ops = [
+  ['A · Resumen', true, 'Como la pestaña Resumen de Salud o Actividad. Saludo grande con la fecha, <b>tu carrera en una tarjeta de su color</b> con el anillo de avance y la silueta del pensum, dos cifras en tarjetas cortas, cuatro accesos rápidos y <b>las nueve carreras como iconos de app</b> (3 × 3, la tuya con un aro).', modeloA(false)],
+  ['B · Hoy', false, 'Como la pestaña Hoy de la App Store. Tu carrera ocupa una tarjeta grande con la <b>silueta en gran tamaño</b> como ilustración; debajo, <b>la siguiente clase</b> sacada del horario, y las demás carreras en un carrusel de carteles con su color y su silueta.', modeloB()],
+  ['C · Ordenada', false, 'Como Ajustes o Música de iPhone. Título grande, <b>buscador</b>, una tarjeta compacta con barra de avance y tres cifras, y las carreras en <b>lista agrupada</b> (Ingenierías y Licenciaturas) con su icono en una tecla de color y el número de materias.', modeloC()],
+  ['A · en claro, al deslizar', false, 'La misma pantalla en claro y desplazada: las tarjetas pasan a blanco con sombra suave (como iOS), la tarjeta héroe toma el color claro de la carrera y el saludo se encoge a una barra de vidrio arriba. Aquí se ven <b>las nueve carreras enteras</b>, sin flechas ni texto de más.', modeloA(true, true)],
+];
+document.getElementById('fila').innerHTML = ops.map(([t, rec, p, tel]) => `<div class="op"><h3>${t}${rec ? ' <span class="sello">Recomendada</span>' : ''}</h3><p>${p}</p>${tel}</div>`).join('');
+</script>
+</body>
+</html>
