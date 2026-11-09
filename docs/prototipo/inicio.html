@@ -7,14 +7,14 @@
 <title>Mapa de Pensum · Inicio</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,200..600&family=Jost:wght@300&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@200..700&display=swap" rel="stylesheet">
 <style>
-/* Minimalista: fondo plano, una superficie, una acción. El color de la carrera solo en su icono y su barra. */
+/* Minimalista: fondo plano, una superficie, una acción. Una sola familia (Geist). El color de la carrera solo en su icono y su anillo. */
 :root {
   --fondo: #000000; --superficie: #141416; --linea: rgb(255 255 255 / .07);
   --tinta: #F5F5F7; --tenue: #8E8E93; --apagada: #48484A;
-  --display: 'Jost', 'Avenir Next', system-ui, sans-serif;
-  --texto: 'Inter', system-ui, -apple-system, Roboto, sans-serif;
+  --display: 'Geist', -apple-system, 'SF Pro Display', system-ui, sans-serif;
+  --texto: 'Geist', -apple-system, 'SF Pro Text', system-ui, Roboto, sans-serif;
   --resorte: cubic-bezier(.2, .9, .25, 1.1);
   color-scheme: dark;
 }
@@ -34,26 +34,45 @@ button:focus-visible { outline: 2px solid var(--tenue); outline-offset: 3px; }
 
 .ph { width: var(--s, 22px); height: var(--s, 22px); display: block; flex: none; }
 .nota { font: 400 13px/18px var(--texto); color: var(--tenue); font-variant-numeric: tabular-nums; }
-.rot { font: 500 13px/18px var(--texto); color: var(--tenue); padding: 0 4px 8px; }
+.rot { font: 650 20px/26px var(--display); letter-spacing: -.03em; color: var(--tinta); padding: 0 4px 12px; }
 .pulsable { transition: transform .3s var(--resorte), opacity .2s; }
 .pulsable:active { transform: scale(.97); opacity: .85; transition-duration: .1s; }
 
 /* Cabecera */
-.cabecera { display: flex; align-items: center; justify-content: space-between; gap: 12px; height: 44px; }
-.cabecera h1 { font: 300 32px/36px var(--display); letter-spacing: -.02em; }
+.cabecera { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; padding-top: 8px; }
+.fecha { font: 500 13px/18px var(--texto); color: var(--tenue); letter-spacing: -.005em; }
+.cabecera h1 { font: 650 32px/38px var(--display); letter-spacing: -.035em; margin-top: 2px; }
 .circulo { width: 40px; height: 40px; border-radius: 20px; display: grid; place-items: center; background: var(--superficie); flex: none; --s: 20px; }
 
 /* Tu carrera */
-.tarjeta { margin-top: 24px; padding: 20px; border-radius: 24px; background: var(--superficie); }
+.tarjeta { margin-top: 20px; padding: 20px; border-radius: 28px; background: var(--superficie); }
+.app.claro .tarjeta, .app.claro .lista, .app.claro .datos { box-shadow: 0 1px 2px rgb(0 0 0 / .04), 0 8px 24px -12px rgb(0 0 0 / .08); }
 .ident { display: flex; align-items: center; gap: 12px; }
 .icono { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; color: var(--k); background: color-mix(in srgb, var(--k) 14%, transparent); flex: none; }
-.ident b { display: block; font: 500 17px/22px var(--texto); letter-spacing: -.015em; }
+.ident { justify-content: flex-start; }
+.ident b { display: block; font: 600 17px/22px var(--texto); letter-spacing: -.02em; }
+.ident .nota { display: block; }
+/* El anillo, como los de Actividad: trazo redondo, se dibuja al entrar y la cifra sube con él */
+.anillo { position: relative; width: 196px; height: 196px; margin: 28px auto 0; }
+.anillo svg { width: 100%; height: 100%; transform: rotate(-90deg); overflow: visible; }
+.anillo .pista { stroke: var(--linea); }
+.anillo .arco { stroke: var(--k); transition: stroke-dashoffset 1.4s cubic-bezier(.25, .8, .25, 1); filter: drop-shadow(0 0 10px color-mix(in srgb, var(--k) 35%, transparent)); }
+.app.claro .anillo .arco { filter: none; }
+.centro { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.pct { font: 250 60px/1 var(--display); letter-spacing: -.055em; font-variant-numeric: tabular-nums; display: flex; align-items: flex-start; }
+.pct small { font: 400 22px/1 var(--display); letter-spacing: -.02em; color: var(--tenue); margin: 7px 0 0 3px; }
+.centro .nota { margin-top: 6px; }
+.hechos { display: grid; grid-template-columns: 1fr 1fr; margin-top: 28px; }
+.hechos > div { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.hechos > div + div { border-left: 1px solid var(--linea); }
+.hechos b { font: 500 20px/26px var(--texto); letter-spacing: -.025em; font-variant-numeric: tabular-nums; }
+.hechos b span { color: var(--tenue); font-weight: 400; }
 .grande { font: 200 64px/1 var(--texto); font-variation-settings: 'opsz' 32; letter-spacing: -.04em; font-variant-numeric: tabular-nums; margin-top: 28px; }
 .grande small { font-size: 24px; font-weight: 300; color: var(--tenue); letter-spacing: 0; margin-left: 2px; }
 .barra { height: 4px; border-radius: 2px; background: var(--linea); margin-top: 16px; overflow: hidden; }
 .barra i { display: block; height: 100%; width: var(--p); border-radius: 2px; background: var(--k); transform-origin: left; animation: llena .9s cubic-bezier(.2, .8, .2, 1) .15s backwards; }
 @keyframes llena { from { transform: scaleX(0); } }
-.boton { width: 100%; height: 52px; border-radius: 26px; display: grid; place-items: center; margin-top: 24px; font: 500 16px/20px var(--texto); letter-spacing: -.01em; background: var(--tinta); color: var(--fondo); text-align: center; }
+.boton { width: 100%; height: 54px; border-radius: 27px; display: grid; place-items: center; margin-top: 24px; font: 600 16px/20px var(--texto); letter-spacing: -.01em; background: var(--tinta); color: var(--fondo); text-align: center; }
 .boton.sec { background: transparent; color: var(--tinta); margin-top: 8px; }
 
 /* Lista */
@@ -63,16 +82,17 @@ button:focus-visible { outline: 2px solid var(--tenue); outline-offset: 3px; }
 .fila:active { background: var(--linea); }
 .fila + .fila::before { content: ''; position: absolute; top: 0; left: 62px; right: 0; height: 1px; background: var(--linea); }
 .fila .icono { width: 36px; height: 36px; border-radius: 10px; --s: 20px; }
-.fila .nm { flex: 1; min-width: 0; font: 400 16px/20px var(--texto); letter-spacing: -.012em; }
+.fila .nm { flex: 1; min-width: 0; font: 500 16px/20px var(--texto); letter-spacing: -.02em; }
+.fila .nm .nota { display: block; font-weight: 400; letter-spacing: -.005em; }
 .fila > .ph:last-child { color: var(--apagada); --s: 16px; }
 
 /* Ficha */
 .atras { margin-bottom: 28px; }
-.ficha-nombre { font: 300 34px/38px var(--display); letter-spacing: -.02em; margin-top: 20px; text-wrap: balance; }
+.ficha-nombre { font: 650 34px/40px var(--display); letter-spacing: -.035em; margin-top: 20px; text-wrap: balance; }
 .datos { display: grid; grid-template-columns: repeat(3, 1fr); margin-top: 24px; padding: 18px 0; border-radius: 20px; background: var(--superficie); }
 .datos > div { padding: 0 18px; }
 .datos > div + div { border-left: 1px solid var(--linea); }
-.datos b { display: block; font: 300 26px/30px var(--texto); letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.datos b { display: block; font: 300 28px/32px var(--display); letter-spacing: -.04em; font-variant-numeric: tabular-nums; }
 
 /* Barra inferior */
 .barra-inf { position: absolute; z-index: 10; left: 50%; bottom: calc(env(safe-area-inset-bottom) + 16px); transform: translateX(-50%); display: flex; padding: 4px; border-radius: 30px; background: color-mix(in srgb, var(--superficie) 82%, transparent); -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px); box-shadow: 0 0 0 1px var(--linea), 0 10px 30px -10px rgb(0 0 0 / .5); transition: transform .35s cubic-bezier(.2, .8, .2, 1), opacity .25s; }
@@ -85,7 +105,7 @@ button:focus-visible { outline: 2px solid var(--tenue); outline-offset: 3px; }
 .velo.on { opacity: 1; pointer-events: auto; }
 .hoja { position: absolute; z-index: 21; left: 8px; right: 8px; bottom: calc(env(safe-area-inset-bottom) + 8px); padding: 22px 16px 16px; border-radius: 28px; background: var(--superficie); transform: translateY(115%); transition: transform .4s cubic-bezier(.2, .8, .2, 1); }
 .hoja.on { transform: none; }
-.hoja h2 { font: 300 24px/28px var(--display); padding: 0 4px 16px; }
+.hoja h2 { font: 650 22px/28px var(--display); letter-spacing: -.03em; padding: 0 4px 16px; }
 .segmento { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; border-radius: 14px; background: var(--fondo); }
 .segmento button { height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; font: 500 14px/18px var(--texto); color: var(--tenue); --s: 18px; }
 .segmento button[aria-pressed="true"] { background: var(--superficie); color: var(--tinta); box-shadow: 0 1px 3px rgb(0 0 0 / .15); }
@@ -102,7 +122,7 @@ button:focus-visible { outline: 2px solid var(--tenue); outline-offset: 3px; }
 
   <main class="vista" id="inicio">
     <header class="cabecera">
-      <h1 id="saludo">Hola</h1>
+      <div><div class="fecha" id="fecha"></div><h1 id="saludo">Hola</h1></div>
       <button class="circulo pulsable" id="ajustes" aria-label="Ajustes"><svg class="ph" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path fill="currentColor" d="M128 80a48 48 0 1 0 48 48a48.05 48.05 0 0 0-48-48m0 80a32 32 0 1 1 32-32a32 32 0 0 1-32 32m109.94-52.79a8 8 0 0 0-3.89-5.4l-29.83-17l-.12-33.62a8 8 0 0 0-2.83-6.08a111.9 111.9 0 0 0-36.72-20.67a8 8 0 0 0-6.46.59L128 41.85L97.88 25a8 8 0 0 0-6.47-.6a112.1 112.1 0 0 0-36.68 20.75a8 8 0 0 0-2.83 6.07l-.15 33.65l-29.83 17a8 8 0 0 0-3.89 5.4a106.5 106.5 0 0 0 0 41.56a8 8 0 0 0 3.89 5.4l29.83 17l.12 33.62a8 8 0 0 0 2.83 6.08a111.9 111.9 0 0 0 36.72 20.67a8 8 0 0 0 6.46-.59L128 214.15L158.12 231a7.9 7.9 0 0 0 3.9 1a8.1 8.1 0 0 0 2.57-.42a112.1 112.1 0 0 0 36.68-20.73a8 8 0 0 0 2.83-6.07l.15-33.65l29.83-17a8 8 0 0 0 3.89-5.4a106.5 106.5 0 0 0-.03-41.52m-15 34.91l-28.57 16.25a8 8 0 0 0-3 3c-.58 1-1.19 2.06-1.81 3.06a7.94 7.94 0 0 0-1.22 4.21l-.15 32.25a95.9 95.9 0 0 1-25.37 14.3L134 199.13a8 8 0 0 0-3.91-1h-3.83a8.1 8.1 0 0 0-4.1 1l-28.84 16.1A96 96 0 0 1 67.88 201l-.11-32.2a8 8 0 0 0-1.22-4.22c-.62-1-1.23-2-1.8-3.06a8.1 8.1 0 0 0-3-3.06l-28.6-16.29a90.5 90.5 0 0 1 0-28.26l28.52-16.28a8 8 0 0 0 3-3c.58-1 1.19-2.06 1.81-3.06a7.94 7.94 0 0 0 1.22-4.21l.15-32.25a95.9 95.9 0 0 1 25.37-14.3L122 56.87a8 8 0 0 0 4.1 1h3.64a8.1 8.1 0 0 0 4.1-1l28.84-16.1A96 96 0 0 1 188.12 55l.11 32.2a8 8 0 0 0 1.22 4.22c.62 1 1.23 2 1.8 3.06a8.1 8.1 0 0 0 3 3.06l28.6 16.29a90.5 90.5 0 0 1 .05 28.29Z"/></svg></button>
     </header>
     <div id="mia"></div>
@@ -156,19 +176,31 @@ const color = c => estado.claro ? c.cla : c.osc;
 const toque = () => { try { navigator.vibrate && navigator.vibrate(6); } catch (e) {} };
 const pasar = f => (document.startViewTransition && !matchMedia('(prefers-reduced-motion: reduce)').matches) ? document.startViewTransition(f) : f();
 
+const C = +(2 * Math.PI * 88).toFixed(1);
+function animarAnillo(p) {
+  const arco = document.getElementById('arco'), num = document.getElementById('pct');
+  const reducido = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  requestAnimationFrame(() => requestAnimationFrame(() => { arco.style.strokeDashoffset = C * (1 - p / 100); }));
+  if (reducido || !p) { num.textContent = p; return; }
+  const t0 = performance.now(), dur = 1400, ease = t => 1 - Math.pow(1 - t, 3);
+  const paso = t => { const x = Math.min(1, (t - t0) / dur); num.textContent = Math.round(p * ease(x)); if (x < 1) requestAnimationFrame(paso); };
+  requestAnimationFrame(paso);
+}
 function pintar() {
+  document.getElementById('fecha').textContent = new Date().toLocaleDateString('es', { weekday: 'long', day: 'numeric', month: 'long' }).replace(/^./, c => c.toUpperCase());
   const h = new Date().getHours();
   document.getElementById('saludo').textContent = h < 12 ? 'Buenos días' : h < 19 ? 'Buenas tardes' : 'Buenas noches';
   const c = k(estado.mia), ejemplo = c.slug === 'sistemas';
   document.getElementById('mia').innerHTML = `<button class="tarjeta pulsable" style="--k:${color(c)};display:block;width:100%" data-slug="${c.slug}">
     <div class="ident"><span class="icono">${ico(c.ic)}</span><div><b>${c.corto}</b><span class="nota">${c.tipo}</span></div></div>
-    <div class="grande">${ejemplo ? 41 : 0}<small>%</small></div>
-    <div class="nota" style="margin-top:8px">${ejemplo ? 'Semestre 5 de 10 · terminas en Dic 2029' : 'Marca lo que ya aprobaste'}</div>
-    <div class="barra"><i style="--p:${ejemplo ? 41 : 0}%"></i></div>
+    <div class="anillo"><svg viewBox="0 0 196 196" aria-hidden="true"><circle class="pista" cx="98" cy="98" r="88" fill="none" stroke-width="14"/><circle class="arco" id="arco" cx="98" cy="98" r="88" fill="none" stroke-width="14" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${C}"/></svg>
+      <div class="centro"><div class="pct"><span id="pct">0</span><small>%</small></div><span class="nota">${ejemplo ? 'de la carrera' : 'Marca lo aprobado'}</span></div></div>
+    <div class="hechos"><div><b>${ejemplo ? '5 <span>/ 10</span>' : '1 <span>/ 10</span>'}</b><span class="nota">Semestre</span></div><div><b>${ejemplo ? 'Dic 2029' : '—'}</b><span class="nota">Te gradúas</span></div></div>
     <span class="boton" data-aviso="${ejemplo ? 'Abre tu mapa donde lo dejaste' : 'Abre tu mapa para empezar'}">${ejemplo ? 'Seguir donde ibas' : 'Empezar'}</span>
   </button>`;
+  animarAnillo(ejemplo ? 41 : 0);
   document.getElementById('lista').innerHTML = CARRERAS.filter(c => c.slug !== estado.mia).map(c =>
-    `<button class="fila" data-slug="${c.slug}" style="--k:${color(c)}"><span class="icono">${ico(c.ic)}</span><span class="nm">${c.corto}</span>${ico('caret-right')}</button>`).join('');
+    `<button class="fila" data-slug="${c.slug}" style="--k:${color(c)}"><span class="icono">${ico(c.ic)}</span><span class="nm">${c.corto}<span class="nota">${c.mat} materias</span></span>${ico('caret-right')}</button>`).join('');
 }
 function ficha(c) {
   const f = document.getElementById('ficha'), mia = c.slug === estado.mia;
