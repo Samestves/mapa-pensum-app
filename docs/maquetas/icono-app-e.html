@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8"><title>Icono de la app · estilo plano de metro</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#E6E7E9;font-family:system-ui,sans-serif;padding:48px;color:#050608}
+h1{font-weight:300;font-size:36px;letter-spacing:-.01em}
+p{font-size:15px;line-height:22px;color:#34383E;margin-top:10px;max-width:940px}
+.fila{display:flex;gap:40px;margin-top:40px}
+.op{width:300px}
+.op h3{font-size:15px;font-weight:600;margin-bottom:4px}
+.op p{font-size:13px;line-height:18px;margin:0 0 16px;min-height:90px}
+.grande svg{width:300px;height:300px;display:block;border-radius:68px;box-shadow:0 24px 48px -20px rgb(0 0 0/.45)}
+.tira{display:flex;gap:16px;align-items:center;margin-top:20px;padding:16px;border-radius:20px;background:linear-gradient(135deg,#27364f,#5a4a6b)}
+.tira svg{border-radius:23%;display:block}
+.tira.clara{background:linear-gradient(135deg,#dfe6ee,#f3e9df)}
+</style></head><body>
+<h1>Icono de la app · la Limpia, con materias y cable</h1>
+<p>Sobre la Limpia: el cable pasa a ser una línea plana con tramos rectos y a 45°, y las paradas son blancas con contorno azul. La meta es la única rellena.</p>
+<div class="fila" id="fila"></div>
+<script>
+let n=0;const AZ='#2751CC',CL='#6699FF';
+const C=[[166,326],[256,256],[346,186]];
+const linea=`M${C[0][0]} ${C[0][1]}H${C[0][0]+10}L${C[1][0]-10} ${C[1][1]}H${C[1][0]+10}L${C[2][0]-10} ${C[2][1]}H${C[2][0]}`;
+function icono(v,t){const k='e'+(n++);
+ return `<svg viewBox="0 0 512 512" ${t?`width="${t}" height="${t}"`:''}><defs>
+ <linearGradient id="f${k}" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#1d2026"/><stop offset="1" stop-color="#040405"/></linearGradient>
+ <radialGradient id="l${k}" cx=".5" cy="0" r=".9"><stop stop-color="#6699FF" stop-opacity=".24"/><stop offset="1" stop-color="#6699FF" stop-opacity="0"/></radialGradient>
+ <linearGradient id="a${k}" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#FFFFFF"/><stop offset="1" stop-color="#E9EDF3"/></linearGradient>
+ <linearGradient id="b${k}" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#D5DAE3"/><stop offset="1" stop-color="#BFC6D2"/></linearGradient>
+ <linearGradient id="r${k}" gradientUnits="userSpaceOnUse" x1="166" y1="326" x2="346" y2="186"><stop stop-color="#1F3FA6"/><stop offset="1" stop-color="${CL}"/></linearGradient>
+ <filter id="s${k}" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="14" stdDeviation="14" flood-color="#000" flood-opacity=".55"/></filter></defs>
+ <rect width="512" height="512" fill="url(#f${k})"/><rect width="512" height="512" fill="url(#l${k})"/>
+ <g filter="url(#s${k})" stroke-linejoin="round" stroke-width="14">
+  <path d="M116 158 206 124V362L116 396Z" fill="url(#a${k})" stroke="url(#a${k})"/>
+  <path d="M206 124 306 158V396L206 362Z" fill="url(#b${k})" stroke="url(#b${k})"/>
+  <path d="M306 158 396 124V362L306 396Z" fill="url(#a${k})" stroke="url(#a${k})"/></g>
+ ${v(k)}</svg>`;}
+const cable=(col,g=13)=>`<path d="${linea}" fill="none" stroke="${col}" stroke-width="${g}" stroke-linecap="round" stroke-linejoin="round"/>`;
+const parada=([x,y],llena,col=AZ)=>`<circle cx="${x}" cy="${y}" r="17" fill="${llena?col:'#fff'}" stroke="${col}" stroke-width="9"/>`;
+const tarjeta=([x,y],llena,col=AZ)=>`<rect x="${x-29}" y="${y-16}" width="58" height="32" rx="10" fill="${llena?col:'#fff'}" stroke="${col}" stroke-width="8"/>`;
+const OPS=[
+ ['1 · Paradas','Como un plano de metro: línea plana con codos a 45° y paradas blancas con contorno. La meta va rellena. La más simple de las tres.',
+  k=>cable(AZ)+parada(C[0])+parada(C[1])+parada(C[2],1)],
+ ['2 · Materias','Las paradas pasan a ser tarjetas, como las materias del mapa de la app, unidas por su cable. Es la que más se parece a lo tuyo.',
+  k=>cable(AZ)+tarjeta(C[0])+tarjeta(C[1])+tarjeta(C[2],1)],
+ ['3 · Materias con degradado','La 2 con el cable y los contornos pasando de azul profundo a azul claro hacia la meta. Un punto más de riqueza, sin añadir formas.',
+  k=>cable(`url(#r${k})`)+tarjeta(C[0],0,'#1F3FA6')+tarjeta(C[1],0,'#3D68E8')+tarjeta(C[2],1,CL)],
+];
+document.getElementById('fila').innerHTML=OPS.map(([t,p,v])=>`<div class="op"><h3>${t}</h3><p>${p}</p><div class="grande">${icono(v)}</div><div class="tira">${icono(v,64)}${icono(v,48)}</div><div class="tira clara">${icono(v,64)}${icono(v,48)}</div></div>`).join('');
+</script></body></html>
