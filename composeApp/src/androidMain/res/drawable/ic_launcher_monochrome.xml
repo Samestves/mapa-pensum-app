@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generado por herramientas/icono.mjs -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="768" android:viewportHeight="768">
+    <group android:translateX="128" android:translateY="128">
+        <path android:fillColor="#FFFFFF" android:fillAlpha="0.38" android:pathData="M116,158 L206,124 V362 L116,396 Z" />
+        <path android:fillColor="#FFFFFF" android:fillAlpha="0.24" android:pathData="M206,124 L306,158 V396 L206,362 Z" />
+        <path android:fillColor="#FFFFFF" android:fillAlpha="0.38" android:pathData="M306,158 L396,124 V362 L306,396 Z" />
+        <path android:strokeColor="#FFFFFF" android:strokeWidth="14" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M152,340 L206,288 L306,248 L360,192" />
+        <path android:fillColor="#FFFFFF" android:pathData="M137,340 a15,15 0 1,0 30,0 a15,15 0 1,0 -30,0 Z" />
+        <path android:fillColor="#FFFFFF" android:pathData="M238,268 a18,18 0 1,0 36,0 a18,18 0 1,0 -36,0 Z" />
+        <path android:fillColor="#FFFFFF" android:fillType="evenOdd" android:pathData="M332,192 a28,28 0 1,0 56,0 a28,28 0 1,0 -56,0 Z M344,192 a16,16 0 1,0 32,0 a16,16 0 1,0 -32,0 Z M353,192 a7,7 0 1,0 14,0 a7,7 0 1,0 -14,0 Z" />
+    </group>
+</vector>

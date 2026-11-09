@@ -1,0 +1,3 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-128 -128 768 768"><defs>
+ <linearGradient id="fondo" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="512"><stop stop-color="#1d2026"/><stop offset="1" stop-color="#040405"/></linearGradient>
+ <radialGradient id="luz" gradientUnits="userSpaceOnUse" cx="256" cy="0" r="461"><stop stop-color="#6699FF" stop-opacity=".24"/><stop offset="1" stop-color="#6699FF" stop-opacity="0"/></radialGradient></defs><rect x="-128" y="-128" width="768" height="768" fill="url(#fondo)"/><rect x="-128" y="-128" width="768" height="768" fill="url(#luz)"/></svg>

@@ -1,4 +1,5 @@
-// Genera los vectores de la marca (rosa y nodos) a partir de los trazos de la web.
+// Genera el vector de la rosa (la marca dentro de la app) a partir de los trazos de la web.
+// El icono de la app ya no sale de aquí: lo genera herramientas/icono.mjs.
 // Uso: node herramientas/rosa.mjs "<ruta a Proyecto Pensum>"
 import { pathToFileURL } from 'node:url'
 import { writeFileSync, mkdirSync } from 'node:fs'
@@ -45,11 +46,5 @@ ${nodos ? grupo(NODOS, nodos) : ''}
 const comun = join(raiz, 'composeApp/src/commonMain/composeResources/drawable')
 const res = join(raiz, 'composeApp/src/androidMain/res')
 mkdirSync(comun, { recursive: true })
-mkdirSync(join(res, 'drawable'), { recursive: true })
-mkdirSync(join(res, 'mipmap-anydpi-v26'), { recursive: true })
-mkdirSync(join(res, 'values'), { recursive: true })
 writeFileSync(join(comun, 'rosa.xml'), vector(48, 0, '#FFECEEF1', null))
-writeFileSync(join(res, 'drawable/ic_launcher_foreground.xml'), vector(108, 335, '#FFECEEF1', '#FF5B8AF5'))
-writeFileSync(join(res, 'values/ic_launcher_background.xml'), '<?xml version="1.0" encoding="utf-8"?>\n<resources>\n    <color name="ic_launcher_background">#0B0C0E</color>\n</resources>\n')
-writeFileSync(join(res, 'mipmap-anydpi-v26/ic_launcher.xml'), '<?xml version="1.0" encoding="utf-8"?>\n<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">\n    <background android:drawable="@color/ic_launcher_background" />\n    <foreground android:drawable="@drawable/ic_launcher_foreground" />\n    <monochrome android:drawable="@drawable/ic_launcher_foreground" />\n</adaptive-icon>\n')
 console.log(JSON.stringify(NODOS.map(caja)))
