@@ -3,512 +3,221 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#050507">
+<meta name="theme-color" content="#000000">
 <title>Mapa de Pensum · Inicio</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,200..600&family=Jost:wght@300;400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,200..600&family=Jost:wght@300&display=swap" rel="stylesheet">
 <style>
-/* Plan: una portada inmersiva por carrera (campo de color + tu pensum como constelación),
-   el nombre grande sobre un fundido desenfocado, una acción, tres cifras; debajo, las nueve
-   en listas agrupadas. Cristal vivo solo en lo que flota (cabecera al deslizar, muelle, hojas). */
+/* Minimalista: fondo plano, una superficie, una acción. El color de la carrera solo en su icono y su barra. */
 :root {
-  --lienzo: #050507; --superficie: rgb(255 255 255 / .055); --filo: rgb(255 255 255 / .09);
-  --tinta: #F5F6F8; --suave: #C4C8CF; --tenue: #8E949D; --apagada: #5B616A;
-  --t: 255 255 255; --l: 5 5 7;
-  --vidrio: rgb(22 23 27 / .58);
-  --display: 'Jost', 'Futura', 'Avenir Next', system-ui, sans-serif;
-  --texto: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --resorte: cubic-bezier(.2, .9, .25, 1.15);
-  --suave-out: cubic-bezier(.2, .8, .2, 1);
+  --fondo: #000000; --superficie: #141416; --linea: rgb(255 255 255 / .07);
+  --tinta: #F5F5F7; --tenue: #8E8E93; --apagada: #48484A;
+  --display: 'Jost', 'Avenir Next', system-ui, sans-serif;
+  --texto: 'Inter', system-ui, -apple-system, Roboto, sans-serif;
+  --resorte: cubic-bezier(.2, .9, .25, 1.1);
   color-scheme: dark;
 }
-.app.claro {
-  --lienzo: #F5F5F7; --superficie: #FFFFFF; --filo: rgb(11 12 15 / .07);
-  --tinta: #0B0C0F; --suave: #3A3D43; --tenue: #6B6F76; --apagada: #A0A3A9;
-  --t: 11 12 15; --l: 245 245 247;
-  --vidrio: rgb(250 250 252 / .66);
-  color-scheme: light;
-}
+.app.claro { --fondo: #F2F2F7; --superficie: #FFFFFF; --linea: rgb(0 0 0 / .07); --tinta: #000000; --tenue: #6E6E73; --apagada: #C7C7CC; color-scheme: light; }
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-html, body { height: 100%; background: #050507; }
+html, body { height: 100%; background: #000; }
 body { font-family: var(--texto); -webkit-font-smoothing: antialiased; overflow: hidden; }
-button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
-button:focus-visible, input:focus-visible { outline: 2px solid #6094ff; outline-offset: 3px; }
+button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; text-align: left; }
+button:focus-visible { outline: 2px solid var(--tenue); outline-offset: 3px; }
 
-/* El marco: a pantalla completa en el móvil; en un escritorio, un teléfono en el centro */
-.escena { height: 100%; display: grid; place-items: center; background: radial-gradient(80% 60% at 50% 0%, #15171c, #050507); }
-.app { position: relative; width: 100%; height: 100%; overflow: hidden; background: var(--lienzo); color: var(--tinta); transition: background-color .5s; isolation: isolate; }
-@media (min-width: 560px) {
-  .app { width: 390px; height: min(844px, calc(100% - 48px)); border-radius: 48px; box-shadow: 0 0 0 10px #101114, 0 0 0 11px #2a2c31, 0 40px 80px -20px rgb(0 0 0 / .8); }
-}
-
-.vista { position: absolute; inset: 0; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; scrollbar-width: none; }
+.escena { height: 100%; display: grid; place-items: center; background: #0a0a0b; }
+.app { position: relative; width: 100%; height: 100%; overflow: hidden; background: var(--fondo); color: var(--tinta); transition: background-color .3s; }
+@media (min-width: 560px) { .app { width: 390px; height: min(844px, calc(100% - 48px)); border-radius: 48px; box-shadow: 0 0 0 10px #161618, 0 30px 60px -20px rgb(0 0 0 / .8); } }
+.vista { position: absolute; inset: 0; overflow-y: auto; padding: calc(env(safe-area-inset-top) + 20px) 16px calc(env(safe-area-inset-bottom) + 112px); scrollbar-width: none; }
 .vista::-webkit-scrollbar { display: none; }
 .vista[hidden] { display: none; }
 
-/* ============ Texto ============ */
-.rot { font: 500 11px/16px var(--texto); letter-spacing: .08em; text-transform: uppercase; color: var(--tenue); font-variant-numeric: tabular-nums; }
-.nota { font: 400 13px/18px var(--texto); letter-spacing: -.003em; color: var(--tenue); font-variant-numeric: tabular-nums; }
-
-/* ============ Iconos ============ */
 .ph { width: var(--s, 22px); height: var(--s, 22px); display: block; flex: none; }
-.ph [opacity] { opacity: .32; }
+.nota { font: 400 13px/18px var(--texto); color: var(--tenue); font-variant-numeric: tabular-nums; }
+.rot { font: 500 13px/18px var(--texto); color: var(--tenue); padding: 0 4px 8px; }
+.pulsable { transition: transform .3s var(--resorte), opacity .2s; }
+.pulsable:active { transform: scale(.97); opacity: .85; transition-duration: .1s; }
 
-/* ============ Cabecera: sin logo, el saludo y los ajustes; al deslizar se vuelve vidrio ============ */
-.cabecera { position: absolute; z-index: 30; top: 0; left: 0; right: 0; padding: calc(env(safe-area-inset-top) + 12px) 16px 10px; display: flex; align-items: center; gap: 12px; pointer-events: none; }
-.cabecera > * { pointer-events: auto; }
-.cabecera::before { content: ''; position: absolute; inset: 0; z-index: -1; background: var(--vidrio); -webkit-backdrop-filter: blur(24px) saturate(1.6); backdrop-filter: blur(24px) saturate(1.6); box-shadow: 0 1px 0 var(--filo); opacity: 0; transition: opacity .25s; }
-.cabecera.solida::before { opacity: 1; }
-.saludo { flex: 1; min-width: 0; display: flex; flex-direction: column; transition: opacity .2s; }
-.saludo b { font: 500 15px/20px var(--texto); letter-spacing: -.01em; color: var(--tinta); }
-.saludo span { font: 400 13px/16px var(--texto); color: rgb(var(--t) / .62); }
-.titulo-mini { position: absolute; left: 0; right: 0; text-align: center; font: 500 16px/20px var(--texto); letter-spacing: -.01em; opacity: 0; transform: translateY(6px); transition: opacity .25s, transform .3s var(--suave-out); pointer-events: none; }
-.cabecera.solida .titulo-mini { opacity: 1; transform: none; }
-.cabecera.solida .saludo { opacity: 0; }
-.circulo { width: 40px; height: 40px; border-radius: 20px; display: grid; place-items: center; flex: none; position: relative;
-  background: rgb(var(--t) / .1); -webkit-backdrop-filter: blur(16px) saturate(1.4); backdrop-filter: blur(16px) saturate(1.4);
-  box-shadow: inset 0 0 0 1px rgb(var(--t) / .1), inset 0 1px 0 rgb(var(--t) / .14); transition: transform .35s var(--resorte); }
-.app.claro .circulo { background: rgb(255 255 255 / .7); box-shadow: inset 0 0 0 1px rgb(var(--t) / .06), 0 1px 2px rgb(0 0 0 / .06); }
-.circulo:active, .pulsable:active { transform: scale(.94); transition-duration: .12s; }
+/* Cabecera */
+.cabecera { display: flex; align-items: center; justify-content: space-between; gap: 12px; height: 44px; }
+.cabecera h1 { font: 300 32px/36px var(--display); letter-spacing: -.02em; }
+.circulo { width: 40px; height: 40px; border-radius: 20px; display: grid; place-items: center; background: var(--superficie); flex: none; --s: 20px; }
 
-/* ============ La portada inmersiva ============ */
-.portada { position: relative; padding-top: calc(env(safe-area-inset-top) + 112px); }
-.lienzo-portada { position: absolute; inset: 0 0 auto 0; height: 470px; overflow: hidden; z-index: 0; }
-.lienzo-portada canvas { position: absolute; inset: -6%; width: 112%; height: 112%; animation: deriva 22s ease-in-out infinite alternate; }
-@keyframes deriva { to { transform: translate3d(-3%, 2%, 0) scale(1.04); } }
-.lienzo-portada::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 230px;
-  -webkit-backdrop-filter: blur(22px); backdrop-filter: blur(22px);
-  -webkit-mask-image: linear-gradient(transparent, #000 55%); mask-image: linear-gradient(transparent, #000 55%);
-  background: linear-gradient(rgb(var(--l) / 0), rgb(var(--l) / .55) 45%, rgb(var(--l) / 1)); }
-.portada-cuerpo { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; padding: 0 20px; text-align: center; }
-.tecla { display: grid; place-items: center; color: #fff; position: relative; flex: none;
-  background: radial-gradient(120% 120% at 30% 0%, color-mix(in srgb, var(--k) 100%, #fff 28%), var(--k) 45%, color-mix(in srgb, var(--k) 62%, #000));
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / .38), inset 0 0 0 1px rgb(255 255 255 / .16), inset 0 -8px 16px -8px rgb(0 0 0 / .35); }
-.tecla.grande { width: 84px; height: 84px; border-radius: 26px; --s: 44px; box-shadow: inset 0 1px 0 rgb(255 255 255 / .4), inset 0 0 0 1px rgb(255 255 255 / .18), inset 0 -12px 24px -10px rgb(0 0 0 / .35), 0 24px 48px -16px color-mix(in srgb, var(--k) 75%, transparent); }
-.tecla.grande .ph [opacity] { opacity: .5; }
-.nombre { font: 300 46px/50px var(--display); letter-spacing: -.025em; margin-top: 22px; text-wrap: balance; }
-.sub { font: 400 15px/20px var(--texto); color: var(--tenue); margin-top: 6px; }
-.acciones { display: flex; gap: 10px; width: 100%; margin-top: 24px; }
-.pildora { flex: 1; height: 52px; border-radius: 26px; display: flex; align-items: center; justify-content: center; gap: 8px; font: 500 16px/20px var(--texto); letter-spacing: -.01em; background: var(--tinta); color: var(--lienzo); transition: transform .35s var(--resorte); --s: 18px; }
-.pildora.vidrio { background: rgb(var(--t) / .1); color: var(--tinta); box-shadow: inset 0 0 0 1px rgb(var(--t) / .1); }
-.app.claro .pildora.vidrio { background: #fff; box-shadow: 0 1px 2px rgb(0 0 0 / .06), inset 0 0 0 1px rgb(var(--t) / .05); }
-.acciones .circulo { width: 52px; height: 52px; border-radius: 26px; }
-.cifras { width: 100%; display: grid; grid-template-columns: repeat(3, 1fr); margin-top: 28px; }
-.cifras > div { display: flex; flex-direction: column; align-items: center; gap: 4px; }
-.cifra { font: 300 28px/1 var(--texto); font-variation-settings: 'opsz' 32; letter-spacing: -.025em; font-variant-numeric: tabular-nums; display: inline-flex; align-items: baseline; height: 30px; }
-.cifra small { font-size: 15px; font-weight: 400; color: var(--tenue); margin-left: 2px; letter-spacing: 0; }
-/* La regla de semestres: un trazo por semestre, como una escala técnica */
-.regla { width: 100%; margin-top: 28px; padding: 16px 16px 14px; border-radius: 20px; background: var(--superficie); box-shadow: inset 0 0 0 1px var(--filo); }
-.app.claro .regla { box-shadow: 0 1px 2px rgb(0 0 0 / .04); }
-.regla-cab { display: flex; justify-content: space-between; align-items: baseline; }
-.marcas { display: grid; grid-template-columns: repeat(10, 1fr); gap: 6px; margin-top: 14px; align-items: end; }
-.marcas > i { justify-self: center; width: 4px; height: 24px; border-radius: 2px; background: rgb(var(--t) / .12); position: relative; transform-origin: bottom; animation: crece .7s var(--suave-out) backwards; }
-.marcas > i.ok { background: var(--tinta); }
-.marcas > i.va { background: linear-gradient(var(--k) var(--p), rgb(var(--t) / .12) var(--p)); background: linear-gradient(to top, var(--k) var(--p), rgb(var(--t) / .12) var(--p)); }
-.marcas > i.va::after { content: ''; position: absolute; left: 50%; top: -9px; width: 5px; height: 5px; margin-left: -2.5px; border-radius: 50%; background: var(--k); box-shadow: 0 0 8px var(--k); }
-@keyframes crece { from { transform: scaleY(.15); opacity: 0; } }
-.numeros { display: grid; grid-template-columns: repeat(10, 1fr); gap: 6px; margin-top: 8px; }
-.numeros > span { font: 500 11px/14px var(--texto); color: var(--apagada); text-align: center; font-variant-numeric: tabular-nums; }
-.numeros > span.on { color: var(--tinta); }
+/* Tu carrera */
+.tarjeta { margin-top: 24px; padding: 20px; border-radius: 24px; background: var(--superficie); }
+.ident { display: flex; align-items: center; gap: 12px; }
+.icono { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; color: var(--k); background: color-mix(in srgb, var(--k) 14%, transparent); flex: none; }
+.ident b { display: block; font: 500 17px/22px var(--texto); letter-spacing: -.015em; }
+.grande { font: 200 64px/1 var(--texto); font-variation-settings: 'opsz' 32; letter-spacing: -.04em; font-variant-numeric: tabular-nums; margin-top: 28px; }
+.grande small { font-size: 24px; font-weight: 300; color: var(--tenue); letter-spacing: 0; margin-left: 2px; }
+.barra { height: 4px; border-radius: 2px; background: var(--linea); margin-top: 16px; overflow: hidden; }
+.barra i { display: block; height: 100%; width: var(--p); border-radius: 2px; background: var(--k); transform-origin: left; animation: llena .9s cubic-bezier(.2, .8, .2, 1) .15s backwards; }
+@keyframes llena { from { transform: scaleX(0); } }
+.boton { width: 100%; height: 52px; border-radius: 26px; display: grid; place-items: center; margin-top: 24px; font: 500 16px/20px var(--texto); letter-spacing: -.01em; background: var(--tinta); color: var(--fondo); text-align: center; }
+.boton.sec { background: transparent; color: var(--tinta); margin-top: 8px; }
 
-/* El odómetro */
-.rueda { display: inline-block; height: 1em; overflow: hidden; line-height: 1; vertical-align: baseline; }
-.rueda > span { display: flex; flex-direction: column; transition: transform 1.1s var(--suave-out); }
-.rueda > span > span { height: 1em; line-height: 1; }
+/* Lista */
+.seccion { margin-top: 32px; }
+.lista { border-radius: 20px; background: var(--superficie); overflow: hidden; }
+.fila { width: 100%; min-height: 60px; display: flex; align-items: center; gap: 14px; padding: 10px 14px 10px 12px; position: relative; }
+.fila:active { background: var(--linea); }
+.fila + .fila::before { content: ''; position: absolute; top: 0; left: 62px; right: 0; height: 1px; background: var(--linea); }
+.fila .icono { width: 36px; height: 36px; border-radius: 10px; --s: 20px; }
+.fila .nm { flex: 1; min-width: 0; font: 400 16px/20px var(--texto); letter-spacing: -.012em; }
+.fila > .ph:last-child { color: var(--apagada); --s: 16px; }
 
-/* ============ Las carreras ============ */
-.seccion { padding: 36px 16px 0; }
-.seccion-cab { display: flex; justify-content: space-between; align-items: baseline; padding: 0 4px 10px; }
-.seccion-cab h2 { font: 400 22px/28px var(--display); letter-spacing: -.015em; }
-.grupo-rot { padding: 18px 4px 8px; }
-.grupo { border-radius: 22px; background: var(--superficie); box-shadow: inset 0 0 0 1px var(--filo); overflow: hidden; }
-.app.claro .grupo { box-shadow: 0 1px 2px rgb(0 0 0 / .04), 0 10px 30px -18px rgb(20 30 60 / .18); }
-.fila { width: 100%; min-height: 64px; display: flex; align-items: center; gap: 14px; padding: 10px 14px 10px 12px; text-align: left; position: relative; transition: background-color .2s; }
-.fila:active { background: rgb(var(--t) / .05); }
-.fila + .fila::before { content: ''; position: absolute; top: 0; left: 70px; right: 0; height: 1px; background: var(--filo); }
-.fila .tecla { width: 44px; height: 44px; border-radius: 13px; --s: 24px; }
-.fila .nm { flex: 1; min-width: 0; }
-.fila .nm b { display: block; font: 500 16px/21px var(--texto); letter-spacing: -.012em; }
-.fila .flecha { color: var(--apagada); --s: 16px; }
-.tuya { font: 500 12px/16px var(--texto); padding: 4px 10px; border-radius: 10px; background: rgb(var(--t) / .08); color: var(--suave); }
-.pie { padding: 28px 20px calc(env(safe-area-inset-bottom) + 120px); text-align: center; }
+/* Ficha */
+.atras { margin-bottom: 28px; }
+.ficha-nombre { font: 300 34px/38px var(--display); letter-spacing: -.02em; margin-top: 20px; text-wrap: balance; }
+.datos { display: grid; grid-template-columns: repeat(3, 1fr); margin-top: 24px; padding: 18px 0; border-radius: 20px; background: var(--superficie); }
+.datos > div { padding: 0 18px; }
+.datos > div + div { border-left: 1px solid var(--linea); }
+.datos b { display: block; font: 300 26px/30px var(--texto); letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
 
-/* ============ El muelle (Liquid Glass en la app, con Haze de respaldo) ============ */
-.muelle { position: absolute; z-index: 40; left: 16px; right: 16px; bottom: calc(env(safe-area-inset-bottom) + 14px); display: flex; gap: 10px; transition: transform .45s var(--suave-out), opacity .3s; }
-.muelle.oculto { transform: translateY(140%); opacity: 0; }
-.capsula, .lupa { position: relative; height: 62px; border-radius: 31px; background: var(--vidrio);
-  -webkit-backdrop-filter: blur(24px) saturate(1.7); backdrop-filter: blur(24px) saturate(1.7);
-  box-shadow: inset 0 0 0 1px rgb(var(--t) / .1), inset 0 1px 0 rgb(var(--t) / .16), 0 16px 40px -12px rgb(0 0 0 / .6); }
-.app.claro .capsula, .app.claro .lupa { box-shadow: inset 0 0 0 1px rgb(255 255 255 / .8), 0 1px 2px rgb(0 0 0 / .06), 0 16px 40px -16px rgb(20 30 60 / .3); }
-.capsula { flex: 1; display: grid; grid-template-columns: repeat(4, 1fr); padding: 5px; }
-.lupa { width: 62px; flex: none; display: grid; place-items: center; transition: transform .35s var(--resorte); }
-.lupa:active { transform: scale(.92); }
-.pestana { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font: 500 10.5px/12px var(--texto); color: var(--tenue); transition: color .25s; }
-.pestana.on { color: var(--tinta); }
-.pestana .ph { --s: 23px; }
-.indicador { position: absolute; z-index: 0; top: 5px; bottom: 5px; left: 5px; width: calc((100% - 10px) / 4); border-radius: 26px; background: rgb(var(--t) / .11); box-shadow: inset 0 1px 0 rgb(var(--t) / .1); transition: transform .5s var(--resorte); }
-.app.claro .indicador { background: rgb(var(--t) / .06); }
+/* Barra inferior */
+.barra-inf { position: absolute; z-index: 10; left: 50%; bottom: calc(env(safe-area-inset-bottom) + 16px); transform: translateX(-50%); display: flex; padding: 4px; border-radius: 30px; background: color-mix(in srgb, var(--superficie) 82%, transparent); -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px); box-shadow: 0 0 0 1px var(--linea), 0 10px 30px -10px rgb(0 0 0 / .5); transition: transform .35s cubic-bezier(.2, .8, .2, 1), opacity .25s; }
+.barra-inf.oculta { transform: translate(-50%, 140%); opacity: 0; }
+.pestana { width: 72px; height: 52px; border-radius: 26px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font: 500 10.5px/12px var(--texto); color: var(--tenue); text-align: center; transition: background-color .25s, color .25s; }
+.pestana.on { color: var(--tinta); background: var(--linea); }
 
-/* ============ Ficha de una carrera ============ */
-.atras { position: absolute; z-index: 30; top: calc(env(safe-area-inset-top) + 12px); left: 16px; }
-.pensum { width: 100%; margin-top: 28px; padding: 18px 16px; border-radius: 20px; background: var(--superficie); box-shadow: inset 0 0 0 1px var(--filo); text-align: left; }
-.puntos { display: grid; grid-template-columns: repeat(10, 1fr); gap: 6px; margin-top: 14px; }
-.puntos > div { display: flex; flex-direction: column; align-items: center; gap: 5px; }
-.puntos i { width: 7px; height: 7px; border-radius: 50%; background: var(--k); opacity: .85; }
-
-/* ============ Búsqueda, hoja de ajustes y aviso ============ */
-.velo { position: absolute; inset: 0; z-index: 50; background: rgb(0 0 0 / .4); opacity: 0; pointer-events: none; transition: opacity .3s; }
+/* Ajustes y aviso */
+.velo { position: absolute; inset: 0; z-index: 20; background: rgb(0 0 0 / .45); opacity: 0; pointer-events: none; transition: opacity .3s; }
 .velo.on { opacity: 1; pointer-events: auto; }
-.busqueda { position: absolute; inset: 0; z-index: 55; background: rgb(var(--l) / .72); -webkit-backdrop-filter: blur(30px) saturate(1.5); backdrop-filter: blur(30px) saturate(1.5); padding: calc(env(safe-area-inset-top) + 14px) 16px 0; opacity: 0; pointer-events: none; transition: opacity .25s; overflow-y: auto; }
-.busqueda.on { opacity: 1; pointer-events: auto; }
-.campo { display: flex; gap: 10px; align-items: center; }
-.campo label { flex: 1; height: 48px; border-radius: 24px; display: flex; align-items: center; gap: 10px; padding: 0 16px; background: rgb(var(--t) / .09); box-shadow: inset 0 0 0 1px rgb(var(--t) / .08); color: var(--tenue); }
-.campo input { flex: 1; min-width: 0; background: none; border: 0; outline: none; font: 400 16px/20px var(--texto); color: var(--tinta); }
-.campo input::placeholder { color: var(--tenue); }
-.busqueda .grupo { margin-top: 18px; }
-.vacio { padding: 40px 0; text-align: center; }
-.hoja { position: absolute; z-index: 60; left: 8px; right: 8px; bottom: calc(env(safe-area-inset-bottom) + 8px); border-radius: 32px; padding: 10px 16px 18px; background: var(--vidrio); -webkit-backdrop-filter: blur(30px) saturate(1.6); backdrop-filter: blur(30px) saturate(1.6); box-shadow: inset 0 0 0 1px rgb(var(--t) / .1), 0 30px 60px -20px rgb(0 0 0 / .6); transform: translateY(115%); transition: transform .5s var(--suave-out); }
+.hoja { position: absolute; z-index: 21; left: 8px; right: 8px; bottom: calc(env(safe-area-inset-bottom) + 8px); padding: 22px 16px 16px; border-radius: 28px; background: var(--superficie); transform: translateY(115%); transition: transform .4s cubic-bezier(.2, .8, .2, 1); }
 .hoja.on { transform: none; }
-.asa { width: 36px; height: 5px; border-radius: 3px; background: rgb(var(--t) / .25); margin: 0 auto 14px; }
-.hoja h3 { font: 400 22px/28px var(--display); padding: 0 4px 14px; }
-.segmento { display: grid; grid-template-columns: 1fr 1fr; padding: 4px; border-radius: 16px; background: rgb(var(--t) / .08); position: relative; }
-.segmento button { height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; gap: 8px; font: 500 14px/18px var(--texto); color: var(--tenue); position: relative; z-index: 1; --s: 18px; transition: color .2s; }
-.segmento button[aria-pressed="true"] { color: var(--tinta); }
-.segmento .indicador { top: 4px; bottom: 4px; left: 4px; width: calc((100% - 8px) / 2); border-radius: 12px; background: rgb(var(--t) / .14); }
-.app.claro .segmento .indicador { background: #fff; box-shadow: 0 1px 3px rgb(0 0 0 / .1); }
-.aviso { position: absolute; z-index: 70; left: 50%; bottom: calc(env(safe-area-inset-bottom) + 92px); transform: translate(-50%, 20px); opacity: 0; padding: 12px 18px; border-radius: 22px; font: 500 14px/18px var(--texto); white-space: nowrap; background: var(--vidrio); -webkit-backdrop-filter: blur(24px); backdrop-filter: blur(24px); box-shadow: inset 0 0 0 1px rgb(var(--t) / .1), 0 12px 30px -10px rgb(0 0 0 / .5); transition: transform .4s var(--resorte), opacity .25s; pointer-events: none; }
+.hoja h2 { font: 300 24px/28px var(--display); padding: 0 4px 16px; }
+.segmento { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; border-radius: 14px; background: var(--fondo); }
+.segmento button { height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; font: 500 14px/18px var(--texto); color: var(--tenue); --s: 18px; }
+.segmento button[aria-pressed="true"] { background: var(--superficie); color: var(--tinta); box-shadow: 0 1px 3px rgb(0 0 0 / .15); }
+.aviso { position: absolute; z-index: 30; left: 50%; bottom: calc(env(safe-area-inset-bottom) + 92px); transform: translate(-50%, 12px); opacity: 0; padding: 10px 16px; border-radius: 20px; background: var(--tinta); color: var(--fondo); font: 500 14px/18px var(--texto); white-space: nowrap; transition: transform .3s var(--resorte), opacity .2s; pointer-events: none; }
 .aviso.on { transform: translate(-50%, 0); opacity: 1; }
 
-/* Entrada: desde un estado visible, solo transformación */
-.entra { animation: entra .7s var(--suave-out) backwards; }
-@keyframes entra { from { transform: translateY(14px) scale(.98); } }
-::view-transition-old(root), ::view-transition-new(root) { animation-duration: .32s; }
-::view-transition-group(tecla) { animation-duration: .45s; animation-timing-function: cubic-bezier(.2, .9, .25, 1.05); }
-
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation: none !important; transition-duration: .01ms !important; }
-}
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: .25s; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition-duration: .01ms !important; } }
 </style>
 </head>
 <body>
 <div class="escena">
 <div class="app" id="app">
 
-  <section class="vista" id="inicio" aria-label="Inicio">
-    <div class="portada" id="portada">
-      <div class="lienzo-portada"><canvas id="lienzo"></canvas></div>
-      <div class="portada-cuerpo" id="portada-cuerpo"></div>
-    </div>
-    <div class="seccion">
-      <div class="seccion-cab"><h2>Carreras</h2><span class="nota">UDO Monagas</span></div>
-      <div id="listas"></div>
-    </div>
-    <div class="pie nota">Prototipo de Mapa de Pensum · datos de ejemplo</div>
-  </section>
+  <main class="vista" id="inicio">
+    <header class="cabecera">
+      <h1 id="saludo">Hola</h1>
+      <button class="circulo pulsable" id="ajustes" aria-label="Ajustes"><svg class="ph" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path fill="currentColor" d="M128 80a48 48 0 1 0 48 48a48.05 48.05 0 0 0-48-48m0 80a32 32 0 1 1 32-32a32 32 0 0 1-32 32m109.94-52.79a8 8 0 0 0-3.89-5.4l-29.83-17l-.12-33.62a8 8 0 0 0-2.83-6.08a111.9 111.9 0 0 0-36.72-20.67a8 8 0 0 0-6.46.59L128 41.85L97.88 25a8 8 0 0 0-6.47-.6a112.1 112.1 0 0 0-36.68 20.75a8 8 0 0 0-2.83 6.07l-.15 33.65l-29.83 17a8 8 0 0 0-3.89 5.4a106.5 106.5 0 0 0 0 41.56a8 8 0 0 0 3.89 5.4l29.83 17l.12 33.62a8 8 0 0 0 2.83 6.08a111.9 111.9 0 0 0 36.72 20.67a8 8 0 0 0 6.46-.59L128 214.15L158.12 231a7.9 7.9 0 0 0 3.9 1a8.1 8.1 0 0 0 2.57-.42a112.1 112.1 0 0 0 36.68-20.73a8 8 0 0 0 2.83-6.07l.15-33.65l29.83-17a8 8 0 0 0 3.89-5.4a106.5 106.5 0 0 0-.03-41.52m-15 34.91l-28.57 16.25a8 8 0 0 0-3 3c-.58 1-1.19 2.06-1.81 3.06a7.94 7.94 0 0 0-1.22 4.21l-.15 32.25a95.9 95.9 0 0 1-25.37 14.3L134 199.13a8 8 0 0 0-3.91-1h-3.83a8.1 8.1 0 0 0-4.1 1l-28.84 16.1A96 96 0 0 1 67.88 201l-.11-32.2a8 8 0 0 0-1.22-4.22c-.62-1-1.23-2-1.8-3.06a8.1 8.1 0 0 0-3-3.06l-28.6-16.29a90.5 90.5 0 0 1 0-28.26l28.52-16.28a8 8 0 0 0 3-3c.58-1 1.19-2.06 1.81-3.06a7.94 7.94 0 0 0 1.22-4.21l.15-32.25a95.9 95.9 0 0 1 25.37-14.3L122 56.87a8 8 0 0 0 4.1 1h3.64a8.1 8.1 0 0 0 4.1-1l28.84-16.1A96 96 0 0 1 188.12 55l.11 32.2a8 8 0 0 0 1.22 4.22c.62 1 1.23 2 1.8 3.06a8.1 8.1 0 0 0 3 3.06l28.6 16.29a90.5 90.5 0 0 1 .05 28.29Z"/></svg></button>
+    </header>
+    <div id="mia"></div>
+    <section class="seccion">
+      <h2 class="rot">Otras carreras</h2>
+      <div class="lista" id="lista"></div>
+    </section>
+  </main>
 
-  <section class="vista" id="detalle" aria-label="Carrera" hidden></section>
+  <main class="vista" id="ficha" hidden></main>
 
-  <header class="cabecera" id="cabecera">
-    <div class="saludo"><b id="saludo">Buenas tardes</b><span id="fecha"></span></div>
-    <div class="titulo-mini" id="titulo-mini"></div>
-    <button class="circulo" id="abrir-ajustes" aria-label="Ajustes"><svg class="ph" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true" style="--s:21px"><path fill="currentColor" d="M128 80a48 48 0 1 0 48 48a48.05 48.05 0 0 0-48-48m0 80a32 32 0 1 1 32-32a32 32 0 0 1-32 32m109.94-52.79a8 8 0 0 0-3.89-5.4l-29.83-17l-.12-33.62a8 8 0 0 0-2.83-6.08a111.9 111.9 0 0 0-36.72-20.67a8 8 0 0 0-6.46.59L128 41.85L97.88 25a8 8 0 0 0-6.47-.6a112.1 112.1 0 0 0-36.68 20.75a8 8 0 0 0-2.83 6.07l-.15 33.65l-29.83 17a8 8 0 0 0-3.89 5.4a106.5 106.5 0 0 0 0 41.56a8 8 0 0 0 3.89 5.4l29.83 17l.12 33.62a8 8 0 0 0 2.83 6.08a111.9 111.9 0 0 0 36.72 20.67a8 8 0 0 0 6.46-.59L128 214.15L158.12 231a7.9 7.9 0 0 0 3.9 1a8.1 8.1 0 0 0 2.57-.42a112.1 112.1 0 0 0 36.68-20.73a8 8 0 0 0 2.83-6.07l.15-33.65l29.83-17a8 8 0 0 0 3.89-5.4a106.5 106.5 0 0 0-.03-41.52m-15 34.91l-28.57 16.25a8 8 0 0 0-3 3c-.58 1-1.19 2.06-1.81 3.06a7.94 7.94 0 0 0-1.22 4.21l-.15 32.25a95.9 95.9 0 0 1-25.37 14.3L134 199.13a8 8 0 0 0-3.91-1h-3.83a8.1 8.1 0 0 0-4.1 1l-28.84 16.1A96 96 0 0 1 67.88 201l-.11-32.2a8 8 0 0 0-1.22-4.22c-.62-1-1.23-2-1.8-3.06a8.1 8.1 0 0 0-3-3.06l-28.6-16.29a90.5 90.5 0 0 1 0-28.26l28.52-16.28a8 8 0 0 0 3-3c.58-1 1.19-2.06 1.81-3.06a7.94 7.94 0 0 0 1.22-4.21l.15-32.25a95.9 95.9 0 0 1 25.37-14.3L122 56.87a8 8 0 0 0 4.1 1h3.64a8.1 8.1 0 0 0 4.1-1l28.84-16.1A96 96 0 0 1 188.12 55l.11 32.2a8 8 0 0 0 1.22 4.22c.62 1 1.23 2 1.8 3.06a8.1 8.1 0 0 0 3 3.06l28.6 16.29a90.5 90.5 0 0 1 .05 28.29Z"/></svg></button>
-  </header>
-
-  <nav class="muelle" id="muelle" aria-label="Secciones">
-    <div class="capsula">
-      <span class="indicador" id="indicador"></span>
-      <button class="pestana on" data-i="0" data-ic="house"><svg class="ph" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path fill="currentColor" d="M224 120v96a8 8 0 0 1-8 8h-56a8 8 0 0 1-8-8v-52a4 4 0 0 0-4-4h-40a4 4 0 0 0-4 4v52a8 8 0 0 1-8 8H40a8 8 0 0 1-8-8v-96a16 16 0 0 1 4.69-11.31l80-80a16 16 0 0 1 22.62 0l80 80A16 16 0 0 1 224 120"/></svg><span>Inicio</span></button>
-      <button class="pestana" data-i="1" data-ic="map-trifold"><svg class="ph" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path fill="currentColor" d="M228.92 49.69a8 8 0 0 0-6.86-1.45l-61.13 15.28l-61.35-30.68a8 8 0 0 0-5.52-.6l-64 16A8 8 0 0 0 24 56v144a8 8 0 0 0 9.94 7.76l61.13-15.28l61.35 30.68a8.15 8.15 0 0 0 3.58.84a8 8 0 0 0 1.94-.24l64-16A8 8 0 0 0 232 200V56a8 8 0 0 0-3.08-6.31M104 52.94l48 24v126.12l-48-24Zm-64 9.31l48-12v127.5l-48 12Zm176 131.5l-48 12V78.25l48-12Z"/></svg><span>Mapa</span></button>
-      <button class="pestana" data-i="2" data-ic="list-checks"><svg class="ph" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path fill="currentColor" d="M224 128a8 8 0 0 1-8 8h-88a8 8 0 0 1 0-16h88a8 8 0 0 1 8 8m-96-56h88a8 8 0 0 0 0-16h-88a8 8 0 0 0 0 16m88 112h-88a8 8 0 0 0 0 16h88a8 8 0 0 0 0-16M82.34 42.34L56 68.69L45.66 58.34a8 8 0 0 0-11.32 11.32l16 16a8 8 0 0 0 11.32 0l32-32a8 8 0 0 0-11.32-11.32m0 64L56 132.69l-10.34-10.35a8 8 0 0 0-11.32 11.32l16 16a8 8 0 0 0 11.32 0l32-32a8 8 0 0 0-11.32-11.32m0 64L56 196.69l-10.34-10.35a8 8 0 0 0-11.32 11.32l16 16a8 8 0 0 0 11.32 0l32-32a8 8 0 0 0-11.32-11.32"/></svg><span>Por hacer</span></button>
-      <button class="pestana" data-i="3" data-ic="calendar-dots"><svg class="ph" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path fill="currentColor" d="M208 32h-24v-8a8 8 0 0 0-16 0v8H88v-8a8 8 0 0 0-16 0v8H48a16 16 0 0 0-16 16v160a16 16 0 0 0 16 16h160a16 16 0 0 0 16-16V48a16 16 0 0 0-16-16M72 48v8a8 8 0 0 0 16 0v-8h80v8a8 8 0 0 0 16 0v-8h24v32H48V48Zm136 160H48V96h160zm-68-76a12 12 0 1 1-12-12a12 12 0 0 1 12 12m44 0a12 12 0 1 1-12-12a12 12 0 0 1 12 12m-88 40a12 12 0 1 1-12-12a12 12 0 0 1 12 12m44 0a12 12 0 1 1-12-12a12 12 0 0 1 12 12m44 0a12 12 0 1 1-12-12a12 12 0 0 1 12 12"/></svg><span>Horario</span></button>
-    </div>
-    <button class="lupa" id="abrir-busqueda" aria-label="Buscar"><svg class="ph" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true" style="--s:22px"><path fill="currentColor" d="m229.66 218.34l-50.07-50.06a88.11 88.11 0 1 0-11.31 11.31l50.06 50.07a8 8 0 0 0 11.32-11.32M40 112a72 72 0 1 1 72 72a72.08 72.08 0 0 1-72-72"/></svg></button>
+  <nav class="barra-inf" id="barra" aria-label="Secciones">
+    <button class="pestana on" data-ic="house"><svg class="ph" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path fill="currentColor" d="M224 120v96a8 8 0 0 1-8 8h-56a8 8 0 0 1-8-8v-52a4 4 0 0 0-4-4h-40a4 4 0 0 0-4 4v52a8 8 0 0 1-8 8H40a8 8 0 0 1-8-8v-96a16 16 0 0 1 4.69-11.31l80-80a16 16 0 0 1 22.62 0l80 80A16 16 0 0 1 224 120"/></svg>Inicio</button>
+    <button class="pestana" data-ic="map-trifold"><svg class="ph" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path fill="currentColor" d="M228.92 49.69a8 8 0 0 0-6.86-1.45l-61.13 15.28l-61.35-30.68a8 8 0 0 0-5.52-.6l-64 16A8 8 0 0 0 24 56v144a8 8 0 0 0 9.94 7.76l61.13-15.28l61.35 30.68a8.15 8.15 0 0 0 3.58.84a8 8 0 0 0 1.94-.24l64-16A8 8 0 0 0 232 200V56a8 8 0 0 0-3.08-6.31M104 52.94l48 24v126.12l-48-24Zm-64 9.31l48-12v127.5l-48 12Zm176 131.5l-48 12V78.25l48-12Z"/></svg>Mapa</button>
+    <button class="pestana" data-ic="list-checks"><svg class="ph" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path fill="currentColor" d="M224 128a8 8 0 0 1-8 8h-88a8 8 0 0 1 0-16h88a8 8 0 0 1 8 8m-96-56h88a8 8 0 0 0 0-16h-88a8 8 0 0 0 0 16m88 112h-88a8 8 0 0 0 0 16h88a8 8 0 0 0 0-16M82.34 42.34L56 68.69L45.66 58.34a8 8 0 0 0-11.32 11.32l16 16a8 8 0 0 0 11.32 0l32-32a8 8 0 0 0-11.32-11.32m0 64L56 132.69l-10.34-10.35a8 8 0 0 0-11.32 11.32l16 16a8 8 0 0 0 11.32 0l32-32a8 8 0 0 0-11.32-11.32m0 64L56 196.69l-10.34-10.35a8 8 0 0 0-11.32 11.32l16 16a8 8 0 0 0 11.32 0l32-32a8 8 0 0 0-11.32-11.32"/></svg>Por hacer</button>
+    <button class="pestana" data-ic="calendar-dots"><svg class="ph" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path fill="currentColor" d="M208 32h-24v-8a8 8 0 0 0-16 0v8H88v-8a8 8 0 0 0-16 0v8H48a16 16 0 0 0-16 16v160a16 16 0 0 0 16 16h160a16 16 0 0 0 16-16V48a16 16 0 0 0-16-16M72 48v8a8 8 0 0 0 16 0v-8h80v8a8 8 0 0 0 16 0v-8h24v32H48V48Zm136 160H48V96h160zm-68-76a12 12 0 1 1-12-12a12 12 0 0 1 12 12m44 0a12 12 0 1 1-12-12a12 12 0 0 1 12 12m-88 40a12 12 0 1 1-12-12a12 12 0 0 1 12 12m44 0a12 12 0 1 1-12-12a12 12 0 0 1 12 12m44 0a12 12 0 1 1-12-12a12 12 0 0 1 12 12"/></svg>Horario</button>
   </nav>
-
-  <div class="busqueda" id="busqueda" role="dialog" aria-label="Buscar">
-    <div class="campo">
-      <label for="q"><svg class="ph" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true" style="--s:22px"><path fill="currentColor" d="m229.66 218.34l-50.07-50.06a88.11 88.11 0 1 0-11.31 11.31l50.06 50.07a8 8 0 0 0 11.32-11.32M40 112a72 72 0 1 1 72 72a72.08 72.08 0 0 1-72-72"/></svg><input id="q" type="search" placeholder="Busca una carrera" autocomplete="off"></label>
-      <button class="circulo" id="cerrar-busqueda" aria-label="Cerrar"><svg class="ph" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true" style="--s:20px"><path fill="currentColor" d="M205.66 194.34a8 8 0 0 1-11.32 11.32L128 139.31l-66.34 66.35a8 8 0 0 1-11.32-11.32L116.69 128L50.34 61.66a8 8 0 0 1 11.32-11.32L128 116.69l66.34-66.35a8 8 0 0 1 11.32 11.32L139.31 128Z"/></svg></button>
-    </div>
-    <div id="resultados"></div>
-  </div>
 
   <div class="velo" id="velo"></div>
   <div class="hoja" id="hoja" role="dialog" aria-label="Ajustes">
-    <div class="asa"></div>
-    <h3>Ajustes</h3>
-    <div class="segmento" id="tema">
-      <span class="indicador"></span>
-      <button id="tema-oscuro" aria-pressed="true"><svg class="ph" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path fill="currentColor" d="M233.54 142.23a8 8 0 0 0-8-2a88.08 88.08 0 0 1-109.8-109.8a8 8 0 0 0-10-10a104.84 104.84 0 0 0-52.91 37A104 104 0 0 0 136 224a103.1 103.1 0 0 0 62.52-20.88a104.84 104.84 0 0 0 37-52.91a8 8 0 0 0-1.98-7.98m-44.64 48.11A88 88 0 0 1 65.66 67.11a89 89 0 0 1 31.4-26A106 106 0 0 0 96 56a104.11 104.11 0 0 0 104 104a106 106 0 0 0 14.92-1.06a89 89 0 0 1-26.02 31.4"/></svg>Oscuro</button>
-      <button id="tema-claro" aria-pressed="false"><svg class="ph" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path fill="currentColor" d="M120 40V16a8 8 0 0 1 16 0v24a8 8 0 0 1-16 0m72 88a64 64 0 1 1-64-64a64.07 64.07 0 0 1 64 64m-16 0a48 48 0 1 0-48 48a48.05 48.05 0 0 0 48-48M58.34 69.66a8 8 0 0 0 11.32-11.32l-16-16a8 8 0 0 0-11.32 11.32Zm0 116.68l-16 16a8 8 0 0 0 11.32 11.32l16-16a8 8 0 0 0-11.32-11.32M192 72a8 8 0 0 0 5.66-2.34l16-16a8 8 0 0 0-11.32-11.32l-16 16A8 8 0 0 0 192 72m5.66 114.34a8 8 0 0 0-11.32 11.32l16 16a8 8 0 0 0 11.32-11.32ZM48 128a8 8 0 0 0-8-8H16a8 8 0 0 0 0 16h24a8 8 0 0 0 8-8m80 80a8 8 0 0 0-8 8v24a8 8 0 0 0 16 0v-24a8 8 0 0 0-8-8m112-88h-24a8 8 0 0 0 0 16h24a8 8 0 0 0 0-16"/></svg>Claro</button>
-    </div>
-    <div class="grupo" style="margin-top:14px">
-      <button class="fila" data-aviso="La guía se abre en la app"><span class="nm"><b>Ver la guía</b></span><span class="flecha"><svg class="ph" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path fill="currentColor" d="m181.66 133.66l-80 80a8 8 0 0 1-11.32-11.32L164.69 128L90.34 53.66a8 8 0 0 1 11.32-11.32l80 80a8 8 0 0 1 0 11.32"/></svg></span></button>
-      <button class="fila" data-aviso="Elige otra carrera en la lista"><span class="nm"><b>Cambiar de carrera</b></span><span class="flecha"><svg class="ph" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path fill="currentColor" d="m181.66 133.66l-80 80a8 8 0 0 1-11.32-11.32L164.69 128L90.34 53.66a8 8 0 0 1 11.32-11.32l80 80a8 8 0 0 1 0 11.32"/></svg></span></button>
+    <h2>Ajustes</h2>
+    <div class="segmento">
+      <button id="oscuro" aria-pressed="true"><svg class="ph" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path fill="currentColor" d="M233.54 142.23a8 8 0 0 0-8-2a88.08 88.08 0 0 1-109.8-109.8a8 8 0 0 0-10-10a104.84 104.84 0 0 0-52.91 37A104 104 0 0 0 136 224a103.1 103.1 0 0 0 62.52-20.88a104.84 104.84 0 0 0 37-52.91a8 8 0 0 0-1.98-7.98m-44.64 48.11A88 88 0 0 1 65.66 67.11a89 89 0 0 1 31.4-26A106 106 0 0 0 96 56a104.11 104.11 0 0 0 104 104a106 106 0 0 0 14.92-1.06a89 89 0 0 1-26.02 31.4"/></svg>Oscuro</button>
+      <button id="claro" aria-pressed="false"><svg class="ph" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path fill="currentColor" d="M120 40V16a8 8 0 0 1 16 0v24a8 8 0 0 1-16 0m72 88a64 64 0 1 1-64-64a64.07 64.07 0 0 1 64 64m-16 0a48 48 0 1 0-48 48a48.05 48.05 0 0 0 48-48M58.34 69.66a8 8 0 0 0 11.32-11.32l-16-16a8 8 0 0 0-11.32 11.32Zm0 116.68l-16 16a8 8 0 0 0 11.32 11.32l16-16a8 8 0 0 0-11.32-11.32M192 72a8 8 0 0 0 5.66-2.34l16-16a8 8 0 0 0-11.32-11.32l-16 16A8 8 0 0 0 192 72m5.66 114.34a8 8 0 0 0-11.32 11.32l16 16a8 8 0 0 0 11.32-11.32ZM48 128a8 8 0 0 0-8-8H16a8 8 0 0 0 0 16h24a8 8 0 0 0 8-8m80 80a8 8 0 0 0-8 8v24a8 8 0 0 0 16 0v-24a8 8 0 0 0-8-8m112-88h-24a8 8 0 0 0 0 16h24a8 8 0 0 0 0-16"/></svg>Claro</button>
     </div>
   </div>
-
   <div class="aviso" id="aviso" role="status"></div>
 </div>
 </div>
 
 <script>
-const PH = {"cpu:duotone":"<g fill=\"currentColor\"><path d=\"M200 48H56a8 8 0 0 0-8 8v144a8 8 0 0 0 8 8h144a8 8 0 0 0 8-8V56a8 8 0 0 0-8-8m-48 104h-48v-48h48Z\" opacity=\".2\"/><path d=\"M152 96h-48a8 8 0 0 0-8 8v48a8 8 0 0 0 8 8h48a8 8 0 0 0 8-8v-48a8 8 0 0 0-8-8m-8 48h-32v-32h32Zm88 0h-16v-32h16a8 8 0 0 0 0-16h-16V56a16 16 0 0 0-16-16h-40V24a8 8 0 0 0-16 0v16h-32V24a8 8 0 0 0-16 0v16H56a16 16 0 0 0-16 16v40H24a8 8 0 0 0 0 16h16v32H24a8 8 0 0 0 0 16h16v40a16 16 0 0 0 16 16h40v16a8 8 0 0 0 16 0v-16h32v16a8 8 0 0 0 16 0v-16h40a16 16 0 0 0 16-16v-40h16a8 8 0 0 0 0-16m-32 56H56V56h144z\"/></g>","presentation-chart:duotone":"<g fill=\"currentColor\"><path d=\"M224 56v120a8 8 0 0 1-8 8H40a8 8 0 0 1-8-8V56a8 8 0 0 1 8-8h176a8 8 0 0 1 8 8\" opacity=\".2\"/><path d=\"M216 40h-80V24a8 8 0 0 0-16 0v16H40a16 16 0 0 0-16 16v120a16 16 0 0 0 16 16h39.36l-21.61 27a8 8 0 0 0 12.5 10l29.59-37h56.32l29.59 37a8 8 0 1 0 12.5-10l-21.61-27H216a16 16 0 0 0 16-16V56a16 16 0 0 0-16-16m0 136H40V56h176zm-112-56v24a8 8 0 0 1-16 0v-24a8 8 0 0 1 16 0m32-16v40a8 8 0 0 1-16 0v-40a8 8 0 0 1 16 0m32-16v56a8 8 0 0 1-16 0V88a8 8 0 0 1 16 0\"/></g>","drop-half-bottom:duotone":"<g fill=\"currentColor\"><path d=\"M208 144a80 80 0 0 1-160 0a101 101 0 0 1 1.3-16h157.4a101 101 0 0 1 1.3 16\" opacity=\".2\"/><path d=\"M174 47.75a254.2 254.2 0 0 0-41.45-38.3a8 8 0 0 0-9.18 0A254.2 254.2 0 0 0 82 47.75C54.51 79.32 40 112.6 40 144a88 88 0 0 0 176 0c0-31.4-14.51-64.68-42-96.25M128 26c14.16 11.1 56.86 47.74 68.84 94H59.16C71.14 73.76 113.84 37.12 128 26m0 190a72.08 72.08 0 0 1-72-72q0-4 .36-8h143.28q.36 4 .36 8a72.08 72.08 0 0 1-72 72\"/></g>","grains:duotone":"<g fill=\"currentColor\"><path d=\"M208 64v56a80 80 0 0 0-80 80a80 80 0 0 0-80-80V64a79.7 79.7 0 0 1 36.05 8.59C95.62 40.19 128 24 128 24s32.39 16.19 44 48.58A79.6 79.6 0 0 1 208 64\" opacity=\".2\"/><path d=\"M208 56a87.5 87.5 0 0 0-31.85 6c-14.32-29.7-43.25-44.46-44.57-45.13a8 8 0 0 0-7.16 0c-1.33.67-30.25 15.43-44.57 45.13A87.5 87.5 0 0 0 48 56a8 8 0 0 0-8 8v80a88 88 0 0 0 176 0V64a8 8 0 0 0-8-8m-88 159.56A72.1 72.1 0 0 1 56 144v-15.56A72.1 72.1 0 0 1 120 200Zm0-66.1a88 88 0 0 0-64-37.09V72.44A72.1 72.1 0 0 1 120 144ZM94.15 69.11c9.22-19.22 26.43-31.35 33.85-35.91c7.44 4.54 24.6 16.6 33.84 35.91A88.5 88.5 0 0 0 128 107.36a88.5 88.5 0 0 0-33.85-38.25M200 144a72.1 72.1 0 0 1-64 71.56V200a72.1 72.1 0 0 1 64-71.56Zm0-31.63a88 88 0 0 0-64 37.09V144a72.1 72.1 0 0 1 64-71.56Z\"/></g>","tree:duotone":"<g fill=\"currentColor\"><path d=\"M232 127.82c.09 33.94-28.41 63.3-62.34 64.16a63.72 63.72 0 0 1-41.66-14a63.7 63.7 0 0 1-41.65 14c-33.93-.86-62.44-30.22-62.35-64.16a64 64 0 0 1 40.13-59.2a68 68 0 0 1 127.74 0a64 64 0 0 1 40.13 59.2\" opacity=\".2\"/><path d=\"M198.1 62.59a76 76 0 0 0-140.2 0A71.71 71.71 0 0 0 16 127.8C15.9 166 48 199 86.14 200a72.2 72.2 0 0 0 33.86-7.53V232a8 8 0 0 0 16 0v-39.53a72.2 72.2 0 0 0 32 7.53h1.82c38.18-1 70.29-34 70.18-72.2a71.71 71.71 0 0 0-41.9-65.21M169.45 184A56.08 56.08 0 0 1 136 174v-41l43.58-21.78a8 8 0 1 0-7.16-14.32L136 115.06V88a8 8 0 0 0-16 0v51.06l-36.42-18.22a8 8 0 1 0-7.16 14.32L120 156.94v17a56 56 0 0 1-33.45 10c-29.65-.71-54.63-26.42-54.55-56.1A55.79 55.79 0 0 1 67.11 76a8 8 0 0 0 4.53-4.67a60 60 0 0 1 112.72 0a8 8 0 0 0 4.53 4.67A55.79 55.79 0 0 1 224 127.84c.08 29.68-24.9 55.39-54.55 56.16\"/></g>","cow:duotone":"<g fill=\"currentColor\"><path d=\"M208 192a32 32 0 0 1-32 32H80a32 32 0 0 1-32-32a32 32 0 0 1 32-32h96a32 32 0 0 1 32 32M64 104a32 32 0 0 1 32-32H63.22a48 48 0 0 0-47.07 38.53A8 8 0 0 0 24 120h40Zm175.85 6.53A48 48 0 0 0 192.78 72H160a32 32 0 0 1 32 32v16h40a8 8 0 0 0 7.85-9.47\" opacity=\".2\"/><path d=\"M104 192a8 8 0 0 1-8 8H80a8 8 0 0 1 0-16h16a8 8 0 0 1 8 8m72-8h-16a8 8 0 0 0 0 16h16a8 8 0 0 0 0-16m-76-72a12 12 0 1 0 12 12a12 12 0 0 0-12-12m56 0a12 12 0 1 0 12 12a12 12 0 0 0-12-12m88.39 10.12A16 16 0 0 1 232 128h-32v32a40 40 0 0 1-24 72H80a40 40 0 0 1-24-72v-32H24a16 16 0 0 1-15.69-19a56.13 56.13 0 0 1 54.91-45h1.64A55.83 55.83 0 0 1 48 24a8 8 0 0 1 16 0a40 40 0 0 0 40 40h48a40 40 0 0 0 40-40a8 8 0 0 1 16 0a55.83 55.83 0 0 1-16.86 40h1.64a56.13 56.13 0 0 1 54.91 45a15.82 15.82 0 0 1-3.3 13.12M56 112v-8a39.8 39.8 0 0 1 8-24h-.8A40.09 40.09 0 0 0 24 112Zm144 80a24 24 0 0 0-24-24H80a24 24 0 0 0 0 48h96a24 24 0 0 0 24-24m-16-39.2V104a24 24 0 0 0-24-24H96a24 24 0 0 0-24 24v48.8a40.6 40.6 0 0 1 8-.8h96a40.6 40.6 0 0 1 8 .8m48-40.8a40.08 40.08 0 0 0-39.2-32h-.8a39.8 39.8 0 0 1 8 24v8Z\"/></g>","calculator:duotone":"<g fill=\"currentColor\"><path d=\"M176 64v48H80V64Z\" opacity=\".2\"/><path d=\"M80 120h96a8 8 0 0 0 8-8V64a8 8 0 0 0-8-8H80a8 8 0 0 0-8 8v48a8 8 0 0 0 8 8m8-48h80v32H88Zm112-48H56a16 16 0 0 0-16 16v176a16 16 0 0 0 16 16h144a16 16 0 0 0 16-16V40a16 16 0 0 0-16-16m0 192H56V40h144Zm-100-68a12 12 0 1 1-12-12a12 12 0 0 1 12 12m40 0a12 12 0 1 1-12-12a12 12 0 0 1 12 12m40 0a12 12 0 1 1-12-12a12 12 0 0 1 12 12m-80 40a12 12 0 1 1-12-12a12 12 0 0 1 12 12m40 0a12 12 0 1 1-12-12a12 12 0 0 1 12 12m40 0a12 12 0 1 1-12-12a12 12 0 0 1 12 12\"/></g>","flask:duotone":"<g fill=\"currentColor\"><path d=\"M208 216H48a8 8 0 0 1-6.86-12.12l30.48-50.8c13.23-2.48 32-1.41 56.37 10.92c32.25 16.33 54.75 12.91 67.5 7.65l19.34 32.23A8 8 0 0 1 208 216\" opacity=\".2\"/><path d=\"M221.69 199.77L160 96.92V40h8a8 8 0 0 0 0-16H88a8 8 0 0 0 0 16h8v56.92L34.31 199.77A16 16 0 0 0 48 224h160a16 16 0 0 0 13.72-24.23Zm-110.83-96.52a7.93 7.93 0 0 0 1.14-4.11V40h32v59.14a7.93 7.93 0 0 0 1.14 4.11L183.36 167c-12 2.37-29.07 1.37-51.75-10.11c-15.91-8.05-31.05-12.32-45.22-12.81ZM48 208l28.54-47.58c14.25-1.73 30.31 1.85 47.82 10.72c19 9.61 35 12.88 48 12.88a69.9 69.9 0 0 0 19.55-2.7L208 208Z\"/></g>","users-three:duotone":"<g fill=\"currentColor\"><path d=\"M168 144a40 40 0 1 1-40-40a40 40 0 0 1 40 40M64 56a32 32 0 1 0 32 32a32 32 0 0 0-32-32m128 0a32 32 0 1 0 32 32a32 32 0 0 0-32-32\" opacity=\".2\"/><path d=\"M244.8 150.4a8 8 0 0 1-11.2-1.6A51.6 51.6 0 0 0 192 128a8 8 0 0 1 0-16a24 24 0 1 0-23.24-30a8 8 0 1 1-15.5-4A40 40 0 1 1 219 117.51a67.94 67.94 0 0 1 27.43 21.68a8 8 0 0 1-1.63 11.21M190.92 212a8 8 0 1 1-13.85 8a57 57 0 0 0-98.15 0a8 8 0 1 1-13.84-8a72.06 72.06 0 0 1 33.74-29.92a48 48 0 1 1 58.36 0A72.06 72.06 0 0 1 190.92 212M128 176a32 32 0 1 0-32-32a32 32 0 0 0 32 32m-56-56a8 8 0 0 0-8-8a24 24 0 1 1 23.24-30a8 8 0 1 0 15.5-4A40 40 0 1 0 37 117.51a67.94 67.94 0 0 0-27.4 21.68a8 8 0 1 0 12.8 9.61A51.6 51.6 0 0 1 64 128a8 8 0 0 0 8-8\"/></g>","cpu:fill":"<path fill=\"currentColor\" d=\"M104 104h48v48h-48Zm136 48a8 8 0 0 1-8 8h-16v40a16 16 0 0 1-16 16h-40v16a8 8 0 0 1-16 0v-16h-32v16a8 8 0 0 1-16 0v-16H56a16 16 0 0 1-16-16v-40H24a8 8 0 0 1 0-16h16v-32H24a8 8 0 0 1 0-16h16V56a16 16 0 0 1 16-16h40V24a8 8 0 0 1 16 0v16h32V24a8 8 0 0 1 16 0v16h40a16 16 0 0 1 16 16v40h16a8 8 0 0 1 0 16h-16v32h16a8 8 0 0 1 8 8m-72-56a8 8 0 0 0-8-8H96a8 8 0 0 0-8 8v64a8 8 0 0 0 8 8h64a8 8 0 0 0 8-8Z\"/>","presentation-chart:fill":"<path fill=\"currentColor\" d=\"M216 40h-80V24a8 8 0 0 0-16 0v16H40a16 16 0 0 0-16 16v120a16 16 0 0 0 16 16h39.36l-21.61 27a8 8 0 0 0 12.5 10l29.59-37h56.32l29.59 37a8 8 0 1 0 12.5-10l-21.61-27H216a16 16 0 0 0 16-16V56a16 16 0 0 0-16-16M104 144a8 8 0 0 1-16 0v-24a8 8 0 0 1 16 0Zm32 0a8 8 0 0 1-16 0v-40a8 8 0 0 1 16 0Zm32 0a8 8 0 0 1-16 0V88a8 8 0 0 1 16 0Z\"/>","drop-half-bottom:fill":"<path fill=\"currentColor\" d=\"M174 47.75a254.2 254.2 0 0 0-41.45-38.3a8 8 0 0 0-9.18 0A254.2 254.2 0 0 0 82 47.75C54.51 79.32 40 112.6 40 144a88 88 0 0 0 176 0c0-31.4-14.51-64.68-42-96.25M128 26c14.16 11.1 56.86 47.74 68.84 94H59.16C71.14 73.76 113.84 37.12 128 26\"/>","grains:fill":"<path fill=\"currentColor\" d=\"M208 56a87.5 87.5 0 0 0-31.84 6c-14.32-29.7-43.25-44.46-44.57-45.13a8 8 0 0 0-7.16 0c-1.33.64-30.26 15.4-44.58 45.13A87.5 87.5 0 0 0 48 56a8 8 0 0 0-8 8v80a88.12 88.12 0 0 0 75.48 87.1a4 4 0 0 0 4.52-4v-50.83a8.18 8.18 0 0 1 7.47-8.25a8 8 0 0 1 8.53 8v51.14a4 4 0 0 0 4.52 4A88.12 88.12 0 0 0 216 144V64a8 8 0 0 0-8-8m-88 93.46a88 88 0 0 0-64-37.09V72.44A72.1 72.1 0 0 1 120 144Zm8-42.1a88.6 88.6 0 0 0-33.84-38.25c9.21-19.21 26.4-31.33 33.84-35.9c7.45 4.58 24.63 16.7 33.84 35.9A88.6 88.6 0 0 0 128 107.36m72 5a88 88 0 0 0-64 37.09V144a72.1 72.1 0 0 1 64-71.56Z\"/>","tree:fill":"<path fill=\"currentColor\" d=\"M128 187.85a72 72 0 0 0 8 4.62V232a8 8 0 0 1-16 0v-39.53a72 72 0 0 0 8-4.62m70.1-125.26a76 76 0 0 0-140.2 0A71.71 71.71 0 0 0 16 127.8C15.9 166 48 199 86.14 200a72.2 72.2 0 0 0 33.86-7.53v-35.53l-43.58-21.78a8 8 0 1 1 7.16-14.32L120 139.06V88a8 8 0 0 1 16 0v27.06l36.42-18.22a8 8 0 1 1 7.16 14.32L136 132.94v59.53a72.2 72.2 0 0 0 32 7.53h1.82c38.18-1 70.29-34 70.18-72.2a71.71 71.71 0 0 0-41.9-65.21\"/>","cow:fill":"<path fill=\"currentColor\" d=\"M104 192a8 8 0 0 1-8 8H80a8 8 0 0 1 0-16h16a8 8 0 0 1 8 8m72-8h-16a8 8 0 0 0 0 16h16a8 8 0 0 0 0-16m68.39-61.88A16 16 0 0 1 232 128h-32v32a40 40 0 0 1-24 72H80a40 40 0 0 1-24-72v-32H24a16 16 0 0 1-15.69-19a56.13 56.13 0 0 1 54.91-45h1.64A55.83 55.83 0 0 1 48 24a8 8 0 0 1 16 0a40 40 0 0 0 40 40h48a40 40 0 0 0 40-40a8 8 0 0 1 16 0a55.83 55.83 0 0 1-16.86 40h1.64a56.13 56.13 0 0 1 54.91 45a15.82 15.82 0 0 1-3.3 13.12M144 124a12 12 0 1 0 12-12a12 12 0 0 0-12 12m-56 0a12 12 0 1 0 12-12a12 12 0 0 0-12 12m-32-12v-8a39.8 39.8 0 0 1 8-24h-.8A40.09 40.09 0 0 0 24 112Zm144 80a24 24 0 0 0-24-24H80a24 24 0 0 0 0 48h96a24 24 0 0 0 24-24m32-80a40.08 40.08 0 0 0-39.2-32h-.8a39.8 39.8 0 0 1 8 24v8Z\"/>","calculator:fill":"<path fill=\"currentColor\" d=\"M200 24H56a16 16 0 0 0-16 16v176a16 16 0 0 0 16 16h144a16 16 0 0 0 16-16V40a16 16 0 0 0-16-16M88 200a12 12 0 1 1 12-12a12 12 0 0 1-12 12m0-40a12 12 0 1 1 12-12a12 12 0 0 1-12 12m40 40a12 12 0 1 1 12-12a12 12 0 0 1-12 12m0-40a12 12 0 1 1 12-12a12 12 0 0 1-12 12m40 40a12 12 0 1 1 12-12a12 12 0 0 1-12 12m0-40a12 12 0 1 1 12-12a12 12 0 0 1-12 12m16-56a8 8 0 0 1-8 8H80a8 8 0 0 1-8-8V64a8 8 0 0 1 8-8h96a8 8 0 0 1 8 8Z\"/>","flask:fill":"<path fill=\"currentColor\" d=\"M221.69 199.77L160 96.92V40h8a8 8 0 0 0 0-16H88a8 8 0 0 0 0 16h8v56.92L34.31 199.77A16 16 0 0 0 48 224h160a16 16 0 0 0 13.72-24.23Zm-90.08-42.91c-15.91-8.05-31.05-12.32-45.22-12.81l24.47-40.8a7.93 7.93 0 0 0 1.14-4.11V40h32v59.14a7.93 7.93 0 0 0 1.14 4.11L183.36 167c-11.96 2.34-29.07 1.34-51.75-10.14\"/>","users-three:fill":"<path fill=\"currentColor\" d=\"M64.12 147.8a4 4 0 0 1-4 4.2H16a8 8 0 0 1-7.8-6.17a8.35 8.35 0 0 1 1.62-6.93A67.8 67.8 0 0 1 37 117.51a40 40 0 1 1 66.46-35.8a3.94 3.94 0 0 1-2.27 4.18A64.08 64.08 0 0 0 64 144c0 1.28 0 2.54.12 3.8m182-8.91A67.76 67.76 0 0 0 219 117.51a40 40 0 1 0-66.46-35.8a3.94 3.94 0 0 0 2.27 4.18A64.08 64.08 0 0 1 192 144c0 1.28 0 2.54-.12 3.8a4 4 0 0 0 4 4.2H240a8 8 0 0 0 7.8-6.17a8.33 8.33 0 0 0-1.63-6.94Zm-89 43.18a48 48 0 1 0-58.37 0A72.13 72.13 0 0 0 65.07 212A8 8 0 0 0 72 224h112a8 8 0 0 0 6.93-12a72.15 72.15 0 0 0-33.74-29.93Z\"/>","house:fill":"<path fill=\"currentColor\" d=\"M224 120v96a8 8 0 0 1-8 8h-56a8 8 0 0 1-8-8v-52a4 4 0 0 0-4-4h-40a4 4 0 0 0-4 4v52a8 8 0 0 1-8 8H40a8 8 0 0 1-8-8v-96a16 16 0 0 1 4.69-11.31l80-80a16 16 0 0 1 22.62 0l80 80A16 16 0 0 1 224 120\"/>","map-trifold:fill":"<path fill=\"currentColor\" d=\"M228.92 49.69a8 8 0 0 0-6.86-1.45l-61.13 15.28l-61.35-30.68a8 8 0 0 0-5.52-.6l-64 16A8 8 0 0 0 24 56v144a8 8 0 0 0 9.94 7.76l61.13-15.28l61.35 30.68a8.15 8.15 0 0 0 3.58.84a8 8 0 0 0 1.94-.24l64-16A8 8 0 0 0 232 200V56a8 8 0 0 0-3.08-6.31M96 176a8 8 0 0 0-1.94.24L40 189.75V62.25l55.07-13.77l.93.46Zm120 17.75l-55.07 13.77l-.93-.46V80a8 8 0 0 0 1.94-.23L216 66.25Z\"/>","list-checks:fill":"<path fill=\"currentColor\" d=\"M208 32H48a16 16 0 0 0-16 16v160a16 16 0 0 0 16 16h160a16 16 0 0 0 16-16V48a16 16 0 0 0-16-16m-90.34 117.66l-32 32a8 8 0 0 1-11.32 0l-16-16a8 8 0 0 1 11.32-11.32L80 164.69l26.34-26.35a8 8 0 0 1 11.32 11.32m0-64l-32 32a8 8 0 0 1-11.32 0l-16-16a8 8 0 0 1 11.32-11.32L80 100.69l26.34-26.35a8 8 0 0 1 11.32 11.32M192 168h-48a8 8 0 0 1 0-16h48a8 8 0 0 1 0 16m0-64h-48a8 8 0 0 1 0-16h48a8 8 0 0 1 0 16\"/>","calendar-dots:fill":"<path fill=\"currentColor\" d=\"M208 32h-24v-8a8 8 0 0 0-16 0v8H88v-8a8 8 0 0 0-16 0v8H48a16 16 0 0 0-16 16v160a16 16 0 0 0 16 16h160a16 16 0 0 0 16-16V48a16 16 0 0 0-16-16M84 184a12 12 0 1 1 12-12a12 12 0 0 1-12 12m44 0a12 12 0 1 1 12-12a12 12 0 0 1-12 12m0-40a12 12 0 1 1 12-12a12 12 0 0 1-12 12m44 40a12 12 0 1 1 12-12a12 12 0 0 1-12 12m0-40a12 12 0 1 1 12-12a12 12 0 0 1-12 12m36-64H48V48h24v8a8 8 0 0 0 16 0v-8h80v8a8 8 0 0 0 16 0v-8h24Z\"/>","house:regular":"<path fill=\"currentColor\" d=\"m219.31 108.68l-80-80a16 16 0 0 0-22.62 0l-80 80A15.87 15.87 0 0 0 32 120v96a8 8 0 0 0 8 8h64a8 8 0 0 0 8-8v-56h32v56a8 8 0 0 0 8 8h64a8 8 0 0 0 8-8v-96a15.87 15.87 0 0 0-4.69-11.32M208 208h-48v-56a8 8 0 0 0-8-8h-48a8 8 0 0 0-8 8v56H48v-88l80-80l80 80Z\"/>","map-trifold:regular":"<path fill=\"currentColor\" d=\"M228.92 49.69a8 8 0 0 0-6.86-1.45l-61.13 15.28l-61.35-30.68a8 8 0 0 0-5.52-.6l-64 16A8 8 0 0 0 24 56v144a8 8 0 0 0 9.94 7.76l61.13-15.28l61.35 30.68a8.15 8.15 0 0 0 3.58.84a8 8 0 0 0 1.94-.24l64-16A8 8 0 0 0 232 200V56a8 8 0 0 0-3.08-6.31M104 52.94l48 24v126.12l-48-24Zm-64 9.31l48-12v127.5l-48 12Zm176 131.5l-48 12V78.25l48-12Z\"/>","list-checks:regular":"<path fill=\"currentColor\" d=\"M224 128a8 8 0 0 1-8 8h-88a8 8 0 0 1 0-16h88a8 8 0 0 1 8 8m-96-56h88a8 8 0 0 0 0-16h-88a8 8 0 0 0 0 16m88 112h-88a8 8 0 0 0 0 16h88a8 8 0 0 0 0-16M82.34 42.34L56 68.69L45.66 58.34a8 8 0 0 0-11.32 11.32l16 16a8 8 0 0 0 11.32 0l32-32a8 8 0 0 0-11.32-11.32m0 64L56 132.69l-10.34-10.35a8 8 0 0 0-11.32 11.32l16 16a8 8 0 0 0 11.32 0l32-32a8 8 0 0 0-11.32-11.32m0 64L56 196.69l-10.34-10.35a8 8 0 0 0-11.32 11.32l16 16a8 8 0 0 0 11.32 0l32-32a8 8 0 0 0-11.32-11.32\"/>","calendar-dots:regular":"<path fill=\"currentColor\" d=\"M208 32h-24v-8a8 8 0 0 0-16 0v8H88v-8a8 8 0 0 0-16 0v8H48a16 16 0 0 0-16 16v160a16 16 0 0 0 16 16h160a16 16 0 0 0 16-16V48a16 16 0 0 0-16-16M72 48v8a8 8 0 0 0 16 0v-8h80v8a8 8 0 0 0 16 0v-8h24v32H48V48Zm136 160H48V96h160zm-68-76a12 12 0 1 1-12-12a12 12 0 0 1 12 12m44 0a12 12 0 1 1-12-12a12 12 0 0 1 12 12m-88 40a12 12 0 1 1-12-12a12 12 0 0 1 12 12m44 0a12 12 0 1 1-12-12a12 12 0 0 1 12 12m44 0a12 12 0 1 1-12-12a12 12 0 0 1 12 12\"/>","magnifying-glass:regular":"<path fill=\"currentColor\" d=\"m229.66 218.34l-50.07-50.06a88.11 88.11 0 1 0-11.31 11.31l50.06 50.07a8 8 0 0 0 11.32-11.32M40 112a72 72 0 1 1 72 72a72.08 72.08 0 0 1-72-72\"/>","gear-six:regular":"<path fill=\"currentColor\" d=\"M128 80a48 48 0 1 0 48 48a48.05 48.05 0 0 0-48-48m0 80a32 32 0 1 1 32-32a32 32 0 0 1-32 32m109.94-52.79a8 8 0 0 0-3.89-5.4l-29.83-17l-.12-33.62a8 8 0 0 0-2.83-6.08a111.9 111.9 0 0 0-36.72-20.67a8 8 0 0 0-6.46.59L128 41.85L97.88 25a8 8 0 0 0-6.47-.6a112.1 112.1 0 0 0-36.68 20.75a8 8 0 0 0-2.83 6.07l-.15 33.65l-29.83 17a8 8 0 0 0-3.89 5.4a106.5 106.5 0 0 0 0 41.56a8 8 0 0 0 3.89 5.4l29.83 17l.12 33.62a8 8 0 0 0 2.83 6.08a111.9 111.9 0 0 0 36.72 20.67a8 8 0 0 0 6.46-.59L128 214.15L158.12 231a7.9 7.9 0 0 0 3.9 1a8.1 8.1 0 0 0 2.57-.42a112.1 112.1 0 0 0 36.68-20.73a8 8 0 0 0 2.83-6.07l.15-33.65l29.83-17a8 8 0 0 0 3.89-5.4a106.5 106.5 0 0 0-.03-41.52m-15 34.91l-28.57 16.25a8 8 0 0 0-3 3c-.58 1-1.19 2.06-1.81 3.06a7.94 7.94 0 0 0-1.22 4.21l-.15 32.25a95.9 95.9 0 0 1-25.37 14.3L134 199.13a8 8 0 0 0-3.91-1h-3.83a8.1 8.1 0 0 0-4.1 1l-28.84 16.1A96 96 0 0 1 67.88 201l-.11-32.2a8 8 0 0 0-1.22-4.22c-.62-1-1.23-2-1.8-3.06a8.1 8.1 0 0 0-3-3.06l-28.6-16.29a90.5 90.5 0 0 1 0-28.26l28.52-16.28a8 8 0 0 0 3-3c.58-1 1.19-2.06 1.81-3.06a7.94 7.94 0 0 0 1.22-4.21l.15-32.25a95.9 95.9 0 0 1 25.37-14.3L122 56.87a8 8 0 0 0 4.1 1h3.64a8.1 8.1 0 0 0 4.1-1l28.84-16.1A96 96 0 0 1 188.12 55l.11 32.2a8 8 0 0 0 1.22 4.22c.62 1 1.23 2 1.8 3.06a8.1 8.1 0 0 0 3 3.06l28.6 16.29a90.5 90.5 0 0 1 .05 28.29Z\"/>","caret-right:regular":"<path fill=\"currentColor\" d=\"m181.66 133.66l-80 80a8 8 0 0 1-11.32-11.32L164.69 128L90.34 53.66a8 8 0 0 1 11.32-11.32l80 80a8 8 0 0 1 0 11.32\"/>","caret-left:regular":"<path fill=\"currentColor\" d=\"M165.66 202.34a8 8 0 0 1-11.32 11.32l-80-80a8 8 0 0 1 0-11.32l80-80a8 8 0 0 1 11.32 11.32L91.31 128Z\"/>","x:regular":"<path fill=\"currentColor\" d=\"M205.66 194.34a8 8 0 0 1-11.32 11.32L128 139.31l-66.34 66.35a8 8 0 0 1-11.32-11.32L116.69 128L50.34 61.66a8 8 0 0 1 11.32-11.32L128 116.69l66.34-66.35a8 8 0 0 1 11.32 11.32L139.31 128Z\"/>","calendar-blank:regular":"<path fill=\"currentColor\" d=\"M208 32h-24v-8a8 8 0 0 0-16 0v8H88v-8a8 8 0 0 0-16 0v8H48a16 16 0 0 0-16 16v160a16 16 0 0 0 16 16h160a16 16 0 0 0 16-16V48a16 16 0 0 0-16-16M72 48v8a8 8 0 0 0 16 0v-8h80v8a8 8 0 0 0 16 0v-8h24v32H48V48Zm136 160H48V96h160z\"/>","arrow-right:regular":"<path fill=\"currentColor\" d=\"m221.66 133.66l-72 72a8 8 0 0 1-11.32-11.32L196.69 136H40a8 8 0 0 1 0-16h156.69l-58.35-58.34a8 8 0 0 1 11.32-11.32l72 72a8 8 0 0 1 0 11.32\"/>","check:regular":"<path fill=\"currentColor\" d=\"m229.66 77.66l-128 128a8 8 0 0 1-11.32 0l-56-56a8 8 0 0 1 11.32-11.32L96 188.69L218.34 66.34a8 8 0 0 1 11.32 11.32\"/>","moon:regular":"<path fill=\"currentColor\" d=\"M233.54 142.23a8 8 0 0 0-8-2a88.08 88.08 0 0 1-109.8-109.8a8 8 0 0 0-10-10a104.84 104.84 0 0 0-52.91 37A104 104 0 0 0 136 224a103.1 103.1 0 0 0 62.52-20.88a104.84 104.84 0 0 0 37-52.91a8 8 0 0 0-1.98-7.98m-44.64 48.11A88 88 0 0 1 65.66 67.11a89 89 0 0 1 31.4-26A106 106 0 0 0 96 56a104.11 104.11 0 0 0 104 104a106 106 0 0 0 14.92-1.06a89 89 0 0 1-26.02 31.4\"/>","sun:regular":"<path fill=\"currentColor\" d=\"M120 40V16a8 8 0 0 1 16 0v24a8 8 0 0 1-16 0m72 88a64 64 0 1 1-64-64a64.07 64.07 0 0 1 64 64m-16 0a48 48 0 1 0-48 48a48.05 48.05 0 0 0 48-48M58.34 69.66a8 8 0 0 0 11.32-11.32l-16-16a8 8 0 0 0-11.32 11.32Zm0 116.68l-16 16a8 8 0 0 0 11.32 11.32l16-16a8 8 0 0 0-11.32-11.32M192 72a8 8 0 0 0 5.66-2.34l16-16a8 8 0 0 0-11.32-11.32l-16 16A8 8 0 0 0 192 72m5.66 114.34a8 8 0 0 0-11.32 11.32l16 16a8 8 0 0 0 11.32-11.32ZM48 128a8 8 0 0 0-8-8H16a8 8 0 0 0 0 16h24a8 8 0 0 0 8-8m80 80a8 8 0 0 0-8 8v24a8 8 0 0 0 16 0v-24a8 8 0 0 0-8-8m112-88h-24a8 8 0 0 0 0 16h24a8 8 0 0 0 0-16\"/>","book-open:regular":"<path fill=\"currentColor\" d=\"M232 48h-72a40 40 0 0 0-32 16a40 40 0 0 0-32-16H24a8 8 0 0 0-8 8v144a8 8 0 0 0 8 8h72a24 24 0 0 1 24 24a8 8 0 0 0 16 0a24 24 0 0 1 24-24h72a8 8 0 0 0 8-8V56a8 8 0 0 0-8-8M96 192H32V64h64a24 24 0 0 1 24 24v112a39.8 39.8 0 0 0-24-8m128 0h-64a39.8 39.8 0 0 0-24 8V88a24 24 0 0 1 24-24h64Z\"/>","sparkle:regular":"<path fill=\"currentColor\" d=\"M197.58 129.06L146 110l-19-51.62a15.92 15.92 0 0 0-29.88 0L78 110l-51.62 19a15.92 15.92 0 0 0 0 29.88L78 178l19 51.62a15.92 15.92 0 0 0 29.88 0L146 178l51.62-19a15.92 15.92 0 0 0 0-29.88ZM137 164.22a8 8 0 0 0-4.74 4.74L112 223.85L91.78 169a8 8 0 0 0-4.78-4.78L32.15 144L87 123.78a8 8 0 0 0 4.78-4.78L112 64.15L132.22 119a8 8 0 0 0 4.74 4.74L191.85 144ZM144 40a8 8 0 0 1 8-8h16V16a8 8 0 0 1 16 0v16h16a8 8 0 0 1 0 16h-16v16a8 8 0 0 1-16 0V48h-16a8 8 0 0 1-8-8m104 48a8 8 0 0 1-8 8h-8v8a8 8 0 0 1-16 0v-8h-8a8 8 0 0 1 0-16h8v-8a8 8 0 0 1 16 0v8h8a8 8 0 0 1 8 8\"/>"};
-const ico = (n, peso = 'regular', s) => `<svg class="ph" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"${s ? ` style="--s:${s}px"` : ''}>${PH[n + ':' + peso] || ''}</svg>`;
-
-/* Datos de indice.json */
+const PH = {"cpu":"<path fill=\"currentColor\" d=\"M152 96h-48a8 8 0 0 0-8 8v48a8 8 0 0 0 8 8h48a8 8 0 0 0 8-8v-48a8 8 0 0 0-8-8m-8 48h-32v-32h32Zm88 0h-16v-32h16a8 8 0 0 0 0-16h-16V56a16 16 0 0 0-16-16h-40V24a8 8 0 0 0-16 0v16h-32V24a8 8 0 0 0-16 0v16H56a16 16 0 0 0-16 16v40H24a8 8 0 0 0 0 16h16v32H24a8 8 0 0 0 0 16h16v40a16 16 0 0 0 16 16h40v16a8 8 0 0 0 16 0v-16h32v16a8 8 0 0 0 16 0v-16h40a16 16 0 0 0 16-16v-40h16a8 8 0 0 0 0-16m-32 56H56V56h144z\"/>","cpu:fill":"<path fill=\"currentColor\" d=\"M104 104h48v48h-48Zm136 48a8 8 0 0 1-8 8h-16v40a16 16 0 0 1-16 16h-40v16a8 8 0 0 1-16 0v-16h-32v16a8 8 0 0 1-16 0v-16H56a16 16 0 0 1-16-16v-40H24a8 8 0 0 1 0-16h16v-32H24a8 8 0 0 1 0-16h16V56a16 16 0 0 1 16-16h40V24a8 8 0 0 1 16 0v16h32V24a8 8 0 0 1 16 0v16h40a16 16 0 0 1 16 16v40h16a8 8 0 0 1 0 16h-16v32h16a8 8 0 0 1 8 8m-72-56a8 8 0 0 0-8-8H96a8 8 0 0 0-8 8v64a8 8 0 0 0 8 8h64a8 8 0 0 0 8-8Z\"/>","presentation-chart":"<path fill=\"currentColor\" d=\"M216 40h-80V24a8 8 0 0 0-16 0v16H40a16 16 0 0 0-16 16v120a16 16 0 0 0 16 16h39.36l-21.61 27a8 8 0 0 0 12.5 10l29.59-37h56.32l29.59 37a8 8 0 1 0 12.5-10l-21.61-27H216a16 16 0 0 0 16-16V56a16 16 0 0 0-16-16m0 136H40V56h176zm-112-56v24a8 8 0 0 1-16 0v-24a8 8 0 0 1 16 0m32-16v40a8 8 0 0 1-16 0v-40a8 8 0 0 1 16 0m32-16v56a8 8 0 0 1-16 0V88a8 8 0 0 1 16 0\"/>","presentation-chart:fill":"<path fill=\"currentColor\" d=\"M216 40h-80V24a8 8 0 0 0-16 0v16H40a16 16 0 0 0-16 16v120a16 16 0 0 0 16 16h39.36l-21.61 27a8 8 0 0 0 12.5 10l29.59-37h56.32l29.59 37a8 8 0 1 0 12.5-10l-21.61-27H216a16 16 0 0 0 16-16V56a16 16 0 0 0-16-16M104 144a8 8 0 0 1-16 0v-24a8 8 0 0 1 16 0Zm32 0a8 8 0 0 1-16 0v-40a8 8 0 0 1 16 0Zm32 0a8 8 0 0 1-16 0V88a8 8 0 0 1 16 0Z\"/>","drop-half-bottom":"<path fill=\"currentColor\" d=\"M174 47.75a254.2 254.2 0 0 0-41.45-38.3a8 8 0 0 0-9.18 0A254.2 254.2 0 0 0 82 47.75C54.51 79.32 40 112.6 40 144a88 88 0 0 0 176 0c0-31.4-14.51-64.68-42-96.25M187.83 184H68.17a72 72 0 0 1-8-16h135.7a72 72 0 0 1-8.04 16M200 144a71 71 0 0 1-.46 8H56.46a71 71 0 0 1-.46-8q0-4 .36-8h143.28q.36 4 .36 8M128 26c14.16 11.1 56.86 47.74 68.84 94H59.16C71.14 73.76 113.84 37.12 128 26M82.81 200h90.38a71.82 71.82 0 0 1-90.38 0\"/>","drop-half-bottom:fill":"<path fill=\"currentColor\" d=\"M174 47.75a254.2 254.2 0 0 0-41.45-38.3a8 8 0 0 0-9.18 0A254.2 254.2 0 0 0 82 47.75C54.51 79.32 40 112.6 40 144a88 88 0 0 0 176 0c0-31.4-14.51-64.68-42-96.25M128 26c14.16 11.1 56.86 47.74 68.84 94H59.16C71.14 73.76 113.84 37.12 128 26\"/>","grains":"<path fill=\"currentColor\" d=\"M208 56a87.5 87.5 0 0 0-31.85 6c-14.32-29.7-43.25-44.46-44.57-45.12a8 8 0 0 0-7.16 0c-1.33.66-30.25 15.42-44.57 45.12A87.5 87.5 0 0 0 48 56a8 8 0 0 0-8 8v80a88 88 0 0 0 176 0V64a8 8 0 0 0-8-8m-88 159.56A72.1 72.1 0 0 1 56 144v-15.56A72.1 72.1 0 0 1 120 200Zm0-66.1a88 88 0 0 0-64-37.09V72.44A72.1 72.1 0 0 1 120 144ZM94.15 69.11c9.22-19.21 26.41-31.33 33.85-35.9c7.44 4.58 24.63 16.7 33.84 35.9A88.6 88.6 0 0 0 128 107.36a88.57 88.57 0 0 0-33.85-38.25M200 144a72.1 72.1 0 0 1-64 71.56V200a72.1 72.1 0 0 1 64-71.56Zm0-31.63a88 88 0 0 0-64 37.09V144a72.1 72.1 0 0 1 64-71.56Z\"/>","grains:fill":"<path fill=\"currentColor\" d=\"M208 56a87.5 87.5 0 0 0-31.84 6c-14.32-29.7-43.25-44.46-44.57-45.13a8 8 0 0 0-7.16 0c-1.33.64-30.26 15.4-44.58 45.13A87.5 87.5 0 0 0 48 56a8 8 0 0 0-8 8v80a88.12 88.12 0 0 0 75.48 87.1a4 4 0 0 0 4.52-4v-50.83a8.18 8.18 0 0 1 7.47-8.25a8 8 0 0 1 8.53 8v51.14a4 4 0 0 0 4.52 4A88.12 88.12 0 0 0 216 144V64a8 8 0 0 0-8-8m-88 93.46a88 88 0 0 0-64-37.09V72.44A72.1 72.1 0 0 1 120 144Zm8-42.1a88.6 88.6 0 0 0-33.84-38.25c9.21-19.21 26.4-31.33 33.84-35.9c7.45 4.58 24.63 16.7 33.84 35.9A88.6 88.6 0 0 0 128 107.36m72 5a88 88 0 0 0-64 37.09V144a72.1 72.1 0 0 1 64-71.56Z\"/>","tree":"<path fill=\"currentColor\" d=\"M198.1 62.59a76 76 0 0 0-140.2 0A71.71 71.71 0 0 0 16 127.8C15.9 166 48 199 86.14 200a72.1 72.1 0 0 0 33.86-7.53V232a8 8 0 0 0 16 0v-39.53a72.2 72.2 0 0 0 32 7.53h1.82c38.18-1 70.29-34 70.18-72.2a71.71 71.71 0 0 0-41.9-65.21M169.45 184A56.08 56.08 0 0 1 136 174v-41l43.58-21.78a8 8 0 1 0-7.16-14.32L136 115.06V88a8 8 0 0 0-16 0v51.06l-36.42-18.22a8 8 0 1 0-7.16 14.32L120 156.94v17a56 56 0 0 1-33.45 10c-29.65-.71-54.63-26.42-54.55-56.1A55.77 55.77 0 0 1 67.11 76a8 8 0 0 0 4.53-4.67a60 60 0 0 1 112.72 0a8 8 0 0 0 4.53 4.67A55.79 55.79 0 0 1 224 127.84c.08 29.68-24.9 55.39-54.55 56.16\"/>","tree:fill":"<path fill=\"currentColor\" d=\"M128 187.85a72 72 0 0 0 8 4.62V232a8 8 0 0 1-16 0v-39.53a72 72 0 0 0 8-4.62m70.1-125.26a76 76 0 0 0-140.2 0A71.71 71.71 0 0 0 16 127.8C15.9 166 48 199 86.14 200a72.2 72.2 0 0 0 33.86-7.53v-35.53l-43.58-21.78a8 8 0 1 1 7.16-14.32L120 139.06V88a8 8 0 0 1 16 0v27.06l36.42-18.22a8 8 0 1 1 7.16 14.32L136 132.94v59.53a72.2 72.2 0 0 0 32 7.53h1.82c38.18-1 70.29-34 70.18-72.2a71.71 71.71 0 0 0-41.9-65.21\"/>","cow":"<path fill=\"currentColor\" d=\"M104 192a8 8 0 0 1-8 8H80a8 8 0 0 1 0-16h16a8 8 0 0 1 8 8m72-8h-16a8 8 0 0 0 0 16h16a8 8 0 0 0 0-16m-76-48a12 12 0 1 0-12-12a12 12 0 0 0 12 12m56 0a12 12 0 1 0-12-12a12 12 0 0 0 12 12m88.39-13.88A16 16 0 0 1 232 128h-32v32a40 40 0 0 1-24 72H80a40 40 0 0 1-24-72v-32H24a16 16 0 0 1-15.69-19a56.13 56.13 0 0 1 54.91-45h1.64A55.83 55.83 0 0 1 48 24a8 8 0 0 1 16 0a40 40 0 0 0 40 40h48a40 40 0 0 0 40-40a8 8 0 0 1 16 0a55.83 55.83 0 0 1-16.86 40h1.64a56.13 56.13 0 0 1 54.91 45a15.82 15.82 0 0 1-3.3 13.12M72 152.8a40.6 40.6 0 0 1 8-.8h96a40.6 40.6 0 0 1 8 .8V104a24 24 0 0 0-24-24H96a24 24 0 0 0-24 24ZM56 112v-8a39.8 39.8 0 0 1 8-24h-.8A40.09 40.09 0 0 0 24 112Zm144 80a24 24 0 0 0-24-24H80a24 24 0 0 0 0 48h96a24 24 0 0 0 24-24m32-80a40.08 40.08 0 0 0-39.2-32h-.8a39.8 39.8 0 0 1 8 24v8Z\"/>","cow:fill":"<path fill=\"currentColor\" d=\"M104 192a8 8 0 0 1-8 8H80a8 8 0 0 1 0-16h16a8 8 0 0 1 8 8m72-8h-16a8 8 0 0 0 0 16h16a8 8 0 0 0 0-16m68.39-61.88A16 16 0 0 1 232 128h-32v32a40 40 0 0 1-24 72H80a40 40 0 0 1-24-72v-32H24a16 16 0 0 1-15.69-19a56.13 56.13 0 0 1 54.91-45h1.64A55.83 55.83 0 0 1 48 24a8 8 0 0 1 16 0a40 40 0 0 0 40 40h48a40 40 0 0 0 40-40a8 8 0 0 1 16 0a55.83 55.83 0 0 1-16.86 40h1.64a56.13 56.13 0 0 1 54.91 45a15.82 15.82 0 0 1-3.3 13.12M144 124a12 12 0 1 0 12-12a12 12 0 0 0-12 12m-56 0a12 12 0 1 0 12-12a12 12 0 0 0-12 12m-32-12v-8a39.8 39.8 0 0 1 8-24h-.8A40.09 40.09 0 0 0 24 112Zm144 80a24 24 0 0 0-24-24H80a24 24 0 0 0 0 48h96a24 24 0 0 0 24-24m32-80a40.08 40.08 0 0 0-39.2-32h-.8a39.8 39.8 0 0 1 8 24v8Z\"/>","calculator":"<path fill=\"currentColor\" d=\"M80 120h96a8 8 0 0 0 8-8V64a8 8 0 0 0-8-8H80a8 8 0 0 0-8 8v48a8 8 0 0 0 8 8m8-48h80v32H88Zm112-48H56a16 16 0 0 0-16 16v176a16 16 0 0 0 16 16h144a16 16 0 0 0 16-16V40a16 16 0 0 0-16-16m0 192H56V40h144Zm-100-68a12 12 0 1 1-12-12a12 12 0 0 1 12 12m40 0a12 12 0 1 1-12-12a12 12 0 0 1 12 12m40 0a12 12 0 1 1-12-12a12 12 0 0 1 12 12m-80 40a12 12 0 1 1-12-12a12 12 0 0 1 12 12m40 0a12 12 0 1 1-12-12a12 12 0 0 1 12 12m40 0a12 12 0 1 1-12-12a12 12 0 0 1 12 12\"/>","calculator:fill":"<path fill=\"currentColor\" d=\"M200 24H56a16 16 0 0 0-16 16v176a16 16 0 0 0 16 16h144a16 16 0 0 0 16-16V40a16 16 0 0 0-16-16M88 200a12 12 0 1 1 12-12a12 12 0 0 1-12 12m0-40a12 12 0 1 1 12-12a12 12 0 0 1-12 12m40 40a12 12 0 1 1 12-12a12 12 0 0 1-12 12m0-40a12 12 0 1 1 12-12a12 12 0 0 1-12 12m40 40a12 12 0 1 1 12-12a12 12 0 0 1-12 12m0-40a12 12 0 1 1 12-12a12 12 0 0 1-12 12m16-56a8 8 0 0 1-8 8H80a8 8 0 0 1-8-8V64a8 8 0 0 1 8-8h96a8 8 0 0 1 8 8Z\"/>","flask":"<path fill=\"currentColor\" d=\"M221.69 199.77L160 96.92V40h8a8 8 0 0 0 0-16H88a8 8 0 0 0 0 16h8v56.92L34.31 199.77A16 16 0 0 0 48 224h160a16 16 0 0 0 13.72-24.23Zm-110.83-96.52a7.93 7.93 0 0 0 1.14-4.11V40h32v59.14a7.93 7.93 0 0 0 1.14 4.11L183.36 167c-12 2.37-29.07 1.37-51.75-10.11c-15.91-8.05-31.05-12.32-45.22-12.81ZM48 208l28.54-47.58c14.25-1.74 30.31 1.85 47.82 10.72c19 9.61 35 12.88 48 12.88a69.9 69.9 0 0 0 19.55-2.7L208 208Z\"/>","flask:fill":"<path fill=\"currentColor\" d=\"M221.69 199.77L160 96.92V40h8a8 8 0 0 0 0-16H88a8 8 0 0 0 0 16h8v56.92L34.31 199.77A16 16 0 0 0 48 224h160a16 16 0 0 0 13.72-24.23Zm-90.08-42.91c-15.91-8.05-31.05-12.32-45.22-12.81l24.47-40.8a7.93 7.93 0 0 0 1.14-4.11V40h32v59.14a7.93 7.93 0 0 0 1.14 4.11L183.36 167c-11.96 2.34-29.07 1.34-51.75-10.14\"/>","users-three":"<path fill=\"currentColor\" d=\"M244.8 150.4a8 8 0 0 1-11.2-1.6A51.6 51.6 0 0 0 192 128a8 8 0 0 1-7.37-4.89a8 8 0 0 1 0-6.22A8 8 0 0 1 192 112a24 24 0 1 0-23.24-30a8 8 0 1 1-15.5-4A40 40 0 1 1 219 117.51a67.94 67.94 0 0 1 27.43 21.68a8 8 0 0 1-1.63 11.21M190.92 212a8 8 0 1 1-13.84 8a57 57 0 0 0-98.16 0a8 8 0 1 1-13.84-8a72.06 72.06 0 0 1 33.74-29.92a48 48 0 1 1 58.36 0A72.06 72.06 0 0 1 190.92 212M128 176a32 32 0 1 0-32-32a32 32 0 0 0 32 32m-56-56a8 8 0 0 0-8-8a24 24 0 1 1 23.24-30a8 8 0 1 0 15.5-4A40 40 0 1 0 37 117.51a67.94 67.94 0 0 0-27.4 21.68a8 8 0 1 0 12.8 9.61A51.6 51.6 0 0 1 64 128a8 8 0 0 0 8-8\"/>","users-three:fill":"<path fill=\"currentColor\" d=\"M64.12 147.8a4 4 0 0 1-4 4.2H16a8 8 0 0 1-7.8-6.17a8.35 8.35 0 0 1 1.62-6.93A67.8 67.8 0 0 1 37 117.51a40 40 0 1 1 66.46-35.8a3.94 3.94 0 0 1-2.27 4.18A64.08 64.08 0 0 0 64 144c0 1.28 0 2.54.12 3.8m182-8.91A67.76 67.76 0 0 0 219 117.51a40 40 0 1 0-66.46-35.8a3.94 3.94 0 0 0 2.27 4.18A64.08 64.08 0 0 1 192 144c0 1.28 0 2.54-.12 3.8a4 4 0 0 0 4 4.2H240a8 8 0 0 0 7.8-6.17a8.33 8.33 0 0 0-1.63-6.94Zm-89 43.18a48 48 0 1 0-58.37 0A72.13 72.13 0 0 0 65.07 212A8 8 0 0 0 72 224h112a8 8 0 0 0 6.93-12a72.15 72.15 0 0 0-33.74-29.93Z\"/>","house":"<path fill=\"currentColor\" d=\"m219.31 108.68l-80-80a16 16 0 0 0-22.62 0l-80 80A15.87 15.87 0 0 0 32 120v96a8 8 0 0 0 8 8h64a8 8 0 0 0 8-8v-56h32v56a8 8 0 0 0 8 8h64a8 8 0 0 0 8-8v-96a15.87 15.87 0 0 0-4.69-11.32M208 208h-48v-56a8 8 0 0 0-8-8h-48a8 8 0 0 0-8 8v56H48v-88l80-80l80 80Z\"/>","house:fill":"<path fill=\"currentColor\" d=\"M224 120v96a8 8 0 0 1-8 8h-56a8 8 0 0 1-8-8v-52a4 4 0 0 0-4-4h-40a4 4 0 0 0-4 4v52a8 8 0 0 1-8 8H40a8 8 0 0 1-8-8v-96a16 16 0 0 1 4.69-11.31l80-80a16 16 0 0 1 22.62 0l80 80A16 16 0 0 1 224 120\"/>","map-trifold":"<path fill=\"currentColor\" d=\"M228.92 49.69a8 8 0 0 0-6.86-1.45l-61.13 15.28l-61.35-30.68a8 8 0 0 0-5.52-.6l-64 16A8 8 0 0 0 24 56v144a8 8 0 0 0 9.94 7.76l61.13-15.28l61.35 30.68a8.15 8.15 0 0 0 3.58.84a8 8 0 0 0 1.94-.24l64-16A8 8 0 0 0 232 200V56a8 8 0 0 0-3.08-6.31M104 52.94l48 24v126.12l-48-24Zm-64 9.31l48-12v127.5l-48 12Zm176 131.5l-48 12V78.25l48-12Z\"/>","map-trifold:fill":"<path fill=\"currentColor\" d=\"M228.92 49.69a8 8 0 0 0-6.86-1.45l-61.13 15.28l-61.35-30.68a8 8 0 0 0-5.52-.6l-64 16A8 8 0 0 0 24 56v144a8 8 0 0 0 9.94 7.76l61.13-15.28l61.35 30.68a8.15 8.15 0 0 0 3.58.84a8 8 0 0 0 1.94-.24l64-16A8 8 0 0 0 232 200V56a8 8 0 0 0-3.08-6.31M96 176a8 8 0 0 0-1.94.24L40 189.75V62.25l55.07-13.77l.93.46Zm120 17.75l-55.07 13.77l-.93-.46V80a8 8 0 0 0 1.94-.23L216 66.25Z\"/>","list-checks":"<path fill=\"currentColor\" d=\"M224 128a8 8 0 0 1-8 8h-88a8 8 0 0 1 0-16h88a8 8 0 0 1 8 8m-96-56h88a8 8 0 0 0 0-16h-88a8 8 0 0 0 0 16m88 112h-88a8 8 0 0 0 0 16h88a8 8 0 0 0 0-16M82.34 42.34L56 68.69L45.66 58.34a8 8 0 0 0-11.32 11.32l16 16a8 8 0 0 0 11.32 0l32-32a8 8 0 0 0-11.32-11.32m0 64L56 132.69l-10.34-10.35a8 8 0 0 0-11.32 11.32l16 16a8 8 0 0 0 11.32 0l32-32a8 8 0 0 0-11.32-11.32m0 64L56 196.69l-10.34-10.35a8 8 0 0 0-11.32 11.32l16 16a8 8 0 0 0 11.32 0l32-32a8 8 0 0 0-11.32-11.32\"/>","list-checks:fill":"<path fill=\"currentColor\" d=\"M208 32H48a16 16 0 0 0-16 16v160a16 16 0 0 0 16 16h160a16 16 0 0 0 16-16V48a16 16 0 0 0-16-16m-90.34 117.66l-32 32a8 8 0 0 1-11.32 0l-16-16a8 8 0 0 1 11.32-11.32L80 164.69l26.34-26.35a8 8 0 0 1 11.32 11.32m0-64l-32 32a8 8 0 0 1-11.32 0l-16-16a8 8 0 0 1 11.32-11.32L80 100.69l26.34-26.35a8 8 0 0 1 11.32 11.32M192 168h-48a8 8 0 0 1 0-16h48a8 8 0 0 1 0 16m0-64h-48a8 8 0 0 1 0-16h48a8 8 0 0 1 0 16\"/>","calendar-dots":"<path fill=\"currentColor\" d=\"M208 32h-24v-8a8 8 0 0 0-16 0v8H88v-8a8 8 0 0 0-16 0v8H48a16 16 0 0 0-16 16v160a16 16 0 0 0 16 16h160a16 16 0 0 0 16-16V48a16 16 0 0 0-16-16M72 48v8a8 8 0 0 0 16 0v-8h80v8a8 8 0 0 0 16 0v-8h24v32H48V48Zm136 160H48V96h160zm-68-76a12 12 0 1 1-12-12a12 12 0 0 1 12 12m44 0a12 12 0 1 1-12-12a12 12 0 0 1 12 12m-88 40a12 12 0 1 1-12-12a12 12 0 0 1 12 12m44 0a12 12 0 1 1-12-12a12 12 0 0 1 12 12m44 0a12 12 0 1 1-12-12a12 12 0 0 1 12 12\"/>","calendar-dots:fill":"<path fill=\"currentColor\" d=\"M208 32h-24v-8a8 8 0 0 0-16 0v8H88v-8a8 8 0 0 0-16 0v8H48a16 16 0 0 0-16 16v160a16 16 0 0 0 16 16h160a16 16 0 0 0 16-16V48a16 16 0 0 0-16-16M84 184a12 12 0 1 1 12-12a12 12 0 0 1-12 12m44 0a12 12 0 1 1 12-12a12 12 0 0 1-12 12m0-40a12 12 0 1 1 12-12a12 12 0 0 1-12 12m44 40a12 12 0 1 1 12-12a12 12 0 0 1-12 12m0-40a12 12 0 1 1 12-12a12 12 0 0 1-12 12m36-64H48V48h24v8a8 8 0 0 0 16 0v-8h80v8a8 8 0 0 0 16 0v-8h24Z\"/>","gear-six":"<path fill=\"currentColor\" d=\"M128 80a48 48 0 1 0 48 48a48.05 48.05 0 0 0-48-48m0 80a32 32 0 1 1 32-32a32 32 0 0 1-32 32m109.94-52.79a8 8 0 0 0-3.89-5.4l-29.83-17l-.12-33.62a8 8 0 0 0-2.83-6.08a111.9 111.9 0 0 0-36.72-20.67a8 8 0 0 0-6.46.59L128 41.85L97.88 25a8 8 0 0 0-6.47-.6a112.1 112.1 0 0 0-36.68 20.75a8 8 0 0 0-2.83 6.07l-.15 33.65l-29.83 17a8 8 0 0 0-3.89 5.4a106.5 106.5 0 0 0 0 41.56a8 8 0 0 0 3.89 5.4l29.83 17l.12 33.62a8 8 0 0 0 2.83 6.08a111.9 111.9 0 0 0 36.72 20.67a8 8 0 0 0 6.46-.59L128 214.15L158.12 231a7.9 7.9 0 0 0 3.9 1a8.1 8.1 0 0 0 2.57-.42a112.1 112.1 0 0 0 36.68-20.73a8 8 0 0 0 2.83-6.07l.15-33.65l29.83-17a8 8 0 0 0 3.89-5.4a106.5 106.5 0 0 0-.03-41.52m-15 34.91l-28.57 16.25a8 8 0 0 0-3 3c-.58 1-1.19 2.06-1.81 3.06a7.94 7.94 0 0 0-1.22 4.21l-.15 32.25a95.9 95.9 0 0 1-25.37 14.3L134 199.13a8 8 0 0 0-3.91-1h-3.83a8.1 8.1 0 0 0-4.1 1l-28.84 16.1A96 96 0 0 1 67.88 201l-.11-32.2a8 8 0 0 0-1.22-4.22c-.62-1-1.23-2-1.8-3.06a8.1 8.1 0 0 0-3-3.06l-28.6-16.29a90.5 90.5 0 0 1 0-28.26l28.52-16.28a8 8 0 0 0 3-3c.58-1 1.19-2.06 1.81-3.06a7.94 7.94 0 0 0 1.22-4.21l.15-32.25a95.9 95.9 0 0 1 25.37-14.3L122 56.87a8 8 0 0 0 4.1 1h3.64a8.1 8.1 0 0 0 4.1-1l28.84-16.1A96 96 0 0 1 188.12 55l.11 32.2a8 8 0 0 0 1.22 4.22c.62 1 1.23 2 1.8 3.06a8.1 8.1 0 0 0 3 3.06l28.6 16.29a90.5 90.5 0 0 1 .05 28.29Z\"/>","gear-six:fill":"<path fill=\"currentColor\" d=\"M237.94 107.21a8 8 0 0 0-3.89-5.4l-29.83-17l-.12-33.62a8 8 0 0 0-2.83-6.08a111.9 111.9 0 0 0-36.72-20.67a8 8 0 0 0-6.46.59L128 41.85L97.88 25a8 8 0 0 0-6.47-.6a111.9 111.9 0 0 0-36.68 20.75a8 8 0 0 0-2.83 6.07l-.15 33.65l-29.83 17a8 8 0 0 0-3.89 5.4a106.5 106.5 0 0 0 0 41.56a8 8 0 0 0 3.89 5.4l29.83 17l.12 33.63a8 8 0 0 0 2.83 6.08a111.9 111.9 0 0 0 36.72 20.67a8 8 0 0 0 6.46-.59L128 214.15L158.12 231a7.9 7.9 0 0 0 3.9 1a8.1 8.1 0 0 0 2.57-.42a112.1 112.1 0 0 0 36.68-20.73a8 8 0 0 0 2.83-6.07l.15-33.65l29.83-17a8 8 0 0 0 3.89-5.4a106.5 106.5 0 0 0-.03-41.52M128 168a40 40 0 1 1 40-40a40 40 0 0 1-40 40\"/>","caret-right":"<path fill=\"currentColor\" d=\"m181.66 133.66l-80 80a8 8 0 0 1-11.32-11.32L164.69 128L90.34 53.66a8 8 0 0 1 11.32-11.32l80 80a8 8 0 0 1 0 11.32\"/>","caret-right:fill":"<path fill=\"currentColor\" d=\"m181.66 133.66l-80 80A8 8 0 0 1 88 208V48a8 8 0 0 1 13.66-5.66l80 80a8 8 0 0 1 0 11.32\"/>","caret-left":"<path fill=\"currentColor\" d=\"M165.66 202.34a8 8 0 0 1-11.32 11.32l-80-80a8 8 0 0 1 0-11.32l80-80a8 8 0 0 1 11.32 11.32L91.31 128Z\"/>","caret-left:fill":"<path fill=\"currentColor\" d=\"M168 48v160a8 8 0 0 1-13.66 5.66l-80-80a8 8 0 0 1 0-11.32l80-80A8 8 0 0 1 168 48\"/>","moon":"<path fill=\"currentColor\" d=\"M233.54 142.23a8 8 0 0 0-8-2a88.08 88.08 0 0 1-109.8-109.8a8 8 0 0 0-10-10a104.84 104.84 0 0 0-52.91 37A104 104 0 0 0 136 224a103.1 103.1 0 0 0 62.52-20.88a104.84 104.84 0 0 0 37-52.91a8 8 0 0 0-1.98-7.98m-44.64 48.11A88 88 0 0 1 65.66 67.11a89 89 0 0 1 31.4-26A106 106 0 0 0 96 56a104.11 104.11 0 0 0 104 104a106 106 0 0 0 14.92-1.06a89 89 0 0 1-26.02 31.4\"/>","moon:fill":"<path fill=\"currentColor\" d=\"M235.54 150.21a104.84 104.84 0 0 1-37 52.91A104 104 0 0 1 32 120a103.1 103.1 0 0 1 20.88-62.52a104.84 104.84 0 0 1 52.91-37a8 8 0 0 1 10 10a88.08 88.08 0 0 0 109.8 109.8a8 8 0 0 1 10 10Z\"/>","sun":"<path fill=\"currentColor\" d=\"M120 40V16a8 8 0 0 1 16 0v24a8 8 0 0 1-16 0m72 88a64 64 0 1 1-64-64a64.07 64.07 0 0 1 64 64m-16 0a48 48 0 1 0-48 48a48.05 48.05 0 0 0 48-48M58.34 69.66a8 8 0 0 0 11.32-11.32l-16-16a8 8 0 0 0-11.32 11.32Zm0 116.68l-16 16a8 8 0 0 0 11.32 11.32l16-16a8 8 0 0 0-11.32-11.32M192 72a8 8 0 0 0 5.66-2.34l16-16a8 8 0 0 0-11.32-11.32l-16 16A8 8 0 0 0 192 72m5.66 114.34a8 8 0 0 0-11.32 11.32l16 16a8 8 0 0 0 11.32-11.32ZM48 128a8 8 0 0 0-8-8H16a8 8 0 0 0 0 16h24a8 8 0 0 0 8-8m80 80a8 8 0 0 0-8 8v24a8 8 0 0 0 16 0v-24a8 8 0 0 0-8-8m112-88h-24a8 8 0 0 0 0 16h24a8 8 0 0 0 0-16\"/>","sun:fill":"<path fill=\"currentColor\" d=\"M120 40V16a8 8 0 0 1 16 0v24a8 8 0 0 1-16 0m8 24a64 64 0 1 0 64 64a64.07 64.07 0 0 0-64-64m-69.66 5.66a8 8 0 0 0 11.32-11.32l-16-16a8 8 0 0 0-11.32 11.32Zm0 116.68l-16 16a8 8 0 0 0 11.32 11.32l16-16a8 8 0 0 0-11.32-11.32M192 72a8 8 0 0 0 5.66-2.34l16-16a8 8 0 0 0-11.32-11.32l-16 16A8 8 0 0 0 192 72m5.66 114.34a8 8 0 0 0-11.32 11.32l16 16a8 8 0 0 0 11.32-11.32ZM48 128a8 8 0 0 0-8-8H16a8 8 0 0 0 0 16h24a8 8 0 0 0 8-8m80 80a8 8 0 0 0-8 8v24a8 8 0 0 0 16 0v-24a8 8 0 0 0-8-8m112-88h-24a8 8 0 0 0 0 16h24a8 8 0 0 0 0-16\"/>"};
+const ico = (n, s) => `<svg class="ph" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"${s ? ` style="--s:${s}px"` : ''}>${PH[n]}</svg>`;
 const CARRERAS = [
-  { slug: 'sistemas', corto: 'Sistemas', nombre: 'Ingeniería de Sistemas', tipo: 'Ingeniería', osc: '#6094ff', cla: '#2751cc', ic: 'cpu', sil: [6,5,6,6,7,6,5,5,2,1], mat: 49, uc: 132 },
-  { slug: 'agronomica', corto: 'Agronómica', nombre: 'Ingeniería Agronómica', tipo: 'Ingeniería', osc: '#3fcb74', cla: '#1b7a44', ic: 'grains', sil: [9,7,7,6,6,6,5,6,3,3], mat: 58, uc: 150 },
-  { slug: 'ambiental', corto: 'Ambiental', nombre: 'Ingeniería Ambiental', tipo: 'Ingeniería', osc: '#34c6ea', cla: '#0b7391', ic: 'tree', sil: [8,6,7,7,5,6,4,5,5,2], mat: 55, uc: 153 },
-  { slug: 'petroleo', corto: 'Petróleo', nombre: 'Ingeniería de Petróleo', tipo: 'Ingeniería', osc: '#e8a33d', cla: '#9a6410', ic: 'drop-half-bottom', sil: [7,5,7,5,5,6,4,6,5,3], mat: 53, uc: 150 },
-  { slug: 'animal', corto: 'Producción Animal', nombre: 'Ingeniería en Producción Animal', tipo: 'Ingeniería', osc: '#a9c23f', cla: '#5f7a16', ic: 'cow', sil: [8,7,6,7,6,5,5,6,7,3], mat: 60, uc: 160 },
-  { slug: 'administracion', corto: 'Administración', nombre: 'Licenciatura en Administración', tipo: 'Licenciatura', osc: '#8a7cf0', cla: '#4b3bc4', ic: 'presentation-chart', sil: [7,6,6,5,6,5,5,5,6,5], mat: 56, uc: 155 },
-  { slug: 'contaduria', corto: 'Contaduría', nombre: 'Licenciatura en Contaduría Pública', tipo: 'Licenciatura', osc: '#2fd3c0', cla: '#0a8577', ic: 'calculator', sil: [7,6,6,5,5,6,5,6,6,4], mat: 56, uc: 155 },
-  { slug: 'alimentos', corto: 'Alimentos', nombre: 'Licenciatura en Tecnología de los Alimentos', tipo: 'Licenciatura', osc: '#ff7a6b', cla: '#c03a2b', ic: 'flask', sil: [7,5,4,5,5,5,4,4,3,3], mat: 45, uc: 140 },
-  { slug: 'rrhh', corto: 'Recursos Humanos', nombre: 'Gerencia de Recursos Humanos', tipo: 'Licenciatura', osc: '#f072b0', cla: '#b32c74', ic: 'users-three', sil: [6,5,5,5,5,4,5,5,5,4], mat: 49, uc: 149 },
+  { slug: 'sistemas', corto: 'Sistemas', nombre: 'Ingeniería de Sistemas', tipo: 'Ingeniería', osc: '#6094ff', cla: '#2751cc', ic: 'cpu', mat: 49, uc: 132 },
+  { slug: 'agronomica', corto: 'Agronómica', nombre: 'Ingeniería Agronómica', tipo: 'Ingeniería', osc: '#3fcb74', cla: '#1b7a44', ic: 'grains', mat: 58, uc: 150 },
+  { slug: 'ambiental', corto: 'Ambiental', nombre: 'Ingeniería Ambiental', tipo: 'Ingeniería', osc: '#34c6ea', cla: '#0b7391', ic: 'tree', mat: 55, uc: 153 },
+  { slug: 'petroleo', corto: 'Petróleo', nombre: 'Ingeniería de Petróleo', tipo: 'Ingeniería', osc: '#e8a33d', cla: '#9a6410', ic: 'drop-half-bottom', mat: 53, uc: 150 },
+  { slug: 'animal', corto: 'Producción Animal', nombre: 'Ingeniería en Producción Animal', tipo: 'Ingeniería', osc: '#a9c23f', cla: '#5f7a16', ic: 'cow', mat: 60, uc: 160 },
+  { slug: 'administracion', corto: 'Administración', nombre: 'Licenciatura en Administración', tipo: 'Licenciatura', osc: '#8a7cf0', cla: '#4b3bc4', ic: 'presentation-chart', mat: 56, uc: 155 },
+  { slug: 'contaduria', corto: 'Contaduría', nombre: 'Licenciatura en Contaduría Pública', tipo: 'Licenciatura', osc: '#2fd3c0', cla: '#0a8577', ic: 'calculator', mat: 56, uc: 155 },
+  { slug: 'alimentos', corto: 'Alimentos', nombre: 'Licenciatura en Tecnología de los Alimentos', tipo: 'Licenciatura', osc: '#ff7a6b', cla: '#c03a2b', ic: 'flask', mat: 45, uc: 140 },
+  { slug: 'rrhh', corto: 'Recursos Humanos', nombre: 'Gerencia de Recursos Humanos', tipo: 'Licenciatura', osc: '#f072b0', cla: '#b32c74', ic: 'users-three', mat: 49, uc: 149 },
 ];
-const porSlug = s => CARRERAS.find(k => k.slug === s);
-/* Avance de ejemplo: en Sistemas, cuatro semestres aprobados y dos materias del quinto en curso */
-const AVANCE = { sistemas: { aprobados: 4, cursando: 2, pct: 41, inscribir: 6, grado: 'Dic 2029' } };
-
+const k = s => CARRERAS.find(c => c.slug === s);
 const app = document.getElementById('app');
-const estado = { mia: 'sistemas', claro: false, vista: 'inicio', abierta: null };
-try { const g = JSON.parse(localStorage.getItem('mp-proto') || '{}'); Object.assign(estado, { mia: g.mia || 'sistemas', claro: !!g.claro }); } catch (e) {}
-const guardar = () => { try { localStorage.setItem('mp-proto', JSON.stringify({ mia: estado.mia, claro: estado.claro })); } catch (e) {} };
-const color = k => estado.claro ? k.cla : k.osc;
-const toque = () => { try { navigator.vibrate && navigator.vibrate(8); } catch (e) {} };
+const estado = { mia: 'sistemas', claro: false, abierta: null };
+try { Object.assign(estado, JSON.parse(localStorage.getItem('mp-mini') || '{}')); } catch (e) {}
+const guardar = () => { try { localStorage.setItem('mp-mini', JSON.stringify({ mia: estado.mia, claro: estado.claro })); } catch (e) {} };
+const color = c => estado.claro ? c.cla : c.osc;
+const toque = () => { try { navigator.vibrate && navigator.vibrate(6); } catch (e) {} };
+const pasar = f => (document.startViewTransition && !matchMedia('(prefers-reduced-motion: reduce)').matches) ? document.startViewTransition(f) : f();
 
-/* ---------- Saludo según la hora ---------- */
-function saludar() {
+function pintar() {
   const h = new Date().getHours();
   document.getElementById('saludo').textContent = h < 12 ? 'Buenos días' : h < 19 ? 'Buenas tardes' : 'Buenas noches';
-  document.getElementById('fecha').textContent = new Date().toLocaleDateString('es', { weekday: 'long', day: 'numeric', month: 'long' }).replace(/^./, c => c.toUpperCase());
+  const c = k(estado.mia), ejemplo = c.slug === 'sistemas';
+  document.getElementById('mia').innerHTML = `<button class="tarjeta pulsable" style="--k:${color(c)};display:block;width:100%" data-slug="${c.slug}">
+    <div class="ident"><span class="icono">${ico(c.ic)}</span><div><b>${c.corto}</b><span class="nota">${c.tipo}</span></div></div>
+    <div class="grande">${ejemplo ? 41 : 0}<small>%</small></div>
+    <div class="nota" style="margin-top:8px">${ejemplo ? 'Semestre 5 de 10 · terminas en Dic 2029' : 'Marca lo que ya aprobaste'}</div>
+    <div class="barra"><i style="--p:${ejemplo ? 41 : 0}%"></i></div>
+    <span class="boton" data-aviso="${ejemplo ? 'Abre tu mapa donde lo dejaste' : 'Abre tu mapa para empezar'}">${ejemplo ? 'Seguir donde ibas' : 'Empezar'}</span>
+  </button>`;
+  document.getElementById('lista').innerHTML = CARRERAS.filter(c => c.slug !== estado.mia).map(c =>
+    `<button class="fila" data-slug="${c.slug}" style="--k:${color(c)}"><span class="icono">${ico(c.ic)}</span><span class="nm">${c.corto}</span>${ico('caret-right')}</button>`).join('');
 }
-
-/* ---------- La portada: campo de color + tu pensum como constelación, pintado una vez ---------- */
-const hexHsl = hex => { const n = parseInt(hex.slice(1), 16), r = (n >> 16) / 255, g = (n >> 8 & 255) / 255, b = (n & 255) / 255, mx = Math.max(r, g, b), mn = Math.min(r, g, b), l = (mx + mn) / 2, d = mx - mn; if (!d) return [0, 0, l * 100]; const s = d / (1 - Math.abs(2 * l - 1)); let h = mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4; return [(h * 60 + 360) % 360, s * 100, l * 100]; };
-const hsla = (h, s, l, a) => `hsla(${(h + 360) % 360}, ${s}%, ${l}%, ${a})`;
-let grano;
-function texturaGrano() {
-  if (grano) return grano;
-  grano = document.createElement('canvas'); grano.width = grano.height = 128;
-  const c = grano.getContext('2d'), img = c.createImageData(128, 128);
-  for (let i = 0; i < img.data.length; i += 4) { const v = Math.random() * 255; img.data[i] = img.data[i + 1] = img.data[i + 2] = v; img.data[i + 3] = 255; }
-  c.putImageData(img, 0, 0); return grano;
+function ficha(c) {
+  const f = document.getElementById('ficha'), mia = c.slug === estado.mia;
+  f.style.setProperty('--k', color(c));
+  f.innerHTML = `<button class="circulo pulsable atras" id="volver" aria-label="Volver">${ico('caret-left')}</button>
+    <span class="icono" style="width:56px;height:56px;border-radius:16px;--s:30px">${ico(c.ic)}</span>
+    <h1 class="ficha-nombre">${c.corto}</h1>
+    <p class="nota" style="font-size:15px;line-height:20px;margin-top:4px">${c.nombre}</p>
+    <div class="datos"><div><b>${c.mat}</b><span class="nota">Materias</span></div><div><b>${c.uc}</b><span class="nota">UC</span></div><div><b>10</b><span class="nota">Semestres</span></div></div>
+    <button class="boton pulsable" data-aviso="Abre el mapa de ${c.corto}">Ver el mapa</button>
+    ${mia ? '' : '<button class="boton sec pulsable" id="hacer-mia">Hacerla mi carrera</button>'}`;
 }
-function pintarPortada(k, cv = document.getElementById('lienzo')) {
-  const dpr = Math.min(window.devicePixelRatio || 1, 2);
-  const w = cv.clientWidth, h = cv.clientHeight; cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
-  const c = cv.getContext('2d'); c.setTransform(dpr, 0, 0, dpr, 0, 0);
-  const [hu, sa, li] = hexHsl(k.osc), claro = estado.claro;
-  c.fillStyle = claro ? '#F5F5F7' : '#050507'; c.fillRect(0, 0, w, h);
-  const manchas = [
-    [w * .18, h * .22, w * .95, hu, claro ? .55 : .95, claro ? 72 : 52],
-    [w * 1.0, h * .08, w * .75, hu + 42, claro ? .4 : .7, claro ? 75 : 50],
-    [w * .7, h * .62, w * .7, hu - 38, claro ? .3 : .55, claro ? 78 : 42],
-    [w * .1, h * .75, w * .5, hu + 18, claro ? .2 : .35, claro ? 80 : 36],
-  ];
-  for (const [x, y, r, tono, a, luz] of manchas) {
-    const g = c.createRadialGradient(x, y, 0, x, y, r);
-    g.addColorStop(0, hsla(tono, Math.min(sa, 90), luz, a)); g.addColorStop(.55, hsla(tono, Math.min(sa, 90), luz, a * .35)); g.addColorStop(1, hsla(tono, sa, luz, 0));
-    c.fillStyle = g; c.fillRect(0, 0, w, h);
-  }
-  /* El pensum como constelación: un punto por materia, una columna por semestre */
-  const av = AVANCE[k.slug] && k.slug === estado.mia ? AVANCE[k.slug] : null;
-  const cols = k.sil.length, paso = (w - 40) / cols, alto = Math.max(...k.sil), py = Math.min(24, (h * .5) / alto), y0 = 96;
-  k.sil.forEach((n, i) => {
-    for (let j = 0; j < n; j++) {
-      const x = 20 + paso * (i + .5), y = y0 + py * (j + .5);
-      const hecho = av && i < av.aprobados, curso = av && i === av.aprobados && j < av.cursando;
-      c.beginPath(); c.arc(x, y, hecho ? 2.6 : 2, 0, Math.PI * 2);
-      if (curso) { c.strokeStyle = claro ? 'rgba(11,12,15,.5)' : 'rgba(255,255,255,.7)'; c.lineWidth = 1.2; c.stroke(); }
-      else { c.fillStyle = claro ? `rgba(11,12,15,${hecho ? .26 : .07})` : `rgba(255,255,255,${hecho ? .42 : .1})`; c.fill(); }
-    }
-  });
-  c.globalAlpha = claro ? .05 : .07; c.globalCompositeOperation = claro ? 'multiply' : 'overlay';
-  c.fillStyle = c.createPattern(texturaGrano(), 'repeat'); c.fillRect(0, 0, w, h);
-  c.globalAlpha = 1; c.globalCompositeOperation = 'source-over';
-}
-
-/* ---------- Odómetro ---------- */
-function odometro(texto) {
-  return [...texto].map(ch => /\d/.test(ch) ? `<span class="rueda"><span data-d="${ch}">${[...'0123456789'].map(d => `<span>${d}</span>`).join('')}</span></span>` : `<span>${ch}</span>`).join('');
-}
-function rodar(raiz) {
-  requestAnimationFrame(() => requestAnimationFrame(() => raiz.querySelectorAll('[data-d]').forEach((el, i) => { el.style.transitionDelay = (i * 70) + 'ms'; el.style.transform = `translateY(-${el.dataset.d}em)`; })));
-}
-
-/* ---------- Inicio ---------- */
-function renderPortada(animar = true) {
-  const k = porSlug(estado.mia), av = AVANCE[k.slug];
-  app.style.setProperty('--k', color(k));
-  const a = av || { aprobados: 0, cursando: 0, pct: 0, inscribir: k.sil[0], grado: 'Jul 2031' };
-  const marcas = k.sil.map((_, i) => i < a.aprobados ? '<i class="ok"></i>' : i === a.aprobados && a.cursando ? `<i class="va" style="--p:${Math.round(100 * a.cursando / k.sil[i])}%"></i>` : '<i></i>').join('');
-  const actual = Math.min(a.aprobados + 1, 10);
-  document.getElementById('portada-cuerpo').innerHTML = `
-    <span class="tecla grande entra" id="tecla-mia" style="--k:${color(k)}">${ico(k.ic, 'fill')}</span>
-    <h1 class="nombre">${k.corto}</h1>
-    <p class="sub">${k.tipo}</p>
-    <div class="acciones">
-      <button class="pildora pulsable" data-aviso="${av ? 'Abre tu mapa donde lo dejaste' : 'Marca lo que ya aprobaste'}">${av ? 'Seguir donde ibas' : 'Empezar'} ${ico('arrow-right', 'regular')}</button>
-      <button class="circulo pulsable" aria-label="Horario" data-aviso="Abre tu horario de esta semana">${ico('calendar-blank', 'regular', 22)}</button>
-    </div>
-    <div class="cifras">
-      <div><span class="cifra">${odometro(String(a.pct))}<small>%</small></span><span class="nota">Avance</span></div>
-      <div><span class="cifra">${odometro(String(a.inscribir))}</span><span class="nota">Por inscribir</span></div>
-      <div><span class="cifra">${a.grado}</span><span class="nota">Te gradúas</span></div>
-    </div>
-    <div class="regla" style="--k:${color(k)}">
-      <div class="regla-cab"><span class="rot">Semestres</span><span class="nota"><b style="color:var(--tinta);font-weight:500">${actual}</b> de 10</span></div>
-      <div class="marcas">${marcas}</div>
-      <div class="numeros">${k.sil.map((_, i) => `<span class="${i + 1 === actual ? 'on' : ''}">${i + 1}</span>`).join('')}</div>
-    </div>`;
-  document.querySelectorAll('.marcas > i').forEach((m, i) => m.style.animationDelay = (200 + i * 40) + 'ms');
-  document.getElementById('titulo-mini').textContent = k.corto;
-  pintarPortada(k);
-  if (animar) rodar(document.getElementById('portada-cuerpo')); else document.querySelectorAll('#portada-cuerpo [data-d]').forEach(el => { el.style.transition = 'none'; el.style.transform = `translateY(-${el.dataset.d}em)`; });
-}
-const fila = k => `<button class="fila" data-slug="${k.slug}">
-  <span class="tecla" style="--k:${color(k)}">${ico(k.ic, 'duotone')}</span>
-  <span class="nm"><b>${k.corto}</b><span class="nota">${k.mat} materias</span></span>
-  ${k.slug === estado.mia ? '<span class="tuya">Tuya</span>' : ''}<span class="flecha">${ico('caret-right')}</span></button>`;
-function renderListas() {
-  const tipos = [['Ingenierías', 'Ingeniería'], ['Licenciaturas', 'Licenciatura']];
-  document.getElementById('listas').innerHTML = tipos.map(([t, tipo]) => {
-    const ks = CARRERAS.filter(k => k.tipo === tipo);
-    return `<div class="grupo-rot rot">${t}</div><div class="grupo">${ks.map(fila).join('')}</div>`;
-  }).join('');
-}
-
-/* ---------- Ficha de una carrera ---------- */
-function renderDetalle(k) {
-  const d = document.getElementById('detalle'), esMia = k.slug === estado.mia;
-  d.style.setProperty('--k', color(k));
-  d.innerHTML = `<button class="circulo atras" id="volver" aria-label="Volver">${ico('caret-left', 'regular', 20)}</button>
-  <div class="portada"><div class="lienzo-portada"><canvas id="lienzo-d"></canvas></div>
-  <div class="portada-cuerpo">
-    <span class="tecla grande" style="--k:${color(k)};view-transition-name:tecla">${ico(k.ic, 'fill')}</span>
-    <h1 class="nombre">${k.corto}</h1>
-    <p class="sub">${k.nombre}</p>
-    <div class="acciones">
-      <button class="pildora pulsable" data-aviso="Abre el mapa de ${k.corto}">Ver el mapa ${ico('arrow-right', 'regular')}</button>
-      ${esMia ? '' : `<button class="pildora vidrio pulsable" id="hacer-mia" style="flex:.8">Hacerla mía</button>`}
-    </div>
-    <div class="cifras">
-      <div><span class="cifra">${k.mat}</span><span class="nota">Materias</span></div>
-      <div><span class="cifra">${k.uc}</span><span class="nota">UC</span></div>
-      <div><span class="cifra">10</span><span class="nota">Semestres</span></div>
-    </div>
-    <div class="pensum">
-      <div class="regla-cab"><span class="rot">El pensum</span><span class="nota">Un punto por materia</span></div>
-      <div class="puntos">${k.sil.map(n => `<div>${'<i></i>'.repeat(n)}</div>`).join('')}</div>
-      <div class="numeros">${k.sil.map((_, i) => `<span>${i + 1}</span>`).join('')}</div>
-    </div>
-  </div></div><div class="pie"></div>`;
-  if (!d.hidden) pintarPortada(k, document.getElementById('lienzo-d'));
-}
-
-/* ---------- Navegación con transición de vista (Chrome) ---------- */
-function transicion(cambio) { if (document.startViewTransition && !matchMedia('(prefers-reduced-motion: reduce)').matches) document.startViewTransition(cambio); else cambio(); }
-function abrirCarrera(slug, origen) {
-  toque();
-  const k = porSlug(slug);
-  if (origen) origen.querySelector('.tecla').style.viewTransitionName = 'tecla';
-  transicion(() => {
-    if (origen) origen.querySelector('.tecla').style.viewTransitionName = '';
-    renderDetalle(k);
-    document.getElementById('inicio').hidden = true;
-    const d = document.getElementById('detalle'); d.hidden = false; d.scrollTop = 0;
-    pintarPortada(k, document.getElementById('lienzo-d'));
-    document.getElementById('cabecera').style.display = 'none';
-    document.getElementById('muelle').classList.add('oculto');
-    estado.vista = 'detalle'; estado.abierta = slug;
+function ir(vista) {
+  pasar(() => {
+    document.getElementById('inicio').hidden = vista !== 'inicio';
+    document.getElementById('ficha').hidden = vista !== 'ficha';
+    document.getElementById('barra').classList.toggle('oculta', vista !== 'inicio');
+    document.getElementById(vista).scrollTop = 0;
   });
 }
-function volver() {
-  toque();
-  const slug = estado.abierta;
-  transicion(() => {
-    document.getElementById('detalle').hidden = true;
-    document.getElementById('inicio').hidden = false;
-    document.getElementById('cabecera').style.display = '';
-    document.getElementById('muelle').classList.remove('oculto');
-    const t = document.querySelector(`#listas [data-slug="${slug}"] .tecla`); if (t) t.style.viewTransitionName = 'tecla';
-    estado.vista = 'inicio';
-  });
-  setTimeout(() => document.querySelectorAll('#listas .tecla').forEach(t => t.style.viewTransitionName = ''), 600);
-}
-function hacerMia(slug) {
-  estado.mia = slug; guardar(); toque();
-  transicion(() => {
-    document.getElementById('detalle').hidden = true;
-    const i = document.getElementById('inicio'); i.hidden = false; i.scrollTop = 0;
-    document.getElementById('cabecera').style.display = '';
-    document.getElementById('muelle').classList.remove('oculto');
-    renderPortada(); renderListas(); estado.vista = 'inicio';
-  });
-  avisar('Ahora ' + porSlug(slug).corto + ' es tu carrera');
-}
-
-/* ---------- Avisos, ajustes, búsqueda ---------- */
 let reloj;
-function avisar(t) { const a = document.getElementById('aviso'); a.textContent = t; a.classList.add('on'); clearTimeout(reloj); reloj = setTimeout(() => a.classList.remove('on'), 1900); }
-function tema(claro) {
-  estado.claro = claro; guardar();
-  app.classList.toggle('claro', claro);
-  document.querySelector('meta[name="theme-color"]').content = claro ? '#F5F5F7' : '#050507';
-  document.getElementById('tema-oscuro').setAttribute('aria-pressed', !claro);
-  document.getElementById('tema-claro').setAttribute('aria-pressed', claro);
-  document.querySelector('#tema .indicador').style.transform = claro ? 'translateX(100%)' : '';
-  renderPortada(false); renderListas();
-  if (estado.vista === 'detalle') renderDetalle(porSlug(estado.abierta));
-}
+function avisar(t) { const a = document.getElementById('aviso'); a.textContent = t; a.classList.add('on'); clearTimeout(reloj); reloj = setTimeout(() => a.classList.remove('on'), 1700); }
 function hoja(on) { document.getElementById('hoja').classList.toggle('on', on); document.getElementById('velo').classList.toggle('on', on); }
-function buscar(q) {
-  const n = s => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
-  const r = CARRERAS.filter(k => n(k.nombre + ' ' + k.corto).includes(n(q)));
-  document.getElementById('resultados').innerHTML = r.length ? `<div class="grupo">${r.map(fila).join('')}</div>` : `<p class="vacio nota">Ninguna carrera se llama así</p>`;
+function tema(claro) {
+  estado.claro = claro; guardar(); app.classList.toggle('claro', claro);
+  document.querySelector('meta[name="theme-color"]').content = claro ? '#F2F2F7' : '#000000';
+  document.getElementById('oscuro').setAttribute('aria-pressed', !claro);
+  document.getElementById('claro').setAttribute('aria-pressed', claro);
+  pintar(); if (estado.abierta) ficha(k(estado.abierta));
 }
 
-/* ---------- Eventos ---------- */
 document.addEventListener('click', e => {
-  const f = e.target.closest('.fila[data-slug]');
-  if (f) { if (document.getElementById('busqueda').classList.contains('on')) cerrarBusqueda(); abrirCarrera(f.dataset.slug, f.closest('#listas') ? f : null); return; }
-  const av = e.target.closest('[data-aviso]'); if (av) { toque(); avisar(av.dataset.aviso); if (av.closest('.hoja')) hoja(false); return; }
-  if (e.target.closest('#volver')) return volver();
-  if (e.target.closest('#hacer-mia')) return hacerMia(estado.abierta);
+  const av = e.target.closest('[data-aviso]'); if (av) { e.stopPropagation(); toque(); return avisar(av.dataset.aviso); }
+  const s = e.target.closest('[data-slug]'); if (s) { toque(); estado.abierta = s.dataset.slug; ficha(k(s.dataset.slug)); return ir('ficha'); }
+  if (e.target.closest('#volver')) { toque(); estado.abierta = null; return ir('inicio'); }
+  if (e.target.closest('#hacer-mia')) { toque(); estado.mia = estado.abierta; estado.abierta = null; guardar(); pintar(); ir('inicio'); return avisar('Ahora es tu carrera'); }
   const p = e.target.closest('.pestana');
   if (p) {
     toque();
-    document.querySelectorAll('.pestana').forEach(x => { const on = x === p; x.classList.toggle('on', on); x.querySelector('svg').outerHTML = ico(x.dataset.ic, on ? 'fill' : 'regular'); });
-    document.getElementById('indicador').style.transform = `translateX(${p.dataset.i * 100}%)`;
-    if (p.dataset.i !== '0') { avisar(['', 'El mapa', 'Por hacer', 'El horario'][p.dataset.i] + ' de ' + porSlug(estado.mia).corto + ', en la app'); setTimeout(() => document.querySelector('.pestana[data-i="0"]').click(), 1400); }
+    document.querySelectorAll('.pestana').forEach(x => { const on = x === p; x.classList.toggle('on', on); x.querySelector('svg').outerHTML = ico(on ? x.dataset.ic + ':fill' : x.dataset.ic); });
+    if (p.dataset.ic !== 'house') { avisar(p.textContent.trim() + ', en la app'); setTimeout(() => document.querySelector('.pestana[data-ic="house"]').click(), 1200); }
   }
 });
-document.getElementById('abrir-ajustes').onclick = () => { toque(); hoja(true); };
+document.getElementById('ajustes').onclick = () => { toque(); hoja(true); };
 document.getElementById('velo').onclick = () => hoja(false);
-document.getElementById('tema-oscuro').onclick = () => { toque(); tema(false); };
-document.getElementById('tema-claro').onclick = () => { toque(); tema(true); };
-const cerrarBusqueda = () => { document.getElementById('busqueda').classList.remove('on'); document.getElementById('q').blur(); };
-document.getElementById('abrir-busqueda').onclick = () => { toque(); const b = document.getElementById('busqueda'); b.classList.add('on'); const q = document.getElementById('q'); q.value = ''; buscar(''); setTimeout(() => q.focus(), 60); };
-document.getElementById('cerrar-busqueda').onclick = cerrarBusqueda;
-document.getElementById('q').oninput = e => buscar(e.target.value);
-document.addEventListener('keydown', e => { if (e.key === 'Escape') { cerrarBusqueda(); hoja(false); } });
-
-/* Al deslizar: la cabecera se vuelve vidrio con el nombre, y la portada sube a media velocidad */
-const inicio = document.getElementById('inicio'), cab = document.getElementById('cabecera'), lp = document.querySelector('#portada .lienzo-portada');
-inicio.addEventListener('scroll', () => {
-  const y = inicio.scrollTop;
-  cab.classList.toggle('solida', y > 250);
-  if (y < 520) lp.style.transform = `translate3d(0, ${y * .45}px, 0)`;
-}, { passive: true });
-let ancho = innerWidth; addEventListener('resize', () => { if (innerWidth !== ancho) { ancho = innerWidth; pintarPortada(porSlug(estado.mia)); } });
-
-saludar();
-if (estado.claro) tema(true); else { renderPortada(); renderListas(); }
-document.fonts && document.fonts.ready.then(() => pintarPortada(porSlug(estado.mia)));
+document.getElementById('oscuro').onclick = () => tema(false);
+document.getElementById('claro').onclick = () => tema(true);
+document.addEventListener('keydown', e => { if (e.key === 'Escape') hoja(false); });
+estado.claro ? tema(true) : pintar();
 </script>
 </body>
 </html>
