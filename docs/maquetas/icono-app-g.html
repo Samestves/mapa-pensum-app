@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8"><title>Icono de la app · seis ideas para el centro</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#E6E7E9;font-family:system-ui,sans-serif;padding:48px;color:#050608}
+h1{font-weight:300;font-size:36px;letter-spacing:-.01em}
+p{font-size:15px;line-height:22px;color:#34383E;margin-top:10px;max-width:940px}
+.rej{display:grid;grid-template-columns:repeat(3,300px);gap:44px 40px;margin-top:40px}
+.op h3{font-size:15px;font-weight:600;margin-bottom:4px}
+.op p{font-size:13px;line-height:18px;margin:0 0 14px;min-height:72px}
+.grande svg{width:300px;height:300px;display:block;border-radius:68px;box-shadow:0 24px 48px -20px rgb(0 0 0/.45)}
+.tira{display:flex;gap:16px;align-items:center;margin-top:16px;padding:14px 16px;border-radius:20px;background:linear-gradient(135deg,#27364f,#5a4a6b)}
+.tira svg{border-radius:23%;display:block}
+</style></head><body>
+<h1>Icono de la app · seis ideas para el centro</h1>
+<p>El fondo y el mapa no cambian. Cambia lo que va encima y sus colores: azul, naranja y amarillo salen del escudo de la UDO, y cada idea representa algo concreto de la app.</p>
+<div class="rej" id="rej"></div>
+<script>
+let n=0;const AZ='#2F5BE0',CL='#6699FF',NA='#FF6A00',AM='#FFC400',GR='#B4BCC9',TI='#14171D';
+function icono(v,t){const k='g'+(n++);
+ return `<svg viewBox="0 0 512 512" ${t?`width="${t}" height="${t}"`:''}><defs>
+ <linearGradient id="f${k}" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#1d2026"/><stop offset="1" stop-color="#040405"/></linearGradient>
+ <radialGradient id="l${k}" cx=".5" cy="0" r=".9"><stop stop-color="#6699FF" stop-opacity=".24"/><stop offset="1" stop-color="#6699FF" stop-opacity="0"/></radialGradient>
+ <linearGradient id="a${k}" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#FFFFFF"/><stop offset="1" stop-color="#E9EDF3"/></linearGradient>
+ <linearGradient id="b${k}" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#D5DAE3"/><stop offset="1" stop-color="#BFC6D2"/></linearGradient>
+ <linearGradient id="p${k}" x1="0" y1="0" x2="0" y2="1"><stop stop-color="${CL}"/><stop offset="1" stop-color="#2447C8"/></linearGradient>
+ <linearGradient id="o${k}" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#FF8A2B"/><stop offset="1" stop-color="#F25A00"/></linearGradient>
+ <filter id="s${k}" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="14" stdDeviation="14" flood-color="#000" flood-opacity=".55"/></filter>
+ <filter id="e${k}" x="-40%" y="-40%" width="180%" height="200%"><feDropShadow dx="0" dy="5" stdDeviation="6" flood-color="#0B1E5C" flood-opacity=".3"/></filter></defs>
+ <rect width="512" height="512" fill="url(#f${k})"/><rect width="512" height="512" fill="url(#l${k})"/>
+ <g filter="url(#s${k})" stroke-linejoin="round" stroke-width="14">
+  <path d="M116 158 206 124V362L116 396Z" fill="url(#a${k})" stroke="url(#a${k})"/>
+  <path d="M206 124 306 158V396L206 362Z" fill="url(#b${k})" stroke="url(#b${k})"/>
+  <path d="M306 158 396 124V362L306 396Z" fill="url(#a${k})" stroke="url(#a${k})"/></g>
+ ${v(k)}</svg>`;}
+const est=(x,y,r=13,g=6,col=TI,rel='#fff')=>`<circle cx="${x}" cy="${y}" r="${r}" fill="${rel}" stroke="${col}" stroke-width="${g}"/>`;
+const L=(d,col,g=12,extra='')=>`<path d="${d}" fill="none" stroke="${col}" stroke-width="${g}" stroke-linecap="round" stroke-linejoin="round" ${extra}/>`;
+const check=(x,y)=>`<path d="M${x-7} ${y+1}l5 5 9-11" fill="none" stroke="#fff" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>`;
+const OPS=[
+ ['1 · El pensum','Las materias en columnas por semestre, tal como se ven en la app: azul lo aprobado, naranja lo que cursas, gris lo que falta.',
+  k=>{const filas=[4,4,3,2];let s='';filas.forEach((f,c)=>{for(let r=0;r<f;r++){const col=c<2?`url(#p${k})`:c===2?(r===0?`url(#o${k})`:GR):GR;s+=`<rect x="${147+c*58}" y="${196+r*34}" width="44" height="22" rx="8" fill="${col}"/>`;}});return s;}],
+ ['2 · Tres líneas, una meta','Tres líneas de metro en los colores del escudo que llegan a la misma estación: cada área de la carrera termina en el grado.',
+  k=>L('M148 344H194L318 220',AZ)+L('M148 208H330',NA)+L('M330 372V208',AM)+est(148,344,10,5)+est(256,282,10,5)+est(148,208,10,5)+est(236,208,10,5)+est(330,372,10,5)+est(330,296,10,5)+est(330,208,22,8)],
+ ['3 · Rumbo','Una brújula con la aguja naranja, como la de Safari. Es la rosa de los vientos de la UDO llevada a un solo gesto.',
+  k=>`<g filter="url(#e${k})"><circle cx="256" cy="260" r="84" fill="url(#p${k})"/><circle cx="256" cy="260" r="84" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="3"/>
+   <g transform="rotate(45 256 260)"><path d="M256 200 276 260H236Z" fill="url(#o${k})"/><path d="M256 320 276 260H236Z" fill="#fff"/></g><circle cx="256" cy="260" r="7" fill="#1B3AA8"/></g>`],
+ ['4 · Tu avance','La ruta con sus estados: dos materias aprobadas con su marca, la que cursas en naranja y la que viene en gris.',
+  k=>L('M288 268L352 204',GR,10,'stroke-dasharray="2 18"')+L('M160 332L224 268H288',AZ,10)+`<circle cx="160" cy="332" r="20" fill="url(#p${k})"/>`+check(160,332)+`<circle cx="224" cy="268" r="20" fill="url(#p${k})"/>`+check(224,268)+est(288,268,17,8,NA)+est(352,204,15,6,GR)],
+ ['5 · Prelaciones','Una materia abre dos y las dos llevan a otra. Es el dibujo exacto de una cadena de prelación, con sus cables.',
+  k=>{const c=(x,y,rel,col)=>`<rect x="${x-27}" y="${y-16}" width="54" height="32" rx="10" fill="${rel}" stroke="${col}" stroke-width="${col==='none'?0:6}"/>`;
+   return L('M166 260C216 260 206 196 256 196',AZ,8)+L('M166 260C216 260 206 324 256 324',AZ,8)+L('M256 196C306 196 296 260 346 260',CL,8)+L('M256 324C306 324 296 260 346 260',NA,8)+c(166,260,`url(#p${k})`,'none')+c(256,196,`url(#p${k})`,'none')+c(256,324,`url(#o${k})`,'none')+c(346,260,'#fff',GR);}],
+ ['6 · Estás aquí','Un marcador azul sobre el mapa, con la estrella de rumbo dentro. El más reconocible como app de mapas.',
+  k=>L('M160 336C200 336 200 300 236 300',GR,8,'stroke-dasharray="1 16"')+`<ellipse cx="276" cy="322" rx="30" ry="9" fill="#0B1E5C" opacity=".18"/>
+   <g filter="url(#e${k})"><path d="M276 318C276 318 214 262 214 216A62 62 0 0 1 338 216C338 262 276 318 276 318Z" fill="url(#p${k})"/>
+   <circle cx="276" cy="214" r="34" fill="#fff"/><path d="M276 188 283 207 302 214 283 221 276 240 269 221 250 214 269 207Z" fill="url(#o${k})"/></g>`],
+];
+document.getElementById('rej').innerHTML=OPS.map(([t,p,v])=>`<div class="op"><h3>${t}</h3><p>${p}</p><div class="grande">${icono(v)}</div><div class="tira">${icono(v,64)}${icono(v,48)}</div></div>`).join('');
+</script></body></html>
