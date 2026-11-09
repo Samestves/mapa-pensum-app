@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8"><title>Icono de la app · Tu avance, dos modelos</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#E6E7E9;font-family:system-ui,sans-serif;padding:48px;color:#050608}
+h1{font-weight:300;font-size:36px;letter-spacing:-.01em}
+p{font-size:15px;line-height:22px;color:#34383E;margin-top:10px;max-width:900px}
+.fila{display:flex;gap:56px;margin-top:40px}
+.op{width:420px}
+.op h3{font-size:16px;font-weight:600;margin-bottom:4px}
+.op p{font-size:13px;line-height:19px;margin:0 0 18px;min-height:76px}
+.grande svg{width:420px;height:420px;display:block;border-radius:95px;box-shadow:0 30px 60px -24px rgb(0 0 0/.45)}
+.tiras{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:20px}
+.tira{display:flex;gap:16px;align-items:center;padding:16px;border-radius:20px;background:linear-gradient(135deg,#27364f,#5a4a6b)}
+.tira svg{border-radius:23%;display:block}
+.tira.clara{background:linear-gradient(135deg,#dfe6ee,#f3e9df)}
+</style></head><body>
+<h1>Icono de la app · «Tu avance», dos modelos</h1>
+<p>La misma ruta en los dos: dos materias aprobadas con su marca, la que cursas como un aro y la que viene, apagada. Sin azul ni naranja.</p>
+<div class="fila" id="fila"></div>
+<script>
+let n=0;
+const P=[[158,334],[224,268],[290,268],[356,202]];
+const check=(x,y,col)=>`<path d="M${x-9} ${y+1}l6.5 6.5 11.5-14" fill="none" stroke="${col}" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/>`;
+function icono(m,t){const k='h'+(n++);
+ const hecho=`M${P[0][0]} ${P[0][1]}L${P[1][0]} ${P[1][1]}H${P[2][0]}`, falta=`M${P[2][0]+24} ${P[2][1]-24}L${P[3][0]-18} ${P[3][1]+18}`;
+ return `<svg viewBox="0 0 512 512" ${t?`width="${t}" height="${t}"`:''}><defs>
+ <linearGradient id="f${k}" x1="0" y1="0" x2="0" y2="1"><stop stop-color="${m.fondo[0]}"/><stop offset="1" stop-color="${m.fondo[1]}"/></linearGradient>
+ <radialGradient id="l${k}" cx=".5" cy="0" r=".9"><stop stop-color="${m.luz}" stop-opacity="${m.luzA}"/><stop offset="1" stop-color="${m.luz}" stop-opacity="0"/></radialGradient>
+ <linearGradient id="a${k}" x1="0" y1="0" x2="0" y2="1"><stop stop-color="${m.hoja[0]}"/><stop offset="1" stop-color="${m.hoja[1]}"/></linearGradient>
+ <linearGradient id="b${k}" x1="0" y1="0" x2="0" y2="1"><stop stop-color="${m.pliegue[0]}"/><stop offset="1" stop-color="${m.pliegue[1]}"/></linearGradient>
+ <linearGradient id="v${k}" x1="0" y1="0" x2="0" y2="1"><stop stop-color="${m.nodo[0]}"/><stop offset="1" stop-color="${m.nodo[1]}"/></linearGradient>
+ <filter id="s${k}" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="14" stdDeviation="14" flood-color="#000" flood-opacity="${m.sombra}"/></filter>
+ <filter id="e${k}" x="-50%" y="-50%" width="200%" height="220%"><feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="${m.sombraNodo}" flood-opacity=".32"/></filter></defs>
+ <rect width="512" height="512" fill="url(#f${k})"/><rect width="512" height="512" fill="url(#l${k})"/>
+ <g filter="url(#s${k})" stroke-linejoin="round" stroke-width="14">
+  <path d="M116 158 206 124V362L116 396Z" fill="url(#a${k})" stroke="url(#a${k})"/>
+  <path d="M206 124 306 158V396L206 362Z" fill="url(#b${k})" stroke="url(#b${k})"/>
+  <path d="M306 158 396 124V362L306 396Z" fill="url(#a${k})" stroke="url(#a${k})"/></g>
+ <path d="${falta}" fill="none" stroke="${m.gris}" stroke-width="9" stroke-linecap="round" stroke-dasharray="1 17"/>
+ <path d="${hecho}" fill="none" stroke="${m.linea}" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
+ <g filter="url(#e${k})"><circle cx="${P[0][0]}" cy="${P[0][1]}" r="23" fill="url(#v${k})"/><circle cx="${P[1][0]}" cy="${P[1][1]}" r="23" fill="url(#v${k})"/></g>
+ ${check(P[0][0],P[0][1],m.marca)}${check(P[1][0],P[1][1],m.marca)}
+ <circle cx="${P[2][0]}" cy="${P[2][1]}" r="19" fill="${m.actualRelleno}" stroke="${m.actual}" stroke-width="9"/>
+ <circle cx="${P[3][0]}" cy="${P[3][1]}" r="15" fill="${m.futuroRelleno}" stroke="${m.gris}" stroke-width="6"/></svg>`;}
+const OPS=[
+ ['1 · Verde sobre negro','Fondo negro neutro y mapa blanco. Todo el avance en un solo verde, el de «hecho» en iPhone: relleno con marca lo aprobado, un aro lo que cursas. Es el color que la app ya usa para lo aprobado.',
+  {fondo:['#1C1C1E','#000000'],luz:'#FFFFFF',luzA:.10,hoja:['#FFFFFF','#ECEEF1'],pliegue:['#D9DCE2','#C4C8D0'],nodo:['#4CD964','#27AE4B'],linea:'#30B855',marca:'#FFFFFF',actual:'#30B855',actualRelleno:'#FFFFFF',gris:'#B9BEC7',futuroRelleno:'#FFFFFF',sombra:.55,sombraNodo:'#0B3D1C'}],
+ ['2 · Grafito sobre blanco','Al revés, como una pantalla de Tesla: fondo claro y mapa en grafito. La ruta y lo aprobado en blanco; un único acento rojo marca dónde estás ahora.',
+  {fondo:['#FFFFFF','#E4E6EA'],luz:'#FFFFFF',luzA:0,hoja:['#34373E','#22242A'],pliegue:['#1D1F24','#131418'],nodo:['#FFFFFF','#E3E6EB'],linea:'#FFFFFF',marca:'#17181C',actual:'#E82127',actualRelleno:'#22242A',gris:'#6F747D',futuroRelleno:'#22242A',sombra:.3,sombraNodo:'#000000'}],
+];
+document.getElementById('fila').innerHTML=OPS.map(([t,p,m])=>`<div class="op"><h3>${t}</h3><p>${p}</p><div class="grande">${icono(m)}</div><div class="tiras"><div class="tira">${icono(m,64)}${icono(m,48)}</div><div class="tira clara">${icono(m,64)}${icono(m,48)}</div></div></div>`).join('');
+</script></body></html>
