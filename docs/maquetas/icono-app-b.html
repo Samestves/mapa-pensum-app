@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8"><title>Icono de la app · B con la UDO</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#E6E7E9;font-family:system-ui,sans-serif;padding:48px;color:#050608}
+h1{font-weight:300;font-size:36px;letter-spacing:-.01em}
+p{font-size:15px;line-height:22px;color:#34383E;margin-top:10px;max-width:940px}
+.fila{display:flex;gap:40px;margin-top:40px}
+.op{width:300px}
+.op h3{font-size:15px;font-weight:600;margin-bottom:4px}
+.op p{font-size:13px;line-height:18px;margin:0 0 16px;min-height:90px}
+.grande svg{width:300px;height:300px;display:block;border-radius:68px;box-shadow:0 24px 48px -20px rgb(0 0 0/.45)}
+.tira{display:flex;gap:16px;align-items:center;margin-top:20px;padding:16px;border-radius:20px;background:linear-gradient(135deg,#27364f,#5a4a6b)}
+.tira svg{border-radius:23%;display:block}
+.tira.clara{background:linear-gradient(135deg,#dfe6ee,#f3e9df)}
+</style></head><body>
+<h1>Icono de la app · la B con el toque de la UDO</h1>
+<p>El emblema de la UDO es una rosa de los vientos, y una rosa de los vientos es justo lo que lleva un mapa. La meta de la ruta pasa a ser esa estrella, con sus puntas partidas en dos tonos como en el escudo. Los colores salen del escudo: azul #6699FF y naranja #FF6600.</p>
+<div class="fila" id="fila"></div>
+<script>
+let n=0;
+function estrella(cx,cy,R,osc,cla,borde){
+  const p=(a,r)=>[(cx+r*Math.sin(a*Math.PI/180)).toFixed(1),(cy-r*Math.cos(a*Math.PI/180)).toFixed(1)].join(' ');
+  let s='',cont=[];
+  for(let i=0;i<8;i++){cont.push(p(i*45,i%2?R*.58:R));cont.push(p(i*45+22.5,R*.27));}
+  if(borde) s+=`<path d="M${cont.join('L')}Z" fill="${borde}" stroke="${borde}" stroke-width="14" stroke-linejoin="round"/>`;
+  for(const par of [1,0]) for(let i=par;i<8;i+=2){const a=i*45,L=i%2?R*.58:R;
+    s+=`<path d="M${cx} ${cy}L${p(a-22.5,R*.27)}L${p(a,L)}Z" fill="${osc}"/><path d="M${cx} ${cy}L${p(a,L)}L${p(a+22.5,R*.27)}Z" fill="${cla}"/>`;}
+  return s;
+}
+function icono(v,t){
+  const k='i'+(n++);
+  const ruta=`<path d="M158 326 238 252 ${v.fin}" fill="none" stroke="url(#r${k})" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+   <circle cx="158" cy="326" r="17" fill="${v.azul2}"/><circle cx="238" cy="252" r="17" fill="${v.azul2}"/>`;
+  return `<svg viewBox="0 0 512 512" ${t?`width="${t}" height="${t}"`:''}><defs>
+   <linearGradient id="f${k}" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#1d2026"/><stop offset="1" stop-color="#040405"/></linearGradient>
+   <radialGradient id="l${k}" cx=".5" cy="0" r=".9"><stop stop-color="#6699FF" stop-opacity=".22"/><stop offset="1" stop-color="#6699FF" stop-opacity="0"/></radialGradient>
+   <linearGradient id="a${k}" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#FFFFFF"/><stop offset="1" stop-color="#E9EDF3"/></linearGradient>
+   <linearGradient id="b${k}" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#D5DAE3"/><stop offset="1" stop-color="#BFC6D2"/></linearGradient>
+   <linearGradient id="r${k}" x1="0" y1="1" x2="1" y2="0"><stop stop-color="${v.azul2}"/><stop offset="1" stop-color="${v.azul1}"/></linearGradient>
+   <filter id="s${k}" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="14" stdDeviation="14" flood-color="#000" flood-opacity=".55"/></filter></defs>
+   <rect width="512" height="512" fill="url(#f${k})"/><rect width="512" height="512" fill="url(#l${k})"/>
+   <g filter="url(#s${k})" stroke-linejoin="round" stroke-width="14">
+    <path d="M116 158 206 124V362L116 396Z" fill="url(#a${k})" stroke="url(#a${k})"/>
+    <path d="M206 124 306 158V396L206 362Z" fill="url(#b${k})" stroke="url(#b${k})"/>
+    <path d="M306 158 396 124V362L306 396Z" fill="url(#a${k})" stroke="url(#a${k})"/></g>
+   ${ruta}${v.meta}</svg>`;
+}
+const OPS=[
+ ['B1 · Estrella azul','La meta es la rosa de los vientos en los dos azules de la UDO. Todo en una sola gama: la más limpia y la más «Apple».',
+  {azul1:'#6699FF',azul2:'#2751CC',fin:'330 208',meta:estrella(338,200,66,'#1F3FA6','#6699FF','#FFFFFF')}],
+ ['B2 · Estrella naranja','La ruta en azul y la estrella en el naranja del aro del escudo. Un solo acento cálido que llama la vista hacia la meta.',
+  {azul1:'#6699FF',azul2:'#2751CC',fin:'330 208',meta:estrella(338,200,66,'#D94F00','#FF8A33','#FFFFFF')}],
+ ['B3 · Mini escudo','La estrella en blanco y negro sobre un disco azul con aro naranja: el escudo en miniatura. El más fiel a la UDO, pero también el que más se acerca al emblema oficial.',
+  {azul1:'#6699FF',azul2:'#2751CC',fin:'320 216',meta:`<circle cx="338" cy="200" r="58" fill="#6699FF" stroke="#FF6600" stroke-width="10"/>`+estrella(338,200,50,'#0B0C0F','#FFFFFF',null)}],
+];
+document.getElementById('fila').innerHTML=OPS.map(([t,p,v])=>`<div class="op"><h3>${t}</h3><p>${p}</p><div class="grande">${icono(v)}</div><div class="tira">${icono(v,64)}${icono(v,48)}</div><div class="tira clara">${icono(v,64)}${icono(v,48)}</div></div>`).join('');
+</script></body></html>
