@@ -39,29 +39,26 @@ button:focus-visible { outline: 2px solid var(--tenue); outline-offset: 3px; }
 .pulsable:active { transform: scale(.97); opacity: .85; transition-duration: .1s; }
 
 /* Cabecera */
-.cabecera { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; padding-top: 8px; }
-.fecha { font: 500 13px/18px var(--texto); color: var(--tenue); letter-spacing: -.005em; }
-.cabecera h1 { font: 650 32px/38px var(--display); letter-spacing: -.035em; margin-top: 2px; }
+.cabecera { display: flex; align-items: center; justify-content: space-between; gap: 12px; height: 44px; }
+.hueco { width: 40px; flex: none; }
+.marca { display: flex; align-items: center; gap: 9px; font: 650 17px/22px var(--display); letter-spacing: -.03em; }
+.logo { width: 30px; height: 30px; border-radius: 8px; display: block; box-shadow: 0 0 0 1px var(--linea); }
 .circulo { width: 40px; height: 40px; border-radius: 20px; display: grid; place-items: center; background: var(--superficie); flex: none; --s: 20px; }
 
 /* Tu carrera: una portada con el campo de color de la carrera y su ruta de diez semestres */
 .icono { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; color: var(--k); background: color-mix(in srgb, var(--k) 14%, transparent); flex: none; }
 .app.claro .lista { box-shadow: 0 1px 2px rgb(0 0 0 / .04), 0 8px 24px -12px rgb(0 0 0 / .08); }
-.heroe { position: relative; margin-top: 20px; border-radius: 32px; overflow: hidden; isolation: isolate; color: #fff; background: #09090b; cursor: pointer; box-shadow: 0 24px 48px -28px color-mix(in srgb, var(--k) 70%, transparent); }
+.heroe { position: relative; margin-top: 0; border-radius: 32px; overflow: hidden; isolation: isolate; color: #fff; background: #09090b; cursor: pointer; box-shadow: 0 24px 48px -28px color-mix(in srgb, var(--k) 70%, transparent); }
 .campo { position: absolute; inset: 0; z-index: -1;
   background:
     linear-gradient(transparent 30%, color-mix(in srgb, var(--k) 10%, #09090b) 72%),
     radial-gradient(85% 55% at 12% 0%, color-mix(in srgb, var(--k) 92%, #000), transparent 72%),
     radial-gradient(70% 50% at 100% 8%, color-mix(in srgb, var(--k) 60%, #fff), transparent 70%),
-    radial-gradient(60% 40% at 55% 38%, color-mix(in srgb, var(--k) 45%, #000), transparent 75%); }
+    radial-gradient(60% 40% at 55% 30%, color-mix(in srgb, var(--k) 45%, #000), transparent 75%); }
 .heroe::after { content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; box-shadow: inset 0 0 0 1px rgb(255 255 255 / .1), inset 0 1px 0 rgb(255 255 255 / .22); }
-.ruta { display: block; width: 100%; height: auto; margin-top: 18px; overflow: visible; }
-.ruta .hecha { stroke-dasharray: 400; stroke-dashoffset: 400; animation: traza 1.2s cubic-bezier(.3, .7, .2, 1) .15s forwards; }
-@keyframes traza { to { stroke-dashoffset: 0; } }
-.ruta .pulso { transform-box: fill-box; transform-origin: center; animation: pulso 2.4s ease-out infinite; }
-@keyframes pulso { from { transform: scale(.6); opacity: .55; } to { transform: scale(1.5); opacity: 0; } }
-.ruta text { font: 600 11px/1 var(--texto); fill: #fff; letter-spacing: .02em; }
-.heroe-pie { padding: 4px 20px 20px; }
+.heroe-pie { padding: 20px; }
+.heroe .tecla { width: 52px; height: 52px; border-radius: 16px; display: grid; place-items: center; --s: 28px; background: rgb(255 255 255 / .16); box-shadow: inset 0 0 0 1px rgb(255 255 255 / .2), inset 0 1px 0 rgb(255 255 255 / .25); margin-bottom: 56px; }
+.heroe .fila-sup { display: flex; justify-content: space-between; align-items: flex-start; }
 .heroe h2 { font: 650 40px/44px var(--display); letter-spacing: -.04em; text-wrap: balance; }
 .heroe .sub { font: 400 15px/20px var(--texto); color: rgb(255 255 255 / .62); margin-top: 2px; }
 .cifras { display: grid; grid-template-columns: repeat(3, auto); justify-content: space-between; margin-top: 22px; }
@@ -114,9 +111,48 @@ button:focus-visible { outline: 2px solid var(--tenue); outline-offset: 3px; }
 
   <main class="vista" id="inicio">
     <header class="cabecera">
-      <div><div class="fecha" id="fecha"></div><h1 id="saludo">Hola</h1></div>
+      <span class="hueco"></span>
+      <div class="marca"><svg class="logo" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><defs>
+ <linearGradient id="fondo" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="512"><stop stop-color="#1d2026"/><stop offset="1" stop-color="#040405"/></linearGradient>
+ <radialGradient id="luz" gradientUnits="userSpaceOnUse" cx="256" cy="0" r="461"><stop stop-color="#6699FF" stop-opacity=".24"/><stop offset="1" stop-color="#6699FF" stop-opacity="0"/></radialGradient>
+ <linearGradient id="hoja" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#FFFFFF"/><stop offset="1" stop-color="#E9EDF3"/></linearGradient>
+ <linearGradient id="centro" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#DCE0E8"/><stop offset="1" stop-color="#BCC3CF"/></linearGradient>
+ <linearGradient id="derecha" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#E4E8EE"/><stop offset=".35" stop-color="#FFFFFF"/></linearGradient>
+ <linearGradient id="ruta" gradientUnits="userSpaceOnUse" x1="152" y1="322" x2="360" y2="176"><stop stop-color="#1F3FA6"/><stop offset=".5" stop-color="#2F5BE0"/><stop offset="1" stop-color="#6699FF"/></linearGradient>
+ <radialGradient id="reflejo"><stop stop-color="#3D6BF0" stop-opacity=".35"/><stop offset="1" stop-color="#3D6BF0" stop-opacity="0"/></radialGradient>
+ <filter id="sombra" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="14" stdDeviation="14" flood-color="#000" flood-opacity=".55"/></filter></defs><rect x="0" y="0" width="512" height="512" fill="url(#fondo)"/><rect x="0" y="0" width="512" height="512" fill="url(#luz)"/>
+ <ellipse cx="256" cy="418" rx="150" ry="26" fill="url(#reflejo)"/>
+ <g filter="url(#sombra)" stroke-linejoin="round" stroke-width="14">
+  <path d="M116 158 206 124V362L116 396Z" fill="url(#hoja)" stroke="url(#hoja)"/>
+  <path d="M206 124 306 158V396L206 362Z" fill="url(#centro)" stroke="url(#centro)"/>
+  <path d="M306 158 396 124V362L306 396Z" fill="url(#derecha)" stroke="url(#derecha)"/></g>
+ 
+ <clipPath id="hoja0"><path d="M109 151 206 117V369L109 403Z"/></clipPath>
+ <g clip-path="url(#hoja0)"><g transform="matrix(1 -0.37777777777777777 0 1 0 77.82222222222222)">
+  <path d="M152 322 360 176" fill="none" stroke="url(#ruta)" stroke-width="14" stroke-linecap="round"/>
+  <circle cx="152" cy="322" r="16" fill="#1F3FA6"/>
+  <circle cx="256" cy="249" r="19" fill="#2F5BE0"/>
+  <circle cx="360" cy="176" r="23" fill="#fff" stroke="#6699FF" stroke-width="12"/>
+  <circle cx="360" cy="176" r="7" fill="#6699FF"/></g></g>
+ <clipPath id="hoja1"><path d="M206 117 306 151V403L206 369Z"/></clipPath>
+ <g clip-path="url(#hoja1)"><g transform="matrix(1 0.34 0 1 0 -70.04)">
+  <path d="M152 322 360 176" fill="none" stroke="url(#ruta)" stroke-width="14" stroke-linecap="round"/>
+  <circle cx="152" cy="322" r="16" fill="#1F3FA6"/>
+  <circle cx="256" cy="249" r="19" fill="#2F5BE0"/>
+  <circle cx="360" cy="176" r="23" fill="#fff" stroke="#6699FF" stroke-width="12"/>
+  <circle cx="360" cy="176" r="7" fill="#6699FF"/></g><g transform="matrix(1 0.34 0 1 0 -70.04)" opacity="0.2"><path d="M152 322 360 176" fill="none" stroke="#06103A" stroke-width="14"/><circle cx="256" cy="249" r="19" fill="#06103A"/></g></g>
+ <clipPath id="hoja2"><path d="M306 151 403 117V369L306 403Z"/></clipPath>
+ <g clip-path="url(#hoja2)"><g transform="matrix(1 -0.37777777777777777 0 1 0 149.6)">
+  <path d="M152 322 360 176" fill="none" stroke="url(#ruta)" stroke-width="14" stroke-linecap="round"/>
+  <circle cx="152" cy="322" r="16" fill="#1F3FA6"/>
+  <circle cx="256" cy="249" r="19" fill="#2F5BE0"/>
+  <circle cx="360" cy="176" r="23" fill="#fff" stroke="#6699FF" stroke-width="12"/>
+  <circle cx="360" cy="176" r="7" fill="#6699FF"/></g></g>
+ <path d="M206 120V366" stroke="#fff" stroke-width="2" stroke-linecap="round" opacity=".55"/>
+ <path d="M306 154V400" stroke="#3A4356" stroke-width="2" stroke-linecap="round" opacity=".3"/></svg><span>Mapa de Pensum</span></div>
       <button class="circulo pulsable" id="ajustes" aria-label="Ajustes"><svg class="ph" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path fill="currentColor" d="M128 80a48 48 0 1 0 48 48a48.05 48.05 0 0 0-48-48m0 80a32 32 0 1 1 32-32a32 32 0 0 1-32 32m109.94-52.79a8 8 0 0 0-3.89-5.4l-29.83-17l-.12-33.62a8 8 0 0 0-2.83-6.08a111.9 111.9 0 0 0-36.72-20.67a8 8 0 0 0-6.46.59L128 41.85L97.88 25a8 8 0 0 0-6.47-.6a112.1 112.1 0 0 0-36.68 20.75a8 8 0 0 0-2.83 6.07l-.15 33.65l-29.83 17a8 8 0 0 0-3.89 5.4a106.5 106.5 0 0 0 0 41.56a8 8 0 0 0 3.89 5.4l29.83 17l.12 33.62a8 8 0 0 0 2.83 6.08a111.9 111.9 0 0 0 36.72 20.67a8 8 0 0 0 6.46-.59L128 214.15L158.12 231a7.9 7.9 0 0 0 3.9 1a8.1 8.1 0 0 0 2.57-.42a112.1 112.1 0 0 0 36.68-20.73a8 8 0 0 0 2.83-6.07l.15-33.65l29.83-17a8 8 0 0 0 3.89-5.4a106.5 106.5 0 0 0-.03-41.52m-15 34.91l-28.57 16.25a8 8 0 0 0-3 3c-.58 1-1.19 2.06-1.81 3.06a7.94 7.94 0 0 0-1.22 4.21l-.15 32.25a95.9 95.9 0 0 1-25.37 14.3L134 199.13a8 8 0 0 0-3.91-1h-3.83a8.1 8.1 0 0 0-4.1 1l-28.84 16.1A96 96 0 0 1 67.88 201l-.11-32.2a8 8 0 0 0-1.22-4.22c-.62-1-1.23-2-1.8-3.06a8.1 8.1 0 0 0-3-3.06l-28.6-16.29a90.5 90.5 0 0 1 0-28.26l28.52-16.28a8 8 0 0 0 3-3c.58-1 1.19-2.06 1.81-3.06a7.94 7.94 0 0 0 1.22-4.21l.15-32.25a95.9 95.9 0 0 1 25.37-14.3L122 56.87a8 8 0 0 0 4.1 1h3.64a8.1 8.1 0 0 0 4.1-1l28.84-16.1A96 96 0 0 1 188.12 55l.11 32.2a8 8 0 0 0 1.22 4.22c.62 1 1.23 2 1.8 3.06a8.1 8.1 0 0 0 3 3.06l28.6 16.29a90.5 90.5 0 0 1 .05 28.29Z"/></svg></button>
     </header>
+    <h2 class="rot" id="saludo" style="margin-top:24px">Tu carrera</h2>
     <div id="mia"></div>
     <section class="seccion">
       <h2 class="rot">Otras carreras</h2>
@@ -168,28 +204,12 @@ const color = c => estado.claro ? c.cla : c.osc;
 const toque = () => { try { navigator.vibrate && navigator.vibrate(6); } catch (e) {} };
 const pasar = f => (document.startViewTransition && !matchMedia('(prefers-reduced-motion: reduce)').matches) ? document.startViewTransition(f) : f();
 
-const X = i => 26 + i * 34, Y = [132, 132, 98, 98, 98, 64, 64, 64, 30, 30];
-/* La ruta: diez semestres como paradas. `actual` es el índice del semestre en curso (-1: sin avance) */
-function ruta(actual) {
-  const pt = i => `${X(i)} ${Y[i]}`, tramo = (a, b) => 'M' + Array.from({ length: b - a + 1 }, (_, j) => pt(a + j)).join('L');
-  let s = `<svg class="ruta" viewBox="0 0 358 158" aria-hidden="true"><path d="${tramo(Math.max(actual, 0), 9)}" fill="none" stroke="rgb(255 255 255 / .24)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>`;
-  if (actual > 0) s += `<path class="hecha" d="${tramo(0, actual)}" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>`;
-  for (let i = 0; i < 10; i++) {
-    if (i < actual) s += `<circle cx="${X(i)}" cy="${Y[i]}" r="6" fill="#fff"/>`;
-    else if (i === actual) s += `<circle class="pulso" cx="${X(i)}" cy="${Y[i]}" r="13" fill="#fff"/><circle cx="${X(i)}" cy="${Y[i]}" r="10" fill="var(--k)" stroke="#fff" stroke-width="4.5"/><text x="${X(i)}" y="${Y[i] - 22}" text-anchor="middle">Semestre ${i + 1}</text>`;
-    else s += `<circle cx="${X(i)}" cy="${Y[i]}" r="${i === 9 ? 7 : 4.5}" fill="${i === 9 ? 'none' : 'rgb(255 255 255 / .45)'}" stroke="rgb(255 255 255 / .6)" stroke-width="${i === 9 ? 3 : 0}"/>`;
-  }
-  return s + '</svg>';
-}
 const portada = (c, o) => `<div class="heroe" style="--k:${c.osc}" ${o.slug ? `data-slug="${c.slug}"` : ''}>
-  <div class="campo"></div>${o.arriba || ''}${ruta(o.actual)}
-  <div class="heroe-pie"><h2>${c.corto}</h2><p class="sub">${o.sub}</p>
+  <div class="campo"></div>
+  <div class="heroe-pie"><div class="fila-sup"><span class="tecla">${ico(c.ic)}</span>${o.arriba || ''}</div><h2>${c.corto}</h2><p class="sub">${o.sub}</p>
     <div class="cifras">${o.cifras.map(([n, t]) => `<div><b>${n}</b><span>${t}</span></div>`).join('')}</div>
     <div class="acciones">${o.acciones}</div></div></div>`;
 function pintar() {
-  document.getElementById('fecha').textContent = new Date().toLocaleDateString('es', { weekday: 'long', day: 'numeric', month: 'long' }).replace(/^./, c => c.toUpperCase());
-  const h = new Date().getHours();
-  document.getElementById('saludo').textContent = h < 12 ? 'Buenos días' : h < 19 ? 'Buenas tardes' : 'Buenas noches';
   const c = k(estado.mia), ejemplo = c.slug === 'sistemas';
   document.getElementById('mia').innerHTML = portada(c, {
     slug: true, actual: ejemplo ? 4 : 0, sub: c.tipo,
@@ -201,9 +221,8 @@ function pintar() {
 }
 function ficha(c) {
   const f = document.getElementById('ficha'), mia = c.slug === estado.mia;
-  f.innerHTML = portada(c, {
+  f.innerHTML = `<button class="circulo pulsable" id="volver" aria-label="Volver" style="margin-bottom:16px">${ico('caret-left')}</button>` + portada(c, {
     actual: -1, sub: c.nombre,
-    arriba: `<button class="redondo pulsable atras" id="volver" aria-label="Volver" style="width:40px;height:40px;margin:16px 0 0 16px">${ico('caret-left')}</button>`,
     cifras: [[c.mat, 'Materias'], [c.uc, 'UC'], ['10', 'Semestres']],
     acciones: `<button class="boton pulsable" data-aviso="Abre el mapa de ${c.corto}">Ver el mapa</button>`,
   }) + (mia ? '' : '<button class="boton sec pulsable" id="hacer-mia">Hacerla mi carrera</button>');
