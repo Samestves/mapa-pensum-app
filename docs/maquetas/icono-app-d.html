@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8"><title>Icono de la app · ruta limpia</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#E6E7E9;font-family:system-ui,sans-serif;padding:48px;color:#050608}
+h1{font-weight:300;font-size:36px;letter-spacing:-.01em}
+p{font-size:15px;line-height:22px;color:#34383E;margin-top:10px;max-width:940px}
+.fila{display:flex;gap:40px;margin-top:40px}
+.op{width:300px}
+.op h3{font-size:15px;font-weight:600;margin-bottom:4px}
+.op p{font-size:13px;line-height:18px;margin:0 0 16px;min-height:90px}
+.grande svg{width:300px;height:300px;display:block;border-radius:68px;box-shadow:0 24px 48px -20px rgb(0 0 0/.45)}
+.tira{display:flex;gap:16px;align-items:center;margin-top:20px;padding:16px;border-radius:20px;background:linear-gradient(135deg,#27364f,#5a4a6b)}
+.tira svg{border-radius:23%;display:block}
+.tira.clara{background:linear-gradient(135deg,#dfe6ee,#f3e9df)}
+</style></head><body>
+<h1>Icono de la app · la B1 sin estrella, con la ruta pulida</h1>
+<p>Misma paleta y mismo fondo con luz azul. La ruta pasa a ser una curva continua, los puntos crecen hacia la meta y cada uno lleva un aro blanco, como una pegatina.</p>
+<div class="fila" id="fila"></div>
+<script>
+let n=0;
+function icono(v,t){const k='d'+(n++);
+ const [p0,p1,p2]=v.p, g=v.g;
+ const d=`M${p0[0]} ${p0[1]}C${p0[0]+(p1[0]-p0[0])*.55} ${p0[1]} ${p1[0]-(p1[0]-p0[0])*.5} ${p1[1]} ${p1[0]} ${p1[1]}C${p1[0]+(p2[0]-p1[0])*.5} ${p1[1]} ${p2[0]-(p2[0]-p1[0])*.55} ${p2[1]} ${p2[0]} ${p2[1]}`;
+ return `<svg viewBox="0 0 512 512" ${t?`width="${t}" height="${t}"`:''}><defs>
+ <linearGradient id="f${k}" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#1d2026"/><stop offset="1" stop-color="#040405"/></linearGradient>
+ <radialGradient id="l${k}" cx=".5" cy="0" r=".9"><stop stop-color="#6699FF" stop-opacity=".24"/><stop offset="1" stop-color="#6699FF" stop-opacity="0"/></radialGradient>
+ <linearGradient id="a${k}" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#FFFFFF"/><stop offset="1" stop-color="#E9EDF3"/></linearGradient>
+ <linearGradient id="b${k}" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#D5DAE3"/><stop offset="1" stop-color="#BFC6D2"/></linearGradient>
+ <linearGradient id="r${k}" gradientUnits="userSpaceOnUse" x1="${p0[0]}" y1="${p0[1]}" x2="${p2[0]}" y2="${p2[1]}"><stop stop-color="#1F3FA6"/><stop offset=".55" stop-color="#2F5BE0"/><stop offset="1" stop-color="#6699FF"/></linearGradient>
+ <radialGradient id="m${k}" cx=".35" cy=".3" r=".8"><stop stop-color="#8FB4FF"/><stop offset="1" stop-color="#3D6BF0"/></radialGradient>
+ <radialGradient id="h${k}"><stop stop-color="#6699FF" stop-opacity=".55"/><stop offset="1" stop-color="#6699FF" stop-opacity="0"/></radialGradient>
+ <filter id="s${k}" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="14" stdDeviation="14" flood-color="#000" flood-opacity=".55"/></filter>
+ <filter id="n${k}" x="-50%" y="-50%" width="200%" height="200%"><feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#0B1E5C" flood-opacity=".35"/></filter></defs>
+ <rect width="512" height="512" fill="url(#f${k})"/><rect width="512" height="512" fill="url(#l${k})"/>
+ <g transform="rotate(${v.giro||0} 256 260)">
+ <g filter="url(#s${k})" stroke-linejoin="round" stroke-width="14">
+  <path d="M116 158 206 124V362L116 396Z" fill="url(#a${k})" stroke="url(#a${k})"/>
+  <path d="M206 124 306 158V396L206 362Z" fill="url(#b${k})" stroke="url(#b${k})"/>
+  <path d="M306 158 396 124V362L306 396Z" fill="url(#a${k})" stroke="url(#a${k})"/></g>
+ ${v.halo?`<circle cx="${p2[0]}" cy="${p2[1]}" r="${v.r[2]*2.6}" fill="url(#h${k})"/>`:''}
+ <path d="${d}" fill="none" stroke="#fff" stroke-width="${g+12}" stroke-linecap="round"/>
+ <path d="${d}" fill="none" stroke="url(#r${k})" stroke-width="${g}" stroke-linecap="round"/>
+ <g filter="url(#n${k})">
+  <circle cx="${p0[0]}" cy="${p0[1]}" r="${v.r[0]}" fill="#1F3FA6" stroke="#fff" stroke-width="6"/>
+  <circle cx="${p1[0]}" cy="${p1[1]}" r="${v.r[1]}" fill="#2F5BE0" stroke="#fff" stroke-width="6"/>
+  <circle cx="${p2[0]}" cy="${p2[1]}" r="${v.r[2]}" fill="url(#m${k})" stroke="#fff" stroke-width="7"/>
+  <circle cx="${p2[0]}" cy="${p2[1]}" r="${v.r[2]*.36}" fill="#fff"/></g>
+ </g></svg>`;}
+const OPS=[
+ ['1 · Limpia','La ruta en una sola curva suave, de azul profundo a azul claro. Tres puntos que crecen hacia la meta, con aro blanco. Todo queda dentro del mapa.',
+  {p:[[158,330],[246,252],[348,190]],g:14,r:[14,18,25]}],
+ ['2 · Con carácter','Trazo más grueso y puntos más grandes. La meta se sale por la esquina del mapa y brilla sobre el fondo: se lee mejor en pequeño.',
+  {p:[[156,332],[250,256],[374,152]],g:18,r:[16,21,30],halo:1}],
+ ['3 · Inclinada','La 2 girada ocho grados, como los logos de Rockstar. Le da movimiento y actitud sin añadir nada.',
+  {p:[[156,332],[250,256],[374,152]],g:18,r:[16,21,30],halo:1,giro:-8}],
+];
+document.getElementById('fila').innerHTML=OPS.map(([t,p,v])=>`<div class="op"><h3>${t}</h3><p>${p}</p><div class="grande">${icono(v)}</div><div class="tira">${icono(v,64)}${icono(v,48)}</div><div class="tira clara">${icono(v,64)}${icono(v,48)}</div></div>`).join('');
+</script></body></html>
