@@ -12,7 +12,6 @@ const docs = join(raiz, 'docs/icono')
 
 // El dibujo vive en una caja de 512: es lo que deja ver la máscara del icono (72 de los 108 dp).
 // La capa adaptable completa mide 768 (108 dp), con el dibujo desplazado 128.
-const RUTA = 'M152 340 206 288 306 248 360 192'
 
 const defsFondo = `
  <linearGradient id="fondo" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="512"><stop stop-color="#1d2026"/><stop offset="1" stop-color="#040405"/></linearGradient>
@@ -23,26 +22,35 @@ const defsFrente = `
  <linearGradient id="hoja" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#FFFFFF"/><stop offset="1" stop-color="#E9EDF3"/></linearGradient>
  <linearGradient id="centro" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#DCE0E8"/><stop offset="1" stop-color="#BCC3CF"/></linearGradient>
  <linearGradient id="derecha" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#E4E8EE"/><stop offset=".35" stop-color="#FFFFFF"/></linearGradient>
- <linearGradient id="ruta" gradientUnits="userSpaceOnUse" x1="152" y1="340" x2="360" y2="192"><stop stop-color="#1F3FA6"/><stop offset=".5" stop-color="#2F5BE0"/><stop offset="1" stop-color="#6699FF"/></linearGradient>
- <radialGradient id="halo"><stop stop-color="#6699FF" stop-opacity=".5"/><stop offset="1" stop-color="#6699FF" stop-opacity="0"/></radialGradient>
+ <linearGradient id="ruta" gradientUnits="userSpaceOnUse" x1="152" y1="322" x2="360" y2="176"><stop stop-color="#1F3FA6"/><stop offset=".5" stop-color="#2F5BE0"/><stop offset="1" stop-color="#6699FF"/></linearGradient>
  <radialGradient id="reflejo"><stop stop-color="#3D6BF0" stop-opacity=".35"/><stop offset="1" stop-color="#3D6BF0" stop-opacity="0"/></radialGradient>
- <filter id="sombra" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="14" stdDeviation="14" flood-color="#000" flood-opacity=".55"/></filter>
- <filter id="relieve" x="-30%" y="-30%" width="160%" height="170%"><feDropShadow dx="0" dy="3" stdDeviation="3.5" flood-color="#0B1E5C" flood-opacity=".28"/></filter>`
+ <filter id="sombra" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="14" stdDeviation="14" flood-color="#000" flood-opacity=".55"/></filter>`
+// La ruta se dibuja recta sobre el mapa sin plegar y cada hoja la inclina con su propia pendiente:
+// así se quiebra en los pliegues y su grosor sigue al papel, como tinta impresa. Sin sombra: no flota.
+const K = 34 / 90, KC = 34 / 100
+const HOJAS = [
+  ['M109 151 206 117V369L109 403Z', `matrix(1 ${-K} 0 1 0 ${K * 206})`, 0],
+  ['M206 117 306 151V403L206 369Z', `matrix(1 ${KC} 0 1 0 ${-KC * 206})`, 0.2],
+  ['M306 151 403 117V369L306 403Z', `matrix(1 ${-K} 0 1 0 ${34 + K * 306})`, 0],
+]
+const tinta = `
+  <path d="M152 322 360 176" fill="none" stroke="url(#ruta)" stroke-width="14" stroke-linecap="round"/>
+  <circle cx="152" cy="322" r="16" fill="#1F3FA6"/>
+  <circle cx="256" cy="249" r="19" fill="#2F5BE0"/>
+  <circle cx="360" cy="176" r="23" fill="#fff" stroke="#6699FF" stroke-width="12"/>
+  <circle cx="360" cy="176" r="7" fill="#6699FF"/>`
+const impresa = HOJAS.map(([hoja, inclina, sombra], i) => `
+ <clipPath id="hoja${i}"><path d="${hoja}"/></clipPath>
+ <g clip-path="url(#hoja${i})"><g transform="${inclina}">${tinta}</g>${sombra ? `<g transform="${inclina}" opacity="${sombra}"><path d="M152 322 360 176" fill="none" stroke="#06103A" stroke-width="14"/><circle cx="256" cy="249" r="19" fill="#06103A"/></g>` : ''}</g>`).join('')
 const frente = `
  <ellipse cx="256" cy="418" rx="150" ry="26" fill="url(#reflejo)"/>
  <g filter="url(#sombra)" stroke-linejoin="round" stroke-width="14">
   <path d="M116 158 206 124V362L116 396Z" fill="url(#hoja)" stroke="url(#hoja)"/>
   <path d="M206 124 306 158V396L206 362Z" fill="url(#centro)" stroke="url(#centro)"/>
   <path d="M306 158 396 124V362L306 396Z" fill="url(#derecha)" stroke="url(#derecha)"/></g>
- <path d="M206 120V366" stroke="#fff" stroke-width="2.5" stroke-linecap="round" opacity=".9"/>
- <path d="M306 154V400" stroke="#6B7484" stroke-width="2" stroke-linecap="round" opacity=".28"/>
- <circle cx="360" cy="192" r="52" fill="url(#halo)"/>
- <g filter="url(#relieve)">
-  <path d="${RUTA}" fill="none" stroke="url(#ruta)" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>
-  <circle cx="152" cy="340" r="15" fill="#1F3FA6"/>
-  <circle cx="256" cy="268" r="18" fill="#2F5BE0"/>
-  <circle cx="360" cy="192" r="22" fill="#fff" stroke="#6699FF" stroke-width="12"/></g>
- <circle cx="360" cy="192" r="7" fill="#6699FF"/>`
+ ${impresa}
+ <path d="M206 120V366" stroke="#fff" stroke-width="2" stroke-linecap="round" opacity=".55"/>
+ <path d="M306 154V400" stroke="#3A4356" stroke-width="2" stroke-linecap="round" opacity=".3"/>`
 
 const svg = (caja, defs, cuerpo) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${caja}"><defs>${defs}</defs>${cuerpo}</svg>\n`
 const CAPA = '-128 -128 768 768'
@@ -62,10 +70,10 @@ const monocromo = `<?xml version="1.0" encoding="utf-8"?>
         <path android:fillColor="#FFFFFF" android:fillAlpha="0.38" android:pathData="M116,158 L206,124 V362 L116,396 Z" />
         <path android:fillColor="#FFFFFF" android:fillAlpha="0.24" android:pathData="M206,124 L306,158 V396 L206,362 Z" />
         <path android:fillColor="#FFFFFF" android:fillAlpha="0.38" android:pathData="M306,158 L396,124 V362 L306,396 Z" />
-        <path android:strokeColor="#FFFFFF" android:strokeWidth="14" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M152,340 L206,288 L306,248 L360,192" />
-        <path android:fillColor="#FFFFFF" android:pathData="M137,340 a15,15 0 1,0 30,0 a15,15 0 1,0 -30,0 Z" />
-        <path android:fillColor="#FFFFFF" android:pathData="M238,268 a18,18 0 1,0 36,0 a18,18 0 1,0 -36,0 Z" />
-        <path android:fillColor="#FFFFFF" android:fillType="evenOdd" android:pathData="M332,192 a28,28 0 1,0 56,0 a28,28 0 1,0 -56,0 Z M344,192 a16,16 0 1,0 32,0 a16,16 0 1,0 -32,0 Z M353,192 a7,7 0 1,0 14,0 a7,7 0 1,0 -14,0 Z" />
+        <path android:strokeColor="#FFFFFF" android:strokeWidth="14" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M152,342 L206,284 L306,248 L360,190" />
+        <path android:fillColor="#FFFFFF" android:pathData="M137,342 a15,15 0 1,0 30,0 a15,15 0 1,0 -30,0 Z" />
+        <path android:fillColor="#FFFFFF" android:pathData="M238,266 a18,18 0 1,0 36,0 a18,18 0 1,0 -36,0 Z" />
+        <path android:fillColor="#FFFFFF" android:fillType="evenOdd" android:pathData="M332,190 a28,28 0 1,0 56,0 a28,28 0 1,0 -56,0 Z M344,190 a16,16 0 1,0 32,0 a16,16 0 1,0 -32,0 Z M353,190 a7,7 0 1,0 14,0 a7,7 0 1,0 -14,0 Z" />
     </group>
 </vector>
 `
