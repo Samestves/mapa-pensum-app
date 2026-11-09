@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8"><title>Icono de la app · B con detalles sutiles</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#E6E7E9;font-family:system-ui,sans-serif;padding:48px;color:#050608}
+h1{font-weight:300;font-size:36px;letter-spacing:-.01em}
+p{font-size:15px;line-height:22px;color:#34383E;margin-top:10px;max-width:940px}
+.fila{display:flex;gap:40px;margin-top:40px}
+.op{width:300px}
+.op h3{font-size:15px;font-weight:600;margin-bottom:4px}
+.op p{font-size:13px;line-height:18px;margin:0 0 16px;min-height:72px}
+.grande svg{width:300px;height:300px;display:block;border-radius:68px;box-shadow:0 24px 48px -20px rgb(0 0 0/.45)}
+.tira{display:flex;gap:16px;align-items:center;margin-top:20px;padding:16px;border-radius:20px;background:linear-gradient(135deg,#27364f,#5a4a6b)}
+.tira svg{border-radius:23%;display:block}
+.tira.clara{background:linear-gradient(135deg,#dfe6ee,#f3e9df)}
+</style></head><body>
+<h1>Icono de la app · la B original, con un detalle nuestro</h1>
+<p>El mismo icono de antes: mapa blanco, ruta azul, fondo negro. Cada variante cambia una sola cosa pequeña para que deje de ser un mapa cualquiera.</p>
+<div class="fila" id="fila"></div>
+<script>
+let n=0;
+const AZ='#2751CC';
+function icono(v,t){const k='k'+(n++);
+ return `<svg viewBox="0 0 512 512" ${t?`width="${t}" height="${t}"`:''}><defs>
+ <linearGradient id="f${k}" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#1b1d22"/><stop offset="1" stop-color="#050507"/></linearGradient>
+ <linearGradient id="m${k}" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#DADFE7"/><stop offset="1" stop-color="#C6CCD7"/></linearGradient></defs>
+ <rect width="512" height="512" fill="url(#f${k})"/>
+ <g stroke-linejoin="round" stroke-width="14">
+ <path d="M116 158 206 124V362L116 396Z" fill="#fff" stroke="#fff"/>
+ <path d="M206 124 306 158V396L206 362Z" fill="url(#m${k})" stroke="url(#m${k})"/>
+ <path d="M306 158 396 124V362L306 396Z" fill="#fff" stroke="#fff"/></g>
+ ${v}</svg>`;}
+const nodos=`<circle cx="161" cy="318" r="17" fill="${AZ}"/><circle cx="256" cy="232" r="17" fill="${AZ}"/>`;
+const recta=`<path d="M161 318 256 232 351 196" fill="none" stroke="${AZ}" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>`;
+const aro=`<circle cx="351" cy="196" r="20" fill="#fff" stroke="${AZ}" stroke-width="12"/>`;
+const OPS=[
+ ['1 · Meta naranja','Igual que la original, con un punto naranja dentro de la meta. Es el naranja del aro de la UDO, en el único sitio donde importa: donde terminas.',
+  recta+nodos+aro+`<circle cx="351" cy="196" r="8" fill="#FF6600"/>`],
+ ['2 · Cable de prelación','La ruta deja de ser recta y se curva como los cables que unen las materias en el mapa de la app. Quien la usa lo reconoce.',
+  `<path d="M161 318C161 262 256 288 256 232C256 196 315 196 351 196" fill="none" stroke="${AZ}" stroke-width="12" stroke-linecap="round"/>`+nodos+aro],
+ ['3 · Rumbo','La meta lleva cuatro marcas alrededor, como una brújula. Es la rosa de los vientos de la UDO reducida a lo mínimo.',
+  recta+nodos+aro+[[0,-1],[1,0],[0,1],[-1,0]].map(([x,y])=>`<path d="M${351+x*36} ${196+y*36}L${351+x*50} ${196+y*50}" stroke="${AZ}" stroke-width="9" stroke-linecap="round"/>`).join('')],
+];
+document.getElementById('fila').innerHTML=OPS.map(([t,p,v])=>`<div class="op"><h3>${t}</h3><p>${p}</p><div class="grande">${icono(v)}</div><div class="tira">${icono(v,64)}${icono(v,48)}</div><div class="tira clara">${icono(v,64)}${icono(v,48)}</div></div>`).join('');
+</script></body></html>
