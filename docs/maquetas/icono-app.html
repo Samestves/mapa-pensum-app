@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8"><title>Icono de la app · bocetos</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#E6E7E9;font-family:system-ui,sans-serif;padding:48px;color:#050608}
+h1{font-weight:300;font-size:36px;letter-spacing:-.01em}
+p{font-size:15px;line-height:22px;color:#34383E;margin-top:10px;max-width:900px}
+.fila{display:flex;gap:40px;margin-top:40px}
+.op{width:300px}
+.op h3{font-size:15px;font-weight:600;margin-bottom:4px}
+.op p{font-size:13px;line-height:18px;margin:0 0 16px;min-height:72px}
+.grande svg{width:300px;height:300px;display:block;border-radius:68px;box-shadow:0 24px 48px -20px rgb(0 0 0/.45)}
+.tira{display:flex;gap:16px;align-items:center;margin-top:20px;padding:16px;border-radius:20px;background:linear-gradient(135deg,#27364f,#5a4a6b)}
+.tira svg{border-radius:23%;display:block}
+.tira.clara{background:linear-gradient(135deg,#dfe6ee,#f3e9df)}
+</style></head><body>
+<h1>Icono de la app · tres bocetos</h1>
+<p>Parten del mapa plegado que ya usa la app. Falta integrar el emblema de la UDO: no pude abrirlo desde aquí, así que el azul es provisional. Cada boceto se ve en grande y a tamaño real (64 y 48 px) sobre fondo oscuro y claro.</p>
+<div class="fila" id="fila"></div>
+<script>
+const mapa=(a,b,c)=>`<g stroke-linejoin="round" stroke-width="14">
+<path d="M116 158 206 124V362L116 396Z" fill="${a}" stroke="${a}"/>
+<path d="M206 124 306 158V396L206 362Z" fill="${b}" stroke="${b}"/>
+<path d="M306 158 396 124V362L306 396Z" fill="${c}" stroke="${c}"/></g>`;
+const ruta=(col,fondo)=>`<path d="M161 318 256 232 351 196" fill="none" stroke="${col}" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="161" cy="318" r="17" fill="${col}"/><circle cx="256" cy="232" r="17" fill="${col}"/>
+<circle cx="351" cy="196" r="20" fill="${fondo}" stroke="${col}" stroke-width="12"/>`;
+const svg=(defs,cuerpo,t)=>`<svg viewBox="0 0 512 512" ${t?`width="${t}" height="${t}"`:''}><defs>${defs}</defs>${cuerpo}</svg>`;
+const OPS=[
+['A · Mapa','El mapa plegado solo, en blanco sobre negro, con los pliegues marcados por tres tonos. El más sobrio; combina con el tema oscuro de la app.',
+ `<linearGradient id="a" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#1b1d22"/><stop offset="1" stop-color="#050507"/></linearGradient>`,
+ `<rect width="512" height="512" fill="url(#a)"/>`+mapa('#FFFFFF','#C9CED8','#FFFFFF')],
+['B · Ruta','El mismo mapa con tu camino encima: tres materias unidas por la línea de prelación, y la última abierta como meta. Dice «mapa» y «pensum» a la vez.',
+ `<linearGradient id="b" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#1b1d22"/><stop offset="1" stop-color="#050507"/></linearGradient>`,
+ `<rect width="512" height="512" fill="url(#b)"/>`+mapa('#FFFFFF','#D3D8E0','#FFFFFF')+ruta('#2751CC','#FFFFFF')],
+['C · Azul','La ruta sobre fondo azul, con el mapa en blanco. El que más destaca en la pantalla de inicio del teléfono; el azul se ajusta al de la UDO.',
+ `<linearGradient id="c" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#4f86ff"/><stop offset="1" stop-color="#1b3fb0"/></linearGradient>`,
+ `<rect width="512" height="512" fill="url(#c)"/>`+mapa('#FFFFFF','#DCE6FF','#FFFFFF')+ruta('#1F47C4','#FFFFFF')],
+];
+document.getElementById('fila').innerHTML=OPS.map(([t,p,d,c],i)=>{const u=x=>svg(d.replaceAll('id="','id="'+x).replace(/url\(#/g,'url(#'),c,0);
+ const s=(k,t2)=>svg(d.replace(/id="(\w)"/,`id="$1${k}"`),c.replace(/url\(#(\w)\)/,`url(#$1${k})`),t2);
+ return `<div class="op"><h3>${t}</h3><p>${p}</p><div class="grande">${s('g'+i,0)}</div><div class="tira">${s('x'+i,64)}${s('y'+i,48)}</div><div class="tira clara">${s('z'+i,64)}${s('w'+i,48)}</div></div>`}).join('');
+</script></body></html>
