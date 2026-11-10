@@ -13,6 +13,8 @@ import mpensum.datos.leerPensum
 import mpensum.logica.Marca
 import mpensum.plataforma.Apariencia
 import mpensum.plataforma.Preferencias
+import mpensum.tema.Fondo
+import mpensum.tema.FormaCables
 import mpensum.tema.Juego
 import mpensum.tema.Tema
 import org.junit.Rule
@@ -102,5 +104,28 @@ class QaRecrearTest {
         escenario.onActivity { despues = it }
         assertSame(antes, despues, "la actividad se recreó")
         hasta("el tema de noche") { Tema.juego == Juego.OSCURO }
+    }
+
+    /**
+     * Cambiar un ajuste con la app abierta llega al Tema sin reabrir nada. App recogía las preferencias
+     * sin leerlas, así que no recomponía: en Personalizar no cambiaban el fondo ni los cables.
+     */
+    @Test
+    fun cambiarUnAjusteConLaAppAbiertaLlegaAlTema() {
+        Preferencias.iniciar(RuntimeEnvironment.getApplication())
+        Preferencias.marcarBienvenidaVista()
+        Preferencias.guardarFondoMapa(Fondo.REJILLA)
+        Preferencias.guardarCables(FormaCables.CURVOS)
+        Preferencias.guardarCodigos(false)
+        ActivityScenario.launch(MainActivity::class.java)
+        regla.mainClock.autoAdvance = false
+        correr(3000)
+        assertEquals(Fondo.REJILLA, Tema.fondo)
+        Preferencias.guardarFondoMapa(Fondo.PUNTOS)
+        hasta("el fondo en puntos") { Tema.fondo == Fondo.PUNTOS }
+        Preferencias.guardarCables(FormaCables.RECTOS)
+        hasta("los cables rectos") { Tema.cables == FormaCables.RECTOS }
+        Preferencias.guardarCodigos(true)
+        hasta("los códigos visibles") { Tema.codigos }
     }
 }

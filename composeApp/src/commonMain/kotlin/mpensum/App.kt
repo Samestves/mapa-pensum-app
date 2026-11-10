@@ -106,14 +106,15 @@ fun App() {
     val deDia by Preferencias.temaDia.collectAsState()
     val deNoche by Preferencias.temaNoche.collectAsState()
     val juego = apariencia.juego(nocheDelSistema, deDia, deNoche)
-    // Recoger cada preferencia hace que App recomponga cuando cambie una; el volcado al Tema es uno solo
+    // Recoger cada preferencia Y LEER su valor hace que App recomponga cuando cambie una: un State que se
+    // recoge pero no se lee no avisa a nadie (así se quedó Personalizar sin responder). El volcado al Tema es uno solo
     listOf(
         Preferencias.acento, Preferencias.textoGrande, Preferencias.luzFondo, Preferencias.reducirMovimiento,
         Preferencias.codigos, Preferencias.modoLigero, Preferencias.fondoMapa, Preferencias.cables,
         Preferencias.grosorCables, Preferencias.atenuarAprobadas, Preferencias.contraste, Preferencias.hora24,
         Preferencias.vibracion,
-    ).forEach { it.collectAsState() }
-    val grande = Preferencias.textoGrande.value
+    ).forEach { it.collectAsState().value }
+    val grande by Preferencias.textoGrande.collectAsState()
     ponerPreferenciasEnTema(juego)
     BarrasDelSistema(juego.claro)
     // El texto grande es la escala de letra del sistema por 1,15: se lee en sp, no toca los dp
