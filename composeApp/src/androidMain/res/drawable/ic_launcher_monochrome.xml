@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- El logo en un solo tono para los iconos temáticos: el papel al 50 %, la ruta y la meta enteras -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="108" android:viewportHeight="108">
+    <group android:translateX="17.4" android:translateY="16.69" android:scaleX="0.07155" android:scaleY="0.07155">
+        <path android:fillColor="#80FFFFFF" android:pathData="M218,314 Q218,300 231.32,295.7 L396.68,242.3 Q410,238 410,252 L410,726 Q410,740 396.74,744.49 L231.26,800.51 Q218,805 218,791 Z" />
+        <path android:fillColor="#80FFFFFF" android:pathData="M410,252 Q410,238 423.34,242.24 L591.66,295.76 Q605,300 605,314 L605,791 Q605,805 591.72,800.57 L423.28,744.43 Q410,740 410,726 Z" />
+        <path android:fillColor="#80FFFFFF" android:pathData="M605,314 Q605,300 618.37,295.85 L791.63,242.15 Q805,238 805,252 L805,726 Q805,740 791.69,744.33 L618.31,800.67 Q605,805 605,791 Z" />
+        <path android:strokeColor="#FFFFFFFF" android:strokeWidth="26" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M305,688 L410,556 L512,530 L608,505 L720,377" />
+        <group android:rotation="-20" android:pivotX="305" android:pivotY="688">
+            <path android:fillColor="#FFFFFFFF" android:pathData="M269,688 a36,30 0 1,0 72,0 a36,30 0 1,0 -72,0 Z" />
+        </group>
+        <group android:rotation="-20" android:pivotX="512" android:pivotY="530">
+            <path android:fillColor="#FFFFFFFF" android:pathData="M472,530 a40,34 0 1,0 80,0 a40,34 0 1,0 -80,0 Z" />
+        </group>
+        <group android:rotation="-20" android:pivotX="720" android:pivotY="377">
+            <path android:strokeColor="#FFFFFFFF" android:strokeWidth="26" android:pathData="M676,377 a44,38 0 1,0 88,0 a44,38 0 1,0 -88,0 Z" />
+            <path android:fillColor="#FFFFFFFF" android:pathData="M705,377 a15,13 0 1,0 30,0 a15,13 0 1,0 -30,0 Z" />
+        </group>
+    </group>
+</vector>
