@@ -75,14 +75,15 @@ class TomaEnBucle(claves: List<FloatArray>) {
 /**
  * El reloj de una escena: los ms dentro de su ciclo, de un solo
  * withFrameMillis. Se lee solo al dibujar, así que avanzar no recompone
- * nada. Con las animaciones del sistema apagadas se queda quieto en
- * `quieto`, el momento que mejor cuenta la historia.
+ * nada. Con las animaciones del sistema apagadas, o con `parado` (quien
+ * pidió «Reducir movimiento»), se queda quieto en `quieto`, el momento que
+ * mejor cuenta la historia.
  */
 @Composable
-fun rememberRelojEscena(ciclo: Int, quieto: Float): State<Float> {
+fun rememberRelojEscena(ciclo: Int, quieto: Float, parado: Boolean = false): State<Float> {
     val t = remember { mutableFloatStateOf(0f) }
-    LaunchedEffect(Unit) {
-        if ((coroutineContext[MotionDurationScale]?.scaleFactor ?: 1f) == 0f) {
+    LaunchedEffect(parado) {
+        if (parado || (coroutineContext[MotionDurationScale]?.scaleFactor ?: 1f) == 0f) {
             t.floatValue = quieto
             return@LaunchedEffect
         }
@@ -102,6 +103,9 @@ private const val ALTO_TABLERO = 468f
  * y dentro el plano visto por la toma, con la inclinación y el giro en la
  * capa y la perspectiva de los tableros (1100 dp). `dibujar` recibe el ms
  * del ciclo y dibuja en unidades del plano (dp del tablero).
+ *
+ * Con `fija` (el modo ligero) no hay toma: el plano se mira de frente, a
+ * tamaño 1 y con ese punto en el centro, sin inclinación que mover.
  */
 @Composable
 fun EscenaEnBucle(
@@ -111,18 +115,19 @@ fun EscenaEnBucle(
     abajo: Float,
     lados: Float,
     modifier: Modifier = Modifier,
+    fija: Offset? = null,
     dibujar: DrawScope.(t: Float) -> Unit,
 ) {
     val enCapa = remember { FloatArray(5) }
     val enDibujo = remember { FloatArray(5) }
     Box(
-        modifier
-            // La escena cambia en cada cuadro, así que una capa Offscreen tampoco se ahorraba nada: se repintaba igual
-            .fundidoBordes(arriba = arriba, abajo = abajo, lados = lados),
+        // Sin capa: el fundido es un velo del lienzo pintado encima y un recorte a la zona
+        modifier.fundidoBordes(arriba = arriba, abajo = abajo, lados = lados),
     ) {
         Spacer(
             Modifier.fillMaxSize()
                 .graphicsLayer {
+                    if (fija != null) return@graphicsLayer
                     toma.en(reloj.value, enCapa)
                     rotationX = enCapa[3]
                     rotationZ = enCapa[4]
@@ -131,7 +136,13 @@ fun EscenaEnBucle(
                 }
                 .drawBehind {
                     val t = reloj.value
-                    toma.en(t, enDibujo)
+                    if (fija != null) {
+                        enDibujo[0] = fija.x
+                        enDibujo[1] = fija.y
+                        enDibujo[2] = 0f
+                    } else {
+                        toma.en(t, enDibujo)
+                    }
                     val ajuste = min(1f, min(size.width / density / ANCHO_TABLERO, size.height / density / ALTO_TABLERO))
                     val z = exp(enDibujo[2]) * ajuste * density
                     withTransform({

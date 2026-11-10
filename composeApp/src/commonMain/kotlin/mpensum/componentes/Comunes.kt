@@ -1,7 +1,6 @@
 package mpensum.componentes
 
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
@@ -21,30 +20,16 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
-import androidx.compose.runtime.withFrameNanos
-import androidx.compose.ui.MotionDurationScale
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.BlendMode
-import androidx.compose.ui.graphics.Canvas
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.FilterQuality
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.Paint
-import androidx.compose.ui.graphics.PointMode
-import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.graphicsLayer
@@ -52,193 +37,16 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import mpensum.tema.Movimiento
 import mpensum.tema.Paleta
 import mpensum.tema.Tema
 import mpensum.tema.porTema
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import mpensum.tema.inter
-import kotlin.math.PI
-import kotlin.math.sin
-import kotlin.random.Random
 import kotlin.time.TimeSource
-
-/** El resplandor azul y turquesa de la portada web, arriba a la izquierda y a la derecha; en claro, apenas un tinte */
-fun Modifier.aurora(intensidad: Float = 1f): Modifier = drawBehind {
-    val alto = size.height * 0.6f
-    val intensidad = intensidad * porTema(1f, FUERZA_CLARA)
-    drawRect(
-        Brush.radialGradient(
-            listOf(Paleta.aurora.copy(alpha = 0.17f * intensidad), Color.Transparent),
-            center = Offset(size.width * 0.12f, -alto * 0.1f),
-            radius = size.width * 0.75f,
-        ),
-    )
-    drawRect(
-        Brush.radialGradient(
-            listOf(Paleta.aurora2.copy(alpha = 0.10f * intensidad), Color.Transparent),
-            center = Offset(size.width * 0.8f, -alto * 0.15f),
-            radius = size.width * 0.6f,
-        ),
-    )
-}
-
-/*
- * La aurora viva de la portada: las mismas luces, pero vivas. Derivan,
- * respiran y recorren su gama de tonos muy despacio, con periodos de decenas
- * de segundos primos entre sí: el camino no se ve repetirse.
- *
- * El reloj vive en un estado que solo se lee al dibujar, en capas propias:
- * cada cuadro redibuja la luz y nada más, sin recomponer. Va a 30 cuadros como
- * mucho (a esta velocidad no se nota) y se para cuando se le pide (la cabecera
- * es cristal y desenfocaría la luz en cada cuadro) y en segundo plano: ahí
- * Compose ya pausa su reloj de cuadros. Con las animaciones del sistema
- * apagadas se queda quieta y encendida.
- */
-
-/** Entra rápido y se asienta muy largo: la luz se enciende, no se desliza */
-private val SALIDA_LUZ = CubicBezierEasing(0.16f, 1f, 0.3f, 1f)
-private const val CUADRO_NS = 32_000_000L
-/** Cada luz, del centro al borde, con un final largo para que no se vea dónde acaba */
-private val RAMPA = floatArrayOf(1f, 0.8f, 0.52f, 0.26f, 0.08f, 0f)
-/** Los colores de la luz que se está dibujando, reutilizados en cada cuadro */
-private val COLORES_LUZ = ArrayList<Color>(RAMPA.size)
-
-private val AZULES = listOf(Color(0xFF6094FF), Color(0xFF8B7BFF), Color(0xFF5AA8FF), Color(0xFF6E84FF))
-private val AGUAS = listOf(Color(0xFF2FE8C6), Color(0xFF34C6EA), Color(0xFF3FD6A0), Color(0xFF2FD3C0))
-private val INDIGOS = listOf(Color(0xFF8B7BFF), Color(0xFF6094FF), Color(0xFF786EF0))
-
-/*
- * En claro la luz no tiene hacia dónde subir: sobre papel, los mismos tonos
- * vivos se ven sucios. Van los profundos (los claros de cada carrera y área),
- * que tiñen en vez de brillar, y a poco más de media fuerza: un velo de
- * color, no un resplandor.
- */
-private val AZULES_CLAROS = listOf(Color(0xFF2751CC), Color(0xFF4B3BC4), Color(0xFF1B7FB0), Color(0xFF3E6AE1))
-private val AGUAS_CLARAS = listOf(Color(0xFF0A9781), Color(0xFF0B7391), Color(0xFF0F8A75), Color(0xFF0A8577))
-private val INDIGOS_CLAROS = listOf(Color(0xFF4B3BC4), Color(0xFF2751CC), Color(0xFF6F42C9))
-
-/** Cuánto pesa la luz de la portada en claro frente al oscuro */
-private const val FUERZA_CLARA = 0.5f
-
-/** Dónde iba la aurora: al volver de una carrera sigue desde ahí, sin saltar */
-private var ultimoSegundo = 0f
-
-/** El tiempo de la aurora, en segundos de deriva y en milisegundos de entrada */
-@Stable
-class RelojAurora internal constructor(segundos: Float, entrando: Boolean) {
-    internal var segundos by mutableFloatStateOf(segundos)
-    internal var ms by mutableFloatStateOf(if (entrando) 0f else ENTRADA_HECHA)
-
-    /** Una ola de periodo `p` segundos, de −1 a 1 */
-    internal fun ola(p: Float): Float = sin(2f * PI.toFloat() * segundos / p)
-
-    /** Cuánto se ha encendido el cielo al aparecer */
-    internal val entrada: Float get() = Movimiento.ENTRA.transform((ms / 900f).coerceIn(0f, 1f))
-
-    /** La luz de la carrera llega un poco después que el cielo */
-    internal val luz: Float get() = SALIDA_LUZ.transform(((ms - 200f) / 700f).coerceIn(0f, 1f))
-
-    internal companion object {
-        const val ENTRADA_HECHA = 10_000f
-    }
-}
-
-/**
- * El reloj de la aurora. `entrar` hace que la luz se encienda al aparecer
- * (solo al abrir la app); `pausada` se lee como estado y para el reloj
- * mientras devuelva true.
- */
-@Composable
-fun rememberRelojAurora(entrar: Boolean, pausada: () -> Boolean): RelojAurora {
-    val reloj = remember { RelojAurora(ultimoSegundo, entrar) }
-    val pausa by rememberUpdatedState(pausada)
-    LaunchedEffect(reloj, Tema.sinBucles) {
-        // Con el movimiento reducido, en modo ligero o con las animaciones quitadas, la luz se queda quieta y encendida
-        if (Tema.sinBucles || (coroutineContext[MotionDurationScale]?.scaleFactor ?: 1f) == 0f) {
-            reloj.ms = RelojAurora.ENTRADA_HECHA
-            return@LaunchedEffect
-        }
-        snapshotFlow { pausa() }.collectLatest { quieta ->
-            if (quieta) return@collectLatest
-            var antes = -1L
-            while (true) {
-                withFrameNanos { n ->
-                    if (antes < 0) antes = n
-                    val paso = n - antes
-                    if (paso >= CUADRO_NS) {
-                        // Tras un tirón largo (un cuadro perdido, volver de fondo) la luz no da un salto
-                        val s = minOf(paso, 100_000_000L) / 1e9f
-                        reloj.segundos += s
-                        if (reloj.ms < RelojAurora.ENTRADA_HECHA) reloj.ms += s * 1000f
-                        ultimoSegundo = reloj.segundos
-                        antes = n
-                    }
-                }
-            }
-        }
-    }
-    return reloj
-}
-
-/** Recorre una gama en bucle; cada paso se funde con una curva suave, sin cortes */
-private fun gama(colores: List<Color>, segundos: Float, periodo: Float, fase: Float = 0f): Color {
-    val p = (((segundos / periodo + fase) % 1f) + 1f) % 1f * colores.size
-    val i = p.toInt().coerceAtMost(colores.size - 1)
-    val f = p - i
-    val k = f * f * (3f - 2f * f)
-    val a = colores[i]
-    val b = colores[(i + 1) % colores.size]
-    return Color(a.red + (b.red - a.red) * k, a.green + (b.green - a.green) * k, a.blue + (b.blue - a.blue) * k)
-}
-
-/** Una luz redonda con la rampa de la aurora */
-private fun DrawScope.luz(centro: Offset, radio: Float, color: Color, alfa: Float) {
-    if (alfa <= 0f || radio <= 0f) return
-    // Las paradas de la rampa van repartidas a partes iguales: basta una lista de colores, que se reutiliza
-    // (el pincel se usa en el acto, dentro de esta misma llamada)
-    COLORES_LUZ.clear()
-    for (i in RAMPA.indices) COLORES_LUZ.add(color.copy(alpha = (alfa * RAMPA[i]).coerceIn(0f, 1f)))
-    drawCircle(Brush.radialGradient(COLORES_LUZ, center = centro, radius = radio), radio, centro)
-}
-
-/**
- * La aurora viva: azul arriba a la izquierda, turquesa a la derecha y un
- * índigo tenue más abajo. Las medidas son las del tablero aprobado (390 de
- * ancho); el turquesa se ancla al borde derecho de la pantalla que toque.
- */
-fun Modifier.auroraViva(reloj: RelojAurora): Modifier = graphicsLayer {}.drawBehind {
-    val seg = reloj.segundos
-    val e = reloj.entrada * Tema.intensidadAurora
-    if (e <= 0f) return@drawBehind
-    val claro = Tema.claro
-    fun ola(p: Float) = reloj.ola(p)
-    // Dos ondas por eje: el camino no se repite a la vista y la velocidad punta baja
-    fun deriva(a: Float, p1: Float, p2: Float) = a.dp.toPx() * (0.65f * ola(p1) + 0.35f * ola(p2))
-    val crece = 0.9f + 0.1f * e
-    val rA = 360.dp.toPx() * (1f + 0.06f * ola(23f)) * crece
-    val rT = 300.dp.toPx() * (1f + 0.07f * ola(17f)) * crece
-    val rI = 240.dp.toPx() * (1f + 0.08f * ola(29f)) * crece
-    luz(
-        Offset(40.dp.toPx() + deriva(80f, 37f, 23f), -40.dp.toPx() + deriva(30f, 41f, 19f)), rA,
-        (Tema.acento?.color ?: gama(if (claro) AZULES_CLAROS else AZULES, seg, 67f)), 0.32f * (1f + 0.12f * ola(19f)) * e,
-    )
-    luz(
-        Offset(size.width - 50.dp.toPx() - deriva(64f, 43f, 29f), -30.dp.toPx() + deriva(26f, 47f, 31f)), rT,
-        gama(if (claro) AGUAS_CLARAS else AGUAS, seg, 73f, 0.4f), 0.21f * (1f + 0.15f * ola(53f)) * e,
-    )
-    luz(
-        Offset(200.dp.toPx() + deriva(110f, 59f, 31f), 70.dp.toPx() + deriva(40f, 61f, 37f)), rI,
-        gama(if (claro) INDIGOS_CLAROS else INDIGOS, seg, 79f, 0.7f), 0.12f * (1f + 0.3f * ola(43f)) * e,
-    )
-}
 
 /**
  * La luz cenital de la portada: una sola luz de tinta, fija, que cae desde
@@ -265,56 +73,6 @@ fun Modifier.luzCenital(): Modifier = drawBehind {
             rx, centro,
         )
     }
-}
-
-/**
- * Grano fino encima de la luz, como la película de las referencias: quita el
- * aspecto de degradado de ordenador. Es ruido fijo, pintado una vez en un
- * mosaico de 128 y repetido; su capa no se vuelve a dibujar. En claro el
- * punto blanco no se ve sobre el papel: se tiñe de tinta y a menos de la
- * mitad, que en claro el grano se nota mucho antes. En modo ligero no va:
- * un mosaico más que componer en cada cuadro de la luz.
- */
-fun Modifier.grano(intensidad: Float = 0.06f): Modifier = if (Tema.ligero) this else graphicsLayer {}.drawBehind {
-    val imagen = GRANO
-    val lado = 128.dp.roundToPx()
-    val tinte = if (Tema.claro) ColorFilter.tint(Paleta.tinta, BlendMode.SrcIn) else null
-    val intensidad = intensidad * porTema(1f, 0.4f)
-    var y = 0
-    while (y < size.height) {
-        var x = 0
-        while (x < size.width) {
-            drawImage(imagen, dstOffset = IntOffset(x, y), dstSize = IntSize(lado, lado), alpha = intensidad, colorFilter = tinte, filterQuality = FilterQuality.Low)
-            x += lado
-        }
-        y += lado
-    }
-}
-
-/** El ruido del grano: puntos blancos de opacidad al azar, con la semilla fija para que sea siempre el mismo */
-private val GRANO: ImageBitmap by lazy {
-    val lado = 128
-    val niveles = 8
-    val imagen = ImageBitmap(lado, lado)
-    val azar = Random(7)
-    // Por niveles de opacidad: ocho pasadas de puntos en vez de un pixel cada vez
-    val puntos = List(niveles) { ArrayList<Offset>() }
-    for (y in 0 until lado) for (x in 0 until lado) {
-        // La suma de dos azares se agrupa en el medio, como el ruido fractal de la web
-        val v = (azar.nextFloat() + azar.nextFloat()) / 2f
-        puntos[minOf(niveles - 1, (v * niveles).toInt())] += Offset(x + 0.5f, y + 0.5f)
-    }
-    val lienzo = Canvas(imagen)
-    val pincel = Paint().apply {
-        color = Color.White
-        strokeWidth = 1f
-        strokeCap = StrokeCap.Square
-    }
-    puntos.forEachIndexed { i, lista ->
-        pincel.alpha = (i + 0.5f) / niveles
-        lienzo.drawPoints(PointMode.Points, lista, pincel)
-    }
-    imagen
 }
 
 /** Hundirse es casi instantáneo; volver, sin prisa y sin rebote */

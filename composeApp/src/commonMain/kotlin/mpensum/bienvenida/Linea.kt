@@ -1,5 +1,6 @@
 package mpensum.bienvenida
 
+import androidx.compose.ui.graphics.Color
 import kotlin.math.min
 
 /**
@@ -32,3 +33,7 @@ fun claves(t: Float, puntos: List<Pair<Float, FloatArray>>): FloatArray {
     }
     return puntos.last().second
 }
+
+/** Mezcla dos colores en sRGB y con su alfa, como el rgba() interpolado de los tableros */
+internal fun mezclarColor(a: Color, b: Color, f: Float) =
+    Color(a.red + (b.red - a.red) * f, a.green + (b.green - a.green) * f, a.blue + (b.blue - a.blue) * f, a.alpha + (b.alpha - a.alpha) * f)

@@ -12,7 +12,7 @@ import kotlin.test.BeforeTest
 import kotlin.test.Test
 
 /**
- * Las pantallas 1 y 2 de la bienvenida, enteras (aurora, barra de pasos,
+ * Las pantallas 1 y 2 de la bienvenida, enteras (fondo, barra de pasos,
  * escena y título), fotografiadas en los momentos de las tiras aprobadas y
  * guardadas en build/capturas/. Como CapturaMapaTest: no compara nada, solo
  * falla si algo revienta.

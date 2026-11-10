@@ -8,6 +8,9 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipRect
@@ -32,223 +35,281 @@ import mpensum.tema.colorArea
 import mpensum.tema.inter
 import mpensum.tema.jost
 import mpensum.tema.porTema
-import kotlin.math.cos
+import kotlin.math.PI
 import kotlin.math.sin
+import kotlin.math.sqrt
 
 /*
- * Pantalla 2: una foto al horario y tu semana lista. Llega la captura de un
- * horario cualquiera (gris, sin marca), una línea la lee fila a fila, cada
- * clase vuela primero a su día y luego a su hora, y queda la semana con el
- * estilo de HorarioSemana. Cruza la línea de ahora (lunes, 10:40) y la clase
- * que va se abre en la tarjeta «En curso» de Horario.kt.
+ * Pantalla 2 (v2, docs/bienvenida-animaciones-v2.md): «Sube una foto y
+ * armamos tu horario», contado con las piezas del horario de hoy. Llega la
+ * foto de un horario (abstracto a propósito: bloques y líneas, ningún texto
+ * que leer), de una de dos maneras (Variantes.foto): una instantánea que sube
+ * desde abajo y se asienta, o la galería, donde se elige la miniatura y se
+ * pulsa Subir. La línea de lectura la recorre y cada bloque leído toma el
+ * color de su materia; los bloques se condensan en un punto por clase, que
+ * vuela en arco a su día y florece en la semana en miniatura (el viaje de
+ * VueloHorario). Llega la línea de ahora (lunes, 10:40) y arriba se escribe
+ * lo que dice el horario: EN CURSO, Sistemas de Costo, cuánto queda y su
+ * trayecto. Queda vivo el punto que late.
  *
  * Todo en un Canvas: rectángulos interpolados al dibujar y textos medidos
  * una vez. El reloj solo se lee en el dibujo; nada se recompone por cuadro.
  */
 
 private const val CICLO = 10_000
-/** Con las animaciones apagadas: la tarjeta abierta y la barra ya en 10:40 */
-private const val QUIETO = 8_000f
+/** Con las animaciones apagadas o «Reducir movimiento»: la semana hecha y la clase en curso escrita */
+private const val QUIETO = 8_200f
 
-/** La historia, en ms del ciclo (Onb2 aprobado) */
+/** La historia, en ms del ciclo */
 private const val ENTRA = 150f
-private const val LEE = 1_150f
-private const val LEE_DURA = 1_500f
-private const val SUELTA = 2_850f
-private const val AL_DIA = 3_000f
-private const val A_LA_HORA = 3_400f
-private const val AHORA_EN = 5_000f
-private const val FOCO = 5_800f
-private const val ABRE = 5_900f
-private const val BARRA = 6_700f
-private const val SE_VA = 9_100f
+private const val LEE = 1_750f
+private const val LEE_DURA = 800f
+private const val CONDENSA = 2_650f
+private const val CONDENSA_DURA = 300f
+private const val VUELA = 2_950f
+private const val VUELO = 620f
+private const val ESCALON_VUELO = 45f
+private const val SEMANA = 2_900f
+private const val FLORECE = 3_850f
+private const val FLORECE_DURA = 380f
+private const val ESCALON_COLUMNA = 70f
+private const val AHORA = 4_500f
+private const val EN_CURSO = 5_000f
+private const val BARRA = 5_650f
+private const val SE_VA = 9_300f
+/** El latido del punto «En curso», el de PuntoQueLate: 2600 ms, el 70 % crece y se apaga */
+private const val LATIDO_MS = 2_600f
+
+/** La galería: aparece, se elige la miniatura, se pulsa Subir y la miniatura crece hasta la foto */
+private const val ELIGE = 700f
+private const val PULSA = 1_000f
+private const val CRECE = 1_150f
+private const val CRECE_DURA = 600f
 
 private val ESTANDAR = CubicBezierEasing(0.4f, 0f, 0.2f, 1f)
 private val LATIDO = CubicBezierEasing(0.22f, 0.61f, 0.36f, 1f)
+/** El viaje de los puntos, el de VueloHorario: arranca y llega despacio */
+private val IO = CubicBezierEasing(0.65f, 0f, 0.35f, 1f)
 
-private fun durante(t: Float, desde: Float, dura: Float) = ((t - desde) / dura).coerceIn(0f, 1f)
-private fun mezclar(a: Float, b: Float, f: Float) = a + (b - a) * f
-
-/** Una materia del horario: como sale en la captura, cómo se abrevia en su bloque y su área, que le da el color del tema */
-private class MateriaHorario(val nombre: String, val bloque: List<String>, private val area: String) {
+/** Una materia del horario: su área le da el color del tema */
+private class MateriaHorario(private val area: String) {
     val color get() = colorArea(area)
 }
 
-private val ESTADISTICA = MateriaHorario("ESTADÍSTICA II", listOf("Estad. II"), "estadistica")
-private val INFERENCIA = MateriaHorario("INFERENCIA Y DISEÑO", listOf("Infer."), "estadistica")
-private val COSTO = MateriaHorario("SISTEMAS DE COSTO", listOf("Sist. de", "Costo"), "gestion")
-private val CIRCUITOS = MateriaHorario("CIRCUITOS Y SISTEMAS", listOf("Circuitos"), "electronica")
-private val METODOS = MateriaHorario("MÉTODOS NUMÉRICOS", listOf("Métodos", "Num."), "ciencias-basicas")
-private val TEORIA = MateriaHorario("TEORÍA DE SISTEMAS", listOf("Teoría", "Sistemas"), "sistemas")
+private val ESTADISTICA = MateriaHorario("estadistica")
+private val INFERENCIA = MateriaHorario("estadistica")
+private val COSTO = MateriaHorario("gestion")
+private val CIRCUITOS = MateriaHorario("electronica")
+private val METODOS = MateriaHorario("ciencias-basicas")
+private val TEORIA = MateriaHorario("sistemas")
 
-/** Una fila de la captura, tal cual: horas en 24 y aulas abreviadas. La app la pasa a «Aula 12» */
-private class FilaHorario(val materia: MateriaHorario, val dias: String, val hora: String, val aula: String, val aulaApp: String)
+/** Una materia con sus días y sus horas, como las lee la app de la foto */
+private class FilaHorario(val materia: MateriaHorario, val dias: List<Int>, val desde: Int, val hasta: Int)
 
 private val FILAS = listOf(
-    FilaHorario(ESTADISTICA, "LU  MI", "07:00 – 09:00", "A-12", "Aula 12"),
-    FilaHorario(INFERENCIA, "MA  JU", "09:00 – 11:00", "LAB-3", "Lab 3"),
-    FilaHorario(COSTO, "LU", "10:00 – 12:00", "A-5", "Aula 5"),
-    FilaHorario(CIRCUITOS, "MA  JU", "13:00 – 15:00", "A-8", "Aula 8"),
-    FilaHorario(METODOS, "MI", "10:00 – 12:00", "A-2", "Aula 2"),
-    FilaHorario(METODOS, "VI", "08:00 – 10:00", "A-2", "Aula 2"),
-    FilaHorario(TEORIA, "VI", "13:00 – 15:00", "A-9", "Aula 9"),
+    FilaHorario(ESTADISTICA, listOf(0, 2), 7, 9),
+    FilaHorario(INFERENCIA, listOf(1, 3), 9, 11),
+    FilaHorario(COSTO, listOf(0), 10, 12),
+    FilaHorario(CIRCUITOS, listOf(1, 3), 13, 15),
+    FilaHorario(METODOS, listOf(2), 10, 12),
+    FilaHorario(METODOS, listOf(4), 8, 10),
+    FilaHorario(TEORIA, listOf(4), 13, 15),
 )
 
-/** Las diez sesiones en el orden en que se leen: fila, día, desde y hasta (en horas) */
-private val SESIONES = listOf(
-    intArrayOf(0, 0, 7, 9), intArrayOf(0, 2, 7, 9), intArrayOf(1, 1, 9, 11), intArrayOf(1, 3, 9, 11), intArrayOf(2, 0, 10, 12),
-    intArrayOf(3, 1, 13, 15), intArrayOf(3, 3, 13, 15), intArrayOf(4, 2, 10, 12), intArrayOf(5, 4, 8, 10), intArrayOf(6, 4, 13, 15),
-)
-
-/** La semana en el plano, como HorarioSemana: riel de horas, cinco columnas de 64 y 44 dp por hora desde las 7 */
-private const val GX = 54f
-private const val GY = 28f
-private const val COL = 64f
-private const val HORA = 44f
-private fun yDe(h: Float) = GY + (h - 7f) * HORA
-private val Y_AHORA = yDe(10f + 40f / 60f)
-private const val ANCHO_SEMANA = 5 * COL
-
-/** La foto en el plano, centrada sobre la semana */
-private const val FX = 39f
-private const val FY = 87f
-private const val FW = 312f
-private const val FH = 236f
-private val CENTRO_FOTO = Offset(FW / 2, FH / 2)
-private val PAPEL = Color(0xFFD3D6DB)
-private val TINTA_PAPEL = Color(0xFF2F333A)
-
-/** La tarjeta «En curso» de Horario.kt, alineada a la columna del lunes */
-private const val TX = GX
-private const val TY = 122f
-private const val TW = 320f
-private const val TH = 164f
-private val ROSA get() = colorArea("gestion")
-/** La tarjeta y el fondo de los bloques: grafito en oscuro, papel blanco en claro */
-private val PANEL_TARJETA get() = porTema(Color(0xFF141518), Paleta.panel)
-private val FONDO_BLOQUE get() = porTema(Color(0xFF101114), Color.White)
+/** Ahora: lunes a las 10:40 */
+private const val AHORA_MIN = 10 * 60 + 40
 
 /*
- * La toma: la misma Hermite monótona de la pantalla 1. Cerca de la foto
- * para leerla, un paso atrás para ver la semana entera y de nuevo adentro
- * cuando la clase de ahora se abre. Nunca más lejos de 0,9.
+ * El plano (390 × 468, en dp del tablero). Arriba, la cabecera del horario
+ * con las medidas de Horario.kt; debajo, la semana en miniatura de Semanita
+ * (la fila desborda 7 dp por lado, cinco columnas, cada día con 9 de aire),
+ * más alta que en la app para que la escena tenga cuerpo.
+ */
+private const val MX = 24f
+private const val W = 342f
+private const val FILA_X = MX - 7f
+private const val COL = (W + 14f) / 5f
+private const val AIRE = 9f
+private const val Y_ROTULO = 30f
+private const val Y_TITULO = 50f
+private const val Y_CUERPO = 102f
+private const val Y_TRAYECTO = 142f
+private const val Y_SEMANA = 190f
+private const val LENTE_Y = 214f
+private const val Y_DIAS = 226f
+private const val MINI_Y = 251f
+private const val MINI_ALTO = 108f
+private const val LENTE_ALTO = MINI_Y - LENTE_Y + MINI_ALTO + 8f
+private const val ABRE = 7 * 60
+private const val CIERRA = 15 * 60
+private fun yHora(min: Int) = MINI_Y + MINI_ALTO * (min - ABRE) / (CIERRA - ABRE)
+private val Y_AHORA = yHora(AHORA_MIN)
+
+/*
+ * La foto. FX, FY y FW × FH son la instantánea con su marco (más ancho abajo,
+ * como las de papel); dentro, la imagen de IW × IH: una hoja de horario
+ * abstracta, con su cabecera en barras, los días en pastillas, las horas en
+ * rayas y los bloques grises en su sitio. La galería termina con la imagen
+ * en el mismo sitio, sin marco: los bloques salen de ahí en las dos.
+ */
+private const val FX = 77f
+private const val FY = 30f
+private const val FW = 236f
+private const val FH = 320f
+private const val MARCO = 10f
+private const val IX = FX + MARCO
+private const val IY = FY + MARCO
+private const val IW = FW - 2 * MARCO
+private const val IH = FH - MARCO - 40f
+private val CENTRO_FOTO = Offset(FW / 2, FH / 2)
+/** La rejilla de la imagen: el carril de horas a la izquierda y cinco días */
+private const val REJILLA_X = 34f
+private const val REJILLA_Y = 52f
+private const val DIA_FOTO = (IW - 12f - REJILLA_X) / 5f
+private const val HORA_FOTO = (IH - 12f - REJILLA_Y) / 8f
+
+/** Los grises de la imagen: es una foto, no la app, así que no sigue el tema */
+private val PAPEL = Color(0xFFDFE2E6)
+private val GRIS_TITULO = Color(0xFF9AA0A8)
+private val GRIS_SUAVE = Color(0xFFBDC2C8)
+private val GRIS_BLOQUE = Color(0xFFC4C8CE)
+private val GRIS_RAYA = Color(0xFFCDD1D6)
+private val TINTA_FOTO = Color(0xFF2F333A)
+/** El marco de la instantánea: papel blanco, un poco más apagado en oscuro para no deslumbrar */
+private val MARCO_COLOR get() = porTema(Color(0xFFEDEEF0), Color.White)
+
+/** La galería: el panel, la miniatura elegida (la del centro) y el botón Subir */
+private const val GX = 45f
+private const val GY = 34f
+private const val GW = 300f
+private const val GH = 392f
+private const val MINI_FOTO = 89.33f
+private const val HUECO_MINI = 4f
+private const val ELEGIDA = 4
+private val VISTO = Path().apply {
+    moveTo(-3.5f, 0.2f)
+    lineTo(-1f, 2.7f)
+    lineTo(3.6f, -2.4f)
+}
+
+/** El punto de cada clase en vuelo: un cuadrito de su color, como en VueloHorario */
+private const val PUNTO = 9f
+/** Los arcos de los vuelos, alternos a cada lado: ninguna ruta pisa a la de al lado */
+private val ARCOS = floatArrayOf(0f, 18f, -18f, 30f, -30f, 12f, -12f, 24f, -24f, 6f)
+
+private val HILO = Stroke(1f)
+private val ARO = Stroke(1.5f)
+private val TRAZO_VISTO = Stroke(1.6f, cap = StrokeCap.Round, join = StrokeJoin.Round)
+private val ROSA get() = colorArea("gestion")
+
+/*
+ * La toma, la misma Hermite monótona de la pantalla 1: cerca de la foto
+ * mientras llega y se lee, baja con los puntos hasta la semana y sube a la
+ * cabecera cuando se escribe la clase en curso.
  *                      ms     x     y    zoom  incl  giro
  */
 private val TOMA = TomaEnBucle(
     listOf(
-        floatArrayOf(0f, 195f, 205f, 0.96f, 12f, -1.6f),
-        floatArrayOf(1_150f, 195f, 205f, 1.05f, 4f, -0.3f),
-        floatArrayOf(2_700f, 195f, 206f, 1.07f, 2f, 0f),
-        floatArrayOf(4_300f, 195f, 207f, 0.92f, 8f, 0.5f),
-        floatArrayOf(5_600f, 195f, 206f, 0.91f, 7f, 0.6f),
-        floatArrayOf(7_300f, 214f, 204f, 1.00f, 2f, 0f),
-        floatArrayOf(8_900f, 214f, 204f, 1.03f, 1f, -0.2f),
-        floatArrayOf(CICLO.toFloat(), 195f, 205f, 0.96f, 12f, -1.6f),
+        floatArrayOf(0f, 195f, 200f, 1.02f, 10f, -1.2f),
+        floatArrayOf(1_200f, 195f, 194f, 1.08f, 4f, -0.3f),
+        floatArrayOf(2_550f, 195f, 192f, 1.12f, 2f, 0f),
+        floatArrayOf(3_700f, 195f, 268f, 1.04f, 6f, 0.4f),
+        floatArrayOf(4_700f, 195f, 236f, 1.00f, 4f, 0.3f),
+        floatArrayOf(6_600f, 195f, 202f, 1.03f, 2f, 0f),
+        floatArrayOf(8_800f, 195f, 200f, 1.05f, 1f, -0.2f),
+        floatArrayOf(CICLO.toFloat(), 195f, 200f, 1.02f, 10f, -1.2f),
     ),
 )
+
+/** En modo ligero no hay toma: la escena se mira de frente, con la composición final en el centro */
+private val CENTRO_FIJO = Offset(195f, 200f)
 
 /** El hueco del tablero entre la escena y el título */
 private val HUECO_TABLERO = 68.dp
 
 @Composable
 fun PasoHorario(alSeguir: () -> Unit) {
-    val reloj = rememberRelojEscena(CICLO, QUIETO)
+    // Por encima de la bifurcación de pie o acostado: al girar, la escena sigue donde iba
+    val reloj = rememberRelojEscena(CICLO, QUIETO, parado = Movimiento.reducido)
     val textos = rememberTextos()
-    val sesiones = remember { SESIONES.mapIndexed { j, s -> SesionHorario(j, s) } }
-    // Sus pinceles llevan los colores del tema: se rehacen si cambia
-    val tarjeta = remember(Tema.claro) { TarjetaEnCurso() }
-    PasoConEscena("Una foto al horario,", "tu semana lista.", "Continuar", alSeguir, hueco = HUECO_TABLERO) { modifier ->
-        // Arriba y abajo se funde menos que en la pantalla 1: aquí hay que leer
-        EscenaEnBucle(reloj, TOMA, arriba = 0.09f, abajo = 0.14f, lados = 0.06f, modifier = modifier) { t ->
-            pintar(t, textos, sesiones, tarjeta)
-        }
-    }
-}
-
-/** Un pincel que solo se rehace cuando cambia lo que lo define: quieto, no reserva nada por cuadro */
-private class PincelGuardado {
-    private var a = Float.NaN
-    private var b = Float.NaN
-    private var c = Float.NaN
-    private var pincel: Brush? = null
-
-    fun de(a: Float, b: Float, c: Float, crear: () -> Brush): Brush {
-        val p = pincel
-        if (p != null && a == this.a && b == this.b && c == this.c) return p
-        this.a = a
-        this.b = b
-        this.c = c
-        return crear().also { pincel = it }
+    val sesiones = remember { sesionesDemo() }
+    val variante = remember { Variantes.foto }
+    // La estela es de la tinta de la foto, que no cambia con el tema: se hace una vez
+    val estela = remember { Brush.verticalGradient(listOf(Color.Transparent, TINTA_FOTO.copy(alpha = 0.10f)), startY = -36f, endY = -1f) }
+    val ligero = Tema.ligero
+    val latido = !Tema.sinBucles
+    PasoConEscena("Sube una foto", "y armamos tu horario.", "Continuar", alSeguir, hueco = HUECO_TABLERO) { modifier ->
+        EscenaEnBucle(
+            reloj, TOMA, arriba = 0.08f, abajo = 0.12f, lados = 0.04f, modifier = modifier,
+            fija = if (ligero) CENTRO_FIJO else null,
+        ) { t -> pintar(t, textos, sesiones, estela, variante, latido) }
     }
 }
 
 /**
- * Una clase: sale de su fila de la foto (296 × 20) y llega a su celda (60 ×
- * lo que dura) en dos tiempos, como lee la app: primero el día (x y ancho),
- * luego la hora (y y alto). Así nadie se cruza y se entiende.
+ * Una clase: es un bloque gris de la foto que la lectura tiñe de su materia,
+ * se condensa en un punto, vuela en arco al centro de su bloque y, cuando ha
+ * llegado todo su día, florece hasta el bloque de la semana en miniatura.
  */
-private class SesionHorario(val j: Int, s: IntArray) {
-    val fila = FILAS[s[0]]
-    val color = fila.materia.color
-    val esCosto = fila.materia === COSTO
-    /** Lo que ya pasó hoy se atenúa como en la app cuando llega la línea de ahora */
-    val esPasada = s[1] == 0 && s[3] <= 10f + 40f / 60f
-    // Una fila con dos días se parte en dos mitades lado a lado: nacen sin pisarse y ya dicen «dos días»
-    private val gemelas = SESIONES.filter { it[0] == s[0] }
-    private val cual = gemelas.indexOfFirst { it[1] == s[1] }
-    val w0 = 296f / gemelas.size
-    val x0 = FX + 8f + cual * w0
-    val y0 = FY + 60f + 24f * s[0] + 1f
-    val x1 = GX + s[1] * COL + 2f
-    val y1 = yDe(s[2].toFloat()) + 1.5f
-    val w1 = COL - 4f
-    val h1 = (s[3] - s[2]) * HORA - 3f
-    val fondo = PincelGuardado()
+private class SesionDemo(j: Int, fila: Int, val dia: Int, desde: Int, hasta: Int) {
+    private val materia = FILAS[fila].materia
+    val color get() = materia.color
+    val esCosto = materia === COSTO
+    /** Lo que ya pasó hoy se atenúa cuando llega la línea de ahora, como en MiniDia */
+    val esPasada = dia == 0 && hasta * 60 <= AHORA_MIN
+    /** El bloque en la imagen de la foto, en sus coordenadas */
+    val fx = REJILLA_X + dia * DIA_FOTO + 2.5f
+    val fy = REJILLA_Y + (desde - 7) * HORA_FOTO + 1.5f
+    val fw = DIA_FOTO - 5f
+    val fh = (hasta - desde) * HORA_FOTO - 3f
+    /** Cuándo pasa la lectura por su medio */
+    val leidaEn = LEE + LEE_DURA * ((fy + fh / 2 - REJILLA_Y) / (8 * HORA_FOTO))
+    /** Dónde nace su punto, ya en el plano: el centro del bloque de la foto asentada */
+    val x0 = IX + fx + fw / 2
+    val y0 = IY + fy + fh / 2
+    val bx = FILA_X + dia * COL + AIRE
+    val bw = COL - 2 * AIRE
+    val by = yHora(desde * 60)
+    val bh = yHora(hasta * 60) - by
+    val x1 = bx + bw / 2
+    val y1 = by + bh / 2
+    val saleEn = VUELA + ESCALON_VUELO * j
+    val floreceEn = FLORECE + ESCALON_COLUMNA * dia
+    val arco = ARCOS[j % ARCOS.size]
+    /** La normal de la ruta, hacia donde se curva el arco */
+    val nx: Float
+    val ny: Float
+
+    init {
+        val dx = x1 - x0
+        val dy = y1 - y0
+        val largo = sqrt(dx * dx + dy * dy).coerceAtLeast(1f)
+        nx = -dy / largo
+        ny = dx / largo
+    }
 }
 
-/** Los pinceles de la tarjeta, que cambian solo mientras crece */
-private class TarjetaEnCurso {
-    val bloque = PincelGuardado()
-    val cristal = PincelGuardado()
-    val luz = Brush.radialGradient(listOf(ROSA.copy(alpha = 0.13f), ROSA.copy(alpha = 0f)), Offset(TX, TY), 215f)
-    /** El filo de luz de 1 dp, en diagonal a 148° como el cristal de la app */
-    val filo: Brush = run {
-        val a = 148.0 * kotlin.math.PI / 180.0
-        val dx = sin(a).toFloat()
-        val dy = -cos(a).toFloat()
-        val largo = TW * kotlin.math.abs(dx) + TH * kotlin.math.abs(dy)
-        val c = Offset(TX + TW / 2, TY + TH / 2)
-        val d = Offset(dx * largo / 2, dy * largo / 2)
-        // De tinta: luz en oscuro y, a la mitad, una sombra fina en claro
-        val f = porTema(1f, 0.55f)
-        Brush.linearGradient(
-            0f to Paleta.tinta.copy(alpha = 0.26f * f), 0.38f to Paleta.tinta.copy(alpha = 0.06f * f),
-            0.58f to Paleta.tinta.copy(alpha = 0f), 1f to Paleta.tinta.copy(alpha = 0.10f * f),
-            start = c - d, end = c + d,
-        )
-    }
-    val hoy = Brush.verticalGradient(listOf(Paleta.tinta.copy(alpha = 0.035f), Paleta.tinta.copy(alpha = 0.015f)), GY, GY + 8 * HORA)
+/** Las diez clases en el orden de la lectura: materia a materia y, dentro de cada una, sus días */
+private fun sesionesDemo(): List<SesionDemo> {
+    var j = 0
+    return FILAS.flatMapIndexed { i, f -> f.dias.map { d -> SesionDemo(j++, i, d, f.desde, f.hasta) } }
 }
 
 /** Los textos de la escena, medidos una vez: en cada cuadro solo se pintan */
 private class TextosHorario(
-    val horas: List<TextLayoutResult>,
-    val dias: List<TextLayoutResult>,
-    val chip: TextLayoutResult,
-    val titulo: TextLayoutResult,
-    val periodo: TextLayoutResult,
-    val columnas: List<TextLayoutResult>,
-    /** Por fila: nombre, días, hora y aula */
-    val filas: List<List<TextLayoutResult>>,
-    val bloques: Map<MateriaHorario, List<TextLayoutResult>>,
-    val aulas: List<TextLayoutResult>,
+    val recientes: TextLayoutResult,
+    val subir: TextLayoutResult,
     val enCurso: TextLayoutResult,
-    val nombreCosto: TextLayoutResult,
-    /** «Quedan », «1 h 20 min» y « · Aula 5»: por piezas, para que el fundido sea igual en todas */
+    val nombre: TextLayoutResult,
+    /** «Quedan », «1 h 20 min» y « · Aula 5»: por piezas, porque el alfa no apaga los colores de un tramo */
     val quedan: List<TextLayoutResult>,
     val desde: TextLayoutResult,
+    val am: TextLayoutResult,
     val hasta: TextLayoutResult,
     val pm: TextLayoutResult,
+    val semana: TextLayoutResult,
+    val suma: TextLayoutResult,
+    val dias: List<TextLayoutResult>,
 )
 
 @Composable
@@ -261,45 +322,41 @@ private fun rememberTextos(): TextosHorario {
 }
 
 private fun medir(medidor: TextMeasurer, d: Density, jost: FontFamily, inter: FontFamily): TextosHorario {
-    // En dp y no en sp: son parte del dibujo y escalan con la cámara
+    // En dp y no en sp: son parte del dibujo y escalan con la cámara, no con la letra del sistema
     fun tam(v: Float) = with(d) { v.dp.toSp() }
-    fun estilo(familia: FontFamily, tamano: Float, alto: Float? = null, peso: FontWeight = FontWeight.Normal, espacio: TextUnit = TextUnit.Unspecified, cifras: Boolean = false) =
+    fun estilo(familia: FontFamily, tamano: Float, alto: Float? = null, peso: FontWeight = FontWeight.Normal, espacio: TextUnit = TextUnit.Unspecified) =
         TextStyle(
             fontFamily = familia, fontSize = tam(tamano), fontWeight = peso, letterSpacing = espacio,
             lineHeight = if (alto != null) tam(alto) else TextUnit.Unspecified,
             // Como en la web: el interlineado se reparte arriba y abajo
             lineHeightStyle = LineHeightStyle(LineHeightStyle.Alignment.Center, LineHeightStyle.Trim.None),
-            fontFeatureSettings = if (cifras) "tnum" else null,
+            fontFeatureSettings = "tnum",
         )
     fun m(texto: String, e: TextStyle) = medidor.measure(texto, e, softWrap = false, density = d)
 
-    val pequeno = estilo(inter, 11f, 14f, cifras = true)
-    val dia = estilo(jost, 11f, 14f, FontWeight.Medium, 0.14.em)
-    val papel = estilo(inter, 9.5f, peso = FontWeight.Medium, espacio = 0.02.em)
-    val papelDato = estilo(inter, 9.5f, cifras = true)
-    val bloque = estilo(jost, 12f, 15f, FontWeight.Medium)
-    val texto13 = estilo(inter, 13f, 16f, cifras = true)
+    // Las letras de Horario.kt (LetrasHorario): rótulo, titular, cuerpo y dato
+    val etiqueta = estilo(inter, 11f, 16f, FontWeight.Medium, 0.08.em)
+    val cuerpo = estilo(inter, 15f, 20f, espacio = (-0.009).em)
+    val dato = estilo(inter, 13f, 16f, espacio = (-0.003).em)
+    val meridiano = estilo(inter, 11f)
     return TextosHorario(
-        horas = (0..8).map { i -> val h = 7 + i; m("${(h + 11) % 12 + 1} ${if (h < 12) "AM" else "PM"}", pequeno) },
-        dias = listOf("LUN", "MAR", "MIÉ", "JUE", "VIE").map { m(it, dia) },
-        chip = m("10:40", pequeno.copy(fontWeight = FontWeight.Medium)),
-        titulo = m("Horario de clases", estilo(inter, 11f, 14f, FontWeight.SemiBold)),
-        periodo = m("Período 2026-I", estilo(inter, 9.5f, 12f)),
-        columnas = listOf("ASIGNATURA", "DÍAS", "HORA", "AULA").map { m(it, estilo(inter, 8f, peso = FontWeight.SemiBold, espacio = 0.06.em)) },
-        filas = FILAS.map { listOf(m(it.materia.nombre, papel), m(it.dias, papelDato), m(it.hora, papelDato), m(it.aula, papelDato)) },
-        bloques = FILAS.map { it.materia }.distinct().associateWith { mat -> mat.bloque.map { m(it, bloque) } },
-        aulas = FILAS.map { m(it.aulaApp, estilo(inter, 11f, 14f)) },
-        enCurso = m("EN CURSO", dia),
-        nombreCosto = m("Sistemas de Costo", estilo(jost, 36f, peso = FontWeight.Light, espacio = (-0.02).em)),
-        quedan = listOf(m("Quedan ", texto13), m("1 h 20 min", texto13.copy(fontWeight = FontWeight.Medium)), m(" · Aula 5", texto13)),
-        desde = m("10:00", texto13),
-        hasta = m("12:00", texto13),
-        pm = m("PM", estilo(inter, 11f)),
+        recientes = m("Recientes", estilo(inter, 15f, 20f, FontWeight.Medium, (-0.009).em)),
+        subir = m("Subir", estilo(inter, 15f, 20f, FontWeight.Medium, (-0.009).em)),
+        enCurso = m("EN CURSO", etiqueta),
+        nombre = m("Sistemas de Costo", estilo(jost, 40f, 44f, FontWeight.Light, (-0.02).em)),
+        quedan = listOf(m("Quedan ", cuerpo), m("1 h 20 min", cuerpo.copy(fontWeight = FontWeight.Medium)), m(" · Aula 5", cuerpo)),
+        desde = m("10:00", dato),
+        am = m(" AM", meridiano),
+        hasta = m("12:00", dato),
+        pm = m(" PM", meridiano),
+        semana = m("SEMANA", etiqueta),
+        suma = m("10 clases · 20 h · 7 AM – 3 PM", dato),
+        dias = listOf("LUN", "MAR", "MIÉ", "JUE", "VIE").map { m(it, etiqueta) },
     )
 }
 
 /** Un texto medido con su esquina de arriba en (x, y) del plano; `ancla` 0 a la izquierda, 0,5 al centro, 1 a la derecha */
-private fun DrawScope.texto(t: TextLayoutResult, x: Float, y: Float, color: Color, alfa: Float, ancla: Float = 0f) {
+private fun DrawScope.escribir(t: TextLayoutResult, x: Float, y: Float, color: Color, alfa: Float, ancla: Float = 0f) {
     if (alfa <= 0.004f) return
     val px = 1f / density
     withTransform({
@@ -308,251 +365,297 @@ private fun DrawScope.texto(t: TextLayoutResult, x: Float, y: Float, color: Colo
     }) { drawText(t, color, Offset(-t.size.width * ancla, 0f), alpha = alfa.coerceIn(0f, 1f)) }
 }
 
-/** El alto de un texto medido, en unidades del plano */
+/** El alto y el ancho de un texto medido, en unidades del plano */
 private fun DrawScope.alto(t: TextLayoutResult) = t.size.height / density
 private fun DrawScope.ancho(t: TextLayoutResult) = t.size.width / density
 
-private fun DrawScope.pintar(t: Float, x: TextosHorario, sesiones: List<SesionHorario>, tarjeta: TarjetaEnCurso) {
+private fun DrawScope.pintar(t: Float, x: TextosHorario, sesiones: List<SesionDemo>, estela: Brush, variante: VarianteFoto, latido: Boolean) {
     // Al final de cada vuelta todo se apaga a la vez: la siguiente arranca de cero, sin salto
-    val velo = 1f - Movimiento.ESTANDAR.transform(durante(t, SE_VA, 700f))
-    val foco = ESTANDAR.transform(durante(t, FOCO, 600f))
-    val fotoSeVa = ESTANDAR.transform(durante(t, SUELTA, 500f))
-    semana(t, x, tarjeta, velo, foco)
-    foto(t, x, fotoSeVa)
-    for (s in sesiones) bloque(t, s, x, velo, foco, fotoSeVa)
-    enCurso(t, x, sesiones.first { it.esCosto }, tarjeta, velo)
+    val velo = 1f - Movimiento.ESTANDAR.transform(tramo(t, SE_VA, SE_VA + 700f))
+    if (velo <= 0.004f) return
+    semana(t, x, velo)
+    when (variante) {
+        VarianteFoto.INSTANTANEA -> instantanea(t, sesiones, estela, velo)
+        VarianteFoto.GALERIA -> galeria(t, x, sesiones, estela, velo)
+    }
+    for (s in sesiones) clase(t, s, velo)
+    lineaDeAhora(t, velo)
+    cabecera(t, x, velo, latido)
 }
 
-/** La rejilla de la semana, que aparece debajo mientras las clases buscan su día, y la línea de ahora */
-private fun DrawScope.semana(t: Float, x: TextosHorario, tarjeta: TarjetaEnCurso, velo: Float, foco: Float) {
-    val op = ESTANDAR.transform(durante(t, 3_100f, 900f)) * velo * (1f - 0.5f * foco)
-    if (op <= 0.004f) return
-    val lineaAhora = Movimiento.ESTANDAR.transform(durante(t, AHORA_EN, 650f))
-    val alto = 8 * HORA
-    // Hoy se distingue apenas, cuando llega la línea de ahora
-    if (lineaAhora > 0f) drawRect(tarjeta.hoy, Offset(GX, GY), Size(COL, alto), alpha = lineaAhora * op)
-    for (i in 1..4) drawRect(Paleta.tinta.copy(alpha = 0.05f * op), Offset(GX + i * COL, GY), Size(1f, alto))
-    // «11 AM» queda bajo la etiqueta de ahora: se aparta antes de que llegue, como en la app. Y todas se
-    // retiran con el foco: medio cortadas por el borde de la tarjeta parecerían un error
-    val apartaOnce = 1f - ESTANDAR.transform(durante(t, AHORA_EN, 250f))
-    for (i in 0..8) {
-        val y = GY + i * HORA
-        drawRect(Paleta.tinta.copy(alpha = 0.07f * op), Offset(GX, y), Size(ANCHO_SEMANA, 1f))
-        val rotulo = (if (7 + i == 11) apartaOnce else 1f) * (1f - foco)
-        texto(x.horas[i], 46f, y - 7f, Paleta.tenue, rotulo * op, ancla = 1f)
-    }
+private fun DrawScope.semana(t: Float, x: TextosHorario, velo: Float) {
+    val aparece = ESTANDAR.transform(tramo(t, SEMANA, SEMANA + 600f)) * velo
+    if (aparece <= 0.004f) return
+    val hoy = ESTANDAR.transform(tramo(t, AHORA, AHORA + 420f))
+    // SEMANA y lo que suma, como el renglón de Semanita
+    val rotulo = Movimiento.ASIENTA.transform(tramo(t, AHORA, AHORA + 560f))
+    val dy = (1f - rotulo) * 6f
+    escribir(x.semana, MX, Y_SEMANA + dy, Paleta.tenue, rotulo * velo)
+    escribir(x.suma, MX + W, Y_SEMANA + dy, Paleta.tenue, rotulo * velo, ancla = 1f)
+    // La lente: un velo plano bajo el día elegido
+    if (hoy > 0f) drawRoundRect(Paleta.tinta, Offset(FILA_X + 2f, LENTE_Y), Size(COL - 4f, LENTE_ALTO), CornerRadius(13f), alpha = 0.075f * hoy * velo)
     for (d in 0..4) {
+        val cx = FILA_X + d * COL + COL / 2
         val r = x.dias[d]
-        val cx = GX + d * COL + COL / 2
-        texto(r, cx, 4f, if (d == 0) Paleta.tinta else Paleta.tenue, op, ancla = 0.5f)
-        // El punto rojo de hoy, delante del día
-        if (d == 0 && lineaAhora > 0f) drawCircle(Paleta.rojo.copy(alpha = lineaAhora * op), 2f, Offset(cx - ancho(r) / 2 - 5f, 4f + 7f))
-    }
-    // La línea de ahora cruza la semana tenue y se marca fuerte sobre hoy
-    if (lineaAhora > 0f) drawRect(Paleta.rojo.copy(alpha = 0.45f * op), Offset(GX, Y_AHORA), Size(ANCHO_SEMANA * lineaAhora, 1f))
-    val grueso = Movimiento.ESTANDAR.transform(durante(t, AHORA_EN + 120f, 500f))
-    if (grueso > 0f) drawRect(Paleta.rojo.copy(alpha = op), Offset(GX, Y_AHORA - 0.5f), Size(COL * grueso, 2f))
-    // La etiqueta de ahora se retira cuando la tarjeta toma la palabra: no debe asomar cortada por su borde
-    val chip = Movimiento.ASIENTA.transform(durante(t, AHORA_EN + 250f, 400f)) * (1f - foco) * op
-    if (chip > 0.004f) {
-        drawRoundRect(Paleta.rojo.copy(alpha = chip), Offset(10f, Y_AHORA - 8f), Size(36f, 16f), CornerRadius(8f))
-        texto(x.chip, 28f, Y_AHORA - 8f + (16f - alto(x.chip)) / 2, Color.White, chip, ancla = 0.5f)
+        escribir(r, cx, Y_DIAS, if (d == 0) mezclarColor(Paleta.tenue, Paleta.tinta, hoy) else Paleta.tenue, aparece, ancla = 0.5f)
+        // El punto rojo de hoy, a la izquierda del día sin moverlo del centro
+        if (d == 0 && hoy > 0f) drawCircle(Paleta.rojo, 2f, Offset(cx - ancho(r) / 2 - 5f, Y_DIAS + 8f), alpha = hoy * velo)
+        drawRoundRect(Paleta.tinta, Offset(FILA_X + d * COL + AIRE, MINI_Y), Size(COL - 2 * AIRE, MINI_ALTO), CornerRadius(5f), alpha = 0.04f * aparece)
     }
 }
 
-/** La foto: entra con 3° de giro y un leve hundimiento, se endereza, se lee y se va hacia atrás */
-private fun DrawScope.foto(t: Float, x: TextosHorario, seVa: Float) {
-    val entra = Movimiento.ASIENTA.transform(durante(t, ENTRA, 600f))
-    val endereza = Movimiento.ESTANDAR.transform(durante(t, ENTRA, 1_000f))
-    val op = entra * (1f - seVa)
+
+/** Una sombra blanda sin desenfoque: tres capas de negro, cada una más ancha, más baja y más tenue */
+private fun DrawScope.sombra(x: Float, y: Float, w: Float, h: Float, radio: Float, alfa: Float) {
+    if (alfa <= 0.004f) return
+    val fuerza = alfa * porTema(1f, 0.55f)
+    for (i in 0..2) {
+        val g = i * 5f
+        drawRoundRect(
+            Color.Black, Offset(x - g, y + 6f + i * 5f - g), Size(w + 2 * g, h + 2 * g), CornerRadius(radio + g),
+            alpha = fuerza * (0.20f - i * 0.065f),
+        )
+    }
+}
+
+/**
+ * La imagen de la foto, en sus coordenadas (IW × IH): una hoja de horario
+ * abstracta. Cabecera en barras, los días en pastillas, las horas en rayas y
+ * los bloques grises en su sitio; la lectura baja y cada bloque que pasa toma
+ * el color de su materia. Al condensarse, los bloques los dibuja ya `clase`.
+ */
+private fun DrawScope.imagenHorario(t: Float, sesiones: List<SesionDemo>, estela: Brush, radio: Float, op: Float) {
+    drawRoundRect(PAPEL, Offset.Zero, Size(IW, IH), CornerRadius(radio), alpha = op)
+    drawRoundRect(GRIS_TITULO, Offset(12f, 12f), Size(84f, 7f), CornerRadius(3.5f), alpha = op)
+    drawRoundRect(GRIS_SUAVE, Offset(12f, 25f), Size(52f, 5f), CornerRadius(2.5f), alpha = op)
+    drawRoundRect(GRIS_SUAVE, Offset(IW - 42f, 12f), Size(30f, 10f), CornerRadius(5f), alpha = op)
+    for (d in 0..4) {
+        drawRoundRect(GRIS_SUAVE, Offset(REJILLA_X + d * DIA_FOTO + DIA_FOTO / 2 - 8f, 39f), Size(16f, 4f), CornerRadius(2f), alpha = op)
+    }
+    for (h in 0..8) {
+        val y = REJILLA_Y + h * HORA_FOTO
+        drawRect(GRIS_RAYA, Offset(REJILLA_X, y), Size(IW - 12f - REJILLA_X, 1f), alpha = op)
+        if (h < 8) drawRoundRect(GRIS_SUAVE, Offset(12f, y + 2f), Size(13f, 3f), CornerRadius(1.5f), alpha = op)
+    }
+    if (t < CONDENSA) {
+        for (s in sesiones) {
+            val leida = ESTANDAR.transform(tramo(t, s.leidaEn - 40f, s.leidaEn + 220f))
+            drawRoundRect(mezclarColor(GRIS_BLOQUE, s.color, leida), Offset(s.fx, s.fy), Size(s.fw, s.fh), CornerRadius(4f), alpha = op)
+        }
+    }
+    // La línea de lectura: un hilo de tinta con su estela, a paso constante
+    val lectura = ESTANDAR.transform(tramo(t, LEE - 150f, LEE + 50f)) *
+        (1f - ESTANDAR.transform(tramo(t, LEE + LEE_DURA, LEE + LEE_DURA + 200f))) * op
+    if (lectura > 0.004f) {
+        val yL = REJILLA_Y + 8 * HORA_FOTO * tramo(t, LEE, LEE + LEE_DURA)
+        // La estela está hecha una vez en torno a 0: se lleva con la línea en vez de rehacerla
+        withTransform({ translate(0f, yL) }) { drawRect(estela, Offset(0f, -36f), Size(IW, 35f), alpha = lectura) }
+        drawRect(TINTA_FOTO, Offset(6f, yL), Size(IW - 12f, 1.5f), alpha = 0.85f * lectura)
+    }
+}
+
+/** Lo que tarda la foto en irse cuando sus bloques ya se han condensado */
+private fun seVaLaFoto(t: Float) = ESTANDAR.transform(tramo(t, CONDENSA + 100f, CONDENSA + 700f))
+
+/**
+ * Variante «instantánea»: la foto con su marco de papel sube desde abajo
+ * inclinada 10°, como si la soltaras, y se asienta a 4°; antes de leerla se
+ * endereza, para que la lectura vaya recta.
+ */
+private fun DrawScope.instantanea(t: Float, sesiones: List<SesionDemo>, estela: Brush, velo: Float) {
+    val entra = Movimiento.ASIENTA.transform(tramo(t, ENTRA, ENTRA + 900f))
+    val aparece = ESTANDAR.transform(tramo(t, ENTRA, ENTRA + 350f))
+    val endereza = Movimiento.ESTANDAR.transform(tramo(t, LEE - 450f, LEE + 150f))
+    val seVa = seVaLaFoto(t)
+    val op = aparece * (1f - seVa) * velo
     if (op <= 0.004f) return
-    val esc = (0.97f + 0.03f * endereza) * (1f - 0.05f * seVa)
+    val giro = mezcla(-10f, -4f, entra) * (1f - endereza)
+    val esc = mezcla(0.9f, 1f, entra) * (1f - 0.06f * seVa)
     withTransform({
-        translate(FX, FY + (1f - entra) * 28f)
-        rotate(-3f * (1f - endereza), CENTRO_FOTO)
+        translate(FX, FY + (1f - entra) * 90f - seVa * 12f)
+        rotate(giro, CENTRO_FOTO)
         scale(esc, esc, CENTRO_FOTO)
     }) {
-        drawRoundRect(PAPEL.copy(alpha = op), size = Size(FW, FH), cornerRadius = CornerRadius(6f))
-        texto(x.titulo, 14f, 15f, TINTA_PAPEL, op)
-        texto(x.periodo, FW - 14f, 16f, Color(0xFF6B7079), op, ancla = 1f)
-        drawRect(Color(0xFFC2C6CD).copy(alpha = op), Offset(0f, 40f), Size(FW, 20f))
-        val xs = floatArrayOf(14f, 154f, 198f, 270f)
-        x.columnas.forEachIndexed { i, c -> texto(c, xs[i], 40f + (20f - alto(c)) / 2, Color(0xFF4A4F57), op) }
-        // Cada fila que pasa la lectura toma el color de su materia; en SUELTA se la llevan las clases, que nacen encima
-        FILAS.forEachIndexed { i, f ->
-            val y = 60f + 24f * i
-            drawRect(Color(0xFFC3C7CD).copy(alpha = op), Offset(0f, y), Size(FW, 1f))
-            val barrido = ESTANDAR.transform(durante(t, leidaEn(i) - 60f, 320f))
-            if (barrido > 0f && t < SUELTA) {
-                val w = 296f * barrido
-                drawRoundRect(f.materia.color.copy(alpha = 0.26f * op), Offset(8f, y + 1f), Size(w, 20f), CornerRadius(4f))
-                clipRect(8f, y + 1f, 8f + minOf(3f, w), y + 21f) {
-                    drawRoundRect(f.materia.color.copy(alpha = op), Offset(8f, y + 1f), Size(w, 20f), CornerRadius(4f))
-                }
-            }
-            x.filas[i].forEachIndexed { k, r -> texto(r, xs[k], y + (22f - alto(r)) / 2, TINTA_PAPEL, op) }
-        }
-        // La línea de lectura: un filo azul con su estela, a velocidad constante como un escáner
-        val lectura = ESTANDAR.transform(durante(t, LEE - 120f, 200f)) * (1f - ESTANDAR.transform(durante(t, LEE + LEE_DURA, 200f))) * op
-        if (lectura > 0f) {
-            val yL = 60f + 168f * durante(t, LEE, LEE_DURA)
-            drawRect(
-                Brush.verticalGradient(listOf(Paleta.azul.copy(alpha = 0f), Paleta.azul.copy(alpha = 0.18f)), yL - 37f, yL - 1f),
-                Offset(8f, yL - 37f), Size(FW - 16f, 36f), alpha = lectura,
-            )
-            drawRoundRect(Paleta.azul.copy(alpha = lectura), Offset(8f, yL - 1f), Size(FW - 16f, 2f), CornerRadius(1f))
+        sombra(0f, 0f, FW, FH, 12f, op)
+        drawRoundRect(MARCO_COLOR, Offset.Zero, Size(FW, FH), CornerRadius(12f), alpha = op)
+        withTransform({ translate(MARCO, MARCO) }) {
+            clipRect(0f, 0f, IW, IH) { imagenHorario(t, sesiones, estela, 3f, op) }
         }
     }
 }
 
-/** Cuándo pasa la lectura por el medio de cada fila */
-private fun leidaEn(i: Int) = LEE + LEE_DURA * (24f * i + 12f) / 168f
+/** Las miniaturas de la galería: tres por fila, debajo de «Recientes» */
+private fun miniX(k: Int) = GX + 12f + (k % 3) * (MINI_FOTO + HUECO_MINI)
+private fun miniY(k: Int) = GY + 48f + (k / 3) * (MINI_FOTO + HUECO_MINI)
 
-private fun DrawScope.bloque(t: Float, s: SesionHorario, x: TextosHorario, velo: Float, foco: Float, papelFuera: Float) {
-    if (t < SUELTA) return
-    val fuerte = if (s.esCosto) ESTANDAR.transform(durante(t, AHORA_EN + 250f, 400f)) else 0f
-    val pasada = if (s.esPasada) 1f - 0.45f * ESTANDAR.transform(durante(t, AHORA_EN + 250f, 400f)) else 1f
-    val apagada = if (s.esCosto) 1f else 1f - 0.75f * foco
-    // La de ahora se va al abrirse: desde ese instante la lleva la tarjeta
-    val op = velo * pasada * apagada * (if (s.esCosto && t >= ABRE) 0f else 1f)
+/** Las otras fotos de la galería: solo tonos de tinta, que no compitan con la elegida */
+private val TONOS = floatArrayOf(0.10f, 0.06f, 0.13f, 0.08f, 0f, 0.11f, 0.07f, 0.12f, 0.09f)
+
+/**
+ * Variante «galería»: el panel de Recientes sube, la miniatura del horario se
+ * elige (aro y visto de tinta), Subir se aviva y se pulsa, y la miniatura
+ * crece hasta la foto mientras el panel se va.
+ */
+private fun DrawScope.galeria(t: Float, x: TextosHorario, sesiones: List<SesionDemo>, estela: Brush, velo: Float) {
+    val sube = Movimiento.ASIENTA.transform(tramo(t, ENTRA, ENTRA + 600f))
+    val aparece = ESTANDAR.transform(tramo(t, ENTRA, ENTRA + 400f))
+    val crece = Movimiento.FLUIDA.transform(tramo(t, CRECE, CRECE + CRECE_DURA))
+    val panel = aparece * (1f - ESTANDAR.transform(tramo(t, CRECE, CRECE + 350f))) * velo
+    val dy = (1f - sube) * 40f
+    if (panel > 0.004f) {
+        drawRoundRect(Paleta.panel, Offset(GX, GY + dy), Size(GW, GH), CornerRadius(24f), alpha = panel)
+        drawRoundRect(Paleta.tinta, Offset(GX + 0.5f, GY + dy + 0.5f), Size(GW - 1f, GH - 1f), CornerRadius(24f), style = HILO, alpha = 0.07f * panel)
+        drawRoundRect(Paleta.tinta, Offset(GX + GW / 2 - 18f, GY + dy + 8f), Size(36f, 4f), CornerRadius(2f), alpha = 0.2f * panel)
+        escribir(x.recientes, GX + 16f, GY + dy + 20f, Paleta.tinta, panel)
+        for (k in 0 until 9) {
+            if (k == ELEGIDA) continue
+            drawRoundRect(Paleta.tinta, Offset(miniX(k), miniY(k) + dy), Size(MINI_FOTO, MINI_FOTO), CornerRadius(6f), alpha = TONOS[k] * panel)
+        }
+        // Subir: se aviva al elegir y se hunde un momento al pulsarlo
+        val activo = ESTANDAR.transform(tramo(t, ELIGE, ELIGE + 250f))
+        val hunde = 1f - 0.04f * suave(ventana(t, PULSA, PULSA + 90f, PULSA + 150f, PULSA + 320f))
+        val bx = GX + 12f
+        val bw = GW - 24f
+        val by = GY + dy + GH - 56f
+        val centro = Offset(bx + bw / 2, by + 22f)
+        withTransform({ scale(hunde, hunde, centro) }) {
+            drawRoundRect(Paleta.tinta, Offset(bx, by), Size(bw, 44f), CornerRadius(22f), alpha = mezcla(0.06f, 0.14f, activo) * panel)
+            val color = mezclarColor(Paleta.apagada, Paleta.tinta, activo)
+            val x0 = centro.x - (14f + 8f + ancho(x.subir)) / 2
+            flechaArriba(x0 + 7f, centro.y, color, panel)
+            escribir(x.subir, x0 + 22f, centro.y - alto(x.subir) / 2, color, panel)
+        }
+    }
+    // La elegida: de miniatura a foto. Recorta a su caja: cuadrada, solo enseña lo de arriba de la hoja
+    val op = aparece * (1f - seVaLaFoto(t)) * velo
     if (op <= 0.004f) return
-    val pDia = Movimiento.ESTANDAR.transform(durante(t, AL_DIA + 60f * s.j, 600f))
-    val enHora = A_LA_HORA + 75f * s.j
-    val pHora = Movimiento.ESTANDAR.transform(durante(t, enHora, 800f))
-    val bx = mezclar(s.x0, s.x1, pDia)
-    val bw = mezclar(s.w0, s.w1, pDia)
-    val by = mezclar(s.y0, s.y1, pHora)
-    val bh = mezclar(20f, s.h1, pHora)
-    val radio = CornerRadius(mezclar(4f, 8f, pHora))
-    val aterriza = ESTANDAR.transform(durante(t, enHora + 440f, 360f))
-    val c = s.color
-    val o = Offset(bx, by)
-    val tam = Size(bw, bh)
-    // En el papel la fila es un tinte; sin papel debajo, el tinte sube para seguir viéndose
-    if (aterriza < 1f) drawRoundRect(c.copy(alpha = (0.26f + 0.2f * papelFuera) * (1f - aterriza) * op), o, tam, radio)
-    if (aterriza > 0f) {
-        // Ya en su celda: el cristal teñido de HorarioSemana, más intenso el de la clase que va
-        drawRoundRect(FONDO_BLOQUE.copy(alpha = 0.4f * aterriza * op), o, tam, radio)
-        val fondo = s.fondo.de(by, bh, fuerte) {
-            Brush.verticalGradient(listOf(c.copy(alpha = 0.26f + 0.14f * fuerte), c.copy(alpha = 0.14f + 0.12f * fuerte)), by, by + bh)
+    val seVa = seVaLaFoto(t)
+    val l = mezcla(miniX(ELEGIDA), IX, crece)
+    val a = mezcla(miniY(ELEGIDA) + dy, IY, crece) - seVa * 12f
+    val w = mezcla(MINI_FOTO, IW, crece) * (1f - 0.06f * seVa)
+    val h = mezcla(MINI_FOTO, IH, crece) * (1f - 0.06f * seVa)
+    val radio = mezcla(6f, 16f, crece)
+    val esc = w / IW
+    sombra(l, a, w, h, radio, op * crece)
+    clipRect(l, a, l + w, a + h) {
+        withTransform({
+            translate(l, a)
+            scale(esc, esc, Offset.Zero)
+        }) { imagenHorario(t, sesiones, estela, radio / esc, op) }
+    }
+    // El aro y el visto de la elección, que se van al crecer
+    val elegida = Movimiento.ASIENTA.transform(tramo(t, ELIGE, ELIGE + 300f)) * (1f - ESTANDAR.transform(tramo(t, CRECE, CRECE + 200f))) * op
+    if (elegida > 0.004f) {
+        drawRoundRect(Paleta.tinta, Offset(l - 3f, a - 3f), Size(w + 6f, h + 6f), CornerRadius(radio + 3f), style = ARO, alpha = elegida)
+        val c = Offset(l + w - 12f, a + 12f)
+        drawCircle(Paleta.tinta, 9f * (0.6f + 0.4f * elegida), c, alpha = elegida)
+        withTransform({ translate(c.x, c.y) }) { drawPath(VISTO, Paleta.lienzo, alpha = elegida, style = TRAZO_VISTO) }
+    }
+}
+
+/** La flecha de subir: un asta y su punta, en la rejilla de 14 */
+private fun DrawScope.flechaArriba(cx: Float, cy: Float, color: Color, alfa: Float) {
+    drawLine(color, Offset(cx, cy + 6f), Offset(cx, cy - 6f), strokeWidth = 1.8f, cap = StrokeCap.Round, alpha = alfa)
+    drawLine(color, Offset(cx - 5f, cy - 1f), Offset(cx, cy - 6f), strokeWidth = 1.8f, cap = StrokeCap.Round, alpha = alfa)
+    drawLine(color, Offset(cx + 5f, cy - 1f), Offset(cx, cy - 6f), strokeWidth = 1.8f, cap = StrokeCap.Round, alpha = alfa)
+}
+
+/** Una clase: bloque de la foto que se condensa en un punto, vuela y florece en su día */
+private fun DrawScope.clase(t: Float, s: SesionDemo, velo: Float) {
+    if (t < CONDENSA) return
+    val color = s.color
+    val florece = Movimiento.ESTANDAR.transform(tramo(t, s.floreceEn, s.floreceEn + FLORECE_DURA))
+    if (florece <= 0f) {
+        val p = IO.transform(tramo(t, s.saleEn, s.saleEn + VUELO))
+        if (p <= 0f) {
+            // Aún en la foto: el bloque se recoge hasta su punto
+            val c = Movimiento.ESTANDAR.transform(tramo(t, CONDENSA, CONDENSA + CONDENSA_DURA))
+            val w = mezcla(s.fw, PUNTO, c)
+            val h = mezcla(s.fh, PUNTO, c)
+            drawRoundRect(color, Offset(s.x0 - w / 2, s.y0 - h / 2), Size(w, h), CornerRadius(mezcla(4f, 2.5f, c)), alpha = velo)
+            return
         }
-        drawRoundRect(fondo, o, tam, radio, alpha = aterriza * op)
-        drawRect(Color.White.copy(alpha = 0.08f * aterriza * op), Offset(bx + radio.x / 2, by), Size(bw - radio.x, 1f))
-        drawRoundRect(c.copy(alpha = aterriza * (0.28f + 0.27f * fuerte) * op), Offset(bx + 0.5f, by + 0.5f), Size(bw - 1f, bh - 1f), radio, style = Stroke(1f))
+        val arco = s.arco * sin(PI.toFloat() * p)
+        val px = mezcla(s.x0, s.x1, p) + s.nx * arco
+        val py = mezcla(s.y0, s.y1, p) + s.ny * arco
+        drawRoundRect(color, Offset(px - PUNTO / 2, py - PUNTO / 2), Size(PUNTO, PUNTO), CornerRadius(2.5f), alpha = velo)
+        return
     }
-    // La barra de su color a la izquierda, recortada por las esquinas del bloque
-    clipRect(bx, by, bx + 3f, by + bh) { drawRoundRect(c.copy(alpha = op), o, tam, radio) }
-    val letras = ESTANDAR.transform(durante(t, enHora + 560f, 300f)) * op
-    if (letras > 0.004f) clipRect(bx, by, bx + bw, by + bh) { rotuloBloque(x, s, bx, by, letras) }
+    // Del punto al bloque de MiniDia: su color al 58 %, radio 3
+    val l = mezcla(s.x1 - PUNTO / 2, s.bx, florece)
+    val a = mezcla(s.y1 - PUNTO / 2, s.by, florece)
+    var alfa = mezcla(1f, 0.58f, florece)
+    if (s.esPasada) alfa = mezcla(alfa, 0.3f, ESTANDAR.transform(tramo(t, AHORA + 250f, AHORA + 650f)))
+    // La de ahora se enciende un momento cuando la cabecera la nombra: de ahí sale lo que se escribe arriba
+    if (s.esCosto) alfa += 0.32f * suave(ventana(t, EN_CURSO, EN_CURSO + 300f, EN_CURSO + 700f, EN_CURSO + 1_300f))
+    drawRoundRect(
+        color, Offset(l, a), Size(mezcla(PUNTO, s.bw, florece), mezcla(PUNTO, s.bh, florece)),
+        CornerRadius(mezcla(2.5f, 3f, florece)), alpha = alfa * velo,
+    )
 }
 
-/** El nombre abreviado y el aula de una clase, como en BloqueClase */
-private fun DrawScope.rotuloBloque(x: TextosHorario, s: SesionHorario, bx: Float, by: Float, alfa: Float) {
-    val lineas = x.bloques.getValue(s.fila.materia)
-    var y = by + 6f
-    for (l in lineas) {
-        texto(l, bx + 8f, y, Paleta.tinta, alfa)
-        y += 15f
-    }
-    texto(x.aulas[FILAS.indexOf(s.fila)], bx + 8f, y + 2f, Paleta.tinta.copy(alpha = 0.62f), alfa)
+/** La línea de ahora sobre hoy: se traza de izquierda a derecha, con su punto, por encima de los bloques */
+private fun DrawScope.lineaDeAhora(t: Float, velo: Float) {
+    val f = Movimiento.ESTANDAR.transform(tramo(t, AHORA + 150f, AHORA + 650f))
+    if (f <= 0f) return
+    val x0 = FILA_X + AIRE - 3f
+    drawRect(Paleta.rojo, Offset(x0, Y_AHORA - 0.5f), Size((COL - 2 * AIRE + 6f) * f, 1f), alpha = velo)
+    drawCircle(Paleta.rojo, 2.5f, Offset(x0 - 1f + 2.5f, Y_AHORA), alpha = velo * f)
 }
 
-/** La de ahora: el bloque de Sistemas de Costo crece hasta la tarjeta «En curso» de Horario.kt */
-private fun DrawScope.enCurso(t: Float, x: TextosHorario, costo: SesionHorario, tarjeta: TarjetaEnCurso, velo: Float) {
-    if (t < ABRE || velo <= 0.004f) return
-    val crece = Movimiento.ESTANDAR.transform(durante(t, ABRE, 900f))
-    val cristal = ESTANDAR.transform(durante(t, ABRE, 450f))
-    val bx = mezclar(costo.x1, TX, crece)
-    val by = mezclar(costo.y1, TY, crece)
-    val bw = mezclar(costo.w1, TW, crece)
-    val bh = mezclar(costo.h1, TH, crece)
-    val radio = CornerRadius(mezclar(8f, 24f, crece))
-    val o = Offset(bx, by)
-    val tam = Size(bw, bh)
-    val op = velo
-    // Base opaca: a mitad del fundido las dos capas translúcidas dejarían ver la línea de ahora
-    drawRoundRect(PANEL_TARJETA.copy(alpha = ESTANDAR.transform(durante(t, ABRE, 300f)) * op), o, tam, radio)
-    val bloque = (1f - cristal) * op
-    if (bloque > 0.004f) {
-        drawRoundRect(FONDO_BLOQUE.copy(alpha = 0.4f * bloque), o, tam, radio)
-        val p = tarjeta.bloque.de(by, bh, 0f) { Brush.verticalGradient(listOf(ROSA.copy(alpha = 0.40f), ROSA.copy(alpha = 0.26f)), by, by + bh) }
-        drawRoundRect(p, o, tam, radio, alpha = bloque)
-    }
-    val vidrio = cristal * op
-    if (vidrio > 0.004f) {
-        drawRoundRect(PANEL_TARJETA.copy(alpha = vidrio), o, tam, radio)
-        val p = tarjeta.cristal.de(by, bh, 0f) {
-            Brush.verticalGradient(0f to Paleta.tinta.copy(alpha = 0.07f), 0.6f to Paleta.tinta.copy(alpha = 0.015f), 1f to Paleta.tinta.copy(alpha = 0.015f), startY = by, endY = by + bh)
-        }
-        drawRoundRect(p, o, tam, radio, alpha = vidrio)
-        drawRoundRect(tarjeta.luz, o, tam, radio, alpha = vidrio)
-        drawRoundRect(tarjeta.filo, Offset(bx + 0.5f, by + 0.5f), Size(bw - 1f, bh - 1f), radio, alpha = vidrio, style = Stroke(1f))
-    }
-    if (bloque > 0.004f) {
-        clipRect(bx, by, bx + 3f, by + bh) { drawRoundRect(ROSA.copy(alpha = bloque), o, tam, radio) }
-        drawRoundRect(ROSA.copy(alpha = 0.55f * bloque), Offset(bx + 0.5f, by + 0.5f), Size(bw - 1f, bh - 1f), radio, style = Stroke(1f))
-        drawRect(Color.White.copy(alpha = 0.08f * bloque), Offset(bx + radio.x / 2, by), Size(bw - radio.x, 1f))
-    }
-    clipRect(bx, by, bx + bw, by + bh) {
-        val rotulo = (1f - ESTANDAR.transform(durante(t, ABRE, 220f))) * op
-        if (rotulo > 0.004f) rotuloBloque(x, costo, bx, by, rotulo)
-        contenido(t, x, bx, by, op)
-    }
-}
+/** La cabecera del horario en curso, línea a línea: EN CURSO con su punto, el nombre, cuánto queda y el trayecto */
+private fun DrawScope.cabecera(t: Float, x: TextosHorario, velo: Float, latido: Boolean) {
+    fun linea(en: Float) = Movimiento.ASIENTA.transform(tramo(t, en, en + 560f))
 
-/** El contenido de la tarjeta, que entra línea a línea cuando ya casi ha crecido */
-private fun DrawScope.contenido(t: Float, x: TextosHorario, bx: Float, by: Float, op: Float) {
-    fun linea(en: Float) = Movimiento.ASIENTA.transform(durante(t, en, 500f))
-    val izq = bx + 20f
-
-    // EN CURSO, con el latido del punto (el de la app: 2600 ms, un anillo que crece y se apaga)
-    val l1 = linea(ABRE + 380f)
+    val l1 = linea(EN_CURSO + 50f)
     if (l1 > 0f) {
-        val dy = (1f - l1) * 6f
-        val punto = Offset(izq + 3.5f, by + 28f + dy)
-        if (t >= BARRA) {
-            val q = LATIDO.transform((((t - BARRA) % 2_600f) / 2_600f / 0.7f).coerceIn(0f, 1f))
-            drawCircle(ROSA.copy(alpha = 0.45f * (1f - q) * l1 * op), 3.5f * (1f + 1.6f * q), punto)
+        val dy = (1f - l1) * 8f
+        val punto = Offset(MX + 3.5f, Y_ROTULO + 8f + dy)
+        // El latido de PuntoQueLate; en ligero o con «Reducir movimiento» el punto se queda quieto
+        if (latido && t >= EN_CURSO + 600f) {
+            val q = LATIDO.transform((((t - EN_CURSO - 600f) % LATIDO_MS) / LATIDO_MS / 0.7f).coerceAtMost(1f))
+            drawCircle(ROSA, 3.5f * (1f + 2.4f * q), punto, alpha = 0.5f * (1f - q) * l1 * velo)
         }
-        drawCircle(ROSA.copy(alpha = l1 * op), 3.5f, punto)
-        texto(x.enCurso, izq + 17f, by + 21f + dy, Paleta.tinta, l1 * op)
+        drawCircle(ROSA, 3.5f, punto, alpha = l1 * velo)
+        escribir(x.enCurso, MX + 15f, Y_ROTULO + dy, Paleta.tinta, l1 * velo)
     }
-    // El nombre, por su línea base: la de la web con 36/40 (más baja que la letra) cae a 76,5 del borde
-    val l2 = linea(ABRE + 460f)
-    texto(x.nombreCosto, izq, by + 76.5f - x.nombreCosto.firstBaseline / density + (1f - l2) * 6f, Paleta.tinta, l2 * op)
-    val l3 = linea(ABRE + 540f)
-    var xq = izq
+    val l2 = linea(EN_CURSO + 120f)
+    escribir(x.nombre, MX, Y_TITULO + (1f - l2) * 8f, Paleta.tinta, l2 * velo)
+    val l3 = linea(EN_CURSO + 190f)
+    var xq = MX
     x.quedan.forEachIndexed { i, q ->
-        texto(q, xq, by + 92f + (1f - l3) * 6f, if (i == 1) Paleta.tinta else Paleta.suave, l3 * op)
+        escribir(q, xq, Y_CUERPO + (1f - l3) * 8f, if (i == 1) Paleta.tinta else Paleta.suave, l3 * velo)
         xq += ancho(q)
     }
+    val l4 = linea(EN_CURSO + 260f)
+    if (l4 > 0f) trayecto(t, x, Y_TRAYECTO + (1f - l4) * 8f, l4 * velo)
+}
 
-    // La barra de la clase: de 10:00 a 12:00 PM, y llega a 10:40
-    val l4 = linea(ABRE + 620f)
-    if (l4 <= 0f) return
-    val a4 = l4 * op
-    val y4 = by + 128f + (1f - l4) * 6f
-    texto(x.desde, izq, y4, Paleta.suave, a4)
-    val fin = bx + TW - 20f
-    // «PM» más pequeño y tenue, en la misma línea base que la hora
-    val xPm = fin - ancho(x.pm)
-    texto(x.pm, xPm, y4 + (x.hasta.firstBaseline - x.pm.firstBaseline) / density, Paleta.tenue, a4)
-    val xHasta = xPm - 3f - ancho(x.hasta)
-    texto(x.hasta, xHasta, y4, Paleta.suave, a4)
-    val x0 = izq + ancho(x.desde) + 12f
-    val x1 = xHasta - 12f
-    val w = x1 - x0
-    val yb = y4 + 8f
-    drawRoundRect(Paleta.tinta.copy(alpha = 0.12f * a4), Offset(x0, yb - 1f), Size(w, 2f), CornerRadius(1f))
-    val avance = 40f / 120f * ESTANDAR.transform(durante(t, BARRA, 900f))
-    if (avance > 0f) drawRoundRect(ROSA.copy(alpha = a4), Offset(x0, yb - 1f), Size(w * avance, 2f), CornerRadius(1f))
-    drawCircle(ROSA.copy(alpha = a4), 3.5f, Offset(x0 + 2.5f, yb))
-    drawCircle(porTema(Color(0xFF15171A), Paleta.panel).copy(alpha = a4), 3.5f, Offset(x1 - 2.5f, yb))
-    drawCircle(ROSA.copy(alpha = a4), 2.75f, Offset(x1 - 2.5f, yb), style = Stroke(1.5f))
-    val cabeza = Movimiento.ASIENTA.transform(durante(t, BARRA, 300f)) * a4
+/** El trayecto de Horario.kt: de 10:00 AM a 12:00 PM, de un punto a un aro, y la cabeza llega a las 10:40 */
+private fun DrawScope.trayecto(t: Float, x: TextosHorario, y: Float, op: Float) {
+    escribir(x.desde, MX, y, Paleta.suave, op)
+    val xAm = MX + ancho(x.desde)
+    // El meridiano, más pequeño y tenue, en la línea base de la hora
+    escribir(x.am, xAm, y + (x.desde.firstBaseline - x.am.firstBaseline) / density, Paleta.tenue, op)
+    val xPm = MX + W - ancho(x.pm)
+    escribir(x.pm, xPm, y + (x.hasta.firstBaseline - x.pm.firstBaseline) / density, Paleta.tenue, op)
+    val xHasta = xPm - ancho(x.hasta)
+    escribir(x.hasta, xHasta, y, Paleta.suave, op)
+    val x0 = xAm + ancho(x.am) + 13f
+    val x1 = xHasta - 13f
+    val yc = y + alto(x.desde) / 2
+    val rosa = ROSA
+    drawLine(Paleta.tinta, Offset(x0, yc), Offset(x1, yc), strokeWidth = 2f, cap = StrokeCap.Round, alpha = 0.15f * op)
+    val avance = 40f / 120f * ESTANDAR.transform(tramo(t, BARRA, BARRA + 900f))
+    val xc = x0 + (x1 - x0) * avance
+    if (avance > 0f) drawLine(rosa, Offset(x0, yc), Offset(xc, yc), strokeWidth = 2f, alpha = op)
+    drawCircle(rosa, 3.5f, Offset(x0 - 1f + 3.5f, yc), alpha = op)
+    val fin = Offset(x1 + 1f - 3.5f, yc)
+    drawCircle(Paleta.lienzo, 3.5f, fin, alpha = op)
+    drawCircle(rosa, 2.75f, fin, style = ARO, alpha = op)
+    val cabeza = Movimiento.ASIENTA.transform(tramo(t, BARRA, BARRA + 300f)) * op
     if (cabeza > 0f) {
-        val c = Offset(x0 + w * avance, yb)
-        drawCircle(Paleta.panelSuave.copy(alpha = cabeza), 8.5f, c)
-        drawCircle(ROSA.copy(alpha = cabeza), 5.5f, c)
+        drawCircle(Paleta.lienzo, 8.5f, Offset(xc, yc), alpha = cabeza)
+        drawCircle(rosa, 5.5f, Offset(xc, yc), alpha = cabeza)
     }
 }

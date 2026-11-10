@@ -15,7 +15,6 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.unit.dp
 import com.github.takahirom.roborazzi.captureRoboImage
 import kotlinx.serialization.json.Json
-import mpensum.componentes.aurora
 import mpensum.datos.Carrera
 import mpensum.tema.Paleta
 import org.junit.Rule
@@ -48,11 +47,11 @@ class CapturaPasosFinalesTest {
         System.setProperty("roborazzi.test.record", "true")
     }
 
-    /** El paso dentro del mismo marco que la bienvenida: fondo, aurora y el hueco de la barra de arriba */
+    /** El paso dentro del mismo marco que la bienvenida: fondo y el hueco de la barra de arriba */
     private fun montar(contenido: @Composable ColumnScope.() -> Unit) {
         regla.mainClock.autoAdvance = false
         regla.setContent {
-            Column(Modifier.fillMaxSize().background(Paleta.lienzo).aurora()) {
+            Column(Modifier.fillMaxSize().background(Paleta.lienzo)) {
                 Spacer(Modifier.height(96.dp))
                 contenido()
             }

@@ -1,487 +1,511 @@
 package mpensum.bienvenida
 
 import androidx.compose.animation.core.CubicBezierEasing
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.withFrameMillis
-import androidx.compose.ui.MotionDurationScale
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.PathEffect
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.drawscope.scale
-import androidx.compose.ui.graphics.drawscope.translate
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.platform.LocalFontFamilyResolver
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.unit.Density
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
-import androidx.compose.ui.unit.sp
+import mpensum.carrera.Velo
 import mpensum.componentes.estiloCifra
-import mpensum.componentes.estiloUnidad
-import mpensum.componentes.tamañoUnidad
-import mpensum.componentes.Lucide
+import mpensum.datos.Asignatura
 import mpensum.datos.Pensum
 import mpensum.datos.rememberPensum
+import mpensum.logica.EstadoCapsula
 import mpensum.logica.Marca
-import mpensum.logica.redondear
+import mpensum.logica.Periodo
+import mpensum.logica.SemestreCapsulas
+import mpensum.logica.capsulasDe
+import mpensum.logica.estimarGraduacion
 import mpensum.logica.resumenParaPortada
+import mpensum.logica.semestreActual
 import mpensum.tema.Movimiento
 import mpensum.tema.Paleta
-import mpensum.tema.Tipo
 import mpensum.tema.Tema
 import mpensum.tema.inter
 import mpensum.tema.interCifra
 import mpensum.tema.jost
-import mpensum.tema.porTema
-import kotlin.math.exp
+import kotlin.math.PI
+import kotlin.math.abs
+import kotlin.math.cos
 import kotlin.math.min
+import kotlin.math.roundToInt
 
 /*
- * Paso 3: cuánto llevas y cuándo te gradúas, con un estudiante de Sistemas
- * que va por el quinto semestre. La silueta de la carrera se enciende en
- * verde semestre a semestre mientras la cifra suma sus UC de verdad; lo que
- * cursa late a medio llenar; lo que falta se traza en anillos, un semestre
- * por período, hasta la meta, que sube su asta al birrete y dice cuántos
- * semestres quedan. Una cámara de toma continua acompaña la historia.
+ * Pantalla 3 (v2, docs/bienvenida-animaciones-v2.md): cuánto llevas y
+ * cuándo te gradúas, contado con la tarjeta de arriba de la hoja «Tu avance»
+ * tal como es hoy, para un estudiante de Sistemas que va por el quinto
+ * semestre. Nace la barra de cápsulas (una por materia, ancha según sus UC)
+ * con su regla de semestres; lo aprobado se llena de tinta en una ola de
+ * izquierda a derecha mientras el 41 % y las UC cuentan de verdad y el
+ * círculo de la regla avanza semestre a semestre hasta el que cursas. Lo que
+ * cursas queda en contorno; luego una luz recorre lo que falta y la fecha de
+ * la esquina pasa período a período hasta asentarse en el día del grado.
+ * Queda vivo el contorno de lo que cursas, respirando.
  *
  * Todo sale de un solo reloj y se pinta en un Canvas, con los textos medidos
- * una vez: cada cuadro solo redibuja. Las medidas son las del tablero
- * aprobado (Onb3), en dp, sobre una escena de 390 × 468.
+ * una vez: cada cuadro solo redibuja. Los datos salen del pensum con la
+ * lógica de la app (la barra, la portada y la estimación del grado).
  */
 
 private const val CARRERA = "ingenieria-de-sistemas"
 /** El estudiante de la demostración: aprobó los cuatro primeros semestres y cursa dos materias del quinto */
 private const val SEMESTRES_APROBADOS = 4
 private const val MATERIAS_CURSANDO = 2
+/** Lo que dice el título de la carrera de la demostración */
+private const val CARRERA_TITULO = "Ingeniería de Sistemas"
 
-/** La historia, en ms del ciclo */
-private const val CICLO = 10_000L
-private const val NACE = 200f
-private const val CIFRA = 900f
-private const val ENCIENDE = 1_500f
-private const val POR_SEMESTRE = 520f
-private const val AHORA = 3_800f
-private const val PROYECTA = 4_500f
-private const val LLEGA = 7_300f
-private const val SE_VA = 9_150f
-/** Con las animaciones del sistema apagadas, la escena se queda en su final: la meta y su respuesta */
-private const val QUIETO = 8_700f
-/** El latido de lo que cursas: el mismo ritmo del punto «En curso» del horario */
-private const val LATIDO = 2_600f
+/**
+ * La historia, en ms del ciclo. La comparten los tres conceptos (A, B y C):
+ * nacen las piezas, lo aprobado se llena mientras la cifra cuenta, lo que
+ * cursas se marca, lo que falta se proyecta con la fecha corriendo y se asienta.
+ */
+internal object RitmoAvance {
+    const val CICLO = 10_000
+    const val NACE = 150f
+    const val NACE_DURA = 650f
+    const val CIFRA = 900f
+    const val CUENTA = 1_100f
+    const val DURA_CUENTA = 2_300f
+    const val LLENA = 280f
+    const val CURSANDO = 3_650f
+    const val PROYECTA = 4_300f
+    const val LLEGA = 7_000f
+    const val SE_VA = 9_300f
+    /** Con las animaciones apagadas o «Reducir movimiento»: todo puesto, con la fecha ya asentada */
+    const val QUIETO = 8_400f
+    /** La respiración de lo que cursas: el ritmo del punto «En curso» del horario */
+    const val RESPIRA = 2_600f
+}
 
-/** La escena del tablero y su centro, adonde mira la cámara */
-private const val ESCENA_ANCHO = 390f
-private const val ESCENA_ALTO = 468f
-/** Del borde de abajo de la escena al título, como en el tablero */
-private const val HUECO_TITULO = 68f
+private const val CICLO = RitmoAvance.CICLO
+private const val NACE = RitmoAvance.NACE
+private const val NACE_DURA = RitmoAvance.NACE_DURA
+private const val CIFRA = RitmoAvance.CIFRA
+private const val CUENTA = RitmoAvance.CUENTA
+private const val DURA_CUENTA = RitmoAvance.DURA_CUENTA
+private const val LLENA = RitmoAvance.LLENA
+private const val CURSANDO = RitmoAvance.CURSANDO
+private const val PROYECTA = RitmoAvance.PROYECTA
+private const val LLEGA = RitmoAvance.LLEGA
+private const val SE_VA = RitmoAvance.SE_VA
+private const val QUIETO = RitmoAvance.QUIETO
+private const val RESPIRA = RitmoAvance.RESPIRA
+/** Un semestre sin nada aprobado no termina nunca: un tiempo lejano y finito (un infinito daría NaN al restar) */
+private const val NUNCA = 1e9f
 
 private val ESTANDAR = CubicBezierEasing(0.4f, 0f, 0.2f, 1f)
-private val DESTELLO = CubicBezierEasing(0.22f, 0.61f, 0.36f, 1f)
-/** La marcha del riel por lo que falta: arranca y llega suave, a ritmo parejo en medio */
-private val MARCHA = CubicBezierEasing(0.45f, 0f, 0.55f, 1f)
 
-private val TENUE get() = Paleta.tinta.copy(alpha = 0.16f)
-/** El punto sin encender: grafito en oscuro, gris de papel en claro */
-private val NODO get() = porTema(Color(0xFF2A2E34), Color(0xFFD5D7DB))
+/*
+ * El plano (390 × 468, en dp del tablero): la tarjeta de la hoja con sus
+ * medidas (relleno 16, radio 24), centrada. Cifra de 64 con su tope a 16 del
+ * borde, lo aprobado a 11 bajo ella, la fecha arriba a la derecha y la barra
+ * a 20 de lo aprobado, con la regla 6 por debajo.
+ */
+private const val MX = 24f
+private const val W = 342f
+private const val IX = MX + 16f
+private const val IW = W - 32f
+private const val TARJETA_Y = 116f
+private const val TARJETA_ALTO = 170f
+private const val TOPE = TARJETA_Y + 16f
+/** La línea base de la cifra: el tope más el alto de las mayúsculas de Inter (0,727 em) */
+private const val BASE_CIFRA = TOPE + 64f * 0.727f
+private const val Y_UC = BASE_CIFRA + 11f
+private const val BASE_FECHA = TOPE + 24f * 0.727f
+private const val Y_TE_GRADUAS = BASE_FECHA + 8f
+private const val BARRA_Y = Y_UC + 16f + 20f
+private const val ALTO_CAPSULA = 14f
+private const val Y_REGLA = BARRA_Y + ALTO_CAPSULA + 6f
+private val RADIO_CAPSULA = CornerRadius(2.5f)
+private val CONTORNO = Stroke(1.5f)
 
-/** Lo que cuenta la escena, sacado del pensum con la misma lógica que la portada: nada escrito a mano */
-private class AvanceDemo(
-    /** Materias obligatorias por semestre: la silueta de la carrera */
-    val silueta: List<Int>,
-    /** Las UC que suma cada semestre aprobado, en orden */
-    val ucPorSemestre: List<Int>,
-    val cursando: Int,
+/*
+ * La toma, de un solo travelling: empieza un poco más cerca y baja, sobre la
+ * barra mientras nace y se llena (la tarjeta entera siempre dentro), se aleja
+ * para ver la cifra y se va a la derecha con la luz hasta la fecha.
+ *                      ms     x     y    zoom  incl  giro
+ */
+private val TOMA = TomaEnBucle(
+    listOf(
+        floatArrayOf(0f, 195f, 222f, 1.12f, 10f, -1.0f),
+        floatArrayOf(1_200f, 192f, 214f, 1.10f, 5f, -0.4f),
+        floatArrayOf(3_400f, 185f, 205f, 1.06f, 2f, 0f),
+        floatArrayOf(4_300f, 195f, 203f, 1.04f, 2f, 0.2f),
+        floatArrayOf(7_000f, 210f, 201f, 1.08f, 3f, 0.4f),
+        floatArrayOf(8_800f, 198f, 203f, 1.04f, 1f, 0f),
+        floatArrayOf(CICLO.toFloat(), 195f, 222f, 1.12f, 10f, -1.0f),
+    ),
+)
+
+/** En modo ligero no hay toma: la tarjeta de frente y en el centro */
+private val CENTRO_FIJO = Offset(195f, 201f)
+
+/** El hueco del tablero entre la escena y el título */
+private val HUECO_TABLERO = 68.dp
+
+/** Lo que cuenta la escena, sacado del pensum con la misma lógica que la hoja: nada escrito a mano */
+internal class AvanceDemo(
+    val semestres: List<SemestreCapsulas>,
+    /** El número del semestre por el que vas, con la regla de la barra */
+    val actual: Int?,
     val porcentaje: Int,
     val llevas: Int,
     val de: Int,
     val unidad: String,
-) {
-    val hechos get() = ucPorSemestre.size
-    /** Los semestres que faltan, contando el que cursas */
-    val faltan get() = silueta.size - hechos
-}
+    /** Los períodos de hoy al del grado, los dos incluidos; vacío si el plan no cierra */
+    val periodos: List<Periodo>,
+    /** Por materia, en el orden de la barra: si va en tu próximo semestre, lo que inscribes (el azul del anillo) */
+    val proximo: BooleanArray,
+)
 
-private fun avanceDeDemostracion(pensum: Pensum): AvanceDemo {
+internal fun avanceDeDemostracion(pensum: Pensum): AvanceDemo {
     val obligatorias = pensum.obligatorias
-    val marcas = buildMap<String, String> {
-        obligatorias.filter { (it.semestre ?: 99) <= SEMESTRES_APROBADOS }.forEach { put(it.codigo, Marca.APROBADA.valor) }
-        obligatorias.filter { it.semestre == SEMESTRES_APROBADOS + 1 }.take(MATERIAS_CURSANDO).forEach { put(it.codigo, Marca.CURSANDO.valor) }
+    val marcas = buildMap<String, Marca> {
+        obligatorias.filter { (it.semestre ?: 99) <= SEMESTRES_APROBADOS }.forEach { put(it.codigo, Marca.APROBADA) }
+        obligatorias.filter { it.semestre == SEMESTRES_APROBADOS + 1 }.take(MATERIAS_CURSANDO).forEach { put(it.codigo, Marca.CURSANDO) }
     }
-    val resumen = resumenParaPortada(pensum, marcas)
-    val silueta = pensum.semestres.map { it.cantidad }
-    // Los semestres hechos son los que la portada da por terminados: los anteriores al que vas
-    val hechos = (resumen.semestreActual ?: (silueta.size + 1)) - 1
-    val ucPorSemestre = (1..hechos).map { s ->
-        obligatorias.filter { it.semestre == s && marcas[it.codigo] == Marca.APROBADA.valor }.sumOf { it.uc ?: 0 }
+    val resumen = resumenParaPortada(pensum, marcas.mapValues { it.value.valor })
+    val semestres = capsulasDe(pensum, marcas) { null }
+    val hoy = Periodo.actual()
+    // La misma estimación de la hoja, a la carga de siempre: pura y barata, se calcula una vez
+    val estimacion = estimarGraduacion(pensum, marcas, emptyMap(), hoy = hoy)
+    val final = estimacion.periodoFinal
+    val periodos = if (final == null || final < hoy) emptyList() else generateSequence(hoy) { it.mas(1) }.takeWhile { it <= final }.toList()
+    // Los códigos en el orden de capsulasDe: por semestre y, dentro, por estado (aprobadas, cursando, pendientes), estable.
+    // Así cada cápsula sabe si va en el próximo semestre
+    val siguiente = estimacion.plan.firstOrNull().orEmpty().toSet()
+    fun estadoDe(a: Asignatura) = when (if (a.esHueco) null else marcas[a.codigo]) {
+        Marca.APROBADA -> EstadoCapsula.APROBADA
+        Marca.CURSANDO -> EstadoCapsula.CURSANDO
+        null -> EstadoCapsula.PENDIENTE
     }
-    return AvanceDemo(silueta, ucPorSemestre, resumen.cursando, resumen.porcentaje, resumen.llevas, resumen.de, resumen.unidad)
+    val codigos = pensum.asignaturas.filter { it.semestre != null }.groupBy { it.semestre!! }.toSortedMap().values
+        .flatMap { nodos -> nodos.sortedBy { estadoDe(it).ordinal } }.map { it.codigo }
+    val proximo = BooleanArray(codigos.size) { codigos[it] in siguiente }
+    return AvanceDemo(semestres, semestreActual(semestres), resumen.porcentaje, resumen.llevas, resumen.de, resumen.unidad, periodos, proximo)
 }
-
-/** Letra de la escena (dibujo, en unidades del tablero)  */
-private val TAM_CIFRA = 88.sp
-private val TAM_FALTAN = 80.sp
-
-/** Lo que se funde la escena con el fondo en cada borde */
-private val FUNDIDO_ARRIBA = 37.dp
-private val FUNDIDO_ABAJO = 47.dp
-private val FUNDIDO_LADO = 23.dp
 
 @Composable
 fun PasoAvance(alSeguir: () -> Unit) {
     val pensum = rememberPensum(CARRERA)
     val avance = remember(pensum) { pensum?.let(::avanceDeDemostracion) }
-    PasoConEscena("Cuánto llevas,", "cuándo te gradúas.", "Continuar", alSeguir) { modifier ->
-        Box(
-            modifier
-                // Sin recuadro: la escena se funde con el fondo hacia los cuatro lados
-                .fundidoBordes(arriba = FUNDIDO_ARRIBA, abajo = FUNDIDO_ABAJO, lados = FUNDIDO_LADO),
-        ) {
-            if (avance != null) Escena(avance)
+    // Por encima de la bifurcación de pie o acostado; parado mientras llega el pensum, así la historia empieza en 0
+    val reloj = rememberRelojEscena(CICLO, QUIETO, parado = Movimiento.reducido || avance == null)
+    val textos = rememberTextos(avance)
+    val geometria = remember(avance) { avance?.let(::GeometriaAvance) }
+    // Los tres conceptos comparten datos, textos y ritmo; cada uno trae su toma y su dibujo
+    val variante = remember { Variantes.avance }
+    val firma = remember { FirmaDemo() }
+    val ligero = Tema.ligero
+    val respira = !Tema.sinBucles
+    val (toma, centro) = when (variante) {
+        VarianteAvance.TARJETA -> TOMA to CENTRO_FIJO
+        VarianteAvance.ANILLO -> TOMA_ANILLO to CENTRO_ANILLO
+        VarianteAvance.TITULO -> TOMA_TITULO to CENTRO_TITULO
+    }
+    PasoConEscena("Cuánto llevas,", "cuándo te gradúas.", "Continuar", alSeguir, hueco = HUECO_TABLERO) { modifier ->
+        EscenaEnBucle(
+            reloj, toma, arriba = 0.08f, abajo = 0.12f, lados = 0.04f, modifier = modifier,
+            fija = if (ligero) centro else null,
+        ) { t ->
+            if (avance != null && textos != null && geometria != null) {
+                when (variante) {
+                    VarianteAvance.TARJETA -> pintar(t, avance, geometria, textos, respira)
+                    VarianteAvance.ANILLO -> pintarAnillo(t, avance, geometria, textos, respira)
+                    VarianteAvance.TITULO -> pintarTitulo(t, avance, geometria, textos, firma, respira)
+                }
+            }
         }
     }
 }
 
-/** Los textos de la escena, medidos una vez en unidades de dp: se dibujan dentro de la cámara */
-private class TextosAvance(
+/**
+ * Lo que no cambia entre cuadros: dónde va cada cápsula (con el reparto de
+ * BarraCapsulas: 2 dp entre materias, 7 entre semestres, el ancho por UC) y
+ * cuándo nace, se llena o pasa a contorno.
+ */
+internal class GeometriaAvance(a: AvanceDemo) {
+    val n = a.semestres.sumOf { it.capsulas.size }
+    val x = FloatArray(n)
+    val w = FloatArray(n)
+    val uc = IntArray(n)
+    val estado = Array(n) { EstadoCapsula.PENDIENTE }
+    val nace = FloatArray(n)
+    val llena = FloatArray(n)
+    val cursa = FloatArray(n)
+    val centros = FloatArray(a.semestres.size)
+    /** Cuándo termina de llenarse lo aprobado de cada semestre: ahí la regla avanza */
+    val finSemestre = FloatArray(a.semestres.size) { NUNCA }
+    /** El índice del semestre por el que vas, o -1 */
+    val actual = a.semestres.indexOfFirst { it.numero == a.actual }
+    val ucAprobadas = a.semestres.sumOf { s -> s.capsulas.filter { it.estado == EstadoCapsula.APROBADA }.sumOf { it.uc } }
+    /** Por dónde corre la luz de lo que falta: de la primera cápsula sin aprobar del semestre actual al final de la barra */
+    val barridoDesde: Float
+    val barridoHasta = IX + IW + 26f
+
+    init {
+        val s = a.semestres.size
+        val total = a.semestres.sumOf { sem -> sem.capsulas.sumOf { it.uc } }.coerceAtLeast(1)
+        var gM = 2f
+        var gS = 7f
+        // En un teléfono muy estrecho los huecos se afinan antes de que una materia de 1 UC desaparezca, como en la app
+        if ((IW - gM * (n - s) - gS * (s - 1)) / total < 0.5f) {
+            gM = 1f
+            gS = 4f
+        }
+        val k = ((IW - gM * (n - s) - gS * (s - 1)) / total).coerceAtLeast(0.1f)
+        val aprobadas = a.semestres.sumOf { sem -> sem.capsulas.count { it.estado == EstadoCapsula.APROBADA } }.coerceAtLeast(1)
+        var i = 0
+        var ia = 0
+        var ic = 0
+        var px = IX
+        var desde = Float.NaN
+        a.semestres.forEachIndexed { si, sem ->
+            val x0 = px
+            sem.capsulas.forEachIndexed { j, c ->
+                x[i] = px
+                w[i] = c.uc * k
+                uc[i] = c.uc
+                estado[i] = c.estado
+                nace[i] = NACE + i * NACE_DURA / n
+                when (c.estado) {
+                    EstadoCapsula.APROBADA -> {
+                        llena[i] = CUENTA + ia * DURA_CUENTA / aprobadas
+                        finSemestre[si] = llena[i] + LLENA
+                        ia++
+                    }
+                    EstadoCapsula.CURSANDO -> {
+                        cursa[i] = CURSANDO + ic * 90f
+                        ic++
+                    }
+                    EstadoCapsula.PENDIENTE -> Unit
+                }
+                if (desde.isNaN() && si >= actual.coerceAtLeast(0) && c.estado != EstadoCapsula.APROBADA) desde = px
+                px += w[i] + if (j < sem.capsulas.lastIndex) gM else 0f
+                i++
+            }
+            centros[si] = (x0 + px) / 2f
+            px += gS
+        }
+        barridoDesde = (if (desde.isNaN()) IX else desde) - 26f
+    }
+}
+
+/** Cuánto se ha llenado la materia `i` (de 0 a 1), si está aprobada */
+internal fun GeometriaAvance.llenaDe(i: Int, t: Float) = ESTANDAR.transform(tramo(t, llena[i], llena[i] + LLENA))
+
+/** Lo aprobado que ya se llenó, de 0 a 1 y en UC: la cifra y lo aprobado cuentan con ello */
+internal fun GeometriaAvance.llenado(t: Float): Float {
+    if (ucAprobadas <= 0) return 1f
+    var llenas = 0f
+    for (i in 0 until n) if (estado[i] == EstadoCapsula.APROBADA) llenas += uc[i] * llenaDe(i, t)
+    return llenas / ucAprobadas
+}
+
+/** Cuándo pasa lo que cursas a su marca, y desde cuándo respira */
+internal fun GeometriaAvance.cursaDe(i: Int, t: Float) = ESTANDAR.transform(tramo(t, cursa[i], cursa[i] + 420f))
+
+/** Los textos de la escena, medidos una vez: en cada cuadro solo se pintan */
+internal class TextosAvance(
+    /** Una por cada valor que la cuenta puede tocar: contar no mide nada */
     val cifras: List<TextLayoutResult>,
     val signo: TextLayoutResult,
-    /** La línea base común de la cifra y su signo, medida desde el borde de arriba de la cifra de Jost */
-    val baseCifra: Float,
-    val aprobado: TextLayoutResult,
     val ucs: List<TextLayoutResult>,
     val deTotal: TextLayoutResult,
     val numeros: List<TextLayoutResult>,
+    val numerosFuertes: List<TextLayoutResult>,
+    val fechas: List<TextLayoutResult>,
     val teGraduas: TextLayoutResult,
-    val faltan: TextLayoutResult,
-    val semestres: TextLayoutResult,
+    /** B y C: la cifra de 40 con su % de 16, los rótulos del anillo y el título */
+    val cifras40: List<TextLayoutResult>,
+    val signo40: TextLayoutResult,
+    val hoy: TextLayoutResult,
+    val universidad: TextLayoutResult,
+    val nucleo: TextLayoutResult,
+    val otorga: TextLayoutResult,
+    val carrera: TextLayoutResult,
 )
-
-private fun medirTextos(a: AvanceDemo, medidor: TextMeasurer, jost: FontFamily, inter: FontFamily, interCifra: FontFamily): TextosAvance {
-    val cifra = estiloCifra(interCifra, TAM_CIFRA)
-    // Dónde apoyaba la cifra de Jost: la línea base se conserva, el signo baja a ella
-    val baseJost = medidor.measure("0", TextStyle(fontFamily = jost, fontWeight = FontWeight.ExtraLight, fontSize = TAM_CIFRA)).firstBaseline
-    val versal = TextStyle(fontFamily = jost, fontWeight = FontWeight.Medium, fontSize = Tipo.xxs, letterSpacing = 0.14.em, color = Paleta.suave)
-    val numero = TextStyle(fontFamily = jost, fontWeight = FontWeight.Light, fontSize = Tipo.s, color = Paleta.apagada, fontFeatureSettings = "tnum")
-    val uc = TextStyle(fontFamily = inter, fontWeight = FontWeight.SemiBold, fontSize = Tipo.s, color = Paleta.tinta, fontFeatureSettings = "tnum")
-    return TextosAvance(
-        // Una por cada valor que la cuenta puede tocar: contar no mide nada
-        cifras = (0..a.porcentaje).map { medidor.measure("$it", cifra) },
-        signo = medidor.measure("%", estiloUnidad(inter, TAM_CIFRA, color = Paleta.verde)),
-        baseCifra = baseJost,
-        aprobado = medidor.measure("APROBADO", versal),
-        ucs = (0..a.llevas).map { medidor.measure("$it", uc) },
-        // El color va en el estilo y no en un tramo: el alfa de drawText no apaga los colores de tramo
-        deTotal = medidor.measure(" de ${a.de} ${a.unidad}", TextStyle(fontFamily = inter, fontWeight = FontWeight.Normal, fontSize = Tipo.s, color = Paleta.tenue)),
-        numeros = a.silueta.indices.map { medidor.measure("${it + 1}", numero) },
-        teGraduas = medidor.measure("TE GRADÚAS", versal),
-        faltan = medidor.measure("${a.faltan}", TextStyle(fontFamily = jost, fontWeight = FontWeight.ExtraLight, fontSize = TAM_FALTAN, letterSpacing = (-0.035).em, color = Paleta.tinta)),
-        semestres = medidor.measure(if (a.faltan == 1) "semestre" else "semestres", TextStyle(fontFamily = jost, fontWeight = FontWeight.Light, fontSize = Tipo.xxl, color = Paleta.azul)),
-    )
-}
 
 @Composable
-private fun Escena(a: AvanceDemo) {
-    val reloj = remember { mutableFloatStateOf(0f) }
-    LaunchedEffect(Unit) {
-        if ((coroutineContext[MotionDurationScale]?.scaleFactor ?: 1f) == 0f) {
-            reloj.floatValue = QUIETO
-            return@LaunchedEffect
-        }
-        val inicio = withFrameMillis { it }
-        while (true) withFrameMillis { reloj.floatValue = ((it - inicio) % CICLO).toFloat() }
-    }
-    // Medido a densidad 1: los textos viven en las unidades de la escena y la cámara los escala con todo lo demás
-    val resolutor = LocalFontFamilyResolver.current
-    val jost = jost()
-    val inter = inter()
-    val interCifra = interCifra()
-    // Los colores van medidos en cada texto: se vuelven a medir si cambia el tema
-    val claro = Tema.claro
-    val textos = remember(a, resolutor, jost, inter, interCifra, claro) {
-        medirTextos(a, TextMeasurer(resolutor, Density(1f), LayoutDirection.Ltr, 0), jost, inter, interCifra)
-    }
-    val escena = remember(a) { GeometriaAvance(a) }
-    val toma = remember { FloatArray(5) }
-    Canvas(
-        Modifier.fillMaxSize().graphicsLayer {
-            TOMA.en(reloj.floatValue, toma)
-            rotationX = toma[3]
-            rotationZ = toma[4]
-            // La perspectiva del tablero (1100 de distancia), en las unidades de la capa
-            cameraDistance = 1100f / 72f * density
-        },
-    ) {
-        val t = reloj.floatValue
-        TOMA.en(t, toma)
-        val z = exp(toma[2])
-        // En pantallas menores que el tablero (320 dp) la escena entera se encoge a la par; nunca crece
-        val ajuste = min(1f, min(size.width / density / ESCENA_ANCHO, size.height / density / ESCENA_ALTO))
-        val u = density * z * ajuste
-        // La escena se ancla al título, como en el tablero; si sobra alto, sobra arriba
-        val centroY = min(size.height / 2f, size.height - (HUECO_TITULO + ESCENA_ALTO * ajuste / 2f) * density)
-        translate(size.width / 2f - toma[0] * u, centroY - toma[1] * u) {
-            scale(u, u, Offset.Zero) { pintar(t, a, escena, textos) }
-        }
-    }
+private fun rememberTextos(a: AvanceDemo?): TextosAvance? {
+    val medidor = rememberTextMeasurer()
+    val densidad = LocalDensity.current
+    val j = jost()
+    val i = inter()
+    val c = interCifra()
+    return remember(a, densidad, j, i, c) { a?.let { medir(it, medidor, densidad, j, i, c) } }
 }
 
-/*
- * La toma, de un solo travelling sin cortes: empieza sobre lo aprobado y la
- * cifra, baja con el riel mientras lo que falta se proyecta y sube con el
- * asta hasta el birrete.
- *              t       x     y    zoom   incl  giro
- */
-private val TOMA = TomaEnBucle(
-    listOf(
-        floatArrayOf(0f, 160f, 206f, 1.12f, 8f, -1.0f),
-        floatArrayOf(1_300f, 162f, 207f, 1.10f, 4f, -0.3f),
-        floatArrayOf(3_600f, 172f, 209f, 1.07f, 2f, 0.0f),
-        floatArrayOf(4_500f, 190f, 226f, 1.07f, 2f, 0.2f),
-        floatArrayOf(7_300f, 246f, 236f, 1.11f, 3f, 0.4f),
-        floatArrayOf(8_900f, 262f, 206f, 1.08f, 1f, 0.0f),
-        floatArrayOf(10_000f, 160f, 206f, 1.12f, 8f, -1.0f),
-    ),
-)
-
-/** Lo que no cambia entre cuadros: posiciones, cuándo se traza cada columna y las luces ya armadas */
-private class GeometriaAvance(a: AvanceDemo) {
-    val hechos = a.hechos
-    val xAhora = centro(hechos)
-    val xMeta = centro(a.silueta.lastIndex) + 48f
-    /** Cuándo pasa la cabeza del riel por cada columna de lo que falta */
-    val traza = FloatArray(a.silueta.size) { c ->
-        if (c < hechos) 0f else {
-            var t = PROYECTA
-            while (t < LLEGA && cabeza(t) < xCol(c) + 3f) t += 10f
-            t
-        }
-    }
-    val luz = Brush.radialGradient(
-        0f to Paleta.verde.copy(alpha = 0.16f), 0.55f to Paleta.verde.copy(alpha = 0.06f), 1f to Paleta.verde.copy(alpha = 0f),
-        center = Offset(100f, 260f), radius = 140f,
+private fun medir(a: AvanceDemo, medidor: TextMeasurer, d: Density, jost: FontFamily, inter: FontFamily, interCifra: FontFamily): TextosAvance {
+    // En dp y no en sp: son parte del dibujo y escalan con la cámara, no con la letra del sistema
+    fun tam(v: Float) = with(d) { v.dp.toSp() }
+    fun m(texto: String, e: TextStyle) = medidor.measure(texto, e, softWrap = false, density = d)
+    // Las letras de la hoja: la cifra héroe de 64 (Inter Display 200) con su % de 26 en 300, la nota de 13/16 y la fecha de 24 en 300
+    val cifra = estiloCifra(interCifra, tam(64f))
+    val signo = TextStyle(fontFamily = inter, fontWeight = FontWeight.Light, fontSize = tam(26f), fontFeatureSettings = "tnum")
+    val nota = TextStyle(
+        fontFamily = inter, fontSize = tam(13f), lineHeight = tam(16f), letterSpacing = (-0.003).em, fontFeatureSettings = "tnum",
+        lineHeightStyle = LineHeightStyle(LineHeightStyle.Alignment.Center, LineHeightStyle.Trim.None),
     )
-    val halo = Brush.radialGradient(listOf(Paleta.azul.copy(alpha = 0.30f), Paleta.azul.copy(alpha = 0f)), Offset(xMeta, 145f), 60f)
-    val asta = Brush.verticalGradient(listOf(Paleta.azul.copy(alpha = 0.75f), Paleta.azul.copy(alpha = 0.35f)), 165f, 347f)
-    val punteado = PathEffect.dashPathEffect(floatArrayOf(4f, 4f), 0f)
-    val trazoBirrete = Stroke(1.8f, cap = StrokeCap.Round, join = StrokeJoin.Round)
-
-    /** La cabeza del riel en lo que falta: sale de ahora y llega a la meta a ritmo parejo */
-    fun cabeza(t: Float) = xAhora + (xMeta - xAhora) * MARCHA.transform(tramoDe(t, PROYECTA, LLEGA - PROYECTA))
+    val fecha = estiloCifra(interCifra, tam(24f), peso = FontWeight.Light).copy(letterSpacing = (-0.015).em)
+    val numero = TextStyle(fontFamily = jost, fontSize = tam(11f))
+    // Las mayúsculas finas y espaciadas de las etiquetas
+    val versal = TextStyle(fontFamily = inter, fontWeight = FontWeight.Medium, fontSize = tam(11f), letterSpacing = 0.14.em, fontFeatureSettings = "tnum")
+    return TextosAvance(
+        cifras = (0..a.porcentaje).map { m("$it", cifra) },
+        signo = m("%", signo),
+        ucs = (0..a.llevas).map { m("$it", nota.copy(fontWeight = FontWeight.Medium)) },
+        deTotal = m(" / ${a.de} ${a.unidad}", nota),
+        numeros = a.semestres.map { m("${it.numero}", numero) },
+        numerosFuertes = a.semestres.map { m("${it.numero}", numero.copy(fontWeight = FontWeight.Medium)) },
+        fechas = a.periodos.map { m(it.mesYAnio(), fecha) },
+        teGraduas = m("Te gradúas", nota),
+        cifras40 = (0..a.porcentaje).map { m("$it", estiloCifra(interCifra, tam(40f))) },
+        signo40 = m("%", signo.copy(fontSize = tam(16f))),
+        hoy = m("HOY", versal),
+        universidad = m("UNIVERSIDAD DE ORIENTE", versal.copy(color = Paleta.suave)),
+        nucleo = m("NÚCLEO DE MONAGAS", versal),
+        otorga = m("otorga el título de", nota),
+        carrera = m(CARRERA_TITULO, TextStyle(fontFamily = jost, fontWeight = FontWeight.Light, fontSize = tam(30f), letterSpacing = (-0.01).em)),
+    )
 }
 
-private fun xCol(c: Int) = 40f + 32f * c
-private fun centro(c: Int) = xCol(c) + 7f
-private const val Y_RIEL = 356f
+/** La escena entera en el instante `t`, en las unidades del plano */
+private fun DrawScope.pintar(t: Float, a: AvanceDemo, g: GeometriaAvance, x: TextosAvance, respira: Boolean) {
+    // Al final de cada vuelta todo se apaga a la vez: la siguiente arranca de cero, sin salto
+    val velo = 1f - Movimiento.ESTANDAR.transform(tramo(t, SE_VA, SE_VA + 700f))
+    if (velo <= 0.004f) return
 
-/** Cuánto ha avanzado `t` en el tramo que empieza en `desde` y dura `dura` */
-private fun tramoDe(t: Float, desde: Float, dura: Float) = ((t - desde) / dura).coerceIn(0f, 1f)
+    // La superficie de la hoja: la tinta al 5 %, sin filo
+    val tarjeta = Movimiento.ASIENTA.transform(tramo(t, NACE - 100f, NACE + 500f)) * velo
+    drawRoundRect(Paleta.tinta, Offset(MX, TARJETA_Y), Size(W, TARJETA_ALTO), CornerRadius(24f), alpha = Velo.superficie * tarjeta)
 
-/** Mezcla dos colores en sRGB y con su alfa, como el rgba() interpolado del tablero */
-internal fun mezclarColor(a: Color, b: Color, f: Float) =
-    Color(a.red + (b.red - a.red) * f, a.green + (b.green - a.green) * f, a.blue + (b.blue - a.blue) * f, a.alpha + (b.alpha - a.alpha) * f)
-
-/** Un punto o nodo a medio llenar: abajo lleno, arriba hueco, con su aro por dentro */
-private fun DrawScope.medioPunto(c: Offset, r: Float, abajo: Color, arriba: Color, aro: Color, grosor: Float, alfa: Float) {
-    val caja = Offset(c.x - r, c.y - r)
-    drawArc(abajo, 0f, 180f, true, caja, Size(2 * r, 2 * r), alpha = alfa)
-    drawArc(arriba, 180f, 180f, true, caja, Size(2 * r, 2 * r), alpha = alfa)
-    drawCircle(aro, r - grosor / 2f, c, alpha = alfa, style = Stroke(grosor))
+    // Lo que ya se llenó, en UC: la cifra y lo aprobado cuentan con la barra
+    val f = g.llenado(t)
+    cifra(t, a, x, f, velo)
+    fecha(t, x, velo)
+    capsulas(t, g, velo, respira)
+    regla(t, g, x, velo)
 }
 
-/** Un texto colocado por su línea base */
-private fun DrawScope.texto(t: TextLayoutResult, x: Float, base: Float, alfa: Float, color: Color = Color.Unspecified) {
-    if (alfa <= 0.002f) return
-    drawText(t, color, Offset(x, base - t.firstBaseline), alfa)
+/** El 41 % con su signo en la línea base y, debajo, «62 / 153 UC», contando a la par de la barra */
+private fun DrawScope.cifra(t: Float, a: AvanceDemo, x: TextosAvance, f: Float, velo: Float) {
+    val e = Movimiento.ASIENTA.transform(tramo(t, CIFRA, CIFRA + 500f))
+    val op = e * velo
+    if (op <= 0.004f) return
+    val dy = (1f - e) * 8f
+    val cifra = x.cifras[(a.porcentaje * f).roundToInt().coerceIn(0, a.porcentaje)]
+    textoPorBase(cifra, IX, BASE_CIFRA + dy, Paleta.tinta, op)
+    textoPorBase(x.signo, IX + anchoPlano(cifra) + 2f, BASE_CIFRA + dy, Paleta.tenue, op)
+    val uc = x.ucs[(a.llevas * f).roundToInt().coerceIn(0, a.llevas)]
+    textoPlano(uc, IX, Y_UC + dy, Paleta.tinta, op)
+    textoPlano(x.deTotal, IX + anchoPlano(uc), Y_UC + dy, Paleta.tenue, op)
 }
 
-/** La escena entera en el instante `t`, en las unidades del tablero */
-private fun DrawScope.pintar(t: Float, a: AvanceDemo, g: GeometriaAvance, x: TextosAvance) {
-    fun en(desde: Float, dura: Float) = tramoDe(t, desde, dura)
-    val hechos = a.hechos
-    val velo = 1f - Movimiento.ESTANDAR.transform(en(SE_VA, 650f))
-    fun enciendeEn(c: Int) = ENCIENDE + POR_SEMESTRE * c
+/**
+ * La fecha de la esquina: llega con la luz y pasa período a período (el que
+ * se va sube y se apaga, el que llega sube desde abajo) hasta el del grado,
+ * que se asienta en tinta. «Te gradúas» queda debajo desde el principio.
+ */
+private fun DrawScope.fecha(t: Float, x: TextosAvance, velo: Float) {
+    val np = x.fechas.size
+    if (np == 0) return
+    val e = Movimiento.ASIENTA.transform(tramo(t, PROYECTA - 250f, PROYECTA + 300f))
+    val op = e * velo
+    if (op <= 0.004f) return
+    val dy = (1f - e) * 8f
+    val derecha = IX + IW
+    textoPlano(x.teGraduas, derecha, Y_TE_GRADUAS + dy, Paleta.tenue, op, ancla = 1f)
+    fechaQueCorre(t, x.fechas, derecha, BASE_FECHA + dy, 1f, PROYECTA, LLEGA, op)
+}
 
-    // La cifra suma las UC reales de cada semestre mientras se enciende, y redondea como la portada
-    var ucHechas = 0f
-    a.ucPorSemestre.forEachIndexed { c, uc -> ucHechas += uc * ESTANDAR.transform(en(enciendeEn(c), POR_SEMESTRE + 120f)) }
-    // Al proyectar lo que falta, la cifra cede el foco a la meta y se retira entera
-    val cede = ESTANDAR.transform(en(PROYECTA - 200f, 900f))
-
-    // La luz de lo aprobado: crece con la cifra
-    val luz = ESTANDAR.transform(en(ENCIENDE, 2_200f)) * velo * (1f - 0.5f * cede)
-    if (luz > 0f) {
-        val e = 0.75f + 0.25f * (if (a.llevas > 0) ucHechas / a.llevas else 1f)
-        scale(e, e, Offset(100f, 260f)) { drawCircle(g.luz, 140f, Offset(100f, 260f), alpha = luz) }
-    }
-
-    // Lo que llevas: la cifra de la portada sobre las columnas que la explican
-    val eC = Movimiento.ASIENTA.transform(en(CIFRA, 500f))
-    val alfaCifra = eC * velo * (1f - cede)
-    if (alfaCifra > 0f) {
-        val dy = (1f - eC) * 8f
-        val n = redondear(ucHechas * 100.0 / a.de).coerceIn(0, a.porcentaje)
-        val cifra = x.cifras[n]
-        // Las dos sobre la misma línea base: el signo no sube
-        val base = 106.6f + x.baseCifra + dy
-        texto(cifra, 40f, base - cifra.firstBaseline, alfaCifra)
-        texto(x.signo, 40f + cifra.size.width + 2f, base - x.signo.firstBaseline, alfaCifra)
-        drawCircle(Paleta.verde, 4f, Offset(44f, 133f + dy), alpha = alfaCifra)
-        texto(x.aprobado, 56f, 136.8f + dy, alfaCifra)
-        val uc = x.ucs[redondear(ucHechas.toDouble()).coerceIn(0, a.llevas)]
-        texto(uc, 40f, 158.7f + dy, alfaCifra)
-        texto(x.deTotal, 40f + uc.size.width, 158.7f + dy, alfaCifra)
-    }
-
-    // La silueta: tenue al nacer; lo hecho se llena de verde, lo que cursas a medias en tinta, lo que falta en anillo gris
-    a.silueta.forEachIndexed { c, filas ->
-        val nace = Movimiento.ESTANDAR.transform(en(NACE + 70f * c, 520f))
-        val alfa = nace * velo
-        if (alfa <= 0f) return@forEachIndexed
-        val r = 7f * (0.6f + 0.4f * nace)
-        for (fila in 0 until filas) {
-            val p = Offset(centro(c), 195f + 22f * fila)
-            when {
-                c < hechos -> {
-                    val k = ESTANDAR.transform(en(enciendeEn(c) + 45f * fila, 380f))
-                    drawCircle(mezclarColor(TENUE, Paleta.verde, k), r, p, alpha = alfa)
-                }
-                c == hechos && fila < a.cursando -> {
-                    val k = ESTANDAR.transform(en(AHORA + 90f * fila, 420f))
-                    medioPunto(
-                        p, r, mezclarColor(TENUE, Paleta.tinta, k), mezclarColor(TENUE, Paleta.tinta.copy(alpha = 0.06f), k),
-                        Paleta.tinta.copy(alpha = 0.9f * k), 1.5f * r / 7f, alfa,
+/** Las cápsulas: nacen pendientes, lo aprobado se llena de tinta en ola, lo que cursas pasa a contorno y lo que falta deja pasar la luz */
+private fun DrawScope.capsulas(t: Float, g: GeometriaAvance, velo: Float, respira: Boolean) {
+    val pendiente = Velo.pendiente
+    // La luz que recorre lo que falta, a paso constante: cada cápsula se aclara cuando pasa y vuelve a su gris
+    val luz = if (t >= PROYECTA && t <= LLEGA + 600f) mezcla(g.barridoDesde, g.barridoHasta, tramo(t, PROYECTA, LLEGA)) else Float.NaN
+    for (i in 0 until g.n) {
+        val nace = ESTANDAR.transform(tramo(t, g.nace[i], g.nace[i] + 360f))
+        if (nace <= 0f) continue
+        val h = ALTO_CAPSULA * (0.4f + 0.6f * nace)
+        val o = Offset(g.x[i], BARRA_Y + (ALTO_CAPSULA - h) / 2)
+        val tam = Size(g.w[i], h)
+        val op = nace * velo
+        when (g.estado[i]) {
+            EstadoCapsula.APROBADA -> {
+                val k = ESTANDAR.transform(tramo(t, g.llena[i], g.llena[i] + LLENA))
+                drawRoundRect(Paleta.tinta, o, tam, RADIO_CAPSULA, alpha = mezcla(pendiente, 1f, k) * op)
+            }
+            EstadoCapsula.CURSANDO -> {
+                val k = ESTANDAR.transform(tramo(t, g.cursa[i], g.cursa[i] + 420f))
+                if (k < 1f) drawRoundRect(Paleta.tinta, o, tam, RADIO_CAPSULA, alpha = pendiente * (1f - k) * op)
+                if (k > 0f) {
+                    var aro = k
+                    // Respira al ritmo del punto «En curso»: arranca en su máximo, así no salta
+                    val desde = g.cursa[i] + 420f
+                    if (respira && t > desde) aro *= 0.7f + 0.3f * cos(2f * PI.toFloat() * (t - desde) / RESPIRA)
+                    drawRoundRect(
+                        Paleta.tinta, Offset(o.x + 0.75f, o.y + 0.75f), Size((tam.width - 1.5f).coerceAtLeast(0.5f), tam.height - 1.5f),
+                        RADIO_CAPSULA, style = CONTORNO, alpha = aro * op,
                     )
                 }
-                else -> {
-                    val k = ESTANDAR.transform(en(g.traza[c] + 40f * fila, 380f))
-                    drawCircle(mezclarColor(TENUE, Paleta.tinta.copy(alpha = 0f), k), r, p, alpha = alfa)
-                    if (k > 0f) drawCircle(Paleta.tinta.copy(alpha = 0.34f * k), r - 0.75f * r / 7f, p, alpha = alfa, style = Stroke(1.5f * r / 7f))
-                }
+            }
+            EstadoCapsula.PENDIENTE -> {
+                val brillo = if (luz.isNaN()) 0f else 0.42f * suave(1f - min(1f, abs(luz - (g.x[i] + g.w[i] / 2)) / 26f))
+                drawRoundRect(Paleta.tinta, o, tam, RADIO_CAPSULA, alpha = (pendiente + brillo) * op)
             }
         }
     }
-    // El latido de lo que cursas: un anillo que se abre y se apaga
-    if (t >= AHORA + 400f && a.cursando > 0) {
-        val q = DESTELLO.transform(((((t - AHORA - 400f) % LATIDO) / LATIDO) / 0.7f).coerceIn(0f, 1f))
-        val e = 1f + 0.9f * q
-        val alfa = 0.6f * (1f - q) * velo
-        if (alfa > 0f) for (fila in 0 until a.cursando) {
-            drawCircle(Paleta.tinta, 7f * e - 0.75f * e, Offset(centro(hechos), 195f + 22f * fila), alpha = alfa, style = Stroke(1.5f * e))
-        }
-    }
+}
 
-    // El riel del tiempo: hecho en verde, ahora en tinta, lo que falta punteado en gris, período a período
-    val x0 = centro(0)
-    val base = ESTANDAR.transform(en(300f, 1_000f)) * velo
-    if (base > 0f) drawRoundRect(Paleta.tinta.copy(alpha = 0.08f), Offset(x0, Y_RIEL - 1f), Size((g.xMeta - x0) * base, 2f), CornerRadius(1f))
-    if (hechos > 0) {
-        var hecho = 0f
-        for (c in 0 until hechos) hecho += ESTANDAR.transform(en(enciendeEn(c), POR_SEMESTRE))
-        hecho = hecho / hechos * velo
-        val fin = centro(hechos - 1)
-        if (hecho > 0f) drawRoundRect(Paleta.verde, Offset(x0, Y_RIEL - 1f), Size((fin - x0) * hecho, 2f), CornerRadius(1f))
-        val ahora = ESTANDAR.transform(en(AHORA - 100f, 500f)) * velo
-        if (ahora > 0f) drawRect(Paleta.tinta.copy(alpha = 0.7f), Offset(fin, Y_RIEL - 1f), Size((g.xAhora - fin) * ahora, 2f))
+/**
+ * La regla de semestres: un hilo que se traza, una marca y un número por
+ * semestre, y el círculo de tinta del actual, que avanza semestre a semestre
+ * a medida que se llenan. Lo completo pasa a tinta; el número que el círculo
+ * cubre, al color del panel.
+ */
+private fun DrawScope.regla(t: Float, g: GeometriaAvance, x: TextosAvance, velo: Float) {
+    val hilo = ESTANDAR.transform(tramo(t, NACE + 200f, NACE + 900f))
+    if (hilo <= 0f) return
+    drawRect(Paleta.tinta, Offset(IX, Y_REGLA - 0.5f), Size(IW * hilo, 1f), alpha = Velo.hilo * velo)
+    val ultimo = g.centros.size - 1
+    // Dónde va el círculo, en semestres: suma un paso por cada semestre que termina antes del actual
+    var m = 0f
+    for (c in 0 until g.actual) m += ESTANDAR.transform(tramo(t, g.finSemestre[c], g.finSemestre[c] + 420f))
+    val marca = if (g.actual >= 0) ESTANDAR.transform(tramo(t, CUENTA - 200f, CUENTA + 200f)) else 0f
+    if (marca > 0f) {
+        val i0 = m.toInt().coerceIn(0, ultimo)
+        val xm = mezcla(g.centros[i0], g.centros[(i0 + 1).coerceAtMost(ultimo)], m - i0)
+        drawCircle(Paleta.tinta, 8.5f, Offset(xm, Y_REGLA + 15f), alpha = marca * velo)
     }
-    val falta = (g.cabeza(t) - g.xAhora) * velo
-    if (falta > 0.5f) {
-        drawLine(Paleta.tinta.copy(alpha = 0.32f), Offset(g.xAhora, Y_RIEL), Offset(g.xAhora + falta, Y_RIEL), 2f, pathEffect = g.punteado)
+    for (c in 0..ultimo) {
+        val aparece = ESTANDAR.transform(tramo(t, NACE + 300f + 50f * c, NACE + 700f + 50f * c)) * velo
+        if (aparece <= 0.004f) continue
+        val cx = g.centros[c]
+        val hecho = ESTANDAR.transform(tramo(t, g.finSemestre[c], g.finSemestre[c] + 300f))
+        val bajoMarca = (1f - abs(m - c) / 0.35f).coerceIn(0f, 1f) * marca
+        val fuerte = if (c == g.actual) bajoMarca else 0f
+        drawLine(
+            mezclarColor(Paleta.tinta.copy(alpha = Velo.hilo), Paleta.tinta, maxOf(hecho, fuerte)),
+            Offset(cx, Y_REGLA), Offset(cx, Y_REGLA + 4f), strokeWidth = 1f, alpha = aparece,
+        )
+        val color = mezclarColor(mezclarColor(Paleta.apagada, Paleta.tinta, hecho), Paleta.panel, bajoMarca)
+        val numero = if (hecho > 0.5f || bajoMarca > 0.5f) x.numerosFuertes[c] else x.numeros[c]
+        textoPorBase(numero, cx, Y_REGLA + 19f, color, aparece, ancla = 0.5f)
     }
-
-    // Una marca y un número por semestre, en el color de sus puntos
-    for (c in a.silueta.indices) {
-        val alfa = ESTANDAR.transform(en(500f + 70f * c, 500f)) * velo
-        if (alfa <= 0f) continue
-        val p = Offset(centro(c), Y_RIEL)
-        val color = when {
-            c < hechos -> {
-                val k = ESTANDAR.transform(en(enciendeEn(c) + 200f, 300f))
-                drawCircle(mezclarColor(NODO, Paleta.verde, k), 4f, p, alpha = alfa)
-                mezclarColor(Paleta.apagada, Paleta.suave, k)
-            }
-            c == hechos -> {
-                // La marca de ahora: medio llena como sus puntos, y su número en tinta, el más claro del riel
-                val k = ESTANDAR.transform(en(AHORA, 400f))
-                medioPunto(p, 4f, mezclarColor(NODO, Paleta.tinta, k), mezclarColor(NODO, Paleta.lienzo, k), Paleta.tinta.copy(alpha = 0.9f * k), 1.5f, alfa)
-                mezclarColor(Paleta.apagada, Paleta.tinta, k)
-            }
-            else -> {
-                val k = ESTANDAR.transform(en(g.traza[c], 300f))
-                drawCircle(mezclarColor(NODO, Paleta.lienzo, k), 4f, p, alpha = alfa)
-                if (k > 0f) drawCircle(Paleta.tinta.copy(alpha = 0.4f * k), 3.25f, p, alpha = alfa, style = Stroke(1.5f))
-                mezclarColor(Paleta.apagada, Paleta.tenue, k)
-            }
-        }
-        val numero = x.numeros[c]
-        texto(numero, p.x - numero.size.width / 2f, 380.5f, alfa, color)
-    }
-
-    // La meta, como una bandera: el nodo se llena al llegar el riel y suelta una onda; el asta sube al disco del birrete
-    val meta = Offset(g.xMeta, Y_RIEL)
-    val alfaMeta = ESTANDAR.transform(en(1_100f, 500f)) * velo
-    if (alfaMeta > 0f) {
-        val ultima = g.traza.last()
-        val aro = mezclarColor(Paleta.tinta.copy(alpha = 0.22f), Paleta.azul, ESTANDAR.transform(en(ultima, LLEGA - ultima)))
-        drawCircle(Paleta.lienzo.copy(alpha = 0.9f), 9f, meta, alpha = alfaMeta)
-        drawCircle(aro, 8.25f, meta, alpha = alfaMeta, style = Stroke(1.5f))
-    }
-    val lleno = Movimiento.ESTANDAR.transform(en(LLEGA - 60f, 420f)) * velo
-    if (lleno > 0f) drawCircle(Paleta.azul, 9f * lleno, meta)
-    val onda = en(LLEGA, 1_100f)
-    if (onda > 0f && onda < 1f) {
-        val e = 1f + 1.8f * Movimiento.ASIENTA.transform(onda)
-        drawCircle(Paleta.azul, 9f * e - 0.75f * e, meta, alpha = 0.6f * (1f - onda) * velo, style = Stroke(1.5f * e))
-    }
-    val asta = Movimiento.ESTANDAR.transform(en(LLEGA + 60f, 520f)) * velo
-    if (asta > 0f) {
-        scale(1f, asta, Offset(meta.x, 347f)) { drawRect(g.asta, Offset(meta.x - 0.75f, 165f), Size(1.5f, 182f)) }
-    }
-    val disco = Movimiento.ASIENTA.transform(en(LLEGA + 420f, 460f)) * velo
-    val cima = Offset(meta.x, 145f)
-    if (disco > 0f) {
-        drawCircle(g.halo, 60f, cima, alpha = disco)
-        drawCircle(Paleta.azul, 20f * (0.7f + 0.3f * disco), cima, alpha = disco)
-    }
-    val birrete = Movimiento.ASIENTA.transform(en(LLEGA + 520f, 420f)) * velo
-    if (birrete > 0f) {
-        translate(cima.x - 11f, cima.y - 11f + (1f - birrete) * 3f) {
-            scale(22f / 24f, 22f / 24f, Offset.Zero) {
-                Lucide.birrete.forEach { drawPath(it, porTema(Paleta.tinta, Color.White), alpha = birrete, style = g.trazoBirrete) }
-            }
-        }
-    }
-
-    // La respuesta cuelga del disco, alineada a la derecha a 14 de él: versal y «6 semestres» por línea base
-    val derecha = cima.x - 34f
-    fun linea(desde: Float): Pair<Float, Float> {
-        val e = Movimiento.ASIENTA.transform(en(desde, 560f))
-        return e * velo to (1f - e) * 8f
-    }
-    val (op1, dy1) = linea(LLEGA + 480f)
-    // La versal acaba en su última letra, no en el espacio que la sigue
-    texto(x.teGraduas, derecha - x.teGraduas.size.width + 11f * 0.07f, 86.8f + dy1, op1)
-    val (op2, dy2) = linea(LLEGA + 580f)
-    val xSemestres = derecha - x.semestres.size.width
-    texto(x.semestres, xSemestres, 157.8f + dy2, op2)
-    texto(x.faltan, xSemestres - 8f - x.faltan.size.width, 157.8f + dy2, op2)
 }

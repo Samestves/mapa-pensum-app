@@ -52,12 +52,9 @@ import mpensum.componentes.BotonIcono
 import mpensum.componentes.BotonPrincipal
 import mpensum.componentes.IconoTrazo
 import mpensum.componentes.Lucide
-import mpensum.componentes.auroraViva
 import mpensum.componentes.esApaisado
-import mpensum.componentes.grano
 import mpensum.componentes.pulsable
 import mpensum.componentes.ventana
-import mpensum.componentes.rememberRelojAurora
 import mpensum.datos.Carrera
 import mpensum.plataforma.ManejarAtras
 import mpensum.tema.Movimiento
@@ -101,12 +98,9 @@ private const val REDUCCION_HUECO = 2
 fun Bienvenida(carreras: List<Carrera>, pasoInicial: Int = 0, alTerminar: (Carrera?) -> Unit) {
     var paso by rememberSaveable { mutableIntStateOf(pasoInicial) }
     ManejarAtras(paso > 0) { paso -= 1 }
-    // La aurora viva de la portada, sin la luz de carrera: aún no hay carrera elegida
-    val reloj = rememberRelojAurora(entrar = true, pausada = { false })
     val apaisado = esApaisado()
+    // El lienzo liso del tema, sin luces ni grano: lo sobrio de la app, y las escenas se funden con él sin capa
     Box(Modifier.fillMaxSize().background(Paleta.lienzo)) {
-        Box(Modifier.fillMaxSize().auroraViva(reloj))
-        Box(Modifier.fillMaxSize().grano())
         AnimatedContent(
             targetState = paso,
             // En serie (100 sale + 250 entra): ni un cuadro con el lienzo vacío ni dos pasos a la vez
