@@ -11,7 +11,6 @@ import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.core.Transition
 import androidx.compose.animation.core.updateTransition
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -44,7 +43,6 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
@@ -62,9 +60,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import mpensum.componentes.iconoEstado
 import mpensum.componentes.colorEstado
 import mpensum.componentes.Lucide
@@ -73,12 +68,9 @@ import mpensum.componentes.pulsable
 import mpensum.componentes.ventana
 import mpensum.datos.Asignatura
 import mpensum.logica.Marca
-import mpensum.logica.Periodo
 import mpensum.logica.Situacion
-import mpensum.logica.fechaSiRepruebas
 import mpensum.logica.seAbrenAlAprobar
 import mpensum.mapa.nombreCasilla
-import mpensum.logica.Simulador
 import mpensum.tema.Movimiento
 import mpensum.tema.Espacio
 import mpensum.tema.Paleta
@@ -317,72 +309,9 @@ internal fun IconoSituacion(s: Situacion, lado: Dp) {
 
 // ─────────────────────────────────── Respuesta ──────────────────────────────────
 
-/** Una nota con una fecha en medio de ella: «Si la atrasas, te gradúas en **Jun 2030**»; en rojo si la fecha es mala noticia */
-internal class NotaRespuesta(val antes: String, val fecha: String? = null, val alerta: Boolean = false)
-
-/** Lo que responde la fila: su pastilla, la frase y la nota; `para` dice a qué estado de la materia pertenece */
-internal class Respuesta(val para: Situacion, val icono: List<Path>, val azul: Boolean, val titulo: String, val nota: NotaRespuesta?)
-
-/**
- * Lo que cuesta la fila: hasta 8 simulaciones la primera vez, y una más por cada materia. Va fuera del hilo
- * principal. Null si la materia no está en tu plan (una electiva que no cuenta) o ya está aprobada.
- */
-private fun respuestaDe(codigo: String, s: Situacion, sim: Simulador): Respuesta? {
-    val g = sim.base
-    return when (s) {
-        Situacion.HECHA -> null
-        Situacion.CURSANDO -> {
-            val fecha = fechaSiRepruebas(sim.pensum, sim.marcas, sim.casillas, g.carga, sim.hoy, codigo)
-            val cambia = fecha != g.periodoFinal
-            Respuesta(s, IconosHoja.reiniciar, false, "Si la repruebas", fecha?.let { NotaRespuesta(if (cambia) "Te gradúas en " else "Sigues en ", it.mesYAnio(), cambia) })
-        }
-        Situacion.INSCRIBIBLE -> {
-            if (g.plan.none { codigo in it }) return null
-            val margen = sim.margen(codigo)
-            if (margen == 0) {
-                val tarde: Periodo? = sim.conVeto(codigo, sim.indiceEnPlan(codigo) + 1).periodoFinal
-                Respuesta(s, IconosHoja.eslabon, g.cuelloDeBotella.firstOrNull() == codigo, "No puede esperar", tarde?.let { NotaRespuesta("Si la atrasas, te gradúas en ", it.mesYAnio(), true) })
-            } else Respuesta(s, IconosHoja.relojArena, false, puedeEsperar(margen), NotaRespuesta("Sin mover tu fecha"))
-        }
-        Situacion.PROXIMA, Situacion.LEJANA -> {
-            val i = g.plan.indexOfFirst { codigo in it }
-            if (i < 0) return null
-            val margen = sim.margen(codigo)
-            Respuesta(s, if (codigo in g.cuelloDeBotella) IconosHoja.eslabon else IconosHoja.calendario, false, "En tu plan, ${sim.hoy.mas(i + 1).rango()}", NotaRespuesta(if (margen == 0) "No puede esperar" else puedeEsperar(margen)))
-        }
-    }
-}
-
 private fun NotaRespuesta.texto(): AnnotatedString = buildAnnotatedString {
     append(antes)
     if (fecha != null) withStyle(SpanStyle(color = if (alerta) Paleta.rojo else Paleta.tinta, fontWeight = FontWeight.Medium)) { append(fecha) }
-}
-
-/** Lo que se sabe de la respuesta de una materia: solo `Calculando` reserva sitio; `SinRespuesta` es que no hay nada que decir */
-internal sealed interface EstadoRespuesta {
-    data object Calculando : EstadoRespuesta
-    data object SinRespuesta : EstadoRespuesta
-    class Lista(val respuesta: Respuesta) : EstadoRespuesta
-}
-
-/**
- * Las respuestas ya calculadas de las materias, para el simulador de ahora (si
- * cambian las marcas, `EstadoCarrera.respuestas` crea otro). Se calculan fuera
- * del hilo principal y la ficha las pide antes de cambiar de materia: así la
- * tarjeta entra con su texto puesto y no se funde dos veces.
- */
-internal class RespuestasFicha(estado: EstadoCarrera) {
-    private val sim = estado.simulador
-    private val calculadas = mutableStateMapOf<Pair<String, Situacion>, EstadoRespuesta>()
-
-    fun de(codigo: String, s: Situacion): EstadoRespuesta = calculadas[codigo to s] ?: EstadoRespuesta.Calculando
-
-    suspend fun calcular(codigo: String, s: Situacion, despachador: CoroutineDispatcher = Dispatchers.Default) {
-        val clave = codigo to s
-        if (clave in calculadas) return
-        val r = withContext(despachador) { respuestaDe(codigo, s, sim) }
-        calculadas[clave] = r?.let { EstadoRespuesta.Lista(it) } ?: EstadoRespuesta.SinRespuesta
-    }
 }
 
 /**
@@ -411,7 +340,7 @@ internal fun RespuestaFicha(codigo: String, estado: EstadoCarrera, modifier: Mod
                     titulo = r.titulo,
                     nota = r.nota?.texto(),
                     primera = true,
-                    icono = { Pastilla(r.icono, r.azul) },
+                    icono = { Pastilla(r.icono.trazos(), r.azul) },
                 )
             }
         }

@@ -44,7 +44,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
@@ -71,22 +70,10 @@ import mpensum.componentes.estiloUnidad
 import mpensum.componentes.margenPantalla
 import mpensum.componentes.rememberPartesListas
 import mpensum.componentes.ventana
-import mpensum.datos.Asignatura
-import mpensum.datos.Grupo
-import mpensum.datos.Pensum
-import mpensum.logica.AvanceGrupo
-import mpensum.logica.EstadoMateria
 import mpensum.logica.EstimacionGraduacion
 import mpensum.logica.Periodo
 import mpensum.logica.SemestreCapsulas
 import mpensum.logica.SiApruebas
-import mpensum.logica.avanceDeGrupos
-import mpensum.logica.capsulasDe
-import mpensum.logica.cargaMasRapida
-import mpensum.logica.cursandoDe
-import mpensum.logica.siApruebasLoQueCursas
-import mpensum.logica.ucTipicaDe
-import mpensum.mapa.nombreCasilla
 import mpensum.mapa.tituloGrupo
 import mpensum.plataforma.ManejarAtras
 import mpensum.tema.Movimiento
@@ -154,13 +141,13 @@ internal sealed interface DetalleAvance {
 
 /** La pastilla, el título y el subtítulo de cada pantalla interna */
 internal fun cabeceraDe(d: DetalleAvance, estado: EstadoCarrera, g: EstimacionGraduacion, hoy: Periodo): DatosCabecera = when (d) {
-    DetalleAvance.EsteSemestre -> DatosCabecera(IconosHoja.libroAbierto, "Este semestre")
-    DetalleAvance.Proximo -> DatosCabecera(IconosHoja.calendario, hoy.mas(1).rango(), azul = true)
-    DetalleAvance.Cadena -> DatosCabecera(IconosHoja.eslabon, "No puedes atrasar")
-    DetalleAvance.Graduacion -> DatosCabecera(Lucide.birrete, "¿Cuándo me gradúo?")
+    DetalleAvance.EsteSemestre -> DatosCabecera(IconoFila.LIBRO_ABIERTO.trazos(), "Este semestre")
+    DetalleAvance.Proximo -> DatosCabecera(IconoFila.CALENDARIO.trazos(), hoy.mas(1).rango(), azul = true)
+    DetalleAvance.Cadena -> DatosCabecera(IconoFila.ESLABON.trazos(), "No puedes atrasar")
+    DetalleAvance.Graduacion -> DatosCabecera(IconoFila.BIRRETE.trazos(), "¿Cuándo me gradúo?")
     is DetalleAvance.Electivas -> {
         val grupo = estado.pensum.grupos.firstOrNull { it.clave == d.clave }
-        DatosCabecera(grupo?.let(::iconoDeGrupo) ?: IconosHoja.libroAbierto, grupo?.let(::tituloGrupo) ?: "Electivas")
+        DatosCabecera((grupo?.let(::iconoDeGrupo) ?: IconoFila.LIBRO_ABIERTO).trazos(), grupo?.let(::tituloGrupo) ?: "Electivas")
     }
 }
 
@@ -505,60 +492,6 @@ private fun CifraHeroe(porcentaje: Int) {
 
 // ─────────────────────────────────── Las filas ──────────────────────────────────
 
-/** Una fila de la hoja: su pastilla, el título, la nota, la cifra (con su unidad) y la pantalla a la que lleva */
-internal class Pregunta(
-    val icono: List<Path>,
-    val azul: Boolean,
-    val titulo: String,
-    val nota: String,
-    val valor: String?,
-    val unidad: String?,
-    val detalle: DetalleAvance,
-)
-
-/** Las preguntas de la hoja: solo las que tienen algo que decir */
-internal fun preguntasDe(g: EstimacionGraduacion, hoy: Periodo, cursando: Int, seAbren: Int, rapida: Periodo?, nombre: (String) -> String): List<Pregunta> = buildList {
-    if (cursando > 0) {
-        val abren = when (seAbren) {
-            0 -> "No te abren otras"
-            1 -> "Te abren 1"
-            else -> "Te abren $seAbren"
-        }
-        add(Pregunta(IconosHoja.libroAbierto, false, "Este semestre", abren, "$cursando", null, DetalleAvance.EsteSemestre))
-    }
-    g.plan.firstOrNull()?.let { add(Pregunta(IconosHoja.calendario, true, "Tu próximo semestre", hoy.mas(1).rango(), "${it.size}", null, DetalleAvance.Proximo)) }
-    g.cuelloDeBotella.firstOrNull()?.let { add(Pregunta(IconosHoja.eslabon, false, "No puedes atrasar", "Empieza en ${nombre(it)}", "${g.cuelloDeBotella.size}", null, DetalleAvance.Cadena)) }
-    if (!g.terminado) add(Pregunta(Lucide.birrete, false, "¿Cuándo me gradúo?", rapida?.let {
-        // Si tu fecha ya es la más rápida posible, decirlo en vez de repetirla
-        if (it == g.periodoFinal) "Ya vas lo más rápido" else "Lo más rápido: ${it.mesYAnio()}"
-    } ?: "A tu ritmo", null, null, DetalleAvance.Graduacion))
-}
-
-/**
- * Lo que enseña el índice de «Tu avance», de pie y acostado, calculado de una
- * vez por marcas, casillas, carga y período: la barra de cápsulas, lo que
- * cursas y lo que te da aprobarlo, las preguntas y las electivas. Es lógica
- * pura y se crea dentro de un derivedStateOf (`EstadoCarrera.resumen`), que
- * `precalentar` lee en segundo plano: al abrir la hoja ya está.
- */
-internal class ResumenAvance(estado: EstadoCarrera) {
-    val semestres: List<SemestreCapsulas> = capsulasDe(estado.pensum, estado.marcas, estado::enCasilla)
-    val cursando: List<Asignatura> = cursandoDe(estado.pensum, estado.marcas)
-    val si: SiApruebas? = if (cursando.isNotEmpty()) siApruebasLoQueCursas(estado.pensum, estado.marcas) else null
-    val preguntas: List<Pregunta> = preguntasDe(
-        estado.graduacion, estado.hoy, cursando.size, si?.seAbren?.size ?: 0,
-        estado.planes[cargaMasRapida(estado.planes) - 1].periodoFinal, nombresDelPlan(estado.pensum),
-    )
-    val electivas: List<Pregunta> = electivasDe(estado)
-}
-
-/** Las electivas con cuota: una fila por grupo, con lo que llevas de lo que pide el título */
-private fun electivasDe(estado: EstadoCarrera): List<Pregunta> =
-    avanceDeGrupos(estado.pensum.grupos, estado.marcas).values.filter { it.meta != null }.map { c ->
-        val grupo = estado.pensum.grupos.first { it.clave == c.clave }
-        Pregunta(iconoDeGrupo(grupo), false, nombreCorto(c.titulo), subtituloDeGrupo(estado, grupo, c), "${c.uc}", "/${c.meta} UC", DetalleAvance.Electivas(c.clave))
-    }
-
 /** Las filas agrupadas de la hoja de pie: cada una abre su pantalla */
 @Composable
 private fun ListaDeFilas(filas: List<Pregunta>, abrir: (DetalleAvance) -> Unit) {
@@ -569,7 +502,7 @@ private fun ListaDeFilas(filas: List<Pregunta>, abrir: (DetalleAvance) -> Unit) 
                 titulo = f.titulo,
                 nota = nota(f.nota),
                 primera = k == 0,
-                icono = { Pastilla(f.icono, f.azul) },
+                icono = { Pastilla(f.icono.trazos(), f.azul) },
                 chevron = Lucide.siguiente,
                 alTocar = { abrir(f.detalle) },
                 valor = f.valor?.let { v -> { CifraFila(v, f.unidad) } },
@@ -578,53 +511,12 @@ private fun ListaDeFilas(filas: List<Pregunta>, abrir: (DetalleAvance) -> Unit) 
     }
 }
 
-/** El icono de un grupo de electivas: la llave para las técnicas, las personas para las sociohumanísticas y el libro para las demás */
-internal fun iconoDeGrupo(g: Grupo): List<Path> = when {
-    g.clave == "tecnica" || g.titulo.contains("Técnica", ignoreCase = true) -> IconosHoja.llave
-    g.clave == "humanistica" || g.titulo.contains("Sociohuman", ignoreCase = true) -> IconosHoja.usuarios
-    else -> IconosHoja.libroAbierto
-}
-
-/** «Electivas Técnicas» → «Técnicas» */
-private fun nombreCorto(titulo: String): String = titulo.removePrefix("Electivas ").replaceFirstChar { it.uppercase() }
-
-/** Lo útil de un grupo: si ya cubres su cuota, cuántas puedes cursar ya o desde qué semestre se abren */
-private fun subtituloDeGrupo(estado: EstadoCarrera, grupo: Grupo, avance: AvanceGrupo): String {
-    if (avance.completa) return "Ya cubres las ${avance.meta} UC"
-    val abiertas = grupo.asignaturas.count { estado.estados[it.codigo] == EstadoMateria.DISPONIBLE }
-    if (abiertas > 0) return "Ya puedes cursar $abiertas"
-    val desde = estado.pensum.asignaturas.filter { it.esHueco && it.grupo == grupo.clave }.mapNotNull { it.semestre }.minOrNull()
-    return if (desde != null) "Desde el semestre $desde" else "Aún no se abre ninguna"
-}
-
 /** ELECTIVAS: una fila por grupo con cuota */
 @Composable
 private fun TarjetaElectivas(electivas: List<Pregunta>, abrir: (DetalleAvance) -> Unit) {
     if (electivas.isEmpty()) return
     RotuloSeccion("ELECTIVAS")
     ListaDeFilas(electivas, abrir)
-}
-
-/** Cómo se llama cada código del plan: la materia, la casilla, o "Electiva técnica" para lo que pide la cuota de un grupo */
-internal fun nombresDelPlan(pensum: Pensum): (String) -> String {
-    val grupos = pensum.grupos.associateBy { it.clave }
-    return { codigo ->
-        pensum.porCodigo[codigo]?.nombre
-            ?: grupos[codigo.substringBefore('#')]?.let(::nombreCasilla)
-            ?: codigo
-    }
-}
-
-/** Las UC de cada código del plan: las de la materia o, en una casilla sin elegir, las típicas de su grupo */
-internal fun ucsDelPlan(pensum: Pensum): (String) -> Int {
-    val tipicas = pensum.grupos.associate { it.clave to ucTipicaDe(it) }
-    return { codigo -> pensum.porCodigo[codigo]?.uc ?: tipicas[pensum.porCodigo[codigo]?.grupo ?: codigo.substringBefore('#')] ?: 0 }
-}
-
-/** Si un código del plan es una casilla de electiva sin elegir */
-internal fun esCasillaDelPlan(pensum: Pensum): (String) -> Boolean {
-    val casillas = pensum.asignaturas.filter { it.esHueco }.map { it.codigo }.toSet()
-    return { codigo -> codigo in casillas || '#' in codigo }
 }
 
 // ──────────────────────────────── Reiniciar ───────────────────────────────

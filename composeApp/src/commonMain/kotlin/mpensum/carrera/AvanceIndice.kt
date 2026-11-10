@@ -213,7 +213,7 @@ private fun FilaIndice(f: Pregunta, elegida: Boolean, hilo: Boolean, alTocar: ()
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Espacio.s),
     ) {
-        Pastilla(f.icono, f.azul)
+        Pastilla(f.icono.trazos(), f.azul)
         BasicText(f.titulo, Modifier.weight(1f), style = estiloFila(), maxLines = 1, overflow = TextOverflow.Ellipsis)
         if (f.valor != null) CifraFila(f.valor, f.unidad)
     }

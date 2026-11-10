@@ -91,7 +91,6 @@ import mpensum.tema.Tema
 import mpensum.tema.Tipo
 import mpensum.tema.inter
 import mpensum.tema.jost
-import mpensum.tema.pareja
 
 /*
  * Personalizar (docs/personalizar-v2.md, opción C «Primero la cara»): lo que
@@ -215,21 +214,14 @@ private fun juegoElegido(ranuras: Ranuras): Juego {
     return tema.juego ?: if (ranuras.noche) noche else dia
 }
 
-/** Elegir en la paleta: el tema, o el de la ranura activa si hay Automático */
-private fun elegirJuego(juego: Juego, ranuras: Ranuras) {
-    if (Preferencias.tema.value == Apariencia.SISTEMA) {
-        if (ranuras.noche) {
-            Preferencias.guardarTemaNoche(juego)
-            // Elegir «De noche» propone su pareja para «De día», si ese no se ha tocado
-            if (!ranuras.diaTocado && !juego.claro) Preferencias.guardarTemaDia(juego.pareja)
-        } else {
-            Preferencias.guardarTemaDia(juego)
-            ranuras.diaTocado = true
-        }
-    } else Preferencias.guardarTema(aparienciaDe(juego))
+/** Aplica la elección de la paleta: lo que dice [elegirJuego], guardado en las preferencias */
+private fun aplicarEleccion(juego: Juego, ranuras: Ranuras) {
+    val e = elegirJuego(juego, Preferencias.tema.value, ranuras.noche, ranuras.diaTocado)
+    e.tema?.let(Preferencias::guardarTema)
+    e.noche?.let(Preferencias::guardarTemaNoche)
+    e.dia?.let(Preferencias::guardarTemaDia)
+    ranuras.diaTocado = e.diaTocado
 }
-
-private fun aparienciaDe(juego: Juego): Apariencia = Apariencia.entries.first { it.juego == juego }
 
 /**
  * Las dos pantallas, el nombre del tema y la paleta. Acostado es el índice de
@@ -268,7 +260,7 @@ private fun BloqueTema(propia: Carrera?, ranuras: Ranuras, apaisado: Boolean, la
         otro = if (automatico) (if (ranuras.noche) dia else noche) else null,
         otroEsNoche = !ranuras.noche,
         modifier = Modifier.padding(horizontal = lado).padding(top = if (apaisado) Espacio.xs else 0.dp),
-        alElegir = { elegirJuego(it, ranuras) },
+        alElegir = { aplicarEleccion(it, ranuras) },
     )
 }
 

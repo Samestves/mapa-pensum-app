@@ -498,6 +498,18 @@ internal object IconosHoja {
     val fuera = listOf(trazo("M7 7h10v10"), trazo("M7 17 17 7"))
 }
 
+/** Los trazos de cada icono de fila: la interfaz los dibuja, la lógica solo dice cuál */
+internal fun IconoFila.trazos(): List<Path> = when (this) {
+    IconoFila.REINICIAR -> IconosHoja.reiniciar
+    IconoFila.LIBRO_ABIERTO -> IconosHoja.libroAbierto
+    IconoFila.USUARIOS -> IconosHoja.usuarios
+    IconoFila.LLAVE -> IconosHoja.llave
+    IconoFila.ESLABON -> IconosHoja.eslabon
+    IconoFila.CALENDARIO -> IconosHoja.calendario
+    IconoFila.RELOJ_ARENA -> IconosHoja.relojArena
+    IconoFila.BIRRETE -> Lucide.birrete
+}
+
 // ─────────────────────────────────── Para el anillo ──────────────────────────────────
 
 /** Las pruebas lo apagan: un latido eterno no deja que el reloj de pruebas llegue a estar en reposo */
