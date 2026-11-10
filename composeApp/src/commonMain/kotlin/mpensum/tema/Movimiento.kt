@@ -22,6 +22,8 @@ object Movimiento {
     const val CAMBIO_VISTA = 300
     /** Portada a carrera */
     const val PANTALLA = 420
+    /** De la carrera a la portada: un poco más corta que la ida */
+    const val PANTALLA_VUELTA = 380
     /** Entre los elementos de una misma entrada */
     const val ESCALONADO = 50
     /** Lo que tarda una hoja en irse (por el aspa o Atrás): lo que hay que esperar para mirar lo que tapaba */
@@ -40,6 +42,26 @@ object Movimiento {
     val ASIENTA = CubicBezierEasing(0.16f, 1f, 0.3f, 1f)
     /** Lo que crece o se enfoca en el mapa y el horario */
     val FLUIDA = CubicBezierEasing(0.32f, 0.72f, 0f, 1f)
+    /** Material «standard»: sale y llega con calma, sin el arranque seco de ESTANDAR. Fundidos y cambios de la guía y del tema */
+    val SUAVE = CubicBezierEasing(0.4f, 0f, 0.2f, 1f)
+    /** Entra y sale con el mismo peso (easeInOutCubic): lo que cruza la pantalla de un lado a otro */
+    val SIMETRICA = CubicBezierEasing(0.65f, 0f, 0.35f, 1f)
+
+    /** Las curvas de los efectos del mapa (anillo del toque, destello, carga y luz por el cable); la guía y el mapa de verdad comparten las mismas */
+    object Mapa {
+        /** El anillo que sale de la tarjeta al tocarla */
+        val ANILLO = CubicBezierEasing(0.2f, 0.7f, 0.3f, 1f)
+        /** El destello al encenderse una materia, y también cómo llega el mapa y cómo se apaga una carga */
+        val DESTELLO = CubicBezierEasing(0.22f, 0.61f, 0.2f, 1f)
+        /** La llegada del mapa la primera vez: la misma curva que el destello */
+        val LLEGADA = DESTELLO
+        /** El relleno de la carga de una tarjeta */
+        val CARGA = CubicBezierEasing(0.45f, 0f, 0.25f, 1f)
+        /** La descarga que baja por la cadena de materias */
+        val DESCARGA = CubicBezierEasing(0.55f, 0f, 0.25f, 1f)
+        /** La luz que viaja por un cable */
+        val VIAJE_LUZ = CubicBezierEasing(0.45f, 0f, 0.3f, 1f)
+    }
 
     // Resortes, sin rebote
     /** Cambio de alto de una hoja: asienta en unos 300 ms y, si llega otro cambio, sigue desde donde iba */

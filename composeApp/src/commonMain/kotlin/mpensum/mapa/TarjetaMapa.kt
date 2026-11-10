@@ -1,7 +1,6 @@
 package mpensum.mapa
 
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Box
@@ -50,6 +49,7 @@ import mpensum.componentes.iconoEstado
 import mpensum.datos.Asignatura
 import mpensum.logica.Situacion
 import mpensum.logica.descripcionDeMateria
+import mpensum.tema.Movimiento
 import mpensum.tema.PESO_NOMBRE
 import mpensum.tema.Paleta
 import mpensum.tema.Tema
@@ -104,9 +104,10 @@ private const val LADO_ICONO = 17.5f
 private val X_ICONO = (Nodo.ANCHO - Nodo.PAD_DER - LADO_ICONO).toFloat()
 private const val Y_ICONO = 10.5f
 
-private val ANILLO = CubicBezierEasing(0.2f, 0.7f, 0.3f, 1f)
-private val DESTELLO = CubicBezierEasing(0.22f, 0.61f, 0.2f, 1f)
-private val CARGA = CubicBezierEasing(0.45f, 0f, 0.25f, 1f)
+/** El anillo del toque; el destello espera a que la luz llegue por el cable */
+private const val ANILLO_MS = 620
+private const val DESTELLO_MS = 1100
+private const val ESPERA_DESTELLO_MS = 1000
 
 /** Lo que la tarjeta está animando ahora mismo, si algo */
 @Immutable
@@ -146,22 +147,22 @@ fun TarjetaMapa(
     // igual que al cambiar de clave; cada una vuelve a empezar desde cero la próxima vez.
     if (animaciones.toque != null) LaunchedEffect(animaciones.toque) {
         anillo.snapTo(0f)
-        anillo.animateTo(1f, tween(620, easing = LinearEasing))
+        anillo.animateTo(1f, tween(ANILLO_MS, easing = LinearEasing))
     }
     if (animaciones.destello != null) LaunchedEffect(animaciones.destello) {
         destello.snapTo(0f)
         // Espera a que la luz llegue por el cable: encenderse antes que el cable se ve mal
-        destello.animateTo(1f, tween(1100, delayMillis = 1000, easing = LinearEasing))
+        destello.animateTo(1f, tween(DESTELLO_MS, delayMillis = ESPERA_DESTELLO_MS, easing = LinearEasing))
     }
     val cargando = animaciones.carga
     if (cargando != null) LaunchedEffect(cargando.n, cargando.hecha) {
         if (!cargando.hecha) {
             apagado.snapTo(1f)
             carga.snapTo(0f)
-            carga.animateTo(1f, tween(CARGA_MS, delayMillis = ESPERA_MS, easing = CARGA))
+            carga.animateTo(1f, tween(CARGA_MS, delayMillis = ESPERA_MS, easing = Movimiento.Mapa.CARGA))
         } else {
             carga.snapTo(1f)
-            apagado.animateTo(0f, tween(APAGADO_MS, easing = DESTELLO))
+            apagado.animateTo(0f, tween(APAGADO_MS, easing = Movimiento.Mapa.DESTELLO))
         }
     }
 
@@ -184,12 +185,12 @@ fun TarjetaMapa(
             drawContent()
             val u = density
             if (animaciones.toque != null && anillo.value < 1f) {
-                val p = ANILLO.transform(anillo.value)
+                val p = Movimiento.Mapa.ANILLO.transform(anillo.value)
                 bordeRedondeado(Paleta.tinta.copy(alpha = 0.7f * (1 - p)), (2 + 12 * p) * u)
             }
             if (animaciones.destello != null && destello.value > 0f && destello.value < 1f) {
                 val t = destello.value
-                val p = DESTELLO.transform(t)
+                val p = Movimiento.Mapa.DESTELLO.transform(t)
                 val alfa = if (t < 0.18f) 0.8f * (t / 0.18f) else 0.8f * (1 - (p - 0.18f) / 0.82f)
                 scale(1 + 0.06f * p, 1 + 0.28f * p) { bordeRedondeado(Paleta.azul.copy(alpha = alfa.coerceIn(0f, 1f)), 1.5f * u) }
             }

@@ -72,6 +72,10 @@ internal val ARRIBA_CUERPO_PANEL = Espacio.l
 private val ARRIBA = Espacio.m - RESPIRO_COMPLETA
 
 /** Las cabeceras: el alto del botón redondo, con el título centrado */
+/** El panel del índice se funde: el nuevo entra tras un respiro y el viejo sale antes */
+private const val ENTRA_PANEL_MS = 220
+private const val ESPERA_PANEL_MS = 60
+private const val SALE_PANEL_MS = 120
 private val ALTO_CABECERA = 36.dp
 
 /** Lo que separa el índice del detalle; el hilo va en medio */
@@ -138,7 +142,7 @@ internal fun IndiceYDetalle(
                 if (elegido == null) {
                     BasicText("Completaste la carrera.", Modifier.align(Alignment.Center), style = estiloCuerpo())
                 } else {
-                    AnimatedContent(elegido, transitionSpec = { fadeIn(tween(220, 60)) togetherWith fadeOut(tween(120)) }, label = "panel") { d ->
+                    AnimatedContent(elegido, transitionSpec = { fadeIn(tween(ENTRA_PANEL_MS, ESPERA_PANEL_MS)) togetherWith fadeOut(tween(SALE_PANEL_MS)) }, label = "panel") { d ->
                         Column(Modifier.fillMaxSize()) {
                             CabeceraPanel(cabeceraDe(d, estado, g, hoy), codigosDelMapa(d, g)?.let { codigos -> { alVerEnMapa(codigos) } })
                             Box(Modifier.weight(1f)) { ContenidoDetalle(d, estado, hoy, alVerEnMapa, alAbrirCasilla) }

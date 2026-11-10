@@ -58,6 +58,8 @@ private object Lineas {
 }
 
 /** La casilla de marcar el semestre, a la izquierda del título; el título corrido lo que ocupa */
+/** Lo que tarda en crecer la barra de hechas y cursando */
+private const val BARRA_MS = 600
 private const val CASILLA_ARRIBA = 2.8f
 private const val SANGRIA_TITULO = 21f
 private const val ALTO_CASILLA = 44f
@@ -87,8 +89,8 @@ fun CabeceraSemestre(datos: DatosCabecera, tipos: TiposMapa, medidor: TextMeasur
         return
     }
     val ancho = Nodo.ANCHO.toFloat()
-    val anchoHechas by animateFloatAsState(if (datos.total > 0) ancho * datos.hechas / datos.total else 0f, tween(600, easing = Movimiento.FLUIDA), label = "hechas")
-    val anchoCursando by animateFloatAsState(if (datos.total > 0) ancho * datos.cursando / datos.total else 0f, tween(600, easing = Movimiento.FLUIDA), label = "cursando")
+    val anchoHechas by animateFloatAsState(if (datos.total > 0) ancho * datos.hechas / datos.total else 0f, tween(BARRA_MS, easing = Movimiento.FLUIDA), label = "hechas")
+    val anchoCursando by animateFloatAsState(if (datos.total > 0) ancho * datos.cursando / datos.total else 0f, tween(BARRA_MS, easing = Movimiento.FLUIDA), label = "cursando")
     val faltaElegir = datos.casilla?.marca == MarcaSemestre.FALTA_ELEGIR
     val pie = when {
         datos.completo -> "COMPLETO"
@@ -152,8 +154,8 @@ private const val BARRA_COMPACTA = 26f
 @Composable
 private fun CabeceraCompacta(datos: DatosCabecera, tipos: TiposMapa, alAlternar: () -> Unit) {
     val ancho = Nodo.ANCHO.toFloat()
-    val anchoHechas by animateFloatAsState(if (datos.total > 0) ancho * datos.hechas / datos.total else 0f, tween(600, easing = Movimiento.FLUIDA), label = "hechas")
-    val anchoCursando by animateFloatAsState(if (datos.total > 0) ancho * datos.cursando / datos.total else 0f, tween(600, easing = Movimiento.FLUIDA), label = "cursando")
+    val anchoHechas by animateFloatAsState(if (datos.total > 0) ancho * datos.hechas / datos.total else 0f, tween(BARRA_MS, easing = Movimiento.FLUIDA), label = "hechas")
+    val anchoCursando by animateFloatAsState(if (datos.total > 0) ancho * datos.cursando / datos.total else 0f, tween(BARRA_MS, easing = Movimiento.FLUIDA), label = "cursando")
     val apagado = SpanStyle(fontFamily = tipos.datos.fontFamily, fontWeight = tipos.datos.fontWeight, fontSize = tipos.datos.fontSize, color = Paleta.tenue, letterSpacing = tipos.datos.letterSpacing)
     Box(
         Modifier

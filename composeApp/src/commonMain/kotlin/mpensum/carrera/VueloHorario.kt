@@ -1,7 +1,6 @@
 package mpensum.carrera
 
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
@@ -62,9 +61,6 @@ import kotlin.random.Random
 
 internal const val ESC_ANCHO = 300f
 internal const val ESC_ALTO = 262f
-
-private val IO = CubicBezierEasing(0.65f, 0f, 0.35f, 1f)
-private val SAL = CubicBezierEasing(0.2f, 0f, 0f, 1f)
 
 private const val PT = 12f
 private const val CONDENSA = 260f
@@ -141,7 +137,7 @@ internal class PlanoVuelo(todas: List<Sesion>, colores: List<Color>, val inicio:
             var t = salida.min()
             val t1 = salida.max() + VIAJE
             while (t <= t1) {
-                for (i in 0 until n) ps[i] = enCurva(a[i], b[i], arco[i], IO.transform(tramo(t, salida[i], salida[i] + VIAJE)))
+                for (i in 0 until n) ps[i] = enCurva(a[i], b[i], arco[i], Movimiento.SIMETRICA.transform(tramo(t, salida[i], salida[i] + VIAJE)))
                 for (i in 0 until n) for (j in i + 1 until n) {
                     if (abs(ps[i].x - ps[j].x) < PT + 3 && abs(ps[i].y - ps[j].y) < PT + 3) malos++
                 }
@@ -259,8 +255,8 @@ private fun DrawScope.escena(plano: PlanoVuelo, o: OpcionesEscena, t: Float, dia
 
     // La captura: entra, se lee con una línea y se apaga (o se encoge) dejando sus clases sueltas
     val entra = if (o.entrada) Movimiento.FLUIDA.transform(tramo(t, 0f, 450f)) else 1f
-    val scan = if (o.entrada) 48f + IO.transform(tramo(t, 400f, 1150f)) * 204f else -1f
-    val sale = SAL.transform(tramo(tl, 0f, if (o.miniatura != null) 500f else 300f))
+    val scan = if (o.entrada) 48f + Movimiento.SIMETRICA.transform(tramo(t, 400f, 1150f)) * 204f else -1f
+    val sale = Movimiento.ESTANDAR.transform(tramo(tl, 0f, if (o.miniatura != null) 500f else 300f))
     if (o.miniatura != null) {
         val r = lerp(Rect(0f, 0f, ESC_ANCHO, ESC_ALTO), o.miniatura, sale)
         val k = r.width / ESC_ANCHO
@@ -291,7 +287,7 @@ private fun DrawScope.escena(plano: PlanoVuelo, o: OpcionesEscena, t: Float, dia
         val r = when {
             tl < plano.salida[i] -> lerp(orig, punto(orig, 0.5f), c)
             !floreciendo -> {
-                val v = IO.transform(tramo(tl, plano.salida[i], plano.salida[i] + VIAJE))
+                val v = Movimiento.SIMETRICA.transform(tramo(tl, plano.salida[i], plano.salida[i] + VIAJE))
                 val q = enCurva(punto(orig, 0.5f).center, punto(dest, plano.ay[i]).center, plano.arco[i], v)
                 Rect(Offset(q.x - PT / 2, q.y - PT / 2), Size(PT, PT))
             }

@@ -113,6 +113,15 @@ import kotlin.math.min
 
 /* ---- Medidas y letras ------------------------------------------------------ */
 
+/** Cambiar de día en el horario: el nuevo se desliza y se funde tras un respiro, el viejo se va antes */
+private const val DIA_ENTRA_MS = 320
+private const val DIA_SALE_MS = 260
+private const val DIA_FUNDE_ENTRA_MS = 220
+private const val DIA_ESPERA_MS = 60
+private const val DIA_FUNDE_SALE_MS = 140
+/** Sin bucles ni deslizamientos: solo un fundido corto */
+private const val DIA_FUNDE_SIN_BUCLES_MS = 160
+
 private val CURVA_LATIDO = CubicBezierEasing(0.22f, 0.61f, 0.36f, 1f)
 /** El margen de la vista: el px-5 de la web en el teléfono */
 internal val MARGEN_HORARIO = Espacio.l
@@ -550,9 +559,9 @@ private fun DiaElegido(horario: EstadoHorario, arriba: Dp) {
             transitionSpec = {
                 val haciaDelante = targetState > initialState
                 val sentido = if (haciaDelante) 1 else -1
-                if (Tema.sinBucles) fadeIn(tween(160)) togetherWith fadeOut(tween(100))
-                else (slideInHorizontally(tween(320, easing = Movimiento.FLUIDA)) { sentido * it / 5 } + fadeIn(tween(220, 60))) togetherWith
-                    (slideOutHorizontally(tween(260, easing = Movimiento.FLUIDA)) { -sentido * it / 5 } + fadeOut(tween(140)))
+                if (Tema.sinBucles) fadeIn(tween(DIA_FUNDE_SIN_BUCLES_MS)) togetherWith fadeOut(tween(Movimiento.SALIDA_RAPIDA))
+                else (slideInHorizontally(tween(DIA_ENTRA_MS, easing = Movimiento.FLUIDA)) { sentido * it / 5 } + fadeIn(tween(DIA_FUNDE_ENTRA_MS, DIA_ESPERA_MS))) togetherWith
+                    (slideOutHorizontally(tween(DIA_SALE_MS, easing = Movimiento.FLUIDA)) { -sentido * it / 5 } + fadeOut(tween(DIA_FUNDE_SALE_MS)))
             },
             label = "dia",
         ) { d -> ContenidoDia(horario, d) }

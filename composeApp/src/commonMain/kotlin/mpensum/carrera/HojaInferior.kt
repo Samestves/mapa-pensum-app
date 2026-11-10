@@ -113,6 +113,9 @@ import kotlin.math.exp
 private val ENTRA = spring<Float>(dampingRatio = 1f, stiffness = 380f, visibilityThreshold = 0.5f)
 /** Vuelta cuando el tirón no llegó al umbral: algo más rígido, con la velocidad del dedo */
 private val VUELVE = spring<Float>(dampingRatio = 1f, stiffness = 420f, visibilityThreshold = 0.5f)
+/** Lo que tarda en irse una hoja soltada por el dedo: el mínimo, más el extra que crece con la distancia */
+private const val SALE_DEDO_MIN_MS = 140
+private const val SALE_DEDO_EXTRA_MS = 130
 /** Salida tras un tirón: arranca ya a la velocidad del dedo (pendiente 1) y acelera al final */
 private val SALE_DEDO = CubicBezierEasing(0.35f, 0.35f, 0.9f, 0.55f)
 /** Salida por atrás o por el aspa, desde arriba del todo: aceleración (Material), arranca lenta y se va */
@@ -232,7 +235,7 @@ private class Hoja(private val alcance: CoroutineScope) {
         val meta = oculto()
         val restante = ((meta - desp) / meta).coerceIn(0f, 1f)
         // Por distancia: desde arriba del todo 260 ms (o 270 tras un tirón); desde casi fuera, la mitad
-        if (porDedo) animar(meta, tween((140 + 130 * restante).toInt(), easing = SALE_DEDO))
+        if (porDedo) animar(meta, tween((SALE_DEDO_MIN_MS + SALE_DEDO_EXTRA_MS * restante).toInt(), easing = SALE_DEDO))
         else animar(meta, tween((SALE_MS * (0.5f + 0.5f * restante)).toInt(), easing = Movimiento.SALE))
     }
 

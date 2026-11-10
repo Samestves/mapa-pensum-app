@@ -70,6 +70,9 @@ import mpensum.tema.Paleta
  */
 
 /** Cuánto mide la foto cuando comparte el renglón con el texto; el alto sale de su proporción */
+/** Una pasada de la línea de lectura, y lo que tarda en bajar al ritmo de lo leído */
+private const val BARRIDO_MS = 1800
+private const val LINEA_MS = 600
 private val ANCHO_FOTO = 320.dp
 private val ANCHO_TEXTO = 340.dp
 private val AIRE_FOTO_TEXTO = 48.dp
@@ -228,9 +231,9 @@ private fun PasoLeyendo(horario: EstadoHorario, lectura: Lectura, arriba: Dp, ab
     val leidas = lectura.leidas.size
     // Mientras el servidor lee no se sabe cuánto falta: la línea recorre la foto sin decir un porcentaje. Con las materias, baja al ritmo de lo leído
     val barrido by rememberInfiniteTransition(label = "barrido").animateFloat(
-        0f, 1f, infiniteRepeatable(tween(1800, easing = LinearEasing), RepeatMode.Reverse), label = "barrido",
+        0f, 1f, infiniteRepeatable(tween(BARRIDO_MS, easing = LinearEasing), RepeatMode.Reverse), label = "barrido",
     )
-    val real by animateFloatAsState(if (lectura.total > 0) (leidas.toFloat() / lectura.total).coerceIn(0f, 1f) else 0f, tween(600, easing = Movimiento.FLUIDA), label = "linea")
+    val real by animateFloatAsState(if (lectura.total > 0) (leidas.toFloat() / lectura.total).coerceIn(0f, 1f) else 0f, tween(LINEA_MS, easing = Movimiento.FLUIDA), label = "linea")
     val escaneo = { if (lectura.total > 0) real else barrido }
     Column(modifier.fillMaxSize().padding(top = arriba + Espacio.xs, bottom = abajo + Espacio.s, start = margenPantalla(), end = margenPantalla())) {
         CabeceraLectura("LEER HORARIO", horario::cancelarLectura)
@@ -314,7 +317,7 @@ private fun PasoSemana(horario: EstadoHorario, lectura: Lectura, arriba: Dp, aba
             // En horizontal el resumen cabe en la cabecera, a la derecha, y la rejilla empieza más arriba
             if (!volando && horizontal) BasicText(resumenSemana(sesiones), Modifier.align(Alignment.CenterEnd), style = l.texto, maxLines = 1)
         }
-        Crossfade(volando, animationSpec = tween(300), label = "semana-leida") { vuela ->
+        Crossfade(volando, animationSpec = tween(Movimiento.CAMBIO_VISTA), label = "semana-leida") { vuela ->
             if (vuela) {
                 val plano = remember(sesiones) { PlanoVuelo(sesiones, sesiones.map { horario.color(it.codigo) }, inicio = 0f) }
                 val reloj = rememberRelojVuelo(plano.total) {

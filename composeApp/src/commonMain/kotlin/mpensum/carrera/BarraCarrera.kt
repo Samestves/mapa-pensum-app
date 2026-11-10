@@ -48,13 +48,13 @@ import dev.chrisbanes.haze.ExperimentalHazeApi
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.HazeStyle
 import dev.chrisbanes.haze.HazeTint
-import mpensum.bienvenida.desenfoque
 import mpensum.componentes.IconoDoble
 import mpensum.componentes.IconoRelleno
 import mpensum.componentes.IconoRellenoVivo
 import mpensum.componentes.Phosphor
 import mpensum.componentes.Vidrio
 import mpensum.componentes.cristal
+import mpensum.componentes.desenfoque
 import mpensum.componentes.pulsable
 import mpensum.logica.Progreso
 import mpensum.tema.Alto
@@ -74,6 +74,8 @@ import kotlin.math.roundToInt
  * elegida no cambia de forma, solo se enciende.
  */
 
+/** Lo que tarda la luz de la pestaña en deslizarse hasta la que eliges */
+private const val DESLIZA_MS = 600
 private val ANCHO_PESTANA = 56.dp
 private val ANCHO_NUCLEO = 60.dp
 val ALTO_BARRA = 58.dp
@@ -198,7 +200,7 @@ private fun Nucleo(progreso: Progreso?, color: Color?, tam: DpSize, alPulsar: ()
     // Cuenta al dibujar, no al componer: el Núcleo no se recompone en cada cuadro de sus 600 ms
     val animado = remember { Animatable(destino) }
     LaunchedEffect(destino) {
-        if (Movimiento.reducido) animado.snapTo(destino) else animado.animateTo(destino, tween(600, easing = Movimiento.ESTANDAR))
+        if (Movimiento.reducido) animado.snapTo(destino) else animado.animateTo(destino, tween(DESLIZA_MS, easing = Movimiento.ESTANDAR))
     }
     val medidor = rememberTextMeasurer()
     val estilo = TextStyle(fontFamily = jost(), fontWeight = FontWeight.Normal, fontSize = 13.sp, letterSpacing = (-0.01).em, color = Paleta.tinta)

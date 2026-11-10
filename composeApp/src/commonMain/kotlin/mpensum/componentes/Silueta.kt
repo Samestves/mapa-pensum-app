@@ -25,6 +25,9 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import kotlin.math.min
 import kotlin.math.sin
 
+/** Lo que tarda la onda de la silueta en recorrerla de punta a punta */
+private const val ONDA_MS = 3600
+
 /** Lo que ocupa una silueta: columnas de puntos, una por semestre */
 fun tamSilueta(silueta: List<Int>, punto: Dp, hueco: Dp, huecoFila: Dp): Pair<Dp, Dp> {
     val filas = silueta.maxOrNull() ?: 0
@@ -71,7 +74,7 @@ fun Silueta(
     // El reloj de la onda se lee al dibujar: la silueta no se recompone en cada fotograma
     val reloj: State<Float>? = if (onda && !Tema.sinBucles) {
         rememberInfiniteTransition(label = "onda")
-            .animateFloat(0f, 1f, infiniteRepeatable(tween(3600, easing = LinearEasing), RepeatMode.Restart), label = "t")
+            .animateFloat(0f, 1f, infiniteRepeatable(tween(ONDA_MS, easing = LinearEasing), RepeatMode.Restart), label = "t")
     } else null
     // Con onda, en su propia capa: cada cuadro repinta los puntos y no la tarjeta que la lleva
     Canvas(modifier.size(ancho, alto).then(if (reloj != null) Modifier.graphicsLayer {} else Modifier)) {

@@ -1,7 +1,6 @@
 package mpensum.mapa
 
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -80,9 +79,11 @@ import kotlin.math.min
 
 /** La opacidad de lo que queda fuera del foco en el teléfono (--opacidad-foco) */
 private const val OPACIDAD_FOCO = 0.14f
-private val LLEGADA = CubicBezierEasing(0.22f, 0.61f, 0.2f, 1f)
-private val VIAJE_LUZ = CubicBezierEasing(0.45f, 0f, 0.3f, 1f)
-private val DESCARGA = CubicBezierEasing(0.55f, 0f, 0.25f, 1f)
+/** Lo que tarda en enfocarse la cadena de la materia abierta, y en trazarse su ruta */
+private const val FOCO_MS = 320
+private const val TRAZADO_MS = 560
+/** La llegada del mapa la primera vez por carrera */
+private const val LLEGADA_MS = Movimiento.MEDIA + 100
 /** La descarga espera a que el mapa se corra para enseñar lo que se abre, y luego recorre el cable */
 private const val ESPERA_DESCARGA = 380
 private const val DURACION_DESCARGA = 1300
@@ -130,16 +131,16 @@ fun MapaCarrera(
     LaunchedEffect(cadena) {
         if (cadena != null) {
             cadenaVisible = cadena
-            foco.animateTo(1f, tween(320, easing = Movimiento.FLUIDA))
+            foco.animateTo(1f, tween(FOCO_MS, easing = Movimiento.FLUIDA))
         } else {
-            foco.animateTo(0f, tween(320, easing = Movimiento.FLUIDA))
+            foco.animateTo(0f, tween(FOCO_MS, easing = Movimiento.FLUIDA))
             cadenaVisible = null
         }
     }
     LaunchedEffect(mirada) {
         if (mirada == null) return@LaunchedEffect
         trazado.snapTo(0f)
-        trazado.animateTo(1f, tween(560, easing = Movimiento.FLUIDA))
+        trazado.animateTo(1f, tween(TRAZADO_MS, easing = Movimiento.FLUIDA))
     }
     val descarga = remember { Animatable(1f) }
     LaunchedEffect(efectos.descarga?.n) {
@@ -165,7 +166,7 @@ fun MapaCarrera(
             return@LaunchedEffect
         }
         camara.yaLlego = true
-        llegada.animateTo(1f, tween(Movimiento.MEDIA + 100, easing = LLEGADA))
+        llegada.animateTo(1f, tween(LLEGADA_MS, easing = Movimiento.Mapa.LLEGADA))
     }
 
     // El mapa entra por partes, unas pocas tarjetas por cuadro desde la columna que mira la cámara: el cuadro
@@ -584,7 +585,7 @@ private fun DrawScope.descargaPor(c: CableDibujo, tiempo: Float) {
     val total = (ESPERA_DESCARGA + DURACION_DESCARGA).toFloat()
     val t = ((tiempo * total) - ESPERA_DESCARGA) / DURACION_DESCARGA
     if (t <= 0f) return
-    val p = DESCARGA.transform(t.coerceIn(0f, 1f))
+    val p = Movimiento.Mapa.DESCARGA.transform(t.coerceIn(0f, 1f))
     val lleno = min(1f, p / 0.58f)
     val alfa = if (p < 0.58f) 1f else 1f - (p - 0.58f) / 0.42f
     val trozo = c.hasta(lleno)
@@ -659,7 +660,7 @@ private fun LuzDeFrontera(estado: EstadoCarrera, cables: List<CableDibujo>, cong
                         val duracion = 2.6f + ((i * 5) % 7) * 0.1f
                         val retraso = ((i * 7) % 11) * 0.26f
                         val bruto = ((segundos + retraso) / duracion) % 1f
-                        val p = VIAJE_LUZ.transform(bruto)
+                        val p = Movimiento.Mapa.VIAJE_LUZ.transform(bruto)
                         val alfa = when {
                             bruto < 0.14f -> bruto / 0.14f
                             bruto > 0.82f -> (1f - bruto) / 0.18f

@@ -38,6 +38,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import mpensum.tema.Movimiento
 import mpensum.tema.Paleta
 import mpensum.tema.Tema
 import mpensum.tema.porTema
@@ -150,7 +151,7 @@ fun BotonIcono(alPulsar: () -> Unit, modifier: Modifier = Modifier, fondo: Color
 @Composable
 fun BarraPasos(paso: Int, total: Int, modifier: Modifier = Modifier) {
     val encendido = remember(paso) { Animatable(0f) }
-    LaunchedEffect(paso) { encendido.animateTo(1f, tween(250, easing = FastOutSlowInEasing)) }
+    LaunchedEffect(paso) { encendido.animateTo(1f, tween(Movimiento.MEDIA, easing = FastOutSlowInEasing)) }
     Row(modifier, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
         for (i in 0 until total) {
             Box(
