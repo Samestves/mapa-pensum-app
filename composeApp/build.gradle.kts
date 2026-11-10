@@ -112,7 +112,7 @@ ktlint {
 // Pruebas rápidas por defecto: la lógica y los recorridos Qa*. Las capturas y los informes de coste
 // (Captura*, CosteCuadros, Rendimiento) no afirman nada: solo detectan cuelgues y escriben PNG o cifras.
 // Corren con `./gradlew :composeApp:capturas`, o con -Pcapturas junto a testDebugUnitTest.
-val lentas = listOf("*Captura*", "*CosteCuadros*", "*Rendimiento*")
+val lentas = listOf("**/*Captura*", "**/*CosteCuadros*", "**/*Rendimiento*")
 
 tasks.register("capturas") {
     group = "verification"
@@ -120,13 +120,9 @@ tasks.register("capturas") {
     dependsOn("testDebugUnitTest")
 }
 
-gradle.taskGraph.whenReady {
-    val soloLentas = hasTask(":composeApp:capturas")
-    val todas = soloLentas || project.hasProperty("capturas")
-    tasks.withType<Test>().configureEach {
-        filter {
-            if (soloLentas) lentas.forEach { includeTestsMatching(it) }
-            else if (!todas) lentas.forEach { excludeTestsMatching(it) }
-        }
-    }
+// Se decide al configurar, mirando qué tareas se pidieron: más tarde la prueba ya tiene su lista de clases
+val soloLentas = gradle.startParameter.taskNames.any { it == "capturas" || it.endsWith(":capturas") }
+val todas = soloLentas || providers.gradleProperty("capturas").isPresent
+tasks.withType<Test>().configureEach {
+    if (soloLentas) include(lentas) else if (!todas) exclude(lentas)
 }
