@@ -58,7 +58,7 @@ abstract class BaseFichaMapa(private val tam: String) {
         val camara = Camara("ficha-$nombre-$tam")
         val efectos = EfectosMapa()
         val cristal = HazeState()
-        regla.setContent {
+        regla.setContentSincrono {
             Box(Modifier.fillMaxSize().background(Paleta.lienzo)) {
                 Box(Modifier.fillMaxSize().hazeSource(cristal)) {
                     MapaCarrera(estado, camara, efectos, codigo, congelado = false, alTocarMateria = {}, alTocarVacio = {}, alAbrirCasilla = {}, alAlternarSemestre = {})
@@ -66,10 +66,8 @@ abstract class BaseFichaMapa(private val tam: String) {
                 FichaMateria(codigo, estado, alCerrar = {}, alMarcar = { _, _ -> }, alIrA = {}, alCambiarElectiva = {}, alEncuadrar = { _, _ -> })
             }
         }
-        // El cálculo de la respuesta va en otro hilo: se deja pasar tiempo real además del del reloj
         repeat(40) {
             regla.mainClock.advanceTimeBy(50)
-            Thread.sleep(10)
             regla.waitForIdle()
         }
         regla.onRoot().captureRoboImage("build/capturas/ficha-$nombre-$tam.png")

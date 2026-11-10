@@ -1,5 +1,6 @@
 package mpensum.carrera
 
+import mpensum.setContentSinLatido
 import mpensum.plataforma.iniciar
 import android.content.Context
 import androidx.activity.ComponentActivity
@@ -63,7 +64,6 @@ class QaGirarHojaTest {
     @BeforeTest
     fun preparar() {
         Preferencias.iniciar(RuntimeEnvironment.getApplication())
-        latidoActivo = false
         regla.mainClock.autoAdvance = false
     }
 
@@ -100,7 +100,7 @@ class QaGirarHojaTest {
         val estado = estado()
         var ventana by mutableStateOf(dePie)
         var abierta by mutableStateOf(true)
-        regla.setContent {
+        regla.setContentSinLatido {
             CompositionLocalProvider(LocalVentana provides ventana) {
                 Box(Modifier.fillMaxSize().background(Paleta.lienzo)) {
                     HojaAvance(abierta, estado, alCerrar = { abierta = false }, alVerEnMapa = {})
@@ -145,7 +145,7 @@ class QaGirarHojaTest {
     fun girarMientrasSaleLaRecogeSinTaparLaPantalla() {
         var ventana by mutableStateOf(dePie)
         var abierta by mutableStateOf(true)
-        regla.setContent {
+        regla.setContentSinLatido {
             CompositionLocalProvider(LocalVentana provides ventana) {
                 Box(Modifier.fillMaxSize()) {
                     HojaInferior(abierta = abierta, alCerrar = { abierta = false }, modal = false, cabecera = { BasicText("Cabecera") }) {
@@ -181,7 +181,7 @@ class QaGirarHojaTest {
         val quinto = estado.pensum.obligatorias.filter { it.semestre == 5 }
         val (a, b) = quinto[0] to quinto[1]
         var codigo by mutableStateOf<String?>(a.codigo)
-        regla.setContent {
+        regla.setContentSinLatido {
             CompositionLocalProvider(LocalVentana provides dePie) {
                 Box(Modifier.fillMaxSize()) {
                     FichaMateria(codigo, estado, alCerrar = { codigo = null }, alMarcar = { _, _ -> }, alIrA = {}, alCambiarElectiva = {}, alEncuadrar = { _, _ -> })

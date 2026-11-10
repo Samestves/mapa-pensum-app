@@ -1,5 +1,6 @@
 package mpensum.carrera
 
+import mpensum.setContentSinLatido
 import mpensum.plataforma.iniciar
 import android.content.Context
 import android.graphics.Bitmap
@@ -100,8 +101,6 @@ class CapturaTransicionesTest {
     fun preparar() {
         System.setProperty("roborazzi.test.record", "true")
         Preferencias.iniciar(RuntimeEnvironment.getApplication())
-        // Un latido eterno no deja ver el reposo, y aquí cada cuadro cuenta
-        latidoActivo = false
         CARPETA.mkdirs()
     }
 
@@ -109,7 +108,6 @@ class CapturaTransicionesTest {
     fun limpiar() {
         Tema.juego = Juego.OSCURO
         Tema.fondo = Fondo.REJILLA
-        latidoActivo = true
         RuntimeEnvironment.getApplication().getSharedPreferences("mapa-pensum", Context.MODE_PRIVATE).edit().clear().commit()
         Preferencias.iniciar(RuntimeEnvironment.getApplication())
     }
@@ -154,7 +152,6 @@ class CapturaTransicionesTest {
         val inicio = regla.mainClock.currentTime
         while (regla.mainClock.currentTime - inicio < ms) {
             regla.mainClock.advanceTimeByFrame()
-            Thread.sleep(2)
         }
     }
 
@@ -169,7 +166,6 @@ class CapturaTransicionesTest {
         val t0 = regla.mainClock.currentTime
         while (regla.mainClock.currentTime - t0 < ms) {
             regla.mainClock.advanceTimeByFrame()
-            Thread.sleep(2)
             cuadros += foto(listo, regla.mainClock.currentTime - t0)
         }
         var mayor = 0f
@@ -225,7 +221,7 @@ class CapturaTransicionesTest {
         regla.mainClock.autoAdvance = false
         val camara = Camara(estado.pensum.slug + "transiciones")
         val cristal = HazeState()
-        regla.setContent {
+        regla.setContentSinLatido(sincrono = true) {
             Box(Modifier.fillMaxSize().background(Paleta.lienzo)) {
                 Box(Modifier.fillMaxSize().hazeSource(cristal)) {
                     MapaCarrera(estado, camara, EfectosMapa(), null, congelado = true, alTocarMateria = {}, alTocarVacio = {}, alAbrirCasilla = {}, alAlternarSemestre = {})
@@ -286,7 +282,7 @@ class CapturaTransicionesTest {
     fun ajustesPersonalizar() {
         val carreras = Json { ignoreUnknownKeys = true }.decodeFromString<List<Carrera>>(File("src/commonMain/composeResources/files/indice.json").readText())
         regla.mainClock.autoAdvance = false
-        regla.setContent {
+        regla.setContentSinLatido(sincrono = true) {
             Box(Modifier.fillMaxSize().background(Paleta.lienzo)) {
                 HojaAjustes(PaginaAjustes.MENU, carreras, carreras.first { it.slug == "ingenieria-de-sistemas" }, alCerrar = {}, alElegir = {}, alVerGuia = {})
             }
@@ -321,7 +317,7 @@ class CapturaTransicionesTest {
         val b = estado.pensum.obligatorias.first { it.semestre == 1 }.codigo
         var codigo by mutableStateOf<String?>(null)
         var encuadre: Float? = null
-        regla.setContent {
+        regla.setContentSinLatido(sincrono = true) {
             Box(Modifier.fillMaxSize().background(Paleta.lienzo)) {
                 Box(Modifier.fillMaxSize()) {
                     MapaCarrera(estado, camara, EfectosMapa(), codigo, congelado = false, alTocarMateria = {}, alTocarVacio = {}, alAbrirCasilla = {}, alAlternarSemestre = {})

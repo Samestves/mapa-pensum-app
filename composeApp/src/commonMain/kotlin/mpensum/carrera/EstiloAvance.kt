@@ -512,9 +512,6 @@ internal fun IconoFila.trazos(): List<Path> = when (this) {
 
 // ─────────────────────────────────── Para el anillo ──────────────────────────────────
 
-/** Las pruebas lo apagan: un latido eterno no deja que el reloj de pruebas llegue a estar en reposo */
-internal var latidoActivo = true
-
 /** Un icono Lucide dibujado dentro de un Canvas, en la caja de `lado` px que empieza en (izq, arriba) */
 internal fun DrawScope.icono(trazos: List<Path>, color: Color, izq: Float, arriba: Float, lado: Float, grosor: Float = 2f) {
     val e = lado / 24f

@@ -1,5 +1,6 @@
 package mpensum.carrera
 
+import mpensum.setContentSinLatido
 import mpensum.plataforma.iniciar
 import androidx.activity.ComponentActivity
 import androidx.compose.runtime.Composer
@@ -70,14 +71,12 @@ class CosteCuadrosTest {
             p.obligatorias.filter { (it.semestre ?: 99) <= 4 }.associate { it.codigo to Marca.APROBADA } +
                 p.obligatorias.filter { it.semestre == 5 }.take(2).associate { it.codigo to Marca.CURSANDO },
         )
-        latidoActivo = false
         regla.mainClock.autoAdvance = false
         Composer.setTracer(trazador)
     }
 
     @AfterTest
     fun limpiar() {
-        latidoActivo = true
         RuntimeEnvironment.getApplication().getSharedPreferences("mapa-pensum", android.content.Context.MODE_PRIVATE).edit().clear().commit()
         File("build/capturas").mkdirs()
         File("build/capturas/coste-cuadros.txt").writeText(informe.toString())
@@ -159,7 +158,7 @@ class CosteCuadrosTest {
 
     @Test
     fun cuadrosDeLosTresRecorridos() {
-        regla.setContent { App() }
+        regla.setContentSinLatido { App() }
         esperar(3000)
         repeat(2) { recorrido(medir = false) }
         recorrido(medir = true)

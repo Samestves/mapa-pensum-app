@@ -17,7 +17,6 @@ import dev.chrisbanes.haze.hazeSource
 import mpensum.carrera.EstadoCarrera
 import mpensum.carrera.HojaAvance
 import mpensum.carrera.LocalFondoHoja
-import mpensum.carrera.latidoActivo
 import mpensum.datos.leerPensum
 import mpensum.logica.Marca
 import mpensum.mapa.Camara
@@ -52,8 +51,6 @@ class CapturaHorizontalProgresoTest {
     fun grabar() {
         System.setProperty("roborazzi.test.record", "true")
         Preferencias.iniciar(RuntimeEnvironment.getApplication())
-        // Un latido eterno no deja al reloj de pruebas llegar al reposo
-        latidoActivo = false
     }
 
     @AfterTest
@@ -77,7 +74,7 @@ class CapturaHorizontalProgresoTest {
         val camara = Camara(estado.pensum.slug + "horizontal-progreso")
         val efectos = EfectosMapa()
         val cristal = HazeState()
-        regla.setContent {
+        regla.setContentSinLatido {
             Box(Modifier.fillMaxSize().background(Paleta.lienzo)) {
                 Box(Modifier.fillMaxSize().hazeSource(cristal)) {
                     MapaCarrera(estado, camara, efectos, null, congelado = true, alTocarMateria = {}, alTocarVacio = {}, alAbrirCasilla = {}, alAlternarSemestre = {})

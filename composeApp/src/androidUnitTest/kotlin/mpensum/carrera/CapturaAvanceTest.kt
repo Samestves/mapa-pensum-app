@@ -1,5 +1,6 @@
 package mpensum.carrera
 
+import mpensum.setContentSinLatido
 import mpensum.plataforma.iniciar
 import android.content.Context
 import androidx.compose.foundation.background
@@ -59,8 +60,6 @@ class CapturaAvanceTest {
         System.setProperty("roborazzi.test.record", "true")
         // Con preferencias de verdad, para comprobar que la carga se guarda
         Preferencias.iniciar(RuntimeEnvironment.getApplication())
-        // Un latido eterno no deja al reloj de pruebas llegar al reposo
-        latidoActivo = false
     }
 
     /** Lo guardado no pasa a otras pruebas: el objeto Preferencias vive todo el proceso */
@@ -83,7 +82,7 @@ class CapturaAvanceTest {
         val camara = Camara(estado.pensum.slug + "avance")
         val efectos = EfectosMapa()
         val cristal = HazeState()
-        regla.setContent {
+        regla.setContentSinLatido {
             Box(Modifier.fillMaxSize().background(Paleta.lienzo)) {
                 Box(Modifier.fillMaxSize().hazeSource(cristal)) {
                     MapaCarrera(estado, camara, efectos, null, congelado = true, alTocarMateria = {}, alTocarVacio = {}, alAbrirCasilla = {}, alAlternarSemestre = {})

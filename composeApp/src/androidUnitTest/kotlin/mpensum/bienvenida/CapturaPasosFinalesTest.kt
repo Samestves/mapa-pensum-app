@@ -1,5 +1,6 @@
 package mpensum.bienvenida
 
+import mpensum.setContentSincrono
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -50,7 +51,7 @@ class CapturaPasosFinalesTest {
     /** El paso dentro del mismo marco que la bienvenida: fondo y el hueco de la barra de arriba */
     private fun montar(contenido: @Composable ColumnScope.() -> Unit) {
         regla.mainClock.autoAdvance = false
-        regla.setContent {
+        regla.setContentSincrono {
             Column(Modifier.fillMaxSize().background(Paleta.lienzo)) {
                 Spacer(Modifier.height(96.dp))
                 contenido()
@@ -66,7 +67,6 @@ class CapturaPasosFinalesTest {
     private fun hasta(ms: Long) {
         while (regla.mainClock.currentTime < ms) {
             regla.mainClock.advanceTimeBy(100)
-            Thread.sleep(2)
         }
     }
 

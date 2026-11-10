@@ -1,5 +1,6 @@
 package mpensum.carrera
 
+import mpensum.setContentSincrono
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -78,7 +79,7 @@ class CapturaListaTest {
         acostada: Boolean = false,
     ) {
         regla.mainClock.autoAdvance = false
-        regla.setContent {
+        regla.setContentSincrono {
             val cristal = remember { HazeState() }
             Box(Modifier.fillMaxSize().background(Paleta.lienzo).padding(top = if (acostada) 0.dp else arriba, bottom = if (acostada) 0.dp else abajo)) {
                 Box(Modifier.fillMaxSize().hazeSource(cristal)) {
@@ -96,7 +97,6 @@ class CapturaListaTest {
         repeat((ms / 16).toInt()) {
             regla.waitForIdle()
             regla.mainClock.advanceTimeByFrame()
-            Thread.sleep(6)
         }
     }
 

@@ -10,6 +10,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.Modifier
@@ -184,6 +185,12 @@ internal fun elegirAnguloNota(
     return mejor
 }
 
+/**
+ * Si el anillo late. De serie sí (salvo con el movimiento reducido o el modo ligero, que lo apagan aparte);
+ * una prueba lo apaga para un reposo del que medir cuadros, sin tocar nada global que pase a las demás pruebas.
+ */
+internal val LocalLatido = staticCompositionLocalOf { true }
+
 @Composable
 internal fun AnilloGraduacion(a: Anillo, porcentaje: Int, anioMeta: Int?, anioHoy: Int, entrada: () -> Float, modifier: Modifier = Modifier) {
     val medidor = rememberTextMeasurer(cacheSize = 96)
@@ -196,7 +203,7 @@ internal fun AnilloGraduacion(a: Anillo, porcentaje: Int, anioMeta: Int?, anioHo
     val grande = estiloCifra(34.sp, Color.Unspecified, interlinea = 36.sp)
     val porciento = estiloUnidad(34.sp, color = Color.Unspecified)
     val pie = estilo(10, Color.Unspecified, FontWeight.SemiBold, 14).copy(letterSpacing = 0.06.em)
-    val latido = if (latidoActivo && !Tema.sinBucles) {
+    val latido = if (LocalLatido.current && !Tema.sinBucles) {
         rememberInfiniteTransition(label = "latidoAnillo").animateFloat(0f, 1f, infiniteRepeatable(tween(LATIDO_ANILLO_MS, easing = LinearEasing), RepeatMode.Restart), label = "latidoAnillo")
     } else null
 

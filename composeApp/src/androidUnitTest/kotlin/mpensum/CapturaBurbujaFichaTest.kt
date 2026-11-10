@@ -57,7 +57,7 @@ class CapturaBurbujaFichaTest {
         val camara = Camara("burbuja-$nombre")
         val efectos = EfectosMapa()
         var elegida by mutableStateOf<String?>(null)
-        regla.setContent {
+        regla.setContentSincrono {
             BoxWithConstraints(Modifier.fillMaxSize().background(Paleta.lienzo)) {
                 MapaCarrera(estado, camara, efectos, elegida, congelado = false, alTocarMateria = {}, alTocarVacio = {}, alAbrirCasilla = {}, alAlternarSemestre = {})
                 BurbujaFicha(
@@ -70,7 +70,6 @@ class CapturaBurbujaFichaTest {
         }
         fun correr(ms: Int) = repeat(ms / 50) {
             regla.mainClock.advanceTimeBy(50)
-            Thread.sleep(10)
             regla.waitForIdle()
         }
         correr(1000)

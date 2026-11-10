@@ -1,5 +1,6 @@
 package mpensum.portada
 
+import mpensum.setContentSincrono
 import mpensum.plataforma.iniciar
 import android.content.Context
 import androidx.compose.foundation.background
@@ -58,7 +59,7 @@ class CapturaAjustesTest {
 
     private fun montar(propia: Carrera?) {
         regla.mainClock.autoAdvance = false
-        regla.setContent {
+        regla.setContentSincrono {
             Box(Modifier.fillMaxSize().background(Paleta.lienzo)) {
                 HojaAjustes(PaginaAjustes.MENU, carreras, propia, alCerrar = {}, alElegir = {}, alVerGuia = {})
             }
@@ -103,7 +104,6 @@ class CapturaAjustesTest {
         val inicio = regla.mainClock.currentTime
         while (regla.mainClock.currentTime - inicio < ms) {
             regla.mainClock.advanceTimeByFrame()
-            Thread.sleep(2)
         }
     }
 
@@ -111,7 +111,7 @@ class CapturaAjustesTest {
     @Test
     fun accesibilidad() {
         regla.mainClock.autoAdvance = false
-        regla.setContent {
+        regla.setContentSincrono {
             Box(Modifier.fillMaxSize().background(Paleta.lienzo)) {
                 HojaAjustes(PaginaAjustes.ACCESIBILIDAD, carreras, carreras.first { it.slug == "ingenieria-de-sistemas" }, alCerrar = {}, alElegir = {}, alVerGuia = {})
             }

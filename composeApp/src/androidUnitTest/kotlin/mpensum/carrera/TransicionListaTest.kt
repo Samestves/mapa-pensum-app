@@ -1,5 +1,6 @@
 package mpensum.carrera
 
+import mpensum.setContentSincrono
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -45,7 +46,6 @@ class TransicionListaTest {
     private fun cuadros(n: Int) = repeat(n) {
         regla.waitForIdle()
         regla.mainClock.advanceTimeByFrame()
-        Thread.sleep(3)
     }
 
     private fun izquierdaDe(texto: String) = regla.onAllNodesWithText(texto).fetchSemanticsNodes().firstOrNull()?.boundsInRoot?.left
@@ -55,7 +55,7 @@ class TransicionListaTest {
         val navegacion = NavegacionLista()
         regla.mainClock.autoAdvance = false
         val carrera = estado()
-        regla.setContent {
+        regla.setContentSincrono {
             Box(Modifier.fillMaxSize().background(Paleta.lienzo)) {
                 VistaLista(carrera, navegacion, abajo = 72.dp, acostada = false, derecha = 0.dp, alElegirElectiva = { _, _ -> }, alVerEnMapa = {})
             }
