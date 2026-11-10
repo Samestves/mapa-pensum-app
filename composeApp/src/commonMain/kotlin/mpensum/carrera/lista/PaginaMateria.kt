@@ -203,7 +203,7 @@ internal fun PaginaDeMateria(
 
 /** «SEMESTRE 5 · 0713463»: dónde va y su código, discretos en Plex */
 @Composable
-private fun Rotulo(m: MateriaLista) {
+internal fun Rotulo(m: MateriaLista) {
     val texto = listOfNotNull(m.semestre?.let { "SEMESTRE $it" } ?: "ELECTIVA", m.codigo).joinToString(" · ")
     BasicText(texto, style = estiloPlex().copy(letterSpacing = 0.03.em))
 }

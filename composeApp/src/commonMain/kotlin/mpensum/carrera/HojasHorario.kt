@@ -317,7 +317,7 @@ private fun Editar(horario: EstadoHorario, b: Borrador) {
 }
 
 @Composable
-private fun Rotulo(texto: String, modifier: Modifier = Modifier) {
+internal fun Rotulo(texto: String, modifier: Modifier = Modifier) {
     BasicText(texto, modifier, style = letrasHorario().etiqueta)
 }
 
