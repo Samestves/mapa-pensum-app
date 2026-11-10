@@ -1,19 +1,15 @@
 package mpensum.carrera
 
-import mpensum.componentes.superficie
 import mpensum.componentes.TarjetaLista
 import mpensum.componentes.icono
-import mpensum.componentes.estiloFila
 import mpensum.componentes.trazos
 import mpensum.componentes.Velo
-import mpensum.componentes.Chevron
 import mpensum.componentes.FilaLista
 import mpensum.componentes.nota
 import mpensum.componentes.Pastilla
 import mpensum.componentes.estiloRotulo
 import mpensum.componentes.estilo
 import mpensum.componentes.estiloNota
-import mpensum.componentes.BotonTinta
 import mpensum.componentes.BotonRedondo
 import mpensum.componentes.estiloTitulo
 import androidx.compose.animation.AnimatedContent
@@ -36,14 +32,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.TextAutoSize
@@ -62,8 +56,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
@@ -80,17 +72,11 @@ import mpensum.componentes.iconoEstado
 import mpensum.componentes.colorEstado
 import mpensum.componentes.Lucide
 import mpensum.componentes.margenPantalla
-import mpensum.componentes.pulsable
-import mpensum.componentes.ventana
-import mpensum.datos.Asignatura
-import mpensum.logica.Marca
 import mpensum.logica.Situacion
-import mpensum.logica.seAbrenAlAprobar
 import mpensum.mapa.nombreCasilla
 import mpensum.tema.Movimiento
 import mpensum.tema.Espacio
 import mpensum.tema.Paleta
-import mpensum.tema.Radio
 import mpensum.tema.Tipo
 import mpensum.tema.plex
 
@@ -104,7 +90,7 @@ import mpensum.tema.plex
 
 /** Lo que cambia de una materia a otra se funde en 150 ms, sin cambiar el alto de golpe a media animación */
 /** Sale la vieja (100 ms) y después entra la nueva (150 ms): nunca dos textos encimados */
-private fun fundidoEnSerie(): ContentTransform =
+internal fun fundidoEnSerie(): ContentTransform =
     if (Movimiento.reducido) fadeIn(tween(Movimiento.CORTA)) togetherWith fadeOut(tween(Movimiento.CORTA))
     else fadeIn(tween(Movimiento.CORTA, Movimiento.SALIDA_RAPIDA, Movimiento.ENTRA)) togetherWith fadeOut(tween(Movimiento.SALIDA_RAPIDA, easing = Movimiento.SALE))
 
@@ -364,186 +350,3 @@ internal fun RespuestaFicha(codigo: String, estado: EstadoCarrera, modifier: Mod
 }
 
 // ─────────────────────────────────── Pide · Abre ──────────────────────────────────
-
-private val ANCHO_ROTULO = 36.dp
-
-/**
- * Lo que pide y lo que abre, cada una con su estado y un toque que lleva a
- * ella. El rótulo va solo en la primera fila de cada grupo, y un hilo parte
- * los dos grupos.
- */
-@Composable
-internal fun PideAbre(codigo: String, estado: EstadoCarrera, alIrA: (String) -> Unit, modifier: Modifier = Modifier) {
-    val relaciones = estado.layout.relaciones
-    val porCodigo = estado.layout.porCodigo
-    val pide = relaciones.atras[codigo].orEmpty().mapNotNull { porCodigo[it]?.asignatura }
-    val abre = relaciones.adelante[codigo].orEmpty().mapNotNull { porCodigo[it]?.asignatura }
-    val especial = porCodigo[codigo]?.asignatura?.requisitoEspecial
-    TarjetaLista(modifier) {
-        GrupoPideAbre("PIDE", pide, vacio = especial == null, estado, alIrA)
-        // Una condición del pensum que no es una materia: no se toca, solo se dice
-        if (especial != null) {
-            BasicText("Además: $especial", Modifier.padding(start = Espacio.m + ANCHO_ROTULO + Espacio.xs, end = Espacio.m, bottom = Espacio.xs), style = estiloNota(Paleta.suave))
-        }
-        Box(Modifier.padding(start = Espacio.m).fillMaxWidth().height(1.dp).background(Paleta.tinta.copy(alpha = Velo.hilo)))
-        GrupoPideAbre("ABRE", abre, vacio = true, estado, alIrA)
-    }
-}
-
-@Composable
-private fun GrupoPideAbre(rotulo: String, materias: List<Asignatura>, vacio: Boolean, estado: EstadoCarrera, alIrA: (String) -> Unit) {
-    if (materias.isEmpty()) {
-        if (vacio) FilaPideAbre(rotulo, null, estado, alIrA)
-        return
-    }
-    materias.forEachIndexed { k, m -> FilaPideAbre(if (k == 0) rotulo else null, m, estado, alIrA) }
-}
-
-/** Una fila de 48: rótulo (36), icono de estado (16), nombre a dos líneas y chevrón; sin materia dice «Ninguna» */
-@Composable
-private fun FilaPideAbre(rotulo: String?, materia: Asignatura?, estado: EstadoCarrera, alIrA: (String) -> Unit) {
-    val puedeIr = materia != null && estado.nodoDe(materia.codigo) != null
-    Row(
-        Modifier.fillMaxWidth().heightIn(min = 48.dp)
-            .then(if (puedeIr) Modifier.pulsable({ alIrA(materia!!.codigo) }, escala = 0.985f) else Modifier)
-            .padding(horizontal = Espacio.m, vertical = Espacio.xxs),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Box(Modifier.widthIn(min = ANCHO_ROTULO)) { if (rotulo != null) BasicText(rotulo, style = estiloRotulo(), maxLines = 1, softWrap = false) }
-        if (materia == null) {
-            Spacer(Modifier.width(Espacio.xs + 16.dp))
-            BasicText("Ninguna", style = estiloFila(Paleta.tenue, FontWeight.Normal))
-            return@Row
-        }
-        val s = estado.situaciones[materia.codigo] ?: Situacion.LEJANA
-        Spacer(Modifier.width(Espacio.xs))
-        IconoSituacion(s, 16.dp)
-        BasicText(
-            materia.nombre, Modifier.weight(1f).padding(horizontal = Espacio.xs),
-            style = estiloFila(if (s == Situacion.HECHA) Paleta.suave else Paleta.tinta), maxLines = 2, overflow = TextOverflow.Ellipsis,
-        )
-        if (puedeIr) Chevron()
-    }
-}
-
-/**
- * Pide · Abre en una línea cada uno, para la burbuja: la primera materia y «y N más».
- * Tocar la fila lleva a esa primera; sin materias dice «Ninguna».
- */
-@Composable
-internal fun PideAbreResumen(codigo: String, estado: EstadoCarrera, alIrA: (String) -> Unit, modifier: Modifier = Modifier) {
-    val relaciones = estado.layout.relaciones
-    val porCodigo = estado.layout.porCodigo
-    val pide = relaciones.atras[codigo].orEmpty().mapNotNull { porCodigo[it]?.asignatura }
-    val abre = relaciones.adelante[codigo].orEmpty().mapNotNull { porCodigo[it]?.asignatura }
-    TarjetaLista(modifier) {
-        FilaResumen("PIDE", pide, estado, alIrA)
-        Box(Modifier.padding(start = Espacio.m).fillMaxWidth().height(1.dp).background(Paleta.tinta.copy(alpha = Velo.hilo)))
-        FilaResumen("ABRE", abre, estado, alIrA)
-    }
-}
-
-/** Una fila de 44: rótulo (36), icono de estado (16), el nombre a una línea con «y N más» y el chevrón */
-@Composable
-private fun FilaResumen(rotulo: String, materias: List<Asignatura>, estado: EstadoCarrera, alIrA: (String) -> Unit) {
-    val primera = materias.firstOrNull()
-    val puedeIr = primera != null && estado.nodoDe(primera.codigo) != null
-    Row(
-        Modifier.fillMaxWidth().heightIn(min = 44.dp)
-            .then(if (puedeIr) Modifier.pulsable({ alIrA(primera!!.codigo) }, escala = 0.985f) else Modifier)
-            .padding(horizontal = Espacio.m),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Box(Modifier.widthIn(min = ANCHO_ROTULO)) { BasicText(rotulo, style = estiloRotulo(), maxLines = 1, softWrap = false) }
-        if (primera == null) {
-            BasicText("Ninguna", Modifier.padding(start = Espacio.xs + 16.dp), style = estiloFila(Paleta.tenue, FontWeight.Normal))
-            return@Row
-        }
-        val s = estado.situaciones[primera.codigo] ?: Situacion.LEJANA
-        Spacer(Modifier.width(Espacio.xs))
-        IconoSituacion(s, 16.dp)
-        BasicText(
-            primera.nombre, Modifier.weight(1f, fill = false).padding(start = Espacio.xs),
-            style = estiloFila(if (s == Situacion.HECHA) Paleta.suave else Paleta.tinta), maxLines = 1, overflow = TextOverflow.Ellipsis,
-        )
-        if (materias.size > 1) BasicText(" y ${materias.size - 1} más", style = estiloNota(), maxLines = 1, softWrap = false)
-        Spacer(Modifier.weight(1f))
-        if (puedeIr) Chevron()
-    }
-}
-
-// ─────────────────────────────────── Botones ──────────────────────────────────
-
-/** Qué botones lleva cada estado: el lleno es siempre el siguiente paso */
-private enum class Botones { DISPONIBLE, CURSANDO, BLOQUEADA, APROBADA }
-
-private fun botonesDe(marca: Marca?, bloqueada: Boolean) = when {
-    marca == Marca.APROBADA -> Botones.APROBADA
-    marca == Marca.CURSANDO -> Botones.CURSANDO
-    bloqueada -> Botones.BLOQUEADA
-    else -> Botones.DISPONIBLE
-}
-
-/**
- * Los botones de marcar. Con 320 dp o letra grande se apilan; si no, van en
- * dos columnas. «Se te abre N» solo sale si aprobarla abre algo. Cada marca
- * lleva su háptico, y los textos se funden en 150 ms al cambiar de estado.
- */
-@Composable
-internal fun BotonesMarca(codigo: String, estado: EstadoCarrera, alMarcar: (String, Marca?) -> Unit, modifier: Modifier = Modifier, compacto: Boolean = false) {
-    val haptica = LocalHapticFeedback.current
-    val marca = estado.marcas[codigo]
-    val bloqueada = estado.situaciones[codigo].let { it == Situacion.PROXIMA || it == Situacion.LEJANA }
-    val abre = remember(estado.marcas, codigo) { seAbrenAlAprobar(estado.pensum, estado.marcas, listOf(codigo)).size }
-    val apilados = !compacto && ventana().let { it.compacta || it.letraGrande }
-    val alto = if (compacto) 48.dp else 52.dp
-    val radio = if (compacto) 16.dp else Radio.Barra
-    fun marcar(m: Marca?) {
-        haptica.performHapticFeedback(HapticFeedbackType.SegmentTick)
-        alMarcar(codigo, m)
-    }
-    val nota = when (abre) {
-        0 -> null
-        1 -> "Se te abre 1"
-        else -> "Se te abren $abre"
-    }
-    AnimatedContent(
-        targetState = botonesDe(marca, bloqueada),
-        modifier = modifier.fillMaxWidth(),
-        transitionSpec = { fundidoEnSerie().using(null) },
-        label = "botones",
-    ) { modo ->
-        val cursando = @Composable { m: Modifier, lleno: Boolean -> BotonTinta("La estoy cursando", { marcar(Marca.CURSANDO) }, m, superficie = !lleno, alto = alto, radio = radio) }
-        val aprobada = @Composable { m: Modifier, lleno: Boolean ->
-            // Sobre el botón lleno la nota sigue la tinta del panel; en uno de superficie, azul: es lo que se te abre
-            BotonTinta("Ya la aprobé", { marcar(Marca.APROBADA) }, m, nota = nota, colorNota = if (lleno) null else Paleta.azul, superficie = !lleno, alto = alto, radio = radio)
-        }
-        val desmarcar = @Composable { m: Modifier -> BotonTinta("Desmarcar", { marcar(null) }, m, superficie = true, alto = alto, radio = radio) }
-        val dos = modo != Botones.APROBADA
-        val primero: @Composable (Modifier) -> Unit = { m ->
-            when (modo) {
-                Botones.DISPONIBLE -> cursando(m, true)
-                Botones.CURSANDO -> aprobada(m, true)
-                Botones.BLOQUEADA -> cursando(m, false)
-                Botones.APROBADA -> desmarcar(m)
-            }
-        }
-        val segundo: @Composable (Modifier) -> Unit = { m ->
-            when (modo) {
-                Botones.DISPONIBLE, Botones.BLOQUEADA -> aprobada(m, false)
-                else -> desmarcar(m)
-            }
-        }
-        if (apilados) {
-            Column(verticalArrangement = Arrangement.spacedBy(Espacio.xs)) {
-                primero(Modifier)
-                if (dos) segundo(Modifier)
-            }
-        } else if (dos) {
-            Row(horizontalArrangement = Arrangement.spacedBy(Espacio.xs)) {
-                primero(Modifier.weight(1f))
-                segundo(Modifier.weight(1f))
-            }
-        } else primero(Modifier)
-    }
-}
