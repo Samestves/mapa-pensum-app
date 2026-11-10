@@ -62,6 +62,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import mpensum.componentes.iconoEstado
@@ -376,10 +377,10 @@ internal class RespuestasFicha(estado: EstadoCarrera) {
 
     fun de(codigo: String, s: Situacion): EstadoRespuesta = calculadas[codigo to s] ?: EstadoRespuesta.Calculando
 
-    suspend fun calcular(codigo: String, s: Situacion) {
+    suspend fun calcular(codigo: String, s: Situacion, despachador: CoroutineDispatcher = Dispatchers.Default) {
         val clave = codigo to s
         if (clave in calculadas) return
-        val r = withContext(Dispatchers.Default) { respuestaDe(codigo, s, sim) }
+        val r = withContext(despachador) { respuestaDe(codigo, s, sim) }
         calculadas[clave] = r?.let { EstadoRespuesta.Lista(it) } ?: EstadoRespuesta.SinRespuesta
     }
 }
@@ -394,7 +395,8 @@ internal fun RespuestaFicha(codigo: String, estado: EstadoCarrera, modifier: Mod
     val situacion = estado.situaciones[codigo] ?: return
     if (situacion == Situacion.HECHA) return
     val respuestas = estado.respuestas
-    LaunchedEffect(respuestas, codigo, situacion) { respuestas.calcular(codigo, situacion) }
+    val despachador = LocalCalculo.current
+    LaunchedEffect(respuestas, codigo, situacion) { respuestas.calcular(codigo, situacion, despachador) }
     val actual = respuestas.de(codigo, situacion)
     if (actual == EstadoRespuesta.SinRespuesta) return
     // Nace con lo ya calculado: si la ficha lo pidió antes de cambiar de materia, no hay segundo fundido.

@@ -2,7 +2,6 @@ package mpensum.logica
 
 import mpensum.datos.Asignatura
 import mpensum.datos.Pensum
-import mpensum.plataforma.mesLocal
 import kotlin.math.max
 import kotlin.math.min
 
@@ -56,9 +55,6 @@ data class Periodo(val anio: Int, val lapso: Int) : Comparable<Periodo> {
         const val INICIO_LAPSO_II = 7
 
         fun de(anio: Int, mes: Int, inicioLapsoII: Int = INICIO_LAPSO_II) = Periodo(anio, if (mes < inicioLapsoII) 1 else 2)
-
-        /** El período de hoy según el teléfono */
-        fun actual(): Periodo = mesLocal().let { de(it.anio, it.mes) }
     }
 }
 
@@ -279,7 +275,7 @@ fun estimarGraduacion(
     marcas: Map<String, Marca>,
     casillas: Map<String, String>,
     carga: Int? = null,
-    hoy: Periodo = Periodo.actual(),
+    hoy: Periodo,
     noAntesDe: Map<String, Int> = emptyMap(),
 ): EstimacionGraduacion {
     val (cargaUsada, fuente) = if (carga != null) carga.coerceIn(1, MAX_CARGA) to FuenteCarga.ELEGIDA else cargaHabitual(pensum, marcas)

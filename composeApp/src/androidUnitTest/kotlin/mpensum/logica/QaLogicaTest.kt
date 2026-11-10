@@ -4,7 +4,6 @@ import mpensum.datos.Pensum
 import mpensum.datos.leerPensum
 import mpensum.mapa.calcularFranja
 import mpensum.mapa.calcularLayout
-import mpensum.mapa.casillaLibre
 import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals

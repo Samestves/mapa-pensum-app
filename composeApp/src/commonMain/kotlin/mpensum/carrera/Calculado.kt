@@ -10,13 +10,21 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import mpensum.tema.Movimiento
+
+/**
+ * Dónde corre lo pesado que pide la composición (las simulaciones de las pantallas internas). De serie, el
+ * hilo de cálculo; las pruebas ponen uno propio y no dependen de que otro hilo termine a tiempo.
+ */
+internal val LocalCalculo = staticCompositionLocalOf<CoroutineDispatcher> { Dispatchers.Default }
 
 /** Lo que reserva una pantalla interna mientras llega su cálculo: lo que mide una con unas seis materias */
 internal val RESERVA_DETALLE: Dp = 480.dp
@@ -31,8 +39,9 @@ internal val RESERVA_DETALLE: Dp = 480.dp
  */
 @Composable
 internal fun <T : Any> Calculado(clave: Any, reserva: Dp = RESERVA_DETALLE, listo: () -> Boolean = { false }, calculo: () -> T, contenido: @Composable (T) -> Unit) {
+    val despachador = LocalCalculo.current
     val inicial = remember { if (listo()) calculo() else null }
-    val resultado = produceState(inicial, clave) { value = if (listo()) calculo() else withContext(Dispatchers.Default) { calculo() } }.value
+    val resultado = produceState(inicial, clave) { value = if (listo()) calculo() else withContext(despachador) { calculo() } }.value
     if (resultado == null) {
         Spacer(Modifier.fillMaxWidth().height(reserva))
         return

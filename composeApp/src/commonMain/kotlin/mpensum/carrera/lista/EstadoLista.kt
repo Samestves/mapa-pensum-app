@@ -9,6 +9,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -162,10 +163,10 @@ internal class SesionLista(
     val ucCursando: Int get() = universo.materias.filter { it.situacion == Situacion.CURSANDO }.sumOf { it.uc ?: 0 }
 
     /** Mide el margen de cada inscribible con el simulador de la hoja de avance, fuera del hilo principal */
-    suspend fun medir() {
+    suspend fun medir(despachador: CoroutineDispatcher = Dispatchers.Default) {
         val sim = estado.simulador
         val codigos = universo.materias.filter { it.situacion == Situacion.INSCRIBIBLE }.map { it.codigo }
-        margenes = withContext(Dispatchers.Default) {
+        margenes = withContext(despachador) {
             codigos.mapNotNull { c -> margenDeMateria(sim, c)?.let { c to it } }.toMap()
         }
     }

@@ -27,6 +27,7 @@ import mpensum.datos.rememberPensum
 import mpensum.logica.EstadoCapsula
 import mpensum.logica.Marca
 import mpensum.logica.Periodo
+import mpensum.plataforma.periodoActual
 import mpensum.logica.SemestreCapsulas
 import mpensum.logica.capsulasDe
 import mpensum.logica.estimarGraduacion
@@ -180,7 +181,7 @@ internal fun avanceDeDemostracion(pensum: Pensum): AvanceDemo {
     }
     val resumen = resumenParaPortada(pensum, marcas.mapValues { it.value.valor })
     val semestres = capsulasDe(pensum, marcas) { null }
-    val hoy = Periodo.actual()
+    val hoy = periodoActual()
     // La misma estimación de la hoja, a la carga de siempre: pura y barata, se calcula una vez
     val estimacion = estimarGraduacion(pensum, marcas, emptyMap(), hoy = hoy)
     val final = estimacion.periodoFinal

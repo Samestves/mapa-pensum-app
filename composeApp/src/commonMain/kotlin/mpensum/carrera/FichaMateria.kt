@@ -79,12 +79,13 @@ fun BoxScope.FichaMateria(
             actual = codigo
         }
     }
+    val despachador = LocalCalculo.current
     LaunchedEffect(codigo) {
         // Cerrada no hay nada que enseñar; recién abierta ya se puso arriba, en composición
         if (codigo == null || actual == codigo) return@LaunchedEffect
         val situacion = estado.situaciones[codigo]
         if (actual != null && actual != codigo && situacion != null && situacion != Situacion.HECHA) {
-            withTimeoutOrNull(150) { estado.respuestas.calcular(codigo, situacion) }
+            withTimeoutOrNull(150) { estado.respuestas.calcular(codigo, situacion, despachador) }
         }
         medidas.olvidar(codigo)
         actual = codigo

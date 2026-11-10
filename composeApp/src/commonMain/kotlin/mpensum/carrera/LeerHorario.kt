@@ -55,6 +55,7 @@ import mpensum.componentes.margenPantalla
 import mpensum.componentes.pulsable
 import mpensum.logica.cuandoEs
 import mpensum.tema.Movimiento
+import mpensum.tema.Tema
 import mpensum.tema.Espacio
 import mpensum.tema.Paleta
 
@@ -286,7 +287,7 @@ private fun FilaLeyendo(horario: EstadoHorario, m: mpensum.logica.MateriaLeida) 
         Box(Modifier.width(3.dp).height(32.dp).drawBehind { drawRoundRect(color, cornerRadius = CornerRadius(1.5.dp.toPx())) })
         Column(Modifier.weight(1f).padding(start = Espacio.s)) {
             BasicText(horario.nombre(m.codigo), style = l.nombreFila.copy(fontSize = 14.5.sp), maxLines = 1)
-            BasicText(cuandoEs(m.sesiones.first(), m.sesiones), Modifier.padding(top = 1.dp), style = l.pequeno, maxLines = 1)
+            BasicText(cuandoEs(m.sesiones.first(), m.sesiones, Tema.hora24), Modifier.padding(top = 1.dp), style = l.pequeno, maxLines = 1)
         }
         Canvas(Modifier.size(16.dp)) {
             val k = size.width / 16f

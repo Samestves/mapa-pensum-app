@@ -2,7 +2,10 @@ package mpensum.mapa
 
 import mpensum.datos.Asignatura
 import mpensum.datos.Grupo
-import mpensum.logica.Marca
+import mpensum.logica.PREFIJO
+import mpensum.logica.esCasillaLibre
+import mpensum.logica.numeroDe
+import mpensum.logica.primeraLibre
 import kotlin.math.ceil
 import kotlin.math.max
 
@@ -16,15 +19,6 @@ import kotlin.math.max
  * mismo {casilla → electiva} que las de Sistemas.
  */
 
-private const val PREFIJO = "libre-"
-
-fun casillaLibre(clave: String, n: Int) = "$PREFIJO$clave-$n"
-
-fun esCasillaLibre(codigo: String) = codigo.startsWith(PREFIJO)
-
-/* El número de la casilla en su grupo; la clave puede llevar guiones, así que se lee desde el final */
-internal fun numeroDe(codigo: String) = codigo.substringAfterLast('-').toIntOrNull() ?: 0
-
 /** Los datos traen "Areas de Grado" sin tilde, tal como lo publica la DACE */
 fun tituloGrupo(grupo: Grupo) = grupo.titulo.replace(Regex("^Areas\\b"), "Áreas")
 
@@ -33,31 +27,6 @@ fun nombreCasilla(grupo: Grupo) = when (grupo.clave) {
     "tecnica" -> "Electiva Técnica"
     "humanistica" -> "Electiva Sociohumanística"
     else -> tituloGrupo(grupo).replace(Regex("^Áreas\\b"), "Área")
-}
-
-/** Todas las casillas libres que pueden existir: una por opción de cada grupo */
-fun casillasLibres(grupos: List<Grupo>): Map<String, String> = buildMap {
-    for (g in grupos) for (n in 1..g.asignaturas.size) put(casillaLibre(g.clave, n), g.clave)
-}
-
-private fun primeraLibre(grupo: Grupo, elegidas: Map<String, String>): String? =
-    (1..grupo.asignaturas.size).map { casillaLibre(grupo.clave, it) }.firstOrNull { it !in elegidas }
-
-/**
- * Mete en la franja las electivas que ya tienen marca y no están puestas:
- * una materia aprobada no puede desaparecer del mapa por no tener casilla.
- * Devuelve el mismo mapa si no hay nada que añadir.
- */
-fun adoptarMarcadas(elegidas: Map<String, String>, grupos: List<Grupo>, marcas: Map<String, Marca>): Map<String, String> {
-    val puestas = elegidas.values.toMutableSet()
-    var siguiente = elegidas
-    for (g in grupos) for (e in g.asignaturas) {
-        if (marcas[e.codigo] == null || e.codigo in puestas) continue
-        val casilla = primeraLibre(g, siguiente) ?: break
-        siguiente = siguiente + (casilla to e.codigo)
-        puestas += e.codigo
-    }
-    return siguiente
 }
 
 /** El rótulo de un grupo en la franja */

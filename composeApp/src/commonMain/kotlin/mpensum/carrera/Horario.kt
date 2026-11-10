@@ -123,8 +123,6 @@ private const val DIA_FUNDE_SALE_MS = 140
 private const val DIA_FUNDE_SIN_BUCLES_MS = 160
 
 private val CURVA_LATIDO = CubicBezierEasing(0.22f, 0.61f, 0.36f, 1f)
-/** El margen de la vista: el px-5 de la web en el teléfono */
-internal val MARGEN_HORARIO = Espacio.l
 /** Ancho del carril de las horas en la lista del día (--ancho-hora de la web) */
 private val ANCHO_HORA = 72.dp
 /** En pantallas compactas (< 360 dp) el carril de horas cede 8 dp al nombre */
@@ -282,10 +280,6 @@ private fun Cabecera(horario: EstadoHorario) {
 @Composable
 private fun anchoHora(): Dp = if (ventana().compacta) ANCHO_HORA_ESTRECHO else ANCHO_HORA
 
-/** Lo que se sangra el texto de un renglón del día: la hora, el riel y su aire */
-@Composable
-private fun sangriaDia(): Dp = anchoHora() + AIRE_RIEL + ANCHO_RIEL + AIRE_RIEL
-
 /**
  * Lo primero que dice el horario: qué toca y qué viene. Sin tarjeta: el
  * título es la página, y el trayecto de la clase en curso es el único dibujo.
@@ -359,7 +353,7 @@ private fun EnUnRenglon(horario: EstadoHorario, rotulo: String, s: Sesion) {
             buildAnnotatedString {
                 withStyle(SpanStyle(fontWeight = FontWeight.Medium, color = Paleta.tinta)) { append(horario.nombre(s.codigo)) }
                 append(" · ")
-                append(listOfNotNull(enDoceHoras(s.inicio), s.aula.ifBlank { null }).joinToString(" · ").replace(' ', ' '))
+                append(listOfNotNull(enDoceHoras(s.inicio, Tema.hora24), s.aula.ifBlank { null }).joinToString(" · ").replace(' ', ' '))
             },
             style = l.cuerpo,
         )
@@ -407,8 +401,8 @@ private fun Trayecto(clase: Sesion, color: Color, minuto: (() -> Int)?) {
     ) {
         BasicText(
             buildAnnotatedString {
-                append(horaDe(clase.inicio))
-                if (meridiano(clase.inicio) != meridiano(clase.fin)) withStyle(SPAN_MERIDIANO) { append(" ${meridiano(clase.inicio)}") }
+                append(horaDe(clase.inicio, Tema.hora24))
+                if (meridiano(clase.inicio, Tema.hora24) != meridiano(clase.fin, Tema.hora24)) withStyle(SPAN_MERIDIANO) { append(" ${meridiano(clase.inicio, Tema.hora24)}") }
             },
             style = estilo,
         )
@@ -431,8 +425,8 @@ private fun Trayecto(clase: Sesion, color: Color, minuto: (() -> Int)?) {
         }
         BasicText(
             buildAnnotatedString {
-                append(horaDe(clase.fin))
-                meridiano(clase.fin).takeIf { it.isNotEmpty() }?.let { withStyle(SPAN_MERIDIANO) { append(" $it") } }
+                append(horaDe(clase.fin, Tema.hora24))
+                meridiano(clase.fin, Tema.hora24).takeIf { it.isNotEmpty() }?.let { withStyle(SPAN_MERIDIANO) { append(" $it") } }
             },
             style = estilo,
         )
@@ -452,7 +446,7 @@ private fun Semanita(horario: EstadoHorario) {
     val (abre, cierra) = horario.rango
     Row(Modifier.padding(top = Espacio.xxl).fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         BasicText("SEMANA", Modifier.weight(1f), style = l.etiqueta)
-        BasicText("${clases(horario.sesiones.size)} · ${duracion(horario.sesiones.sumOf { it.duracion })} · ${tramoCorto(abre, cierra)}", style = l.dato, maxLines = 1)
+        BasicText("${clases(horario.sesiones.size)} · ${duracion(horario.sesiones.sumOf { it.duracion })} · ${tramoCorto(abre, cierra, Tema.hora24)}", style = l.dato, maxLines = 1)
     }
     val lente = remember { Animatable(horario.dia.toFloat()) }
     LaunchedEffect(horario.dia) { lente.animateTo(horario.dia.toFloat(), tween(380, easing = Movimiento.FLUIDA)) }
@@ -584,7 +578,7 @@ private fun ContenidoDia(horario: EstadoHorario, d: Int) {
             style = l.etiqueta,
         )
         BasicText(
-            if (delDia.isEmpty()) "Sin clases" else "${clases(delDia.size)} · sales ${enDoceHoras(delDia.maxOf { it.fin })}",
+            if (delDia.isEmpty()) "Sin clases" else "${clases(delDia.size)} · sales ${enDoceHoras(delDia.maxOf { it.fin }, Tema.hora24)}",
             style = l.dato,
         )
     }
@@ -637,9 +631,9 @@ private fun FilaClase(horario: EstadoHorario, s: Sesion) {
         // En compactas la hora de entrada baja de 21 a 19 sp: "10:00" cabe en el carril sin salirse del margen
         val entrada = if (estrecha) l.horaEntrada.copy(fontSize = 19.sp, lineHeight = 19.sp) else l.horaEntrada
         Column(Modifier.width(anchoHora()).fillMaxHeight(), verticalArrangement = Arrangement.SpaceBetween) {
-            HoraConMeridiano(horaDe(s.inicio), meridiano(s.inicio), entrada.copy(color = if (pasada) Paleta.tenue else Paleta.tinta), l)
+            HoraConMeridiano(horaDe(s.inicio, Tema.hora24), meridiano(s.inicio, Tema.hora24), entrada.copy(color = if (pasada) Paleta.tenue else Paleta.tinta), l)
             // La de salida solo repite el meridiano si cambia: "10:00 AM" arriba, "12:00 PM" abajo; "7:00 AM", "9:00"
-            HoraConMeridiano(horaDe(s.fin), if (meridiano(s.fin) != meridiano(s.inicio)) meridiano(s.fin) else "", l.horaSalida, l)
+            HoraConMeridiano(horaDe(s.fin, Tema.hora24), if (meridiano(s.fin, Tema.hora24) != meridiano(s.inicio, Tema.hora24)) meridiano(s.fin, Tema.hora24) else "", l.horaSalida, l)
         }
         Canvas(
             Modifier

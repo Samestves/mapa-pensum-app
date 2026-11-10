@@ -125,14 +125,14 @@ data class ResumenPortada(
 )
 
 /**
- * `conGraduacion` pide además la fecha de grado: es una simulación completa, así que
+ * `hoy` pide además la fecha de grado, contada desde ese período: es una simulación completa, así que
  * solo la pide quien la dibuja (la portada) y siempre fuera del hilo principal.
  */
 fun resumenParaPortada(
     pensum: Pensum,
     marcasGuardadas: Map<String, String>?,
     casillasGuardadas: Map<String, String>? = null,
-    conGraduacion: Boolean = false,
+    hoy: Periodo? = null,
     carga: Int? = null,
 ): ResumenPortada {
     val marcas = depurarMarcas(marcasGuardadas, pensum.todas.map { it.codigo }.toSet())
@@ -155,7 +155,7 @@ fun resumenParaPortada(
         disponiblesPorSemestre = porSemestreEn(pensum, estados, EstadoMateria.DISPONIBLE),
         // La misma cuenta que EstadoCarrera.graduacion: la portada y la hoja dicen la misma fecha
         conMarcas = marcas.isNotEmpty(),
-        graduacion = if (conGraduacion && marcas.isNotEmpty()) estimarGraduacion(pensum, marcas, casillasPuestas, carga).periodoFinal else null,
+        graduacion = if (hoy != null && marcas.isNotEmpty()) estimarGraduacion(pensum, marcas, casillasPuestas, carga, hoy).periodoFinal else null,
     )
 }
 

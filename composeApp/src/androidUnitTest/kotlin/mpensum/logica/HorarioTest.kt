@@ -57,11 +57,11 @@ class HorarioTest {
 
     @Test
     fun horasYTramos() {
-        assertEquals("7 – 9 AM", tramoCorto(h(7), h(9)))
-        assertEquals("11 AM – 1 PM", tramoCorto(h(11), h(13)))
-        assertEquals("8:15 – 9:50 AM", tramoCorto(495, 590))
-        assertEquals("12:00 PM", enDoceHoras(h(12)))
-        assertEquals("10:40", horaDe(640))
+        assertEquals("7 – 9 AM", tramoCorto(h(7), h(9), false))
+        assertEquals("11 AM – 1 PM", tramoCorto(h(11), h(13), false))
+        assertEquals("8:15 – 9:50 AM", tramoCorto(495, 590, false))
+        assertEquals("12:00 PM", enDoceHoras(h(12), false))
+        assertEquals("10:40", horaDe(640, false))
         assertEquals(h(7) to h(15), rangoDeClases(ejemplo))
         assertEquals("10 clases · 20 h a la semana", resumenSemana(ejemplo))
     }
@@ -79,9 +79,9 @@ class HorarioTest {
 
     @Test
     fun cuandoJuntaLosDiasConLaMismaHora() {
-        assertEquals("Lunes y miércoles · 7 – 9 AM", cuandoEs(ejemplo[0], ejemplo))
+        assertEquals("Lunes y miércoles · 7 – 9 AM", cuandoEs(ejemplo[0], ejemplo, false))
         // Métodos va a horas distintas: solo su día
-        assertEquals("Miércoles · 10 AM – 12 PM", cuandoEs(ejemplo[7], ejemplo))
+        assertEquals("Miércoles · 10 AM – 12 PM", cuandoEs(ejemplo[7], ejemplo, false))
     }
 
     @Test

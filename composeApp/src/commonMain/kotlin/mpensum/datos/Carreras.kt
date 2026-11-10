@@ -8,6 +8,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import mpensum.logica.ResumenPortada
 import mpensum.logica.resumenParaPortada
+import mpensum.plataforma.periodoActual
 import mpensum.recursos.Res
 
 /**
@@ -68,7 +69,7 @@ fun rememberResumenes(carreras: List<Carrera>, tambien: String? = null): Map<Str
                 // Una carrera que no se pueda leer no mata la portada: simplemente no trae resumen
                 runCatching {
                     val pensum = leerPensum(leerPensumCrudo(c.slug))
-                    c.slug to resumenParaPortada(pensum, crudas, Guardado.casillasCrudas(c.slug), conGraduacion = true, carga = Guardado.carga(c.slug))
+                    c.slug to resumenParaPortada(pensum, crudas, Guardado.casillasCrudas(c.slug), hoy = periodoActual(), carga = Guardado.carga(c.slug))
                 }.getOrNull()
             }.toMap()
         }

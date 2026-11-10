@@ -3,14 +3,19 @@ package mpensum.carrera
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.runtime.snapshots.Snapshot
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.referentialEqualityPolicy
 import androidx.compose.runtime.remember
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
@@ -30,7 +35,7 @@ import mpensum.logica.cargaHabitual
 import mpensum.logica.planesPorCarga
 import mpensum.logica.MAX_CARGA
 import mpensum.logica.Marca
-import mpensum.logica.Periodo
+import mpensum.plataforma.periodoActual
 import mpensum.logica.Situacion
 import mpensum.logica.avanceDeGrupos
 import mpensum.logica.casillasEfectivas
@@ -91,11 +96,11 @@ class EstadoCarrera(
      * El período de hoy, uno solo para la fecha de la carrera y para todas las
      * pantallas: se relee al abrir la hoja de avance, no a media sesión de otro.
      */
-    var hoy by mutableStateOf(Periodo.actual())
+    var hoy by mutableStateOf(periodoActual())
         private set
 
     fun actualizarHoy() {
-        hoy = Periodo.actual()
+        hoy = periodoActual()
     }
 
     var marcas by mutableStateOf(demostracion ?: Guardado.marcas(pensum))
@@ -197,9 +202,12 @@ class EstadoCarrera(
 
     /** De vuelta al 0 %: sin marcas, sin electivas en las casillas y con la carga habitual */
     fun reiniciar() {
-        marcas = emptyMap()
-        casillas = emptyMap()
-        carga = null
+        // Las tres a la vez: el precalentado corre en otro hilo y no debe ver marcas vacías con las casillas viejas
+        Snapshot.withMutableSnapshot {
+            marcas = emptyMap()
+            casillas = emptyMap()
+            carga = null
+        }
         if (demostracion == null) Guardado.borrarAvance(pensum.slug)
     }
 
@@ -226,10 +234,10 @@ class EstadoCarrera(
  * Cuando se abre «Tu avance» o una de sus pantallas ya están listos y nada se calcula mientras la hoja sube.
  * Se repite tras cada cambio de marcas, casillas, carga o período, con una pausa para no calcular a cada toque.
  */
-internal suspend fun EstadoCarrera.precalentar() {
+internal suspend fun EstadoCarrera.precalentar(despachador: CoroutineDispatcher = Dispatchers.Default) {
     snapshotFlow { listOf(marcas, casillas, hoy, carga) }.collectLatest {
         delay(PAUSA_PRECALENTADO_MS)
-        withContext(Dispatchers.Default) {
+        withContext(despachador) {
             resumen
             val sim = simulador
             sim.proximo
@@ -249,19 +257,43 @@ private fun layoutDe(pensum: Pensum, compacto: Boolean, rectos: Boolean): Layout
  * El pensum y su geometría de cada carrera, calculados una sola vez por proceso. La portada los pide al
  * pintarse (`precargarCarrera`) y así, cuando empieza el zoom hacia la carrera, el mapa ya está listo
  * y nace dentro del zoom en vez de llegar a mitad. Se toca solo desde el hilo principal.
+ *
+ * Una carga que falla no se queda guardada: la siguiente petición la vuelve a intentar. El despachador y
+ * la lectura se pueden cambiar para probarlo sin tocar el disco ni dormir.
  */
-private object PrecargaCarreras {
-    private val alcance = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+internal class PrecargaDeCarreras(
+    despachador: CoroutineDispatcher = Dispatchers.Default,
+    private val leer: suspend (String) -> Pensum = ::leerPensumDelPaquete,
+) {
+    private val alcance = CoroutineScope(SupervisorJob() + despachador)
     private val pedidas = mutableMapOf<Triple<String, Boolean, Boolean>, Deferred<CarreraLista>>()
 
-    fun pedir(slug: String, compacto: Boolean, rectos: Boolean): Deferred<CarreraLista> =
-        pedidas.getOrPut(Triple(slug, compacto, rectos)) {
-            alcance.async {
-                val pensum = leerPensumDelPaquete(slug)
-                CarreraLista(pensum, layoutDe(pensum, compacto, rectos), compacto, rectos)
+    fun pedir(slug: String, compacto: Boolean, rectos: Boolean): Deferred<CarreraLista> {
+        val clave = Triple(slug, compacto, rectos)
+        // Una fallida (o cancelada) figura como cancelada: no se reutiliza, se pide de nuevo
+        pedidas[clave]?.takeIf { !it.isCancelled }?.let { return it }
+        return alcance.async {
+            val pensum = leer(slug)
+            CarreraLista(pensum, layoutDe(pensum, compacto, rectos), compacto, rectos)
+        }.also { pedidas[clave] = it }
+    }
+
+    /** Espera la carrera; si falla, la pide otra vez hasta `intentos` veces y, si no hay manera, devuelve null en vez de lanzar */
+    suspend fun cargar(slug: String, compacto: Boolean, rectos: Boolean, intentos: Int = 2): CarreraLista? {
+        repeat(intentos) {
+            try {
+                return pedir(slug, compacto, rectos).await()
+            } catch (e: CancellationException) {
+                currentCoroutineContext().ensureActive()
+            } catch (e: Exception) {
+                // Se reintenta: pedir() ya no devuelve la que falló
             }
         }
+        return null
+    }
 }
+
+private val PrecargaCarreras = PrecargaDeCarreras()
 
 /** Empieza a preparar una carrera en segundo plano: la portada lo pide para la que probablemente se abra */
 fun precargarCarrera(slug: String, horizontal: Boolean) {
@@ -269,7 +301,7 @@ fun precargarCarrera(slug: String, horizontal: Boolean) {
 }
 
 /** Lo que llega junto de fuera del hilo principal: el pensum y su geometría */
-private class CarreraLista(val pensum: Pensum, val layout: LayoutMapa, val compacto: Boolean, val rectos: Boolean)
+internal class CarreraLista(val pensum: Pensum, val layout: LayoutMapa, val compacto: Boolean, val rectos: Boolean)
 
 /**
  * El estado de una carrera al abrirla. El JSON se decodifica y la geometría se
@@ -278,12 +310,13 @@ private class CarreraLista(val pensum: Pensum, val layout: LayoutMapa, val compa
  */
 @Composable
 fun rememberEstadoCarrera(slug: String, horizontal: Boolean): EstadoCarrera? {
-    val lista = produceState<CarreraLista?>(null, slug) { value = PrecargaCarreras.pedir(slug, horizontal, Tema.rectos).await() }.value
+    val lista = produceState<CarreraLista?>(null, slug) { value = PrecargaCarreras.cargar(slug, horizontal, Tema.rectos) }.value
     val estado = remember(lista) {
         lista?.let { EstadoCarrera(it.pensum, compacto = horizontal, layoutInicial = it.layout, compactoInicial = it.compacto, rectosInicial = it.rectos) }
     }
     // Girar solo cambia el layout: el estado, el horario, la cámara y la lista siguen vivos
     estado?.compacto = horizontal
-    if (estado != null) LaunchedEffect(estado) { estado.precalentar() }
+    val despachador = LocalCalculo.current
+    if (estado != null) LaunchedEffect(estado) { estado.precalentar(despachador) }
     return estado
 }

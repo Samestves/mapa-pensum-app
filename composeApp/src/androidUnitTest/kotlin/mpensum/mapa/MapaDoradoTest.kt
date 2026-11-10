@@ -13,6 +13,8 @@ import kotlinx.serialization.json.jsonPrimitive
 import mpensum.datos.Pensum
 import mpensum.datos.leerPensum
 import mpensum.logica.Marca
+import mpensum.logica.adoptarMarcadas
+import mpensum.logica.casillasLibres
 import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals

@@ -308,7 +308,7 @@ internal fun SemanaRejilla(horario: EstadoHorario, sesiones: List<Sesion> = hora
             }
             if (ahoraSeVe) {
                 BasicText(
-                    horaDe(ahora.minuto),
+                    horaDe(ahora.minuto, Tema.hora24),
                     Modifier.offset(y = yAhora - 7.dp).width(riel - 6.dp).wrapContentWidth(Alignment.End, unbounded = true),
                     style = l.pequeno.copy(color = Paleta.rojo, fontWeight = FontWeight.SemiBold),
                     softWrap = false,
@@ -369,7 +369,7 @@ private fun CabeceraDias(horario: EstadoHorario, riel: Dp, diaHoy: Int, provisio
 private fun RotuloHora(minuto: Int, riel: Dp, modifier: Modifier, estrecha: Boolean = false) {
     val l = letrasHorario()
     val h = if (Tema.hora24) (minuto / 60).toString().padStart(2, '0') else hora12(minuto).toString()
-    val mer = meridiano(minuto)
+    val mer = meridiano(minuto, Tema.hora24)
     BasicText(
         buildAnnotatedString {
             append(h)

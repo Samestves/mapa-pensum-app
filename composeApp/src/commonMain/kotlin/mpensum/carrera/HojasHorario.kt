@@ -73,6 +73,7 @@ import mpensum.logica.tramoCorto
 import mpensum.tema.Espacio
 import mpensum.tema.Movimiento
 import mpensum.tema.Paleta
+import mpensum.tema.Tema
 
 /*
  * Las hojas del horario, de cristal y flotando sobre la barra: el detalle de
@@ -206,7 +207,7 @@ private fun Detalle(horario: EstadoHorario, s: Sesion) {
     val l = letrasHorario()
     Column(Modifier.padding(top = Espacio.m)) {
         val datos = listOf(
-            "Cuándo" to cuandoEs(s, horario.sesiones.ifEmpty { listOf(s) }),
+            "Cuándo" to cuandoEs(s, horario.sesiones.ifEmpty { listOf(s) }, Tema.hora24),
             "Aula" to s.aula,
             "Sección" to s.seccion,
             "Profesor" to s.profesor,
@@ -305,7 +306,7 @@ private fun Editar(horario: EstadoHorario, b: Borrador) {
     // El aviso siempre ocupa su renglón: aparecer no empuja el botón
     val choque = b.codigo?.let { choqueCon(horario.sesiones, Sesion(b.id ?: "", it, b.dia, b.inicio, b.fin)) }
     BasicText(
-        choque?.let { "Choca con ${horario.nombre(it.codigo)}, ${tramoCorto(it.inicio, it.fin)}" }.orEmpty(),
+        choque?.let { "Choca con ${horario.nombre(it.codigo)}, ${tramoCorto(it.inicio, it.fin, Tema.hora24)}" }.orEmpty(),
         Modifier.padding(top = Espacio.xs).height(20.dp),
         style = l.parrafo.copy(color = Paleta.rojo),
         maxLines = 1,
@@ -353,7 +354,7 @@ private fun FilaHora(nombre: String, minuto: Int, menos: () -> Unit, mas: () -> 
     val l = letrasHorario()
     Row(Modifier.fillMaxWidth().height(48.dp).lineaAbajo(), verticalAlignment = Alignment.CenterVertically) {
         BasicText(nombre, Modifier.width(ANCHO_NOMBRE), style = l.texto)
-        BasicText(enDoceHoras(minuto), Modifier.weight(1f), style = l.horaGrande)
+        BasicText(enDoceHoras(minuto, Tema.hora24), Modifier.weight(1f), style = l.horaGrande)
         BotonPaso(alPulsar = menos, vertical = false)
         BotonPaso(alPulsar = mas, vertical = true)
     }
@@ -522,13 +523,13 @@ private fun FilaLeida(horario: EstadoHorario, m: MateriaLeida, pisan: List<Pair<
             if (choque != null) {
                 val (a, b) = choque
                 BasicText(
-                    "Choca con ${horario.nombre(a.codigo)}, ${DIAS_CORTOS[b.dia].lowercase()} ${tramoCorto(b.inicio, minOf(a.fin, b.fin)).replace(" – ", "–")}",
+                    "Choca con ${horario.nombre(a.codigo)}, ${DIAS_CORTOS[b.dia].lowercase()} ${tramoCorto(b.inicio, minOf(a.fin, b.fin), Tema.hora24).replace(" – ", "–")}",
                     Modifier.padding(top = Espacio.hilo),
                     style = l.dato.copy(color = Paleta.rojo),
                 )
             } else {
                 val aula = primera.aula.takeIf { it.isNotBlank() }?.let { " · $it" }.orEmpty()
-                BasicText(cuandoEs(primera, m.sesiones) + aula, Modifier.padding(top = Espacio.hilo), style = l.dato, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                BasicText(cuandoEs(primera, m.sesiones, Tema.hora24) + aula, Modifier.padding(top = Espacio.hilo), style = l.dato, maxLines = 2, overflow = TextOverflow.Ellipsis)
             }
         }
         BasicText(clases(m.sesiones.size), style = l.dato.copy(color = Paleta.tenue))

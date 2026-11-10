@@ -1,10 +1,7 @@
 package mpensum.logica
 
+import mpensum.datos.Grupo
 import mpensum.datos.Pensum
-import mpensum.mapa.adoptarMarcadas
-import mpensum.mapa.casillasLibres
-import mpensum.mapa.esCasillaLibre
-import mpensum.mapa.numeroDe
 
 /**
  * Las casillas de electiva de una carrera, cada una con el grupo que admite.
@@ -78,4 +75,40 @@ private fun alSemestre(pensum: Pensum, casillas: Map<String, String>, marcas: Ma
         resultado = resultado.filterValues { it !in mover } + libres.zip(mover)
     }
     return resultado
+}
+
+/* ---- Casillas libres de la franja de electivas ---------------------------- */
+
+internal const val PREFIJO = "libre-"
+
+fun casillaLibre(clave: String, n: Int) = "$PREFIJO$clave-$n"
+
+fun esCasillaLibre(codigo: String) = codigo.startsWith(PREFIJO)
+
+/* El número de la casilla en su grupo; la clave puede llevar guiones, así que se lee desde el final */
+internal fun numeroDe(codigo: String) = codigo.substringAfterLast('-').toIntOrNull() ?: 0
+
+/** Todas las casillas libres que pueden existir: una por opción de cada grupo */
+fun casillasLibres(grupos: List<Grupo>): Map<String, String> = buildMap {
+    for (g in grupos) for (n in 1..g.asignaturas.size) put(casillaLibre(g.clave, n), g.clave)
+}
+
+internal fun primeraLibre(grupo: Grupo, elegidas: Map<String, String>): String? =
+    (1..grupo.asignaturas.size).map { casillaLibre(grupo.clave, it) }.firstOrNull { it !in elegidas }
+
+/**
+ * Mete en la franja las electivas que ya tienen marca y no están puestas:
+ * una materia aprobada no puede desaparecer del mapa por no tener casilla.
+ * Devuelve el mismo mapa si no hay nada que añadir.
+ */
+fun adoptarMarcadas(elegidas: Map<String, String>, grupos: List<Grupo>, marcas: Map<String, Marca>): Map<String, String> {
+    val puestas = elegidas.values.toMutableSet()
+    var siguiente = elegidas
+    for (g in grupos) for (e in g.asignaturas) {
+        if (marcas[e.codigo] == null || e.codigo in puestas) continue
+        val casilla = primeraLibre(g, siguiente) ?: break
+        siguiente = siguiente + (casilla to e.codigo)
+        puestas += e.codigo
+    }
+    return siguiente
 }

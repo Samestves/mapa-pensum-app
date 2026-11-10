@@ -2,6 +2,7 @@ package mpensum.datos
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.produceState
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
@@ -89,8 +90,8 @@ fun leerPensum(texto: String): Pensum = lector.decodeFromString(texto)
 suspend fun leerPensumCrudo(slug: String): String = Res.readBytes("files/carreras/$slug.json").decodeToString()
 
 /** Lee y decodifica el pensum de una carrera del paquete, fuera del hilo principal (el JSON pesa 8-14 KB y decodificarlo no es gratis en gama baja) */
-suspend fun leerPensumDelPaquete(slug: String): Pensum =
-    withContext(Dispatchers.Default) { leerPensum(leerPensumCrudo(slug)) }
+suspend fun leerPensumDelPaquete(slug: String, despachador: CoroutineDispatcher = Dispatchers.Default): Pensum =
+    withContext(despachador) { leerPensum(leerPensumCrudo(slug)) }
 
 /** El pensum de una carrera, leído del paquete de la app al abrirla. Null mientras llega */
 @Composable

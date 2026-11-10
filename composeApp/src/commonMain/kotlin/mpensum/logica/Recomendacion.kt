@@ -1,6 +1,5 @@
 package mpensum.logica
 
-import androidx.compose.runtime.mutableStateMapOf
 import mpensum.datos.Asignatura
 import mpensum.datos.Pensum
 
@@ -74,8 +73,12 @@ class Simulador(
     val cadenaLista: Boolean get() = cadenaPerezosa.isInitialized()
     val retrasosListos: Boolean get() = retrasosPerezosos.isInitialized()
 
-    /** Los márgenes ya medidos; un mapa de estado porque dos pantallas pueden pedirlos desde hilos distintos */
-    private val medidos = mutableStateMapOf<String, Int>()
+    /**
+     * Un margen por materia del pensum, que se mide la primera vez que alguien lo pide. El mapa se arma entero y
+     * no cambia más; cada `lazy` es sincronizado: si dos pantallas lo piden a la vez desde hilos distintos, una
+     * mide y la otra espera el mismo resultado (nada se calcula dos veces ni se escribe estado de Compose)
+     */
+    private val medidos: Map<String, Lazy<Int>> = pensum.todas.associate { it.codigo to lazy { medir(it.codigo) } }
 
     fun conVeto(codigo: String, periodo: Int) =
         estimarGraduacion(pensum, marcas, casillas, base.carga, hoy, mapOf(codigo to periodo))
@@ -83,9 +86,11 @@ class Simulador(
     fun indiceEnPlan(codigo: String) = base.plan.indexOfFirst { codigo in it }.coerceAtLeast(0)
 
     /** Cuántos períodos más allá de donde el plan la pone puede esperar `codigo` sin mover la fecha */
-    fun margen(codigo: String): Int = medidos.getOrPut(codigo) {
+    fun margen(codigo: String): Int = medidos[codigo]?.value ?: medir(codigo)
+
+    private fun medir(codigo: String): Int {
         val desde = indiceEnPlan(codigo)
-        (1..TOPE_MARGEN).firstOrNull { j -> conVeto(codigo, desde + j).periodoFinal != base.periodoFinal }?.minus(1) ?: TOPE_MARGEN
+        return (1..TOPE_MARGEN).firstOrNull { j -> conVeto(codigo, desde + j).periodoFinal != base.periodoFinal }?.minus(1) ?: TOPE_MARGEN
     }
 }
 

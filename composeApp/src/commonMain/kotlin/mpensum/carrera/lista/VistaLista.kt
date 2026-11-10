@@ -43,6 +43,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import mpensum.carrera.EstadoCarrera
+import mpensum.carrera.LocalCalculo
 import mpensum.logica.GrupoLista
 import mpensum.logica.Marca
 import mpensum.logica.SeccionEstado
@@ -98,7 +99,8 @@ fun VistaLista(
     val alcance = rememberCoroutineScope()
     val sesion = remember(estado, navegacion) { SesionLista(estado, navegacion, alcance) }
     val simulador = estado.simulador
-    LaunchedEffect(sesion, simulador) { sesion.medir() }
+    val despachador = LocalCalculo.current
+    LaunchedEffect(sesion, simulador) { sesion.medir(despachador) }
     // Elegir una electiva cambia las casillas y con ellas la estructura: se vuelve a ordenar
     LaunchedEffect(estado.casillas) { sesion.soltar() }
 
