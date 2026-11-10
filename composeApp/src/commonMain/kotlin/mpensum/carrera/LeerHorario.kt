@@ -69,7 +69,6 @@ import mpensum.tema.Paleta
  * derecha, bajo la misma cabecera.
  */
 
-
 /** Cuánto mide la foto cuando comparte el renglón con el texto; el alto sale de su proporción */
 private val ANCHO_FOTO = 320.dp
 private val ANCHO_TEXTO = 340.dp

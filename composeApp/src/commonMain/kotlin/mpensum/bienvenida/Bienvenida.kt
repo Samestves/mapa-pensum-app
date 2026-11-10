@@ -44,7 +44,6 @@ import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import mpensum.componentes.estiloTitular
 import mpensum.componentes.BarraPasos
@@ -61,10 +60,8 @@ import mpensum.tema.Movimiento
 import mpensum.tema.Alto
 import mpensum.tema.Espacio
 import mpensum.tema.Paleta
-import mpensum.tema.Tema
 import mpensum.tema.Tipo
 import mpensum.tema.inter
-import mpensum.tema.jost
 
 const val PASOS = 4
 

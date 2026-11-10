@@ -70,7 +70,6 @@ import mpensum.tema.Movimiento
 import mpensum.tema.Alto
 import mpensum.tema.Espacio
 import mpensum.tema.Paleta
-import mpensum.tema.Tema
 import mpensum.tema.Tipo
 import mpensum.tema.colorDe
 import mpensum.tema.inter

@@ -2,7 +2,6 @@ package mpensum.componentes
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
-import androidx.compose.ui.unit.dp
 import mpensum.logica.Situacion
 import mpensum.tema.Paleta
 import mpensum.tema.Tema

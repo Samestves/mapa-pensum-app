@@ -25,7 +25,6 @@ import mpensum.plataforma.LectorCaptura
 import mpensum.logica.MateriaLeida
 import mpensum.logica.diaDelMes
 import mpensum.logica.Sesion
-import mpensum.logica.clases
 import mpensum.logica.franjaNueva
 import mpensum.logica.idNuevo
 import mpensum.logica.sinRepetidas

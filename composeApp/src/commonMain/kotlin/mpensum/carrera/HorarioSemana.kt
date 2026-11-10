@@ -456,7 +456,6 @@ private fun resolverEstrecho(c: Colocada, nombre: String, alto: Int, cabe: Int, 
     return cierre(conIniciales(nombre, renglonesDe(CUERPOS_ESTRECHOS.last()), entra), e)
 }
 
-
 /** «6 materias · 10 clases · 20 h», con los choques en rojo si los hay */
 @Composable
 internal fun resumenSemana(sesiones: List<Sesion>): AnnotatedString {

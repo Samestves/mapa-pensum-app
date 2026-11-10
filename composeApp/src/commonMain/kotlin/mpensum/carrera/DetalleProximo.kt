@@ -34,7 +34,6 @@ import mpensum.logica.Motivo
 import mpensum.logica.Periodo
 import mpensum.logica.ProximoSemestre
 import mpensum.logica.Recomendacion
-import mpensum.logica.proximoSemestre
 import mpensum.tema.Espacio
 import mpensum.tema.Paleta
 

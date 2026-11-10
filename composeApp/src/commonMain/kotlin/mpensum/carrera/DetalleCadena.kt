@@ -35,7 +35,6 @@ import androidx.compose.ui.unit.sp
 import mpensum.componentes.Lucide
 import mpensum.logica.CadenaExplicada
 import mpensum.logica.Periodo
-import mpensum.logica.cadenaExplicada
 import mpensum.tema.Espacio
 import mpensum.tema.Paleta
 import mpensum.tema.inter

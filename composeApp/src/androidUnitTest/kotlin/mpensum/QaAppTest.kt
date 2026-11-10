@@ -5,7 +5,6 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.hasScrollAction
-import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.AndroidComposeTestRule
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -18,7 +17,6 @@ import androidx.compose.ui.test.swipeUp
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.activity.ComponentActivity
-import androidx.compose.ui.test.printToString
 import androidx.test.ext.junit.rules.ActivityScenarioRule
 import kotlinx.serialization.json.Json
 import mpensum.carrera.Interior

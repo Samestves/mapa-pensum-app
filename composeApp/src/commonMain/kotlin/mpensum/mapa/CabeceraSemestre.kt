@@ -62,7 +62,6 @@ private const val CASILLA_ARRIBA = 2.8f
 private const val SANGRIA_TITULO = 21f
 private const val ALTO_CASILLA = 44f
 
-
 /** Lo que dice la cabecera de un semestre */
 data class DatosCabecera(
     val semestre: Int,

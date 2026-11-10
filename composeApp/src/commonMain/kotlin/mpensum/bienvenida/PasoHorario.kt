@@ -404,7 +404,6 @@ private fun DrawScope.semana(t: Float, x: TextosHorario, velo: Float) {
     }
 }
 
-
 /** Una sombra blanda sin desenfoque: tres capas de negro, cada una más ancha, más baja y más tenue */
 private fun DrawScope.sombra(x: Float, y: Float, w: Float, h: Float, radio: Float, alfa: Float) {
     if (alfa <= 0.004f) return

@@ -9,13 +9,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.SemanticsNodeInteraction
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
-import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
-import androidx.compose.ui.test.performTouchInput
-import androidx.compose.ui.test.swipeUp
 import com.github.takahirom.roborazzi.captureRoboImage
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource

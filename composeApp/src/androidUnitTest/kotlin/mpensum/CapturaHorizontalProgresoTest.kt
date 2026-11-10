@@ -117,4 +117,3 @@ class CapturaHorizontalProgresoTest {
     @Test
     fun cadena() = detalle("No puedes atrasar", "5-cadena")
 }
-

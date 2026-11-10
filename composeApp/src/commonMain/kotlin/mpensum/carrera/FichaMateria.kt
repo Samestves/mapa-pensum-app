@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.animation.core.updateTransition
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateMapOf
-import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect

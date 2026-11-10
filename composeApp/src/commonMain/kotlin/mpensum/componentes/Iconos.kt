@@ -21,7 +21,6 @@ import mpensum.tema.Paleta
 
 private fun trazo(d: String): Path = PathParser().parsePathString(d).toPath()
 
-
 /** Los trazos de los iconos de estado, en la rejilla de 20 de la web */
 private object Estados {
     val sello = trazo("M2.5 10a7.5 7.5 0 1 0 15 0a7.5 7.5 0 1 0-15 0z")

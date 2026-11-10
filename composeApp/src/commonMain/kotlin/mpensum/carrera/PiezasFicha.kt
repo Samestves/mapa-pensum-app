@@ -35,7 +35,6 @@ import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -47,7 +46,6 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
-import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -323,7 +321,6 @@ internal class NotaRespuesta(val antes: String, val fecha: String? = null, val a
 
 /** Lo que responde la fila: su pastilla, la frase y la nota; `para` dice a qué estado de la materia pertenece */
 internal class Respuesta(val para: Situacion, val icono: List<Path>, val azul: Boolean, val titulo: String, val nota: NotaRespuesta?)
-
 
 /**
  * Lo que cuesta la fila: hasta 8 simulaciones la primera vez, y una más por cada materia. Va fuera del hilo

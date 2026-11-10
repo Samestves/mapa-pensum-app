@@ -3,7 +3,6 @@ package mpensum.portada
 import androidx.compose.runtime.remember
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -24,8 +23,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
-import mpensum.componentes.IconoTrazo
-import mpensum.componentes.Lucide
 import mpensum.componentes.Silueta
 import mpensum.componentes.pulsable
 import mpensum.datos.Carrera
