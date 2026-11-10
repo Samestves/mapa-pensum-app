@@ -1,0 +1,13 @@
+# Texto en LF en el índice y en el árbol de trabajo; así ningún editor fabrica archivos «modificados» sin cambios
+* text=auto eol=lf
+*.bat text eol=crlf
+
+# Binarios: git no toca sus bytes
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.ttf binary
+*.apk binary
+*.mp4 binary
+*.jar binary
