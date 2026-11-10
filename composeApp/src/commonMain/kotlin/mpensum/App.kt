@@ -37,8 +37,7 @@ import mpensum.datos.rememberCarreras
 import mpensum.plataforma.BarrasDelSistema
 import mpensum.plataforma.ManejarAtras
 import mpensum.plataforma.Preferencias
-import mpensum.plataforma.animacionesQuitadas
-import mpensum.plataforma.telefonoModesto
+import mpensum.plataforma.ponerPreferenciasEnTema
 import mpensum.portada.Portada
 import mpensum.tema.Movimiento
 import mpensum.tema.Paleta
@@ -59,6 +58,20 @@ private sealed interface Pantalla {
  * (cambio de tema, de idioma o de tamaño de letra con la app abierta): sin
  * esto, quien estaba dentro de su carrera volvía a la portada.
  */
+/** Lo que se funde mientras la pantalla escala al entrar en una carrera y al volver: la entrada espera un respiro, la salida se va antes */
+private const val ENTRA_FUNDE_MS = 200
+private const val ENTRA_ESPERA_MS = 40
+private const val SALE_FUNDE_MS = 180
+private const val VUELTA_ESPERA_MS = 60
+/** De la guía a la portada: la portada nace bajo una guía que se disuelve */
+private const val GUIA_ENTRA_MS = 360
+private const val GUIA_ESPERA_MS = 80
+private const val GUIA_SALE_MS = 320
+/** Cualquier otro cambio de pantalla (portada a guía) */
+private const val OTRA_ENTRA_MS = 500
+private const val OTRA_ESPERA_MS = 120
+private const val OTRA_SALE_MS = 200
+
 private val GuardarPantalla = Saver<Pantalla, String>(
     save = {
         when (it) {
@@ -75,8 +88,6 @@ private val GuardarPantalla = Saver<Pantalla, String>(
         }
     },
 )
-
-/** Lo que cambia sin salir de pantalla arranca quieto y frena largo (Material, enfatizada) */
 
 /**
  * La primera vez, la guía; después, la portada. La guía acaba en la portada
@@ -95,33 +106,15 @@ fun App() {
     val deDia by Preferencias.temaDia.collectAsState()
     val deNoche by Preferencias.temaNoche.collectAsState()
     val juego = apariencia.juego(nocheDelSistema, deDia, deNoche)
-    // El resto de lo elegido en Personalizar se vuelca al Tema al componer: lo que dibuja lo lee de ahí
-    val acento by Preferencias.acento.collectAsState()
-    val grande by Preferencias.textoGrande.collectAsState()
-    val luz by Preferencias.luzFondo.collectAsState()
-    val reducir by Preferencias.reducirMovimiento.collectAsState()
-    val codigos by Preferencias.codigos.collectAsState()
-    val ligero by Preferencias.modoLigero.collectAsState()
-    val fondoMapa by Preferencias.fondoMapa.collectAsState()
-    val cables by Preferencias.cables.collectAsState()
-    val grosor by Preferencias.grosorCables.collectAsState()
-    val atenuar by Preferencias.atenuarAprobadas.collectAsState()
-    val contraste by Preferencias.contraste.collectAsState()
-    val hora24 by Preferencias.hora24.collectAsState()
-    val vibracion by Preferencias.vibracion.collectAsState()
-    Tema.contraste = contraste
-    Tema.fondo = fondoMapa ?: juego.fondo
-    Tema.cables = cables
-    Tema.grosor = grosor
-    Tema.atenuarAprobadas = atenuar
-    Tema.hora24 = hora24
-    Tema.vibracion = vibracion
-    Tema.acento = acento
-    Tema.textoGrande = grande
-    Tema.luzFondo = luz ?: (juego.aurora > 0f)
-    Tema.movimiento = reducir ?: animacionesQuitadas()
-    Tema.codigos = codigos
-    Tema.ligero = ligero ?: telefonoModesto()
+    // Recoger cada preferencia hace que App recomponga cuando cambie una; el volcado al Tema es uno solo
+    listOf(
+        Preferencias.acento, Preferencias.textoGrande, Preferencias.luzFondo, Preferencias.reducirMovimiento,
+        Preferencias.codigos, Preferencias.modoLigero, Preferencias.fondoMapa, Preferencias.cables,
+        Preferencias.grosorCables, Preferencias.atenuarAprobadas, Preferencias.contraste, Preferencias.hora24,
+        Preferencias.vibracion,
+    ).forEach { it.collectAsState() }
+    val grande = Preferencias.textoGrande.value
+    ponerPreferenciasEnTema(juego)
     BarrasDelSistema(juego.claro)
     // El texto grande es la escala de letra del sistema por 1,15: se lee en sp, no toca los dp
     val densidad = LocalDensity.current
@@ -169,16 +162,16 @@ private fun Pantallas() {
             transitionSpec = {
                 when {
                     // Con el movimiento reducido, un fundido de 150 ms en vez de entrar y salir con escala
-                    Tema.movimiento -> fadeIn(tween(150)) togetherWith fadeOut(tween(150))
+                    Tema.movimiento -> fadeIn(tween(Movimiento.CORTA)) togetherWith fadeOut(tween(Movimiento.CORTA))
                     targetState is Pantalla.Carrera ->
-                        (scaleIn(tween(420, easing = Movimiento.ESTANDAR), 0.9f, origen) + fadeIn(tween(200, 40, LinearEasing))) togetherWith
-                            (scaleOut(tween(420, easing = Movimiento.ESTANDAR), 1.06f, origen) + fadeOut(tween(180, easing = LinearEasing)))
+                        (scaleIn(tween(Movimiento.PANTALLA, easing = Movimiento.ESTANDAR), 0.9f, origen) + fadeIn(tween(ENTRA_FUNDE_MS, ENTRA_ESPERA_MS, LinearEasing))) togetherWith
+                            (scaleOut(tween(Movimiento.PANTALLA, easing = Movimiento.ESTANDAR), 1.06f, origen) + fadeOut(tween(SALE_FUNDE_MS, easing = LinearEasing)))
                     initialState is Pantalla.Carrera ->
-                        (scaleIn(tween(380, easing = Movimiento.ESTANDAR), 1.06f, origen) + fadeIn(tween(200, easing = LinearEasing))) togetherWith
-                            (scaleOut(tween(380, easing = Movimiento.ESTANDAR), 0.9f, origen) + fadeOut(tween(180, 60, LinearEasing)))
+                        (scaleIn(tween(Movimiento.PANTALLA_VUELTA, easing = Movimiento.ESTANDAR), 1.06f, origen) + fadeIn(tween(ENTRA_FUNDE_MS, easing = LinearEasing))) togetherWith
+                            (scaleOut(tween(Movimiento.PANTALLA_VUELTA, easing = Movimiento.ESTANDAR), 0.9f, origen) + fadeOut(tween(SALE_FUNDE_MS, VUELTA_ESPERA_MS, LinearEasing)))
                     // De la guía a la portada: la guía se disuelve y la portada nace bajo ella, que hace su propia entrada
-                    targetState == Pantalla.Portada -> fadeIn(tween(360, 80, Movimiento.ESTANDAR)) togetherWith fadeOut(tween(320, easing = LinearEasing))
-                    else -> fadeIn(tween(500, 120)) togetherWith fadeOut(tween(200))
+                    targetState == Pantalla.Portada -> fadeIn(tween(GUIA_ENTRA_MS, GUIA_ESPERA_MS, Movimiento.ESTANDAR)) togetherWith fadeOut(tween(GUIA_SALE_MS, easing = LinearEasing))
+                    else -> fadeIn(tween(OTRA_ENTRA_MS, OTRA_ESPERA_MS)) togetherWith fadeOut(tween(OTRA_SALE_MS))
                 }
             },
             label = "pantalla",

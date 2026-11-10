@@ -1,5 +1,6 @@
 package mpensum
 
+import mpensum.plataforma.iniciar
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
 import androidx.test.core.app.ActivityScenario
 import androidx.compose.ui.test.onAllNodesWithContentDescription
@@ -10,7 +11,10 @@ import org.robolectric.RuntimeEnvironment
 import mpensum.datos.Guardado
 import mpensum.datos.leerPensum
 import mpensum.logica.Marca
+import mpensum.plataforma.Apariencia
 import mpensum.plataforma.Preferencias
+import mpensum.tema.Juego
+import mpensum.tema.Tema
 import org.junit.Rule
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -18,6 +22,8 @@ import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
 import java.io.File
 import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertSame
 import kotlin.test.assertTrue
 
 /**
@@ -71,5 +77,30 @@ class QaRecrearTest {
         correr(3000)
         // Tras girar o cambiar el tema el usuario debería seguir dentro de su carrera
         hasta("seguir dentro de la carrera") { regla.onAllNodesWithContentDescription("Tu avance", substring = true).fetchSemanticsNodes().isNotEmpty() }
+    }
+
+    /**
+     * Con la apariencia «Sistema», pasar de día a noche no recrea la actividad (uiMode en configChanges):
+     * el tema cambia solo y la actividad sigue siendo la misma.
+     */
+    @Test
+    fun elCambioDeDiaANocheNoRecreaLaActividadYCambiaElTema() {
+        Preferencias.iniciar(RuntimeEnvironment.getApplication())
+        Preferencias.marcarBienvenidaVista()
+        Preferencias.guardarTema(Apariencia.SISTEMA)
+        Preferencias.guardarTemaDia(Juego.CLARO)
+        Preferencias.guardarTemaNoche(Juego.OSCURO)
+        val escenario = ActivityScenario.launch(MainActivity::class.java)
+        regla.mainClock.autoAdvance = false
+        correr(3000)
+        assertEquals(Juego.CLARO, Tema.juego)
+        var antes: MainActivity? = null
+        escenario.onActivity { antes = it }
+        RuntimeEnvironment.setQualifiers("+night")
+        correr(1500)
+        var despues: MainActivity? = null
+        escenario.onActivity { despues = it }
+        assertSame(antes, despues, "la actividad se recreó")
+        hasta("el tema de noche") { Tema.juego == Juego.OSCURO }
     }
 }

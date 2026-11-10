@@ -1,5 +1,6 @@
 package mpensum
 
+import mpensum.plataforma.iniciar
 import mpensum.carrera.EstadoCarrera
 import mpensum.datos.Guardado
 import mpensum.datos.HorarioGuardado

@@ -1,5 +1,6 @@
 package mpensum
 
+import mpensum.plataforma.iniciar
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.junit4.AndroidComposeTestRule
 import androidx.compose.ui.test.junit4.createAndroidComposeRule

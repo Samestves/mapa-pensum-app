@@ -147,9 +147,6 @@ object Tema {
     /** Sin luces, latidos ni ondas en bucle: con el movimiento reducido o en modo ligero */
     val sinBucles: Boolean get() = movimiento || ligero
 
-    /** Cuánto pesa la aurora de la portada: la del juego, si la luz de fondo está encendida */
-    val intensidadAurora: Float get() = juego.aurora * (if (luzFondo) 1f else 0f)
-
     /** El grosor de los bordes de cristales y tarjetas, en dp */
     val grosorBorde: Float get() = if (fuerte) 1.5f else 1f
 }

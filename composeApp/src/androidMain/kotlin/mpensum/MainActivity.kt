@@ -1,5 +1,6 @@
 package mpensum
 
+import mpensum.plataforma.iniciar
 import android.content.res.Configuration
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle

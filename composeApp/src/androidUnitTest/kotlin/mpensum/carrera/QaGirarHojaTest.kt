@@ -1,5 +1,6 @@
 package mpensum.carrera
 
+import mpensum.plataforma.iniciar
 import android.content.Context
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.background

@@ -1,5 +1,6 @@
 package mpensum.portada
 
+import mpensum.plataforma.iniciar
 import android.view.View
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.Canvas

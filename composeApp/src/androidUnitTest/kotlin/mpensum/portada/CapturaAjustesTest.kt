@@ -1,5 +1,6 @@
 package mpensum.portada
 
+import mpensum.plataforma.iniciar
 import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box

@@ -1,12 +1,6 @@
 package mpensum.plataforma
 
 import androidx.compose.runtime.Composable
-import kotlinx.coroutines.flow.StateFlow
-import mpensum.carrera.Vista
-import mpensum.tema.Acento
-import mpensum.tema.Fondo
-import mpensum.tema.FormaCables
-import mpensum.tema.Grosor
 import mpensum.tema.Juego
 import mpensum.tema.Tema
 
@@ -47,89 +41,6 @@ enum class Apariencia(val juego: Juego?) {
             else -> entries.firstOrNull { it.valor == valor } ?: OSCURO
         }
     }
-}
-
-/** Lo poco que la app guarda en el teléfono */
-expect object Preferencias {
-    fun bienvenidaVista(): Boolean
-    fun marcarBienvenidaVista()
-    fun carrera(): String?
-    fun guardarCarrera(slug: String)
-
-    /** Un texto guardado con su clave, o null si no hay */
-    fun leerTexto(clave: String): String?
-    fun guardarTexto(clave: String, texto: String)
-
-    /**
-     * La apariencia elegida, observable: quien pinte la app la recoge
-     * (collectAsState) y cambia en el acto, sin reabrir nada.
-     */
-    val tema: StateFlow<Apariencia>
-    fun guardarTema(apariencia: Apariencia)
-
-    /** El acento: null es el color de la carrera */
-    val acento: StateFlow<Acento?>
-    fun guardarAcento(acento: Acento?)
-
-    /** El tamaño del texto («texto»: normal o grande) */
-    val textoGrande: StateFlow<Boolean>
-    fun guardarTextoGrande(grande: Boolean)
-
-    /** La luz de fondo de la portada; null mientras no se haya elegido (entonces manda el tema) */
-    val luzFondo: StateFlow<Boolean?>
-    fun guardarLuzFondo(encendida: Boolean)
-
-    /** Reducir movimiento; null mientras no se haya elegido (entonces manda el sistema) */
-    val reducirMovimiento: StateFlow<Boolean?>
-    fun guardarReducirMovimiento(reducir: Boolean)
-
-    /** El modo ligero; null es automático (entonces manda [telefonoModesto]) */
-    val modoLigero: StateFlow<Boolean?>
-    fun guardarModoLigero(ligero: Boolean?)
-
-    /** El código de 7 cifras en las tarjetas del mapa */
-    val codigos: StateFlow<Boolean>
-    fun guardarCodigos(visibles: Boolean)
-
-    /** El fondo del mapa; null es el del tema, y vuelve a null al cambiar de tema */
-    val fondoMapa: StateFlow<Fondo?>
-    fun guardarFondoMapa(fondo: Fondo?)
-
-    val cables: StateFlow<FormaCables>
-    fun guardarCables(forma: FormaCables)
-
-    val grosorCables: StateFlow<Grosor>
-    fun guardarGrosorCables(grosor: Grosor)
-
-    /** Lo aprobado se dibuja al 45 % */
-    val atenuarAprobadas: StateFlow<Boolean>
-    fun guardarAtenuarAprobadas(atenuar: Boolean)
-
-    /** Más contraste: textos, bordes y rejilla hacia la tinta */
-    val contraste: StateFlow<Boolean>
-    fun guardarContraste(activo: Boolean)
-
-    /** Con Sistema: el tema de día y el de noche (por defecto Claro y Oscuro) */
-    val temaDia: StateFlow<Juego>
-    fun guardarTemaDia(juego: Juego)
-    val temaNoche: StateFlow<Juego>
-    fun guardarTemaNoche(juego: Juego)
-
-    /** Al abrir la app, entrar directo a la carrera elegida (si hay) */
-    val abrirEnCarrera: StateFlow<Boolean>
-    fun guardarAbrirEnCarrera(abrir: Boolean)
-
-    /** La vista con que se abre una carrera: el mapa o la lista */
-    val vistaInicial: StateFlow<Vista>
-    fun guardarVistaInicial(vista: Vista)
-
-    /** Las horas del horario en 24 h */
-    val hora24: StateFlow<Boolean>
-    fun guardarHora24(activo: Boolean)
-
-    /** La vibración de la lista, la barra, el mapa y la ficha */
-    val vibracion: StateFlow<Boolean>
-    fun guardarVibracion(activa: Boolean)
 }
 
 /**

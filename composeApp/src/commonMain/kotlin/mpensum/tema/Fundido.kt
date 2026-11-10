@@ -1,7 +1,6 @@
 package mpensum.tema
 
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
@@ -20,12 +19,6 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.layer.drawLayer
 import androidx.compose.ui.graphics.rememberGraphicsLayer
 import kotlinx.coroutines.CancellationException
-
-/** Lo que tarda en fundirse un tema con el otro */
-private const val FUNDIDO_MS = 250
-
-/** Estándar de Material: arranca sin brusquedad y se posa */
-private val FUNDIDO = CubicBezierEasing(0.4f, 0f, 0.2f, 1f)
 
 /**
  * Pone el tema y, al cambiarlo, funde el viejo sobre el nuevo.
@@ -64,7 +57,7 @@ fun TemaVivo(juego: Juego, contenido: @Composable () -> Unit) {
         if (tomada == null) return@LaunchedEffect
         try {
             velo.snapTo(1f)
-            velo.animateTo(0f, tween(FUNDIDO_MS, easing = FUNDIDO))
+            velo.animateTo(0f, tween(Movimiento.MEDIA, easing = Movimiento.SUAVE))
         } finally {
             foto = null
         }

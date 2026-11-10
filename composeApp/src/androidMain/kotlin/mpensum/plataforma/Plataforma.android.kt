@@ -1,5 +1,6 @@
 package mpensum.plataforma
 
+import mpensum.plataforma.iniciar
 import android.app.ActivityManager
 import android.content.Context
 import android.os.Build
@@ -14,209 +15,39 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
-import mpensum.carrera.Vista
-import mpensum.tema.Acento
-import mpensum.tema.Fondo
-import mpensum.tema.FormaCables
-import mpensum.tema.Grosor
-import mpensum.tema.Juego
 import mpensum.tema.Paleta
 import mpensum.tema.Tema
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 
-actual object Preferencias {
-    private var prefs: SharedPreferences? = null
-    private val apariencia = MutableStateFlow(Apariencia.OSCURO)
-    private val acentoElegido = MutableStateFlow<Acento?>(null)
-    private val grande = MutableStateFlow(false)
-    private val luz = MutableStateFlow<Boolean?>(null)
-    private val reducir = MutableStateFlow<Boolean?>(null)
-    private val codigosVisibles = MutableStateFlow(true)
-    private val ligero = MutableStateFlow<Boolean?>(null)
-    private val fondo = MutableStateFlow<Fondo?>(null)
-    private val forma = MutableStateFlow(FormaCables.CURVOS)
-    private val grosor = MutableStateFlow(Grosor.NORMAL)
-    private val atenuar = MutableStateFlow(false)
-    private val masContraste = MutableStateFlow(false)
-    private val dia = MutableStateFlow(Juego.CLARO)
-    private val noche = MutableStateFlow(Juego.OSCURO)
-    private val entrarEnCarrera = MutableStateFlow(false)
-    private val vista = MutableStateFlow(Vista.MAPA)
-    private val horas24 = MutableStateFlow(false)
-    private val vibra = MutableStateFlow(true)
-    internal var modesto = false
-        private set
-    internal var version: String? = null
-        private set
-    internal var animaciones: android.content.ContentResolver? = null
-
-    /** Lo llama MainActivity al arrancar */
-    fun iniciar(contexto: Context) {
-        prefs = contexto.getSharedPreferences("mapa-pensum", Context.MODE_PRIVATE)
-        apariencia.value = Apariencia.de(prefs?.getString("tema", null))
-        acentoElegido.value = Acento.de(prefs?.getString("acento", null))
-        grande.value = prefs?.getString("texto", null) == "grande"
-        luz.value = prefs?.takeIf { it.contains("luzFondo") }?.getBoolean("luzFondo", true)
-        reducir.value = prefs?.takeIf { it.contains("movimiento") }?.getBoolean("movimiento", false)
-        codigosVisibles.value = prefs?.getBoolean("codigos", true) ?: true
-        ligero.value = prefs?.takeIf { it.contains("ligero") }?.getBoolean("ligero", false)
-        fondo.value = leerEnum<Fondo>("fondoMapa")
-        forma.value = leerEnum<FormaCables>("cables") ?: FormaCables.CURVOS
-        grosor.value = leerEnum<Grosor>("grosorCables") ?: Grosor.NORMAL
-        atenuar.value = prefs?.getBoolean("atenuarAprobadas", false) ?: false
-        masContraste.value = prefs?.getBoolean("contraste", false) ?: false
-        dia.value = leerJuego("temaDia") ?: Juego.CLARO
-        noche.value = leerJuego("temaNoche") ?: Juego.OSCURO
-        entrarEnCarrera.value = prefs?.getBoolean("abrirEnCarrera", false) ?: false
-        // El horario no es una vista con la que se abra una carrera
-        vista.value = leerEnum<Vista>("vistaInicial")?.takeIf { it != Vista.HORARIO } ?: Vista.MAPA
-        horas24.value = prefs?.getBoolean("hora24", false) ?: false
-        vibra.value = prefs?.getBoolean("vibracion", true) ?: true
-        modesto = medirModesto(contexto)
-        animaciones = contexto.applicationContext.contentResolver
-        version = runCatching { contexto.packageManager.getPackageInfo(contexto.packageName, 0).versionName }.getOrNull()
+/** SharedPreferences como almacén: los mismos nombres y tipos que siempre */
+private class AlmacenAndroid(private val prefs: SharedPreferences) : Almacen {
+    override fun texto(clave: String): String? = prefs.getString(clave, null)
+    override fun booleano(clave: String): Boolean? = if (prefs.contains(clave)) prefs.getBoolean(clave, false) else null
+    override fun guardarTexto(clave: String, valor: String?) {
+        prefs.edit().apply { if (valor == null) remove(clave) else putString(clave, valor) }.apply()
     }
-
-    actual fun bienvenidaVista(): Boolean = prefs?.getBoolean("bienvenida", false) ?: false
-    actual fun marcarBienvenidaVista() {
-        prefs?.edit()?.putBoolean("bienvenida", true)?.apply()
+    override fun guardarBooleano(clave: String, valor: Boolean?) {
+        prefs.edit().apply { if (valor == null) remove(clave) else putBoolean(clave, valor) }.apply()
     }
-    actual fun carrera(): String? = prefs?.getString("carrera", null)
-    actual fun guardarCarrera(slug: String) {
-        prefs?.edit()?.putString("carrera", slug)?.apply()
-    }
+}
 
-    actual fun leerTexto(clave: String): String? = prefs?.getString(clave, null)
-    actual fun guardarTexto(clave: String, texto: String) {
-        prefs?.edit()?.putString(clave, texto)?.apply()
-    }
+/** Lo que solo se sabe en Android y se mide al arrancar: ni se guarda ni lo elige nadie */
+internal object DatosDelTelefono {
+    var modesto = false
+    var version: String? = null
+    var animaciones: android.content.ContentResolver? = null
+}
 
-    actual val tema: StateFlow<Apariencia> = apariencia.asStateFlow()
-    actual fun guardarTema(apariencia: Apariencia) {
-        // Cada tema trae su fondo: elegir otro tema suelta el fondo que se hubiera elegido a mano
-        if (apariencia != this.apariencia.value) guardarFondoMapa(null)
-        this.apariencia.value = apariencia
-        prefs?.edit()?.putString("tema", apariencia.valor)?.apply()
-    }
-
-    actual val acento: StateFlow<Acento?> = acentoElegido.asStateFlow()
-    actual fun guardarAcento(acento: Acento?) {
-        acentoElegido.value = acento
-        prefs?.edit()?.apply { if (acento == null) remove("acento") else putString("acento", acento.valor) }?.apply()
-    }
-
-    actual val textoGrande: StateFlow<Boolean> = grande.asStateFlow()
-    actual fun guardarTextoGrande(grande: Boolean) {
-        this.grande.value = grande
-        prefs?.edit()?.putString("texto", if (grande) "grande" else "normal")?.apply()
-    }
-
-    actual val luzFondo: StateFlow<Boolean?> = luz.asStateFlow()
-    actual fun guardarLuzFondo(encendida: Boolean) {
-        luz.value = encendida
-        prefs?.edit()?.putBoolean("luzFondo", encendida)?.apply()
-    }
-
-    actual val reducirMovimiento: StateFlow<Boolean?> = reducir.asStateFlow()
-    actual fun guardarReducirMovimiento(reducir: Boolean) {
-        this.reducir.value = reducir
-        prefs?.edit()?.putBoolean("movimiento", reducir)?.apply()
-    }
-
-    actual val codigos: StateFlow<Boolean> = codigosVisibles.asStateFlow()
-    actual fun guardarCodigos(visibles: Boolean) {
-        codigosVisibles.value = visibles
-        prefs?.edit()?.putBoolean("codigos", visibles)?.apply()
-    }
-
-    actual val modoLigero: StateFlow<Boolean?> = ligero.asStateFlow()
-    actual fun guardarModoLigero(ligero: Boolean?) {
-        this.ligero.value = ligero
-        prefs?.edit()?.apply { if (ligero == null) remove("ligero") else putBoolean("ligero", ligero) }?.apply()
-    }
-
-    actual val fondoMapa: StateFlow<Fondo?> = fondo.asStateFlow()
-    actual fun guardarFondoMapa(fondo: Fondo?) {
-        this.fondo.value = fondo
-        prefs?.edit()?.apply { if (fondo == null) remove("fondoMapa") else putString("fondoMapa", fondo.name) }?.apply()
-    }
-
-    actual val cables: StateFlow<FormaCables> = forma.asStateFlow()
-    actual fun guardarCables(forma: FormaCables) {
-        this.forma.value = forma
-        prefs?.edit()?.putString("cables", forma.name)?.apply()
-    }
-
-    actual val grosorCables: StateFlow<Grosor> = grosor.asStateFlow()
-    actual fun guardarGrosorCables(grosor: Grosor) {
-        this.grosor.value = grosor
-        prefs?.edit()?.putString("grosorCables", grosor.name)?.apply()
-    }
-
-    actual val atenuarAprobadas: StateFlow<Boolean> = atenuar.asStateFlow()
-    actual fun guardarAtenuarAprobadas(atenuar: Boolean) {
-        this.atenuar.value = atenuar
-        prefs?.edit()?.putBoolean("atenuarAprobadas", atenuar)?.apply()
-    }
-
-    actual val contraste: StateFlow<Boolean> = masContraste.asStateFlow()
-    actual fun guardarContraste(activo: Boolean) {
-        masContraste.value = activo
-        prefs?.edit()?.putBoolean("contraste", activo)?.apply()
-    }
-
-    actual val temaDia: StateFlow<Juego> = dia.asStateFlow()
-    actual fun guardarTemaDia(juego: Juego) {
-        dia.value = juego
-        prefs?.edit()?.putString("temaDia", juego.name)?.apply()
-    }
-
-    actual val temaNoche: StateFlow<Juego> = noche.asStateFlow()
-    actual fun guardarTemaNoche(juego: Juego) {
-        noche.value = juego
-        prefs?.edit()?.putString("temaNoche", juego.name)?.apply()
-    }
-
-    actual val abrirEnCarrera: StateFlow<Boolean> = entrarEnCarrera.asStateFlow()
-    actual fun guardarAbrirEnCarrera(abrir: Boolean) {
-        entrarEnCarrera.value = abrir
-        prefs?.edit()?.putBoolean("abrirEnCarrera", abrir)?.apply()
-    }
-
-    actual val vistaInicial: StateFlow<Vista> = vista.asStateFlow()
-    actual fun guardarVistaInicial(vista: Vista) {
-        this.vista.value = vista
-        prefs?.edit()?.putString("vistaInicial", vista.name)?.apply()
-    }
-
-    actual val hora24: StateFlow<Boolean> = horas24.asStateFlow()
-    actual fun guardarHora24(activo: Boolean) {
-        horas24.value = activo
-        prefs?.edit()?.putBoolean("hora24", activo)?.apply()
-    }
-
-    actual val vibracion: StateFlow<Boolean> = vibra.asStateFlow()
-    actual fun guardarVibracion(activa: Boolean) {
-        vibra.value = activa
-        prefs?.edit()?.putBoolean("vibracion", activa)?.apply()
-    }
-
-    /** Un juego guardado; el Morichal de antes pasa a Medianoche */
-    private fun leerJuego(clave: String): Juego? =
-        if (prefs?.getString(clave, null) == "MORICHAL") Juego.MEDIANOCHE else leerEnum<Juego>(clave)
-
-    /** Un enum guardado por su nombre, o null si no hay o ya no existe */
-    private inline fun <reified E : Enum<E>> leerEnum(clave: String): E? {
-        val nombre = prefs?.getString(clave, null) ?: return null
-        return enumValues<E>().firstOrNull { it.name == nombre }
-    }
+/** Lo llama MainActivity al arrancar */
+fun Preferencias.iniciar(contexto: Context) {
+    usar(AlmacenAndroid(contexto.getSharedPreferences("mapa-pensum", Context.MODE_PRIVATE)))
+    DatosDelTelefono.modesto = medirModesto(contexto)
+    DatosDelTelefono.animaciones = contexto.applicationContext.contentResolver
+    DatosDelTelefono.version = runCatching { contexto.packageManager.getPackageInfo(contexto.packageName, 0).versionName }.getOrNull()
 }
 
 /** Con las animaciones quitadas (opciones de desarrollador o ahorro de batería) la escala del animador es 0 */
 actual fun animacionesQuitadas(): Boolean {
-    val c = Preferencias.animaciones ?: return false
+    val c = DatosDelTelefono.animaciones ?: return false
     return runCatching { android.provider.Settings.Global.getFloat(c, android.provider.Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f }.getOrDefault(false)
 }
 
@@ -294,9 +125,9 @@ private fun frecuenciaMaxima(nucleos: Int): Int = (0 until nucleos).maxOfOrNull 
     runCatching { java.io.File("/sys/devices/system/cpu/cpu$i/cpufreq/cpuinfo_max_freq").readText().trim().toInt() }.getOrDefault(0)
 } ?: 0
 
-actual fun telefonoModesto(): Boolean = Preferencias.modesto
+actual fun telefonoModesto(): Boolean = DatosDelTelefono.modesto
 
-actual fun versionApp(): String? = Preferencias.version
+actual fun versionApp(): String? = DatosDelTelefono.version
 
 @Composable
 actual fun ManejarAtras(activo: Boolean, alVolver: () -> Unit) = BackHandler(activo, alVolver)
