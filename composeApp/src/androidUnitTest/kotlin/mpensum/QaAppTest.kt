@@ -22,8 +22,8 @@ import androidx.test.ext.junit.rules.ActivityScenarioRule
 import kotlinx.serialization.json.Json
 import mpensum.carrera.Interior
 import mpensum.datos.Carrera
-import mpensum.datos.Guardado
-import mpensum.datos.HorarioGuardado
+import mpensum.guardado.Guardado
+import mpensum.guardado.HorarioGuardado
 import mpensum.datos.leerPensum
 import mpensum.logica.Marca
 import mpensum.plataforma.Preferencias

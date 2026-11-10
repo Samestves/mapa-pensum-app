@@ -1,5 +1,6 @@
 package mpensum.carrera
 
+import mpensum.componentes.estilo
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween

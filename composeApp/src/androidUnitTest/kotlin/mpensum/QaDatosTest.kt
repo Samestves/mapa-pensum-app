@@ -2,8 +2,8 @@ package mpensum
 
 import mpensum.plataforma.iniciar
 import mpensum.carrera.EstadoCarrera
-import mpensum.datos.Guardado
-import mpensum.datos.HorarioGuardado
+import mpensum.guardado.Guardado
+import mpensum.guardado.HorarioGuardado
 import mpensum.datos.leerPensum
 import mpensum.logica.MAX_CARGA
 import mpensum.logica.Marca

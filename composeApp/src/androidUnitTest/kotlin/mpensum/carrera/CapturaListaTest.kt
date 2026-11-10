@@ -1,5 +1,6 @@
 package mpensum.carrera
 
+import mpensum.navegacion.Vista
 import mpensum.setContentSincrono
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box

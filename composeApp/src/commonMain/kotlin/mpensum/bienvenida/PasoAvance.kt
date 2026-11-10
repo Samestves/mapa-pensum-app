@@ -19,7 +19,7 @@ import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
-import mpensum.carrera.Velo
+import mpensum.componentes.Velo
 import mpensum.componentes.estiloCifra
 import mpensum.datos.Asignatura
 import mpensum.datos.Pensum

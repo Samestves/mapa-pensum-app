@@ -1,5 +1,19 @@
 package mpensum.carrera
 
+import mpensum.componentes.RESPIRO_COMPLETA
+import mpensum.componentes.superficie
+import mpensum.componentes.BotonMapa
+import mpensum.componentes.estiloCuerpo
+import mpensum.componentes.icono
+import mpensum.componentes.estiloFila
+import mpensum.componentes.trazos
+import mpensum.componentes.Velo
+import mpensum.componentes.CifraFila
+import mpensum.componentes.Pastilla
+import mpensum.componentes.recorteCap
+import mpensum.componentes.BotonRedondo
+import mpensum.componentes.estiloTitulo
+import mpensum.componentes.DatosCabecera
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn

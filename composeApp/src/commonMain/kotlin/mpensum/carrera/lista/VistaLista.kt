@@ -1,5 +1,6 @@
 package mpensum.carrera.lista
 
+import mpensum.componentes.REALCE
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween

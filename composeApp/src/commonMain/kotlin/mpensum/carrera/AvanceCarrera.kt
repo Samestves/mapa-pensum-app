@@ -1,5 +1,34 @@
 package mpensum.carrera
 
+import mpensum.componentes.IndiceRetenido
+import mpensum.componentes.empujeDePagina
+import mpensum.componentes.CabeceraDeAltoEstable
+import mpensum.componentes.HojaInferior
+import mpensum.componentes.superficie
+import mpensum.componentes.BotonMapa
+import mpensum.componentes.RotuloSeccion
+import mpensum.componentes.estiloCuerpo
+import mpensum.componentes.TarjetaLista
+import mpensum.componentes.icono
+import mpensum.componentes.estiloFila
+import mpensum.componentes.CabeceraInterna
+import mpensum.componentes.IconosHoja
+import mpensum.componentes.trazos
+import mpensum.componentes.DosALoAncho
+import mpensum.componentes.Velo
+import mpensum.componentes.CifraFila
+import mpensum.componentes.IconoLucide
+import mpensum.componentes.FilaLista
+import mpensum.componentes.nota
+import mpensum.componentes.Pastilla
+import mpensum.componentes.estiloRotulo
+import mpensum.componentes.altoMayuscula
+import mpensum.componentes.estiloNota
+import mpensum.componentes.BotonRedondo
+import mpensum.componentes.IconoFila
+import mpensum.componentes.estiloTitulo
+import mpensum.componentes.Fecha
+import mpensum.componentes.DatosCabecera
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.ContentTransform
@@ -43,22 +72,18 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import mpensum.componentes.Lucide
 import mpensum.componentes.SEPARACION_UNIDAD
@@ -80,7 +105,6 @@ import mpensum.tema.Movimiento
 import mpensum.tema.Espacio
 import mpensum.tema.Paleta
 import mpensum.tema.Tipo
-import mpensum.tema.inter
 import kotlin.math.roundToInt
 
 /*
@@ -101,20 +125,6 @@ import kotlin.math.roundToInt
 
 /** Del tope de la cifra héroe a «13 / 153 UC» */
 private val BAJO_CIFRA = 11.dp
-
-/** Los rótulos: mayúsculas semibold de 11 sp con 0,05 em de espaciado */
-@Composable
-internal fun versal(color: Color) = TextStyle(fontFamily = inter(), fontWeight = FontWeight.SemiBold, fontSize = Tipo.xxs, lineHeight = 14.sp, letterSpacing = 0.05.em, color = color)
-
-/** Un texto de la hoja: Inter, con el tamaño, el peso y el color que pida */
-@Composable
-internal fun estilo(tam: Int, color: Color, peso: FontWeight = FontWeight.Normal, interlinea: Int = (tam * 1.35f).roundToInt()) =
-    estilo(tam.sp, color, peso, interlinea)
-
-/** Lo mismo con el tamaño de un token de [Tipo]: la interlínea por defecto es 1,35 veces el tamaño */
-@Composable
-internal fun estilo(tam: TextUnit, color: Color, peso: FontWeight = FontWeight.Normal, interlinea: Int = (tam.value * 1.35f).roundToInt()) =
-    TextStyle(fontFamily = inter(), fontWeight = peso, fontSize = tam, lineHeight = interlinea.sp, color = color, fontFeatureSettings = "tnum")
 
 private const val ENTRADA_CIFRA = 700
 
@@ -137,6 +147,16 @@ internal sealed interface DetalleAvance {
     data object Cadena : DetalleAvance
     data object Graduacion : DetalleAvance
     data class Electivas(val clave: String) : DetalleAvance
+}
+
+/** La clave con que cada página guarda su estado (su desplazamiento) mientras no está a la vista */
+internal fun DetalleAvance?.clave(): String = when (this) {
+    null -> "indice"
+    DetalleAvance.EsteSemestre -> "este-semestre"
+    DetalleAvance.Proximo -> "proximo"
+    DetalleAvance.Cadena -> "cadena"
+    DetalleAvance.Graduacion -> "graduacion"
+    is DetalleAvance.Electivas -> "electivas-$clave"
 }
 
 /** La pastilla, el título y el subtítulo de cada pantalla interna */

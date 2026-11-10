@@ -1,5 +1,6 @@
 package mpensum.carrera
 
+import mpensum.componentes.estilo
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.animation.togetherWith

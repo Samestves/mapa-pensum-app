@@ -1,5 +1,6 @@
 package mpensum.mapa
 
+import mpensum.carrera.MapaCarrera
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,7 +12,7 @@ import com.github.takahirom.roborazzi.captureRoboImage
 import mpensum.carrera.EstadoCarrera
 import mpensum.carrera.BarraCarrera
 import mpensum.carrera.FichaMateria
-import mpensum.carrera.Vista
+import mpensum.navegacion.Vista
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
 import androidx.compose.ui.Alignment

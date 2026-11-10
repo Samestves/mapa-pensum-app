@@ -1,4 +1,4 @@
-package mpensum.carrera
+package mpensum.componentes
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -58,15 +58,11 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
-import mpensum.componentes.IconoTrazo
-import mpensum.componentes.Lucide
-import mpensum.componentes.estiloCifra
-import mpensum.componentes.pulsable
-import mpensum.componentes.tamañoUnidad
 import mpensum.tema.Movimiento
 import mpensum.tema.Alto
 import mpensum.tema.Espacio
 import mpensum.tema.Paleta
+import mpensum.tema.Tipo
 import mpensum.tema.Radio
 import mpensum.tema.Tema
 import mpensum.tema.inter
@@ -522,3 +518,24 @@ internal fun DrawScope.icono(trazos: List<Path>, color: Color, izq: Float, arrib
         trazos.forEach { drawPath(it, color, style = Stroke(grosor, cap = StrokeCap.Round, join = StrokeJoin.Round)) }
     }
 }
+
+/** Los rótulos: mayúsculas semibold de 11 sp con 0,05 em de espaciado */
+@Composable
+internal fun versal(color: Color) = TextStyle(fontFamily = inter(), fontWeight = FontWeight.SemiBold, fontSize = Tipo.xxs, lineHeight = 14.sp, letterSpacing = 0.05.em, color = color)
+
+/** Un texto de la hoja: Inter, con el tamaño, el peso y el color que pida */
+@Composable
+internal fun estilo(tam: Int, color: Color, peso: FontWeight = FontWeight.Normal, interlinea: Int = (tam * 1.35f).roundToInt()) =
+    estilo(tam.sp, color, peso, interlinea)
+
+/** Lo mismo con el tamaño de un token de [Tipo]: la interlínea por defecto es 1,35 veces el tamaño */
+@Composable
+internal fun estilo(tam: TextUnit, color: Color, peso: FontWeight = FontWeight.Normal, interlinea: Int = (tam.value * 1.35f).roundToInt()) =
+    TextStyle(fontFamily = inter(), fontWeight = peso, fontSize = tam, lineHeight = interlinea.sp, color = color, fontFeatureSettings = "tnum")
+
+/** Los iconos de las filas, por su nombre: la interfaz los traduce a trazos (`IconoFila.trazos()`) */
+internal enum class IconoFila { REINICIAR, LIBRO_ABIERTO, USUARIOS, LLAVE, ESLABON, CALENDARIO, RELOJ_ARENA, BIRRETE }
+
+/** El aspa de las hojas: el mismo círculo que el de cerrar de las demás pantallas */
+@Composable
+fun BotonCerrar(alCerrar: () -> Unit) = BotonRedondo(Lucide.cerrar, "Cerrar", alCerrar)

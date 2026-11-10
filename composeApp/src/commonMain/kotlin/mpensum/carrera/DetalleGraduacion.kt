@@ -1,5 +1,13 @@
 package mpensum.carrera
 
+import mpensum.componentes.superficie
+import mpensum.componentes.estiloFila
+import mpensum.componentes.Velo
+import mpensum.componentes.Comparacion
+import mpensum.componentes.estiloRotulo
+import mpensum.componentes.estiloNota
+import mpensum.componentes.ColumnaComparacion
+import mpensum.componentes.Fecha
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween

@@ -1,5 +1,8 @@
 package mpensum.carrera
 
+import mpensum.componentes.icono
+import mpensum.componentes.nota
+import mpensum.componentes.IconoFila
 import mpensum.datos.leerPensum
 import mpensum.logica.Marca
 import mpensum.logica.Periodo

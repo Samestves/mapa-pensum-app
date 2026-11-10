@@ -16,12 +16,12 @@ import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
 import mpensum.carrera.EstadoCarrera
 import mpensum.carrera.HojaAvance
-import mpensum.carrera.LocalFondoHoja
+import mpensum.componentes.LocalFondoHoja
 import mpensum.datos.leerPensum
 import mpensum.logica.Marca
 import mpensum.mapa.Camara
 import mpensum.mapa.EfectosMapa
-import mpensum.mapa.MapaCarrera
+import mpensum.carrera.MapaCarrera
 import mpensum.plataforma.Preferencias
 import mpensum.tema.Paleta
 import org.junit.Rule

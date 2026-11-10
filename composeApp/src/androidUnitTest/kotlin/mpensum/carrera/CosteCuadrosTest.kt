@@ -17,7 +17,7 @@ import androidx.compose.ui.test.SemanticsNodeInteraction
 import androidx.compose.ui.test.performSemanticsAction
 import androidx.test.ext.junit.rules.ActivityScenarioRule
 import mpensum.App
-import mpensum.datos.Guardado
+import mpensum.guardado.Guardado
 import mpensum.datos.leerPensum
 import mpensum.logica.Marca
 import mpensum.plataforma.Preferencias

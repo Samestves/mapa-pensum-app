@@ -17,7 +17,7 @@ import mpensum.datos.leerPensum
 import mpensum.logica.Marca
 import mpensum.mapa.Camara
 import mpensum.mapa.EfectosMapa
-import mpensum.mapa.MapaCarrera
+import mpensum.carrera.MapaCarrera
 import mpensum.mapa.Nodo
 import mpensum.mapa.Encuadre
 import mpensum.tema.Paleta

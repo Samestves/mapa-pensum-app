@@ -8,7 +8,7 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.drawscope.translate
-import mpensum.carrera.Velo
+import mpensum.componentes.Velo
 import mpensum.componentes.Lucide
 import mpensum.logica.EstadoCapsula
 import mpensum.tema.Movimiento

@@ -1,5 +1,8 @@
 package mpensum.carrera
 
+import mpensum.componentes.icono
+import mpensum.componentes.nota
+import mpensum.componentes.estilo
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat

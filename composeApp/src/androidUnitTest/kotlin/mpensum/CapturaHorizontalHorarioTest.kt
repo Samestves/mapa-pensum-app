@@ -26,7 +26,7 @@ import mpensum.carrera.FaseLectura
 import mpensum.carrera.HojasHorario
 import mpensum.carrera.Lectura
 import mpensum.carrera.VistaHorario
-import mpensum.datos.HorarioGuardado
+import mpensum.guardado.HorarioGuardado
 import mpensum.datos.leerPensum
 import mpensum.plataforma.LectorCaptura
 import mpensum.logica.Marca

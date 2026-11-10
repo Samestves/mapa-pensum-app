@@ -60,9 +60,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import mpensum.carrera.Vista
-import mpensum.carrera.empujeDePagina
-import mpensum.carrera.versal
+import mpensum.navegacion.Vista
+import mpensum.componentes.empujeDePagina
+import mpensum.componentes.versal
 import mpensum.componentes.IconoTrazo
 import mpensum.componentes.Lucide
 import mpensum.componentes.PaletaTemas

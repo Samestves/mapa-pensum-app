@@ -1,5 +1,6 @@
 package mpensum.carrera
 
+import mpensum.componentes.IconoFila
 import mpensum.datos.Asignatura
 import mpensum.datos.Grupo
 import mpensum.datos.Pensum
@@ -22,9 +23,6 @@ import mpensum.mapa.nombreCasilla
  * llenan. Lógica pura (se prueba sin pantalla); los trazos de los iconos los pone la interfaz a partir
  * de [IconoFila].
  */
-
-/** Los iconos de las filas, por su nombre: la interfaz los traduce a trazos (`IconoFila.trazos()`) */
-internal enum class IconoFila { REINICIAR, LIBRO_ABIERTO, USUARIOS, LLAVE, ESLABON, CALENDARIO, RELOJ_ARENA, BIRRETE }
 
 /** Una fila de la hoja: su pastilla, el título, la nota, la cifra (con su unidad) y la pantalla a la que lleva */
 internal class Pregunta(

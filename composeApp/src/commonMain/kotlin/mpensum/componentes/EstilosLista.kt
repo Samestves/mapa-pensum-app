@@ -1,4 +1,4 @@
-package mpensum.carrera.lista
+package mpensum.componentes
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.size
@@ -21,7 +21,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
-import mpensum.componentes.iconoEstado
 import mpensum.logica.Situacion
 import mpensum.tema.Paleta
 import mpensum.tema.inter

@@ -1,4 +1,4 @@
-package mpensum.carrera
+package mpensum.componentes
 
 import androidx.compose.animation.ContentTransform
 import androidx.compose.animation.SizeTransform
@@ -60,16 +60,6 @@ internal fun CabeceraDeAltoEstable(contenido: @Composable () -> Unit) {
             layout(colocable.width, alto) { colocable.placeRelative(0, 0) }
         },
     ) { contenido() }
-}
-
-/** La clave con que cada página guarda su estado (su desplazamiento) mientras no está a la vista */
-internal fun DetalleAvance?.clave(): String = when (this) {
-    null -> "indice"
-    DetalleAvance.EsteSemestre -> "este-semestre"
-    DetalleAvance.Proximo -> "proximo"
-    DetalleAvance.Cadena -> "cadena"
-    DetalleAvance.Graduacion -> "graduacion"
-    is DetalleAvance.Electivas -> "electivas-$clave"
 }
 
 /**

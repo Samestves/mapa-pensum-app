@@ -65,15 +65,15 @@ import mpensum.componentes.fundidoAbajo
 import mpensum.componentes.tinteLiso
 import mpensum.componentes.esApaisado
 import mpensum.componentes.margenPantalla
-import mpensum.carrera.LocalFondoHoja
-import mpensum.carrera.Vista
+import mpensum.componentes.LocalFondoHoja
+import mpensum.navegacion.Vista
 import mpensum.carrera.precargarCarrera
 import mpensum.componentes.luzCenital
 import mpensum.datos.Carrera
 import mpensum.datos.PLURAL
 import mpensum.datos.TIPOS
-import mpensum.carrera.estiloRotulo
-import mpensum.datos.rememberResumenes
+import mpensum.componentes.estiloRotulo
+import mpensum.guardado.rememberResumenes
 
 import mpensum.tema.Movimiento
 import mpensum.tema.Espacio

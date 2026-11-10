@@ -50,12 +50,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
-import mpensum.carrera.BotonCerrar
-import mpensum.carrera.BotonRedondo
-import mpensum.carrera.HojaInferior
-import mpensum.carrera.IconosHoja
-import mpensum.carrera.estiloTitulo
-import mpensum.carrera.versal
+import mpensum.componentes.BotonCerrar
+import mpensum.componentes.BotonRedondo
+import mpensum.componentes.HojaInferior
+import mpensum.componentes.IconosHoja
+import mpensum.componentes.estiloTitulo
+import mpensum.componentes.versal
 import mpensum.componentes.IconoTrazo
 import mpensum.componentes.Lucide
 import mpensum.componentes.Silueta
@@ -70,7 +70,7 @@ import mpensum.plataforma.versionApp
 import mpensum.tema.Espacio
 import mpensum.tema.Tipo
 import mpensum.componentes.margenPantalla
-import mpensum.carrera.empujeDePagina
+import mpensum.componentes.empujeDePagina
 import mpensum.tema.Movimiento
 import mpensum.tema.Paleta
 import mpensum.tema.Radio

@@ -1,5 +1,6 @@
 package mpensum.carrera
 
+import mpensum.componentes.LocalFondoHoja
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -25,7 +26,7 @@ import mpensum.datos.leerPensum
 import mpensum.logica.Marca
 import mpensum.mapa.Camara
 import mpensum.mapa.EfectosMapa
-import mpensum.mapa.MapaCarrera
+import mpensum.carrera.MapaCarrera
 import mpensum.tema.Paleta
 import org.junit.Rule
 import org.junit.runner.RunWith

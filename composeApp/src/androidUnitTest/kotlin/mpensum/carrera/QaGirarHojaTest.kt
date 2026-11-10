@@ -1,5 +1,6 @@
 package mpensum.carrera
 
+import mpensum.componentes.HojaInferior
 import mpensum.setContentSinLatido
 import mpensum.plataforma.iniciar
 import android.content.Context

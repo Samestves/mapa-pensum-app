@@ -1,5 +1,10 @@
 package mpensum.carrera.lista
 
+import mpensum.componentes.BOTON
+import mpensum.componentes.IconoDeEstadoSobre
+import mpensum.componentes.IconoDeEstado
+import mpensum.componentes.estiloRazon
+import mpensum.componentes.conNegritas
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background

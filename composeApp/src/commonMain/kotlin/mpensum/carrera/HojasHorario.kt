@@ -1,5 +1,6 @@
 package mpensum.carrera
 
+import mpensum.componentes.HojaInferior
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.core.updateTransition

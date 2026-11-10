@@ -1,5 +1,8 @@
 package mpensum.carrera
 
+import mpensum.navegacion.Vista
+import mpensum.componentes.icono
+import mpensum.componentes.estilo
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
@@ -143,19 +146,19 @@ fun BarraCarrera(
             verticalArrangement = Arrangement.SpaceEvenly,
         ) {
             Pestana(Phosphor.inicio, "Inicio", activa = false, tam = celda, lado = ICONO_FINO, alPulsar = alInicio)
-            Pestana(Vista.MAPA.icono, Vista.MAPA.etiqueta, vista == Vista.MAPA, celda, ICONO_FINO) { ir(Vista.MAPA) }
+            Pestana(Vista.MAPA.icono(), Vista.MAPA.etiqueta, vista == Vista.MAPA, celda, ICONO_FINO) { ir(Vista.MAPA) }
             Nucleo(progreso, color, DpSize(ANCHO_RIEL_NAVEGACION, ANCHO_RIEL_NAVEGACION), alAvance)
-            Pestana(Vista.LISTA.icono, Vista.LISTA.etiqueta, vista == Vista.LISTA, celda, ICONO_FINO) { ir(Vista.LISTA) }
-            Pestana(Vista.HORARIO.icono, Vista.HORARIO.etiqueta, vista == Vista.HORARIO, celda, ICONO_FINO) { ir(Vista.HORARIO) }
+            Pestana(Vista.LISTA.icono(), Vista.LISTA.etiqueta, vista == Vista.LISTA, celda, ICONO_FINO) { ir(Vista.LISTA) }
+            Pestana(Vista.HORARIO.icono(), Vista.HORARIO.etiqueta, vista == Vista.HORARIO, celda, ICONO_FINO) { ir(Vista.HORARIO) }
         }
     } else {
         val celda = DpSize(ANCHO_PESTANA, 50.dp)
         Row(cristalDe(FORMA, modifier).padding(horizontal = Espacio.xxs), verticalAlignment = Alignment.CenterVertically) {
             Pestana(Phosphor.inicio, "Inicio", activa = false, tam = celda, lado = ICONO, alPulsar = alInicio)
-            Pestana(Vista.MAPA.icono, Vista.MAPA.etiqueta, vista == Vista.MAPA, celda, ICONO) { ir(Vista.MAPA) }
+            Pestana(Vista.MAPA.icono(), Vista.MAPA.etiqueta, vista == Vista.MAPA, celda, ICONO) { ir(Vista.MAPA) }
             Nucleo(progreso, color, DpSize(ANCHO_NUCLEO, ALTO_BARRA), alAvance)
-            Pestana(Vista.LISTA.icono, Vista.LISTA.etiqueta, vista == Vista.LISTA, celda, ICONO) { ir(Vista.LISTA) }
-            Pestana(Vista.HORARIO.icono, Vista.HORARIO.etiqueta, vista == Vista.HORARIO, celda, ICONO) { ir(Vista.HORARIO) }
+            Pestana(Vista.LISTA.icono(), Vista.LISTA.etiqueta, vista == Vista.LISTA, celda, ICONO) { ir(Vista.LISTA) }
+            Pestana(Vista.HORARIO.icono(), Vista.HORARIO.etiqueta, vista == Vista.HORARIO, celda, ICONO) { ir(Vista.HORARIO) }
         }
     }
 }
@@ -231,4 +234,11 @@ private fun Nucleo(progreso: Progreso?, color: Color?, tam: DpSize, alPulsar: ()
             drawText(cifra, topLeft = Offset(center.x - cifra.size.width / 2f, center.y - cifra.size.height / 2f))
         }
     }
+}
+
+/** El icono de cada vista en la barra: la interfaz lo pone, la navegación solo dice cuál es */
+internal fun Vista.icono(): IconoDoble = when (this) {
+    Vista.MAPA -> Phosphor.mapa
+    Vista.LISTA -> Phosphor.lista
+    Vista.HORARIO -> Phosphor.horario
 }

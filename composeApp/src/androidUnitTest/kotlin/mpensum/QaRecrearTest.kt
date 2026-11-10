@@ -8,7 +8,7 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import org.robolectric.RuntimeEnvironment
-import mpensum.datos.Guardado
+import mpensum.guardado.Guardado
 import mpensum.datos.leerPensum
 import mpensum.logica.Marca
 import mpensum.plataforma.Apariencia

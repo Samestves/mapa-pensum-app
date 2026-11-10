@@ -1,5 +1,16 @@
 package mpensum.carrera
 
+import mpensum.componentes.superficie
+import mpensum.componentes.RotuloSeccion
+import mpensum.componentes.estiloCuerpo
+import mpensum.componentes.TarjetaLista
+import mpensum.componentes.icono
+import mpensum.componentes.IconosHoja
+import mpensum.componentes.FilaLista
+import mpensum.componentes.nota
+import mpensum.componentes.Pastilla
+import mpensum.componentes.estilo
+import mpensum.componentes.estiloNota
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border

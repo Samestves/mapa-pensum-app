@@ -1,5 +1,6 @@
 package mpensum.carrera
 
+import mpensum.componentes.LocalFondoHoja
 import mpensum.setContentSinLatido
 import mpensum.plataforma.iniciar
 import android.content.Context
@@ -36,7 +37,7 @@ import mpensum.logica.planesPorCarga
 import mpensum.logica.proximoSemestre
 import mpensum.mapa.Camara
 import mpensum.mapa.EfectosMapa
-import mpensum.mapa.MapaCarrera
+import mpensum.carrera.MapaCarrera
 import mpensum.plataforma.Preferencias
 import mpensum.portada.HojaAjustes
 import mpensum.portada.PaginaAjustes

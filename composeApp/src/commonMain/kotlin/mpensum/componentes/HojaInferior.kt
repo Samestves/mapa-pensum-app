@@ -1,4 +1,4 @@
-package mpensum.carrera
+package mpensum.componentes
 
 import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.animation.core.CubicBezierEasing
@@ -82,10 +82,6 @@ import dev.chrisbanes.haze.hazeEffect
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import mpensum.componentes.SOMBRA_FLOTANTE
-import mpensum.componentes.Vidrio
-import mpensum.componentes.ventana
-import mpensum.componentes.vidrio
 import mpensum.plataforma.ManejarAtras
 import mpensum.tema.Movimiento
 import mpensum.tema.Espacio

@@ -1,5 +1,12 @@
 package mpensum.carrera.lista
 
+import mpensum.componentes.IconoDeEstadoSobre
+import mpensum.componentes.REALCE
+import mpensum.componentes.estiloPlex
+import mpensum.componentes.estiloRazon
+import mpensum.componentes.estiloAccion
+import mpensum.componentes.conNegritas
+import mpensum.componentes.estiloNombre
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animate
 import androidx.compose.animation.core.tween

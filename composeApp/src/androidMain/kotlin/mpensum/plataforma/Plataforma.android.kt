@@ -1,6 +1,5 @@
 package mpensum.plataforma
 
-import mpensum.plataforma.iniciar
 import android.app.ActivityManager
 import android.content.Context
 import android.os.Build

@@ -1,5 +1,16 @@
 package mpensum.carrera
 
+import mpensum.componentes.BotonCerrar
+import mpensum.componentes.HojaInferior
+import mpensum.componentes.RotuloSeccion
+import mpensum.componentes.TarjetaLista
+import mpensum.componentes.icono
+import mpensum.componentes.estiloFila
+import mpensum.componentes.CifraFila
+import mpensum.componentes.IconoLucide
+import mpensum.componentes.FilaLista
+import mpensum.componentes.nota
+import mpensum.componentes.estiloTitulo
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -109,10 +120,6 @@ fun BoxScope.SelectorElectiva(
         ContenidoElectiva(elegida, estado, aprobarAlElegir, conBarraDeCuota = true, alColocar = alColocar, alCerrar = alCerrar)
     }
 }
-
-/** El aspa de las hojas: el mismo círculo que el de cerrar de las demás pantallas */
-@Composable
-fun BotonCerrar(alCerrar: () -> Unit) = BotonRedondo(Lucide.cerrar, "Cerrar", alCerrar)
 
 /** La casilla que se está eligiendo, con lo que el selector necesita saber de su grupo */
 internal class CasillaElegida(val codigo: String, val nodo: Asignatura, val grupo: Grupo)

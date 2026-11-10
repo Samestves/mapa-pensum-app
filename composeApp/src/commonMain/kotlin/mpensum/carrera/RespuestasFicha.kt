@@ -1,5 +1,6 @@
 package mpensum.carrera
 
+import mpensum.componentes.IconoFila
 import androidx.compose.runtime.mutableStateMapOf
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers

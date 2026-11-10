@@ -1,5 +1,7 @@
 package mpensum.carrera
 
+import mpensum.navegacion.Vista
+import mpensum.componentes.LocalFondoHoja
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -43,8 +45,6 @@ import androidx.compose.ui.unit.dp
 import dev.chrisbanes.haze.HazeState
 import mpensum.componentes.fuenteCristal
 import mpensum.componentes.esApaisado
-import mpensum.componentes.IconoDoble
-import mpensum.componentes.Phosphor
 import mpensum.datos.Carrera
 import mpensum.logica.AccionSemestre
 import mpensum.logica.Marca
@@ -56,20 +56,13 @@ import mpensum.mapa.Camara
 import mpensum.mapa.EfectosMapa
 import kotlinx.coroutines.delay
 import mpensum.mapa.MARGEN_AL_APROBAR
-import mpensum.mapa.MapaCarrera
+import mpensum.carrera.MapaCarrera
 import mpensum.mapa.Margenes
 import mpensum.plataforma.ManejarAtras
 import mpensum.tema.Movimiento
 import mpensum.tema.Paleta
 import mpensum.tema.Espacio
 import mpensum.tema.colorDe
-
-/** Las tres formas de mirar la misma carrera, en el orden de data/vistas.js */
-enum class Vista(val etiqueta: String, val icono: IconoDoble) {
-    MAPA("Mapa", Phosphor.mapa),
-    LISTA("Lista", Phosphor.lista),
-    HORARIO("Horario", Phosphor.horario),
-}
 
 /** Cuánto se separa la barra del borde de abajo */
 private val SOBRE_EL_BORDE = 14.dp

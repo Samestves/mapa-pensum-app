@@ -26,7 +26,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import mpensum.datos.Asignatura
-import mpensum.datos.Guardado
+import mpensum.guardado.Guardado
 import mpensum.datos.Pensum
 import mpensum.logica.EstimacionGraduacion
 import mpensum.logica.FuenteCarga

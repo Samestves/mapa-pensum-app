@@ -1,5 +1,6 @@
 package mpensum.carrera
 
+import mpensum.componentes.Velo
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height

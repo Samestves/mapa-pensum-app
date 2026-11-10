@@ -2,7 +2,7 @@ package mpensum.plataforma
 
 import android.content.Context
 import android.content.SharedPreferences
-import mpensum.carrera.Vista
+import mpensum.navegacion.Vista
 import mpensum.tema.Acento
 import mpensum.tema.Fondo
 import mpensum.tema.FormaCables

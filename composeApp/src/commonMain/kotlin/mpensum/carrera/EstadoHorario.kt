@@ -18,7 +18,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import mpensum.datos.Asignatura
-import mpensum.datos.HorarioGuardado
+import mpensum.guardado.HorarioGuardado
 import mpensum.logica.Ahora
 import mpensum.logica.FalloLectura
 import mpensum.plataforma.LectorCaptura

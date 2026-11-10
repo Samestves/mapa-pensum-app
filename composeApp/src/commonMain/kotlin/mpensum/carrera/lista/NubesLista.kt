@@ -1,5 +1,8 @@
 package mpensum.carrera.lista
 
+import mpensum.componentes.BOTON
+import mpensum.componentes.IconoDeEstado
+import mpensum.componentes.estiloAccion
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -24,7 +27,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import mpensum.carrera.Velo
+import mpensum.componentes.Velo
 import mpensum.logica.Situacion
 import mpensum.tema.Espacio
 import mpensum.tema.Paleta

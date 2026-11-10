@@ -16,7 +16,7 @@ import mpensum.logica.Marca
 import mpensum.logica.Situacion
 import mpensum.mapa.Camara
 import mpensum.mapa.EfectosMapa
-import mpensum.mapa.MapaCarrera
+import mpensum.carrera.MapaCarrera
 import mpensum.tema.Paleta
 import org.junit.Rule
 import org.junit.runner.RunWith

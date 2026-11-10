@@ -1,5 +1,6 @@
 package mpensum.carrera
 
+import mpensum.componentes.HojaInferior
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.asPaddingValues

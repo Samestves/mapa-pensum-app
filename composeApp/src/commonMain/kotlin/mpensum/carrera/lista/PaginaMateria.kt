@@ -1,5 +1,12 @@
 package mpensum.carrera.lista
 
+import mpensum.componentes.BOTON
+import mpensum.componentes.IconoDeEstado
+import mpensum.componentes.estiloPlex
+import mpensum.componentes.estiloRazon
+import mpensum.componentes.estiloAccion
+import mpensum.componentes.estiloNombre
+import mpensum.componentes.estiloSeccion
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -38,7 +45,7 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
-import mpensum.carrera.IconoLucide
+import mpensum.componentes.IconoLucide
 import mpensum.carrera.nombreArea
 import mpensum.componentes.Lucide
 import mpensum.datos.Asignatura

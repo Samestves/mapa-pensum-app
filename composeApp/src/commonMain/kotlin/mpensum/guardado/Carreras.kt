@@ -1,41 +1,17 @@
-package mpensum.datos
+package mpensum.guardado
 
+import mpensum.datos.Carrera
+import mpensum.datos.leerPensumCrudo
+import mpensum.datos.leerPensum
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.produceState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import mpensum.logica.ResumenPortada
 import mpensum.logica.resumenParaPortada
 import mpensum.plataforma.periodoActual
 import mpensum.recursos.Res
-
-/**
- * Una carrera tal como la describe el índice que genera la web
- * (src/data/carreras/indice.json), más `uc`: las ucObligatorias de su JSON.
- */
-@Serializable
-data class Carrera(
-    val slug: String,
-    val nombre: String,
-    val nombreCorto: String,
-    val color: ColorCarrera,
-    val semestres: Int,
-    val asignaturas: Int,
-    val electivas: Int,
-    val uc: Int,
-    val silueta: List<Int>,
-) {
-    /** Ingeniería, Licenciatura o Gerencia, sacado del nombre como en data/portada.js */
-    val tipo: String get() = TIPOS.firstOrNull { nombre.startsWith(it) } ?: ""
-}
-
-@Serializable
-data class ColorCarrera(val oscuro: String, val claro: String)
-
-val TIPOS = listOf("Ingeniería", "Licenciatura", "Gerencia")
-val PLURAL = mapOf("Ingeniería" to "Ingenierías", "Licenciatura" to "Licenciaturas", "Gerencia" to "Gerencia")
 
 private val lector = Json { ignoreUnknownKeys = true }
 

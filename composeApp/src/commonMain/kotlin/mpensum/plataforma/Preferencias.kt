@@ -3,7 +3,7 @@ package mpensum.plataforma
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import mpensum.carrera.Vista
+import mpensum.navegacion.Vista
 import mpensum.tema.Acento
 import mpensum.tema.Fondo
 import mpensum.tema.FormaCables

@@ -23,8 +23,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
-import mpensum.carrera.IconoLucide
-import mpensum.carrera.lista.BOTON
+import mpensum.componentes.IconoLucide
+import mpensum.componentes.BOTON
 import mpensum.componentes.LogoMosaico
 import mpensum.componentes.Lucide
 import mpensum.componentes.pulsable

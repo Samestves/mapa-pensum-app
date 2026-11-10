@@ -9,7 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import mpensum.carrera.Vista
+import mpensum.navegacion.Vista
 import mpensum.datos.Carrera
 import mpensum.logica.ResumenPortada
 import mpensum.tema.Espacio

@@ -1,5 +1,7 @@
 package mpensum.carrera
 
+import mpensum.componentes.icono
+import mpensum.componentes.BotonTinta
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing

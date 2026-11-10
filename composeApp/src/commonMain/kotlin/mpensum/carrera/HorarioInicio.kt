@@ -1,5 +1,7 @@
 package mpensum.carrera
 
+import mpensum.componentes.icono
+import mpensum.componentes.BotonTinta
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box

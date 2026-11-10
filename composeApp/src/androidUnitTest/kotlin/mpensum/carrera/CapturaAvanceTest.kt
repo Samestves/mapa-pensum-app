@@ -1,5 +1,6 @@
 package mpensum.carrera
 
+import mpensum.componentes.LocalFondoHoja
 import mpensum.setContentSinLatido
 import mpensum.plataforma.iniciar
 import android.content.Context
@@ -18,13 +19,13 @@ import androidx.compose.ui.test.performScrollTo
 import com.github.takahirom.roborazzi.captureRoboImage
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
-import mpensum.datos.Guardado
+import mpensum.guardado.Guardado
 import mpensum.datos.leerPensum
 import mpensum.logica.FuenteCarga
 import mpensum.logica.Marca
 import mpensum.mapa.Camara
 import mpensum.mapa.EfectosMapa
-import mpensum.mapa.MapaCarrera
+import mpensum.carrera.MapaCarrera
 import mpensum.plataforma.Apariencia
 import mpensum.plataforma.Preferencias
 import mpensum.tema.Paleta

@@ -29,11 +29,11 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
 import mpensum.bienvenida.Bienvenida
 import mpensum.carrera.Interior
-import mpensum.carrera.Vista
+import mpensum.navegacion.Vista
 import mpensum.componentes.LocalVentana
 import mpensum.componentes.ProveerTacto
 import mpensum.componentes.medirVentana
-import mpensum.datos.rememberCarreras
+import mpensum.guardado.rememberCarreras
 import mpensum.plataforma.BarrasDelSistema
 import mpensum.plataforma.ManejarAtras
 import mpensum.plataforma.Preferencias

@@ -13,7 +13,7 @@ import androidx.compose.ui.test.performClick
 import com.github.takahirom.roborazzi.captureRoboImage
 import kotlinx.serialization.json.Json
 import mpensum.datos.Carrera
-import mpensum.datos.Guardado
+import mpensum.guardado.Guardado
 import mpensum.datos.leerPensum
 import mpensum.logica.Marca
 import mpensum.plataforma.Preferencias

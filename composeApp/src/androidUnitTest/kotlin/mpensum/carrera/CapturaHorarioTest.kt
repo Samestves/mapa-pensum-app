@@ -1,5 +1,6 @@
 package mpensum.carrera
 
+import mpensum.navegacion.Vista
 import mpensum.plataforma.iniciar
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -25,7 +26,7 @@ import androidx.compose.ui.unit.dp
 import com.github.takahirom.roborazzi.captureRoboImage
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
-import mpensum.datos.HorarioGuardado
+import mpensum.guardado.HorarioGuardado
 import mpensum.datos.leerPensum
 import mpensum.logica.Marca
 import mpensum.plataforma.HoraLocal

@@ -1,5 +1,26 @@
-package mpensum.mapa
+package mpensum.carrera
 
+import mpensum.mapa.vistaDeColumna
+import mpensum.mapa.vistaDeAltura
+import mpensum.mapa.rememberTiposMapa
+import mpensum.mapa.gestosDelMapa
+import mpensum.mapa.fuerte
+import mpensum.mapa.cadenaDe
+import mpensum.mapa.TiposMapa
+import mpensum.mapa.TarjetaMapa
+import mpensum.mapa.Segmento
+import mpensum.mapa.NodoMapa
+import mpensum.mapa.Margen
+import mpensum.mapa.FranjaColocada
+import mpensum.mapa.Franja
+import mpensum.mapa.EfectosMapa
+import mpensum.mapa.DatosCabecera
+import mpensum.mapa.Camara
+import mpensum.mapa.CabeceraSemestre
+import mpensum.mapa.Arista
+import mpensum.mapa.AnimacionesTarjeta
+import mpensum.mapa.APAGADO_MS
+import mpensum.mapa.ALTO_ENCABEZADO
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween

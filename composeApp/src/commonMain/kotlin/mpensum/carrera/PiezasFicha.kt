@@ -1,5 +1,21 @@
 package mpensum.carrera
 
+import mpensum.componentes.superficie
+import mpensum.componentes.TarjetaLista
+import mpensum.componentes.icono
+import mpensum.componentes.estiloFila
+import mpensum.componentes.trazos
+import mpensum.componentes.Velo
+import mpensum.componentes.Chevron
+import mpensum.componentes.FilaLista
+import mpensum.componentes.nota
+import mpensum.componentes.Pastilla
+import mpensum.componentes.estiloRotulo
+import mpensum.componentes.estilo
+import mpensum.componentes.estiloNota
+import mpensum.componentes.BotonTinta
+import mpensum.componentes.BotonRedondo
+import mpensum.componentes.estiloTitulo
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ContentTransform
 import androidx.compose.animation.core.animateFloatAsState
