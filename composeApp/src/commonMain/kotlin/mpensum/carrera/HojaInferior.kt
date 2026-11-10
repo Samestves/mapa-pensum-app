@@ -130,9 +130,6 @@ internal val RESPIRO_COMPLETA = Espacio.xs
 /** Posición de la hoja que no ha entrado: fuera de cualquier pantalla */
 private const val OCULTA = 1e6f
 
-/** El borde de los paneles (--panel-borde) */
-val BORDE_PANEL get() = Paleta.borde
-
 /** El vidrio de la hoja sobre el horario: el de la barra, con el filo más cerca del borde y la esquina de 32 dp */
 private val VIDRIO_HOJA = Vidrio(
     fondoOscuro = Brush.verticalGradient(listOf(Color.White.copy(alpha = 0.05f), Color.Black.copy(alpha = 0.1f))),

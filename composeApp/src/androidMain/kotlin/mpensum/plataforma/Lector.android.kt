@@ -33,7 +33,6 @@ import mpensum.logica.CALIDAD_JPEG
 import mpensum.logica.DOMINIO
 import mpensum.logica.FalloLectura
 import mpensum.logica.LADO_MAXIMO
-import mpensum.plataforma.LectorCaptura
 import mpensum.logica.MateriaLeida
 import mpensum.logica.PESO_MAXIMO
 import mpensum.logica.URL_LECTURA
@@ -135,11 +134,14 @@ private fun abrirImagen(cr: ContentResolver, uri: Uri): Bitmap {
     val escala = minOf(1f, LADO_MAXIMO.toFloat() / maxOf(leida.width, leida.height))
     val matriz = Matrix().apply { postScale(escala, escala); postRotate(grados) }
     val lista = Bitmap.createBitmap(leida, 0, 0, leida.width, leida.height, matriz, true)
+    // createBitmap puede devolver la misma imagen si no hizo falta tocarla; si no, la primera ya no sirve
+    if (lista !== leida) leida.recycle()
 
     val salida = Bitmap.createBitmap(lista.width, lista.height, Bitmap.Config.ARGB_8888)
     val lienzo = Canvas(salida)
     lienzo.drawColor(android.graphics.Color.WHITE)
     lienzo.drawBitmap(lista, 0f, 0f, Paint(Paint.FILTER_BITMAP_FLAG))
+    lista.recycle()
     return salida
 }
 

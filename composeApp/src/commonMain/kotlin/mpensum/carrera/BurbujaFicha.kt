@@ -43,7 +43,7 @@ import mpensum.mapa.Camara
 import mpensum.mapa.DURACION_MOSTRAR
 import mpensum.mapa.Nodo
 import mpensum.mapa.NodoMapa
-import mpensum.mapa.Vista
+import mpensum.mapa.Encuadre
 import mpensum.plataforma.ManejarAtras
 import mpensum.tema.Espacio
 import mpensum.tema.Movimiento
@@ -152,7 +152,7 @@ fun BoxScope.BurbujaFicha(
         val nodo = estado.nodoDe(c) ?: return@LaunchedEffect
         val plan = planear(tarjetaEnPantalla(camara, nodo), zona)
         lado = plan.lado
-        if (abs(plan.dx) > 1f || abs(plan.dy) > 1f) camara.animarHacia(alcance, Vista(camara.x + plan.dx, camara.y + plan.dy, camara.escala), DURACION_MOSTRAR)
+        if (abs(plan.dx) > 1f || abs(plan.dy) > 1f) camara.animarHacia(alcance, Encuadre(camara.x + plan.dx, camara.y + plan.dy, camara.escala), DURACION_MOSTRAR)
         salto.snapTo(0f)
         salto.animateTo(1f, tween(Movimiento.CORTA, easing = Movimiento.ENTRA))
     }

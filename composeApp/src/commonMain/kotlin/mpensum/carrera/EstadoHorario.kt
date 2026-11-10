@@ -99,7 +99,10 @@ class EstadoHorario(val carrera: EstadoCarrera, private val reloj: () -> HoraLoc
     var ahora by mutableStateOf(reloj().let { Ahora(it.dia, it.minuto) })
         private set
 
-    var dia by mutableStateOf(if (ahora.dia < 5) ahora.dia else 0)
+    /** El día de hoy si cae de lunes a viernes; si no (fin de semana), el lunes */
+    private val diaLaborable: Int get() = if (ahora.dia < 5) ahora.dia else 0
+
+    var dia by mutableStateOf(diaLaborable)
     var hoja by mutableStateOf<HojaHorario?>(null)
 
     /** Quien lee las capturas; sin él (la plataforma no puede abrir la galería) «Subir mi horario» lleva a crearlo a mano */
@@ -147,7 +150,7 @@ class EstadoHorario(val carrera: EstadoCarrera, private val reloj: () -> HoraLoc
 
     /** «Subir mi horario»: abre la lectura si hay lector; si no, lo único posible es crear la primera clase */
     fun subir() {
-        if (lector == null) abrirNueva(if (ahora.dia < 5) ahora.dia else 0, 7 * 60) else {
+        if (lector == null) abrirNueva(diaLaborable, 7 * 60) else {
             // Una lectura nueva reemplaza a la anterior: si esa seguía leyendo, se para
             lectura?.tarea?.cancel()
             lectura = Lectura()
@@ -198,7 +201,7 @@ class EstadoHorario(val carrera: EstadoCarrera, private val reloj: () -> HoraLoc
         cambiar(sesiones + nuevas)
         lectura = null
         hoja = null
-        dia = if (ahora.dia < 5) ahora.dia else 0
+        dia = diaLaborable
     }
 
     fun abrirNueva(dia: Int, inicio: Int) {

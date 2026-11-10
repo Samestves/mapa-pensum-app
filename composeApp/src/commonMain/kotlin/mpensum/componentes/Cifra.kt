@@ -10,7 +10,6 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.text.TextLayoutResult
-import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontWeight
@@ -114,7 +113,3 @@ fun DrawScope.dibujarCifraConUnidad(
     drawText(unidad, topLeft = Offset(xu, base - unidad.firstBaseline), alpha = alfa)
     return xu + unidad.size.width
 }
-
-/** Mide la cifra y su unidad con sus estilos (para guardarlas y dibujarlas muchas veces) */
-fun medirCifraConUnidad(medidor: TextMeasurer, valor: String, unidad: String, estiloCifra: TextStyle, estiloUnidad: TextStyle): Pair<TextLayoutResult, TextLayoutResult> =
-    medidor.measure(valor, estiloCifra) to medidor.measure(unidad, estiloUnidad)

@@ -67,7 +67,7 @@ fun rememberResumenes(carreras: List<Carrera>, tambien: String? = null): Map<Str
                 val crudas = Guardado.marcasCrudas(c.slug)?.takeIf { it.isNotEmpty() } ?: if (c.slug == tambien) emptyMap() else return@mapNotNull null
                 // Una carrera que no se pueda leer no mata la portada: simplemente no trae resumen
                 runCatching {
-                    val pensum = leerPensum(Res.readBytes("files/carreras/${c.slug}.json").decodeToString())
+                    val pensum = leerPensum(leerPensumCrudo(c.slug))
                     c.slug to resumenParaPortada(pensum, crudas, Guardado.casillasCrudas(c.slug), conGraduacion = true, carga = Guardado.carga(c.slug))
                 }.getOrNull()
             }.toMap()

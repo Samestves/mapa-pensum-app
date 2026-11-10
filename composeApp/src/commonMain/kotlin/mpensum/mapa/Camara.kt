@@ -47,7 +47,7 @@ const val DURACION_MOSTRAR = 420
 /** El doble toque acerca al doble; si ya estás muy cerca, vuelve a la escala de lectura */
 private const val ACERCA_DOBLE_TOQUE = 2f
 
-data class Vista(val x: Float, val y: Float, val escala: Float)
+data class Encuadre(val x: Float, val y: Float, val escala: Float)
 
 /** Un rectángulo en unidades del plano */
 data class Caja(val x0: Float, val y0: Float, val x1: Float, val y1: Float)
@@ -79,9 +79,9 @@ private const val MARGEN_IZQ_LECTURA = 16f
 private const val ASOMO_SIGUIENTE = 40f
 
 /** Tu semestre a escala de lectura, pegado a la izquierda */
-fun vistaDeColumna(xColumna: Float, ancho: Float, arriba: Float): Vista {
+fun vistaDeColumna(xColumna: Float, ancho: Float, arriba: Float): Encuadre {
     val escala = escalaDeLectura(ancho)
-    return Vista(16f - xColumna * escala, arriba + 12f - Margen.ARRIBA.toFloat() * escala, escala)
+    return Encuadre(16f - xColumna * escala, arriba + 12f - Margen.ARRIBA.toFloat() * escala, escala)
 }
 
 /**
@@ -90,15 +90,15 @@ fun vistaDeColumna(xColumna: Float, ancho: Float, arriba: Float): Vista {
  * queda pegado al margen izquierdo, que es lo que ocupa el riel. A esta escala
  * no hace falta `escalaDeLectura`: el alto manda, no el ancho.
  */
-fun vistaDeAltura(xColumna: Float, finColumna: Float, alto: Float, arriba: Float, abajo: Float, izq: Float): Vista {
+fun vistaDeAltura(xColumna: Float, finColumna: Float, alto: Float, arriba: Float, abajo: Float, izq: Float): Encuadre {
     val libre = alto - (arriba + 6f) - (abajo + 14f)
     val escala = (libre / (finColumna - Margen.ARRIBA.toFloat())).coerceIn(ZOOM_MIN, ZOOM_MAX)
-    return Vista(izq - xColumna * escala, arriba + 6f - Margen.ARRIBA.toFloat() * escala, escala)
+    return Encuadre(izq - xColumna * escala, arriba + 6f - Margen.ARRIBA.toFloat() * escala, escala)
 }
 
 /** Dónde dejaste cada mapa durante esta sesión: volver a la carrera te deja donde estabas */
 private object CamarasDeLaSesion {
-    val vistas = mutableMapOf<String, Pair<Vista, Pair<Float, Float>>>()
+    val vistas = mutableMapOf<String, Pair<Encuadre, Pair<Float, Float>>>()
 }
 
 @Stable
@@ -135,7 +135,7 @@ class Camara(private val clave: String) {
     private var vigilante: Job? = null
     private var ultimoMovimiento = TimeSource.Monotonic.markNow()
 
-    val vista get() = Vista(x, y, escala)
+    val vista get() = Encuadre(x, y, escala)
 
     fun medir(anchoVentana: Float, altoVentana: Float, anchoPlano: Float, altoPlano: Float) {
         ancho = anchoVentana
@@ -146,7 +146,7 @@ class Camara(private val clave: String) {
     }
 
     /** La primera vez: donde la dejaste en esta sesión si la pantalla no cambió de ancho, o la que se pida */
-    fun colocarInicial(inicial: () -> Vista) {
+    fun colocarInicial(inicial: () -> Encuadre) {
         if (colocada || ancho == 0f) return
         val guardada = CamarasDeLaSesion.vistas[clave]?.takeIf { (_, medida) -> abs(medida.first - ancho) <= 2f && abs(medida.second - alto) <= 160f }
         aplicar(guardada?.first ?: inicial())
@@ -159,7 +159,7 @@ class Camara(private val clave: String) {
     }
 
     /** Todo pasa por aquí: acotar en este punto basta para que el mapa no pueda quedar fuera de la pantalla */
-    private fun aplicar(v: Vista): Vista {
+    private fun aplicar(v: Encuadre): Encuadre {
         val acotada = acotar(v)
         x = acotada.x
         y = acotada.y
@@ -167,7 +167,7 @@ class Camara(private val clave: String) {
         return acotada
     }
 
-    fun acotar(v: Vista): Vista {
+    fun acotar(v: Encuadre): Encuadre {
         if (ancho == 0f || alto == 0f) return v
         fun rango(ventana: Float, contenido: Float, extra: Float = 0f): Pair<Float, Float> {
             val suelo = ventana - contenido - MARGEN_PAN - extra
@@ -176,7 +176,7 @@ class Camara(private val clave: String) {
         val e = v.escala.coerceIn(ZOOM_MIN, ZOOM_MAX)
         val (minX, maxX) = rango(ancho, anchoContenido * e)
         val (minY, maxY) = rango(alto, altoContenido * e, alto * HOLGURA_TELEFONO)
-        return Vista(v.x.coerceIn(minX, maxX), v.y.coerceIn(minY, maxY), e)
+        return Encuadre(v.x.coerceIn(minX, maxX), v.y.coerceIn(minY, maxY), e)
     }
 
     /** Marca que el mapa se está moviendo; se da por quieto un cuarto de segundo después del último movimiento */
@@ -204,7 +204,7 @@ class Camara(private val clave: String) {
     }
 
     fun desplazar(dx: Float, dy: Float) {
-        aplicar(Vista(x + dx, y + dy, escala))
+        aplicar(Encuadre(x + dx, y + dy, escala))
     }
 
     /** Zoom manteniendo fijo el punto (px, py) de la pantalla */
@@ -212,27 +212,27 @@ class Camara(private val clave: String) {
         aplicar(conZoom(vista, factor, px, py))
     }
 
-    private fun conZoom(v: Vista, factor: Float, px: Float, py: Float): Vista {
+    private fun conZoom(v: Encuadre, factor: Float, px: Float, py: Float): Encuadre {
         val e = (v.escala * factor).coerceIn(ZOOM_MIN, ZOOM_MAX)
         val k = e / v.escala
-        return Vista(px - (px - v.x) * k, py - (py - v.y) * k, e)
+        return Encuadre(px - (px - v.x) * k, py - (py - v.y) * k, e)
     }
 
     /** Salta a una vista sin viaje ni gesto: la mueve quien lleva su propio reloj (la guía de bienvenida) */
-    fun irA(v: Vista) {
+    fun irA(v: Encuadre) {
         detener()
         aplicar(v)
     }
 
     /** Lleva la vista hasta `hasta` en `duracion` ms, saliendo rápido y frenando al llegar (easeOutCubic) */
-    fun animarHacia(alcance: CoroutineScope, hasta: Vista, duracion: Int) {
+    fun animarHacia(alcance: CoroutineScope, hasta: Encuadre, duracion: Int) {
         detener()
         val desde = vista
         val destino = acotar(hasta)
         movimiento = alcance.launch {
             Animatable(0f).animateTo(1f, tween(duracion, easing = LinearEasing)) {
                 val k = 1f - (1f - value).pow(3)
-                aplicar(Vista(desde.x + (destino.x - desde.x) * k, desde.y + (destino.y - desde.y) * k, desde.escala + (destino.escala - desde.escala) * k))
+                aplicar(Encuadre(desde.x + (destino.x - desde.x) * k, desde.y + (destino.y - desde.y) * k, desde.escala + (destino.escala - desde.escala) * k))
                 marcarGesto(alcance)
             }
         }
@@ -265,7 +265,7 @@ class Camara(private val clave: String) {
                 else -> pos
             }
         }
-        val hasta = Vista(correr(x0, caja.x0, caja.x1, m.izq, ancho - m.der), correr(y0, caja.y0, caja.y1, m.arriba, alto - m.abajo), e)
+        val hasta = Encuadre(correr(x0, caja.x0, caja.x1, m.izq, ancho - m.der), correr(y0, caja.y0, caja.y1, m.arriba, alto - m.abajo), e)
         val quieta = abs(hasta.x - v.x) < 1 && abs(hasta.y - v.y) < 1 && abs(hasta.escala - v.escala) < 0.001f
         if (!quieta) animarHacia(alcance, hasta, DURACION_MOSTRAR)
     }
@@ -286,9 +286,9 @@ class Camara(private val clave: String) {
         val rapidez = hypot(vx, vy)
         if (rapidez < LANZAMIENTO_MIN) return
         val desde = vista
-        fun libre(t: Float): Vista {
+        fun libre(t: Float): Encuadre {
             val avance = FRICCION_MS * (1 - exp(-t / FRICCION_MS))
-            return Vista(desde.x + vx * avance, desde.y + vy * avance, desde.escala)
+            return Encuadre(desde.x + vx * avance, desde.y + vy * avance, desde.escala)
         }
         val hastaParar = FRICCION_MS * ln(rapidez / VELOCIDAD_PARADO)
         val destino = acotar(libre(hastaParar))

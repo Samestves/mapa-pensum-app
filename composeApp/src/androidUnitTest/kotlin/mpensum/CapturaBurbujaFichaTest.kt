@@ -19,7 +19,7 @@ import mpensum.mapa.Camara
 import mpensum.mapa.EfectosMapa
 import mpensum.mapa.MapaCarrera
 import mpensum.mapa.Nodo
-import mpensum.mapa.Vista
+import mpensum.mapa.Encuadre
 import mpensum.tema.Paleta
 import org.junit.Rule
 import org.junit.runner.RunWith
@@ -78,7 +78,7 @@ class CapturaBurbujaFichaTest {
         val n = estado.nodoDe(codigo)!!
         val e = camara.escala
         regla.runOnIdle {
-            camara.irA(Vista(xPantalla - (n.x.toFloat() + Nodo.ANCHO.toFloat() / 2) * e, 206f - (n.y.toFloat() + Nodo.ALTO.toFloat() / 2) * e, e))
+            camara.irA(Encuadre(xPantalla - (n.x.toFloat() + Nodo.ANCHO.toFloat() / 2) * e, 206f - (n.y.toFloat() + Nodo.ALTO.toFloat() / 2) * e, e))
             elegida = codigo
         }
         correr(1500)

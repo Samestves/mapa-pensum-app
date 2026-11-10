@@ -85,9 +85,12 @@ private val lector = Json { ignoreUnknownKeys = true }
 /** Lee un pensum del texto de su JSON */
 fun leerPensum(texto: String): Pensum = lector.decodeFromString(texto)
 
+/** El texto del JSON de una carrera, tal como viene en el paquete de la app */
+suspend fun leerPensumCrudo(slug: String): String = Res.readBytes("files/carreras/$slug.json").decodeToString()
+
 /** Lee y decodifica el pensum de una carrera del paquete, fuera del hilo principal (el JSON pesa 8-14 KB y decodificarlo no es gratis en gama baja) */
 suspend fun leerPensumDelPaquete(slug: String): Pensum =
-    withContext(Dispatchers.Default) { leerPensum(Res.readBytes("files/carreras/$slug.json").decodeToString()) }
+    withContext(Dispatchers.Default) { leerPensum(leerPensumCrudo(slug)) }
 
 /** El pensum de una carrera, leído del paquete de la app al abrirla. Null mientras llega */
 @Composable

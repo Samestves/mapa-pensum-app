@@ -128,10 +128,6 @@ internal fun estiloCuerpo(color: Color = Paleta.suave) = estiloFila(color, FontW
 internal fun estiloNota(color: Color = Paleta.tenue, peso: FontWeight = FontWeight.Normal) =
     TextStyle(fontFamily = inter(), fontWeight = peso, fontSize = 13.sp, lineHeight = 16.sp, letterSpacing = (-0.003).em, color = color, fontFeatureSettings = "tnum")
 
-/** Cifra (40/44, 200): las cifras de las pantallas internas */
-@Composable
-internal fun estiloCifra40(color: Color = Paleta.tinta) = estiloCifra(40.sp, color, interlinea = 44.sp)
-
 /** Cifra media (24/28, 300, −1,5 %): las fechas */
 @Composable
 internal fun estiloFecha(color: Color = Paleta.tinta) =
