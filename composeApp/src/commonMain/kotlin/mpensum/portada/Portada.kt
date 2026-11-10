@@ -83,12 +83,12 @@ import mpensum.componentes.fundidoAbajo
 import mpensum.componentes.tinteLiso
 import kotlinx.coroutines.launch
 import mpensum.componentes.esApaisado
+import mpensum.componentes.margenPantalla
 import mpensum.carrera.LocalFondoHoja
 import mpensum.carrera.Vista
 import mpensum.carrera.precargarCarrera
 import mpensum.componentes.IconoTrazo
 import mpensum.componentes.Lucide
-import mpensum.componentes.Rosa
 import mpensum.componentes.luzCenital
 import mpensum.componentes.pulsable
 import mpensum.componentes.renglon
@@ -108,8 +108,8 @@ import kotlin.math.sin
 
 
 /**
- * La portada: la marca arriba, tu carrera en un cristal con tu avance de
- * verdad y, debajo, las demás en filas. Tocar cualquiera entra directo a su
+ * La portada: el logo y el nombre arriba, tu carrera en una tarjeta con tu
+ * avance de verdad y, debajo, las demás en filas. Tocar cualquiera entra directo a su
  * mapa, como en la web. Detrás, una sola luz cenital fija; la cabecera se
  * vuelve vidrio en cuanto el contenido pasa por debajo, y el engranaje abre
  * "Ajustes y ayuda".
@@ -160,29 +160,31 @@ fun Portada(
         val seguro = WindowInsets.safeDrawing.asPaddingValues()
         val izquierda = seguro.calculateLeftPadding(LayoutDirection.Ltr)
         val derecha = seguro.calculateRightPadding(LayoutDirection.Ltr)
+        // El mismo margen que la lista y el resto de la app (16, 20 o 24); acostada, el amplio
+        val margen = if (horizontal) Espacio.xl else margenPantalla()
         val conTarjeta = suya != null || resumenes != null
         // La tarjeta acostada: algo más de un tercio del ancho útil, entre 300 y 380 dp; las otras carreras se quedan lo demás
         val anchoTarjeta = ((maxWidth - izquierda - derecha - Espacio.xl * 3) * 0.42f).coerceIn(300.dp, 380.dp)
-        val tarjeta: @Composable (Boolean) -> Unit = { lleno ->
+        val tarjeta: @Composable () -> Unit = {
             val resumen = suya?.let { resumenes?.get(it.slug) }
-            Box(if (lleno) Modifier.fillMaxSize() else Modifier) {
-                TuCarrera(
-                    suya, resumen, cargando = resumenes == null, Modifier.sube(80, 14.dp, 560), lleno,
-                    alPulsar = { origen -> if (suya != null) alAbrir(suya, origen, null) else ajustes = PaginaAjustes.CARRERA },
-                    alAbrirHorario = { origen -> if (suya != null) alAbrir(suya, origen, Vista.HORARIO) },
-                )
-            }
+            TuCarrera(
+                suya, resumen, cargando = resumenes == null, Modifier.sube(80, 14.dp, 560),
+                alPulsar = { origen -> if (suya != null) alAbrir(suya, origen, null) else ajustes = PaginaAjustes.CARRERA },
+                alAbrirVista = { origen, vista -> if (suya != null) alAbrir(suya, origen, vista) },
+            )
         }
         // Agrupadas por tipo y en el orden de siempre: ingenierías, licenciaturas y gerencia
         val otras = carreras.filter { it.slug != suya?.slug }.sortedBy { TIPOS.indexOf(it.tipo) }
-        val grupos = otras.groupBy { it.tipo }.toList()
+        // Donde acaba la fila de la cabecera (4 dp bajo la barra de estado y 48 de alto)
+        val bajoCabecera = barra + 4.dp + ALTO_CABECERA
         // La luz va fuera del scroll: es del fondo, no sube ni baja con la lista
         Box(Modifier.fillMaxSize().luzCenital().fuenteCristal(cristal)) {
             if (horizontal) {
-                // Las dos columnas nacen y acaban a la misma altura: bajo la cabecera de 48 dp y a 32 del borde
-                Row(Modifier.fillMaxSize().padding(start = izquierda + Espacio.xl, end = derecha + Espacio.xl, top = barra + 60.dp, bottom = Espacio.xxl)) {
-                    Box(Modifier.width(anchoTarjeta).fillMaxHeight()) {
-                        if (conTarjeta) tarjeta(true)
+                // Las dos columnas nacen y acaban a la misma altura; abajo cuenta la barra del sistema, como de pie
+                Row(Modifier.fillMaxSize().padding(start = izquierda + margen, end = derecha + margen, top = bajoCabecera + Espacio.xs, bottom = abajo + Espacio.l)) {
+                    // La tarjeta a su alto natural: si la letra grande no la deja caber, su columna se desplaza en vez de cortarla
+                    Column(Modifier.width(anchoTarjeta).fillMaxHeight().verticalScroll(rememberScrollState())) {
+                        if (conTarjeta) tarjeta()
                     }
                     Spacer(Modifier.width(24.dp))
                     OtrasCompactas(otras, alAbrir)
@@ -191,10 +193,10 @@ fun Portada(
                 Modifier
                     .fillMaxSize()
                     .verticalScroll(desplazamiento)
-                    .padding(start = Espacio.m, end = Espacio.m, top = barra + 76.dp, bottom = abajo + 60.dp),
+                    .padding(start = margen, end = margen, top = bajoCabecera + Espacio.s, bottom = abajo + 60.dp),
             ) {
                 // Sin carrera elegida la tarjeta espera a saber si hay marcas: si las hay, la primera con marcas es la tuya
-                if (conTarjeta) tarjeta(false)
+                if (conTarjeta) tarjeta()
                 Spacer(Modifier.height(if (conTarjeta) Espacio.xl else 0.dp))
                 // Las otras carreras, de dos en dos y sin flecha, como acostada pero dentro del scroll de la página
                 Column(verticalArrangement = Arrangement.spacedBy(Espacio.xs)) { FichasPorGrupo(otras, alAbrir) }
@@ -205,8 +207,11 @@ fun Portada(
         // scroll. Desde API 31 desenfoca de verdad; por debajo, un lienzo casi opaco (el desenfoque de
         // RenderScript no pinta nada en esas versiones, así que no se fuerza)
         VidrioCabecera(cristal, barra, ::progreso)
-        // En horizontal, el engranaje alinea su círculo (40 dp) con el borde de la rejilla, a 24 del lado
-        Cabecera(Modifier.padding(start = izquierda + 16.dp, end = derecha + if (horizontal) 22.dp else 14.dp, top = barra + 4.dp)) { ajustes = PaginaAjustes.MENU }
+        // El logo empieza en el margen de la tarjeta y el círculo del engranaje acaba en su borde derecho
+        val fila = Modifier
+            .padding(start = izquierda + margen, end = derecha + margen - HOLGURA_ENGRANAJE, top = barra + 4.dp)
+            .sube(0, 0.dp, 320)
+        CabeceraMarca(fila) { ajustes = PaginaAjustes.MENU }
 
         if (!horizontal) Box(
             Modifier
@@ -234,117 +239,6 @@ private fun vidrio(lienzo: Color) = HazeStyle(
     noiseFactor = 0f,
     fallbackTint = HazeTint(lienzo.copy(alpha = 0.94f)),
 )
-
-/** Las etiquetas: mayúsculas finas y espaciadas, el tamaño mínimo de la escala */
-@Composable
-internal fun etiqueta(color: Color) = TextStyle(
-    fontFamily = jost(), fontWeight = FontWeight.Medium, fontSize = Tipo.xxs, lineHeight = 14.sp, letterSpacing = 0.14.em, color = color,
-)
-
-/**
- * La marca como placa: la rosa, un filete de luz y el nombre en mayúsculas
- * espaciadas, sin caja. Al otro lado, el engranaje en su círculo de cristal.
- * Sin subtítulo: la portada ya dice de qué va.
- */
-@Composable
-private fun Cabecera(modifier: Modifier, alAjustes: () -> Unit) {
-    Row(modifier.fillMaxWidth().height(48.dp).sube(0, 0.dp, 320), verticalAlignment = Alignment.CenterVertically) {
-        Marca()
-        Box(
-            Modifier
-                .padding(start = Espacio.s, end = 14.dp)
-                .size(1.dp, 22.dp)
-                .background(Brush.verticalGradient(listOf(Paleta.tinta.copy(alpha = 0f), Paleta.tinta.copy(alpha = 0.3f), Paleta.tinta.copy(alpha = 0f)))),
-        )
-        BasicText(
-            buildAnnotatedString {
-                withStyle(SpanStyle(fontWeight = FontWeight.Light, color = Paleta.suave)) { append("MAPA DE ") }
-                withStyle(SpanStyle(fontWeight = FontWeight.Medium, color = Paleta.tinta)) { append("PENSUM") }
-            },
-            Modifier.weight(1f),
-            style = TextStyle(fontFamily = jost(), fontSize = Tipo.m, lineHeight = 18.sp, letterSpacing = 0.24.em),
-            maxLines = 1,
-            softWrap = false,
-        )
-        Engranaje(alAjustes)
-    }
-}
-
-/**
- * Los ajustes: 44 de toque y, dentro, un círculo de cristal de 40 con su filo
- * de luz arriba, el mismo lenguaje que las tarjetas.
- */
-@Composable
-private fun Engranaje(alPulsar: () -> Unit) {
-    Box(
-        Modifier.size(44.dp).semantics { contentDescription = "Ajustes y ayuda" }.pulsable(alPulsar, escala = 0.9f),
-        contentAlignment = Alignment.Center,
-    ) {
-        Box(
-            Modifier.size(40.dp).drawWithCache {
-                val r = size.minDimension / 2f
-                val g = 1.dp.toPx()
-                val medio = Offset(size.width / 2f, size.height / 2f)
-                val claro = Tema.claro
-                // En claro el círculo es blanco sobre el papel, y la luz de arriba sigue siendo blanca
-                val fondo = if (claro) Brush.verticalGradient(listOf(Color.White.copy(alpha = 0.9f), Color.White.copy(alpha = 0.6f)))
-                else Brush.verticalGradient(listOf(Paleta.tinta.copy(alpha = 0.09f), Paleta.tinta.copy(alpha = 0.04f)))
-                val luz = if (claro) Color.White else Paleta.tinta.copy(alpha = 0.16f)
-                // El filo de arriba: el círculo menos el mismo círculo bajado un pixel, una media luna fina
-                val luna = Path().apply {
-                    op(
-                        Path().apply { addOval(Rect(medio, r)) },
-                        Path().apply { addOval(Rect(medio + Offset(0f, g), r)) },
-                        PathOperation.Difference,
-                    )
-                }
-                onDrawBehind {
-                    drawCircle(fondo, r)
-                    drawCircle(Paleta.tinta.copy(alpha = 0.08f), r - g / 2f, style = Stroke(g))
-                    drawPath(luna, luz)
-                }
-            },
-            contentAlignment = Alignment.Center,
-        ) {
-            IconoTrazo(Lucide.engranaje, Paleta.tinta, 20.dp, 1.75f)
-        }
-    }
-}
-
-/**
- * La rosa entra girando y se asienta con un resorte casi sin sobrepaso (nada
- * de ir y volver), y luego enciende sus nodos. Solo al abrir la app: al
- * volver de una carrera ya está quieta.
- */
-@Composable
-private fun Marca() {
-    val quieta = EntradaPortada.hecha
-    val giro = remember { Animatable(if (quieta) 0f else -120f) }
-    val escala = remember { Animatable(if (quieta) 1f else 0.6f) }
-    val opacidad = remember { Animatable(if (quieta) 1f else 0f) }
-    val nodos = remember { List(4) { Animatable(if (quieta) 1f else 0f) } }
-    LaunchedEffect(Unit) {
-        if (quieta) return@LaunchedEffect
-        val asentarse = spring<Float>(dampingRatio = 0.9f, stiffness = 50f)
-        launch { giro.animateTo(0f, asentarse) }
-        launch { escala.animateTo(1f, asentarse) }
-        launch { opacidad.animateTo(1f, tween(250)) }
-        nodos.forEachIndexed { i, n ->
-            launch { n.animateTo(1f, keyframes { durationMillis = 500; delayMillis = 450 + i * 80; 1.5f at 350 }) }
-        }
-    }
-    Rosa(
-        32.dp,
-        Modifier.graphicsLayer {
-            rotationZ = giro.value
-            scaleX = escala.value
-            scaleY = escala.value
-            alpha = opacidad.value
-        },
-        nodos = { i -> nodos[i].value },
-        halo = true,
-    )
-}
 
 /** El filo de un pixel por dentro de una caja redondeada */
 internal fun DrawScope.borde(color: Color, radio: Dp) {

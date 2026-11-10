@@ -63,7 +63,7 @@ data class Barras(val estado: Int, val navAbajo: Int = 0, val navIzquierda: Int 
  * semestres aprobados y dos materias en curso. Las imágenes van a
  * build/capturas/home-{tam}-{estado}.png; solo falla si algo revienta.
  */
-abstract class BaseEstadosPortada(private val tam: String, private val barras: Barras) {
+abstract class BaseEstadosPortada(private val tam: String, private val barras: Barras, private val zonas: Boolean = true) {
     @get:Rule
     val regla: AndroidComposeTestRule<ActivityScenarioRule<ComponentActivity>, ComponentActivity> = createAndroidComposeRule<ComponentActivity>()
 
@@ -136,7 +136,7 @@ abstract class BaseEstadosPortada(private val tam: String, private val barras: B
             CompositionLocalProvider(LocalDensity provides Density(d.density, d.fontScale * escalaLetra)) {
                 Box(Modifier.fillMaxSize()) {
                     contenido()
-                    ZonasDelSistema()
+                    if (zonas) ZonasDelSistema()
                 }
             }
         }
@@ -249,6 +249,12 @@ private fun ZonasDelSistema() {
         if (derecha > 0) drawLine(filo, Offset(size.width - derecha, 0f), Offset(size.width - derecha, size.height), 1.5f)
     }
 }
+
+/** De pie en el teléfono de las maquetas, sin velo rojo: es la que se compara antes y después */
+@RunWith(RobolectricTestRunner::class)
+@GraphicsMode(GraphicsMode.Mode.NATIVE)
+@Config(sdk = [35], qualifiers = "w390dp-h844dp-xxhdpi")
+class CapturaPortadaEstados390Test : BaseEstadosPortada("390x844", Barras(estado = 24, navAbajo = 24), zonas = false)
 
 /** De pie en un teléfono pequeño y modesto: barra de estado de 24 y la de tres botones de 48 abajo */
 @RunWith(RobolectricTestRunner::class)
