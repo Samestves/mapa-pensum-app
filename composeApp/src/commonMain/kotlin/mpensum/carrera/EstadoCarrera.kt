@@ -1,5 +1,6 @@
 package mpensum.carrera
 
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.snapshotFlow
@@ -306,11 +307,15 @@ internal class CarreraLista(val pensum: Pensum, val layout: LayoutMapa, val comp
 /**
  * El estado de una carrera al abrirla. El JSON se decodifica y la geometría se
  * calcula en otro hilo, para no robarle cuadros a la animación de entrada; null
- * mientras llega. Girar el teléfono no lo recrea: solo cambia `compacto`.
+ * mientras llega, o si la carga falla del todo (entonces avisa con `alFallar`). Girar el teléfono no lo recrea: solo cambia `compacto`.
  */
 @Composable
-fun rememberEstadoCarrera(slug: String, horizontal: Boolean): EstadoCarrera? {
-    val lista = produceState<CarreraLista?>(null, slug) { value = PrecargaCarreras.cargar(slug, horizontal, Tema.rectos) }.value
+fun rememberEstadoCarrera(slug: String, horizontal: Boolean, alFallar: () -> Unit = {}): EstadoCarrera? {
+    val fallar by rememberUpdatedState(alFallar)
+    val lista = produceState<CarreraLista?>(null, slug) {
+        // Si no se puede cargar (ni al reintentar) se avisa una vez, para volver a la portada en vez de quedarse esperando
+        value = PrecargaCarreras.cargar(slug, horizontal, Tema.rectos) ?: run { fallar(); null }
+    }.value
     val estado = remember(lista) {
         lista?.let { EstadoCarrera(it.pensum, compacto = horizontal, layoutInicial = it.layout, compactoInicial = it.compacto, rectosInicial = it.rectos) }
     }

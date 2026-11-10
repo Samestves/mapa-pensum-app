@@ -26,7 +26,6 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -84,10 +83,12 @@ private val ANCHO_VELO = 150.dp
  */
 @Composable
 fun Interior(carrera: Carrera, alVolver: () -> Unit, vistaInicial: Vista = Vista.MAPA) {
-    var vista by rememberSaveable { mutableStateOf(vistaInicial) }
+    val nav = rememberSaveable(saver = NavegacionInterior.Guardable) { NavegacionInterior(vistaInicial) }
+    val vista = nav.vista
     // Se sabe antes de medir porque de ello depende la geometría del mapa
     val horizontal = esApaisado()
-    val estado = rememberEstadoCarrera(carrera.slug, horizontal)
+    // Si la carrera no se puede cargar ni a la segunda, no hay nada que enseñar: se vuelve a la portada
+    val estado = rememberEstadoCarrera(carrera.slug, horizontal, alFallar = alVolver)
     // El horario vive aquí y no en su vista: sus hojas suben por encima de la barra
     val horario = estado?.let { rememberEstadoHorario(it) }
     val color = colorDe(carrera.color)
@@ -101,19 +102,16 @@ fun Interior(carrera: Carrera, alVolver: () -> Unit, vistaInicial: Vista = Vista
     val camara = remember(carrera.slug) { Camara(carrera.slug) }
     val efectos = remember(carrera.slug) { EfectosMapa() }
     val alcance = rememberCoroutineScope()
-    var seleccionado by remember(carrera.slug) { mutableStateOf<String?>(null) }
     // La lista vive aquí: la barra Núcleo y el Atrás dependen de si su página está abierta, y sobrevive al giro
     val lista = rememberNavegacionLista(carrera.slug)
-    var casillaAbierta by remember(carrera.slug) { mutableStateOf<String?>(null) }
-    var aprobarAlElegir by remember { mutableStateOf(false) }
-    var avanceAbierto by remember { mutableStateOf(false) }
-    // Las materias que pidió «Verlas en el mapa» la hoja del avance: se encuadran cuando el mapa ya se ve
-    var porEncuadrar by remember { mutableStateOf<List<String>?>(null) }
-    // La materia a la que ya se le hizo sitio: la ficha cambia de alto al animarse y no debe empujar el mapa cada vez
-    var encuadrada by remember { mutableStateOf<String?>(null) }
+    val seleccionado = nav.seleccionado
+    // Acostado, una casilla de electiva vacía no cabe en la burbuja: abre el selector a pantalla completa
+    val esCasillaVacia: (String) -> Boolean = { c ->
+        estado != null && estado.layout.porCodigo[c]?.asignatura?.esHueco == true && estado.enCasilla(c) == null
+    }
 
     // Una hoja encima (electivas, avance o clase del horario) se cierra con su propio Atrás
-    val hojaAbierta = casillaAbierta != null || avanceAbierto || horario?.hoja != null
+    val hojaAbierta = nav.hayHoja || horario?.hoja != null
     // De pie, la página de la materia de la lista se cierra con Atrás. Cada Atrás tiene su condición propia y excluyente
     // (hoja, página, ruta del mapa): ninguno depende del orden en que se monten
     val paginaDeLista = vista == Vista.LISTA && !horizontal && lista.abierta
@@ -121,31 +119,15 @@ fun Interior(carrera: Carrera, alVolver: () -> Unit, vistaInicial: Vista = Vista
     ManejarAtras(paginaDeLista && !hojaAbierta) { if (lista.relacion != null) lista.relacion = null else lista.abierta = false }
     ManejarAtras(vista == Vista.MAPA && !hojaAbierta && seleccionado == null && efectos.ruta != null) { efectos.ruta = null }
     // Con otra orientación el panel de la ficha cambia de sitio: la materia se vuelve a encuadrar
-    LaunchedEffect(horizontal) { encuadrada = null }
-    // Cambiar de vista suelta la materia abierta: la ficha es de la vista en la que se pidió
-    LaunchedEffect(vista) { seleccionado = null }
-    LaunchedEffect(seleccionado) { if (seleccionado == null) encuadrada = null }
+    LaunchedEffect(horizontal) { nav.girar(horizontal, esCasillaVacia) }
+    val porEncuadrar = nav.porEncuadrar
     LaunchedEffect(porEncuadrar, vista, estado) {
         val codigos = porEncuadrar ?: return@LaunchedEffect
         if (vista != Vista.MAPA || estado == null) return@LaunchedEffect
         // Espera a que la hoja se haya ido y el mapa esté a la vista
         delay(Movimiento.SALIDA_HOJA + 120L)
         estado.cajaDe(codigos)?.let { camara.mostrar(alcance, it, MARGEN_AL_APROBAR) }
-        porEncuadrar = null
-    }
-
-    fun abrirCasilla(casilla: String, aprobar: Boolean) {
-        aprobarAlElegir = aprobar
-        casillaAbierta = casilla
-    }
-
-    // Acostado, una casilla de electiva vacía no cabe en la burbuja: abre el selector a pantalla completa
-    LaunchedEffect(seleccionado, horizontal, vista) {
-        val c = seleccionado ?: return@LaunchedEffect
-        if (horizontal && vista == Vista.MAPA && estado != null && estado.layout.porCodigo[c]?.asignatura?.esHueco == true && estado.enCasilla(c) == null) {
-            seleccionado = null
-            abrirCasilla(c, aprobar = false)
-        }
+        nav.encuadreHecho()
     }
 
     BoxWithConstraints(
@@ -182,12 +164,9 @@ fun Interior(carrera: Carrera, alVolver: () -> Unit, vistaInicial: Vista = Vista
             lista = lista,
             seleccionado = seleccionado,
             hojaAbierta = hojaAbierta,
-            alSeleccionar = { seleccionado = it },
-            alAbrirCasilla = ::abrirCasilla,
-            alVerEnMapa = { codigo ->
-                vista = Vista.MAPA
-                porEncuadrar = listOf(codigo)
-            },
+            alSeleccionar = { nav.seleccionar(it, horizontal, esCasillaVacia) },
+            alAbrirCasilla = nav::abrirCasilla,
+            alVerEnMapa = { codigo -> nav.verEnMapa(listOf(codigo)) },
         )
 
         NavegacionCarrera(
@@ -199,8 +178,8 @@ fun Interior(carrera: Carrera, alVolver: () -> Unit, vistaInicial: Vista = Vista
             izquierda = izquierda,
             abajo = abajo,
             alVolver = alVolver,
-            alCambiar = { vista = it },
-            alAvance = { if (estado != null) avanceAbierto = true },
+            alCambiar = nav::cambiarVista,
+            alAvance = { if (estado != null) nav.abrirAvance() },
             // La página de la materia de la lista ocupa el sitio de la barra, igual que la ficha del mapa
             oculta = (seleccionado != null && vista != Vista.HORARIO && !horizontal) || paginaDeLista,
         )
@@ -212,7 +191,7 @@ fun Interior(carrera: Carrera, alVolver: () -> Unit, vistaInicial: Vista = Vista
                 if (vista == Vista.MAPA && marca == Marca.APROBADA && estado.marcas[codigo] != Marca.APROBADA) {
                     val abre = estado.layout.relaciones.adelante[codigo].orEmpty()
                     estado.cajaDe(abre + codigo)?.let { camara.mostrar(alcance, it, MARGEN_AL_APROBAR) }
-                    seleccionado = null
+                    nav.soltarSeleccion()
                     estado.marcar(codigo, marca)
                     efectos.descargar(codigo)
                 } else {
@@ -221,8 +200,8 @@ fun Interior(carrera: Carrera, alVolver: () -> Unit, vistaInicial: Vista = Vista
                 efectos.tocar(codigo)
             }
             val alCambiarElectiva: (String) -> Unit = { casilla ->
-                seleccionado = null
-                abrirCasilla(casilla, aprobar = false)
+                nav.soltarSeleccion()
+                nav.abrirCasilla(casilla, aprobar = false)
             }
             // Encima de la barra: la ficha esconde la barra y ocupa su sitio. Acostada en el mapa, la burbuja
             BurbujaFicha(
@@ -235,25 +214,25 @@ fun Interior(carrera: Carrera, alVolver: () -> Unit, vistaInicial: Vista = Vista
                 ),
                 ancho = maxWidth.value,
                 alto = maxHeight.value,
-                alCerrar = { seleccionado = null },
+                alCerrar = nav::soltarSeleccion,
                 alMarcar = alMarcar,
-                alIrA = { seleccionado = it },
+                alIrA = { nav.seleccionar(it, horizontal, esCasillaVacia) },
                 alCambiarElectiva = alCambiarElectiva,
             )
             FichaMateria(
                 codigo = seleccionado.takeIf { vista != Vista.HORARIO && !burbuja },
                 estado = estado,
-                alCerrar = { seleccionado = null },
+                alCerrar = nav::soltarSeleccion,
                 alMarcar = alMarcar,
-                alIrA = { seleccionado = it },
+                alIrA = { nav.seleccionar(it, horizontal, esCasillaVacia) },
                 alCambiarElectiva = alCambiarElectiva,
                 alEncuadrar = { codigo, alto ->
                     // Solo de pie: acostada la ficha ocupa la pantalla (o es la burbuja) y no hay hueco donde centrar nada
-                    if (vista == Vista.MAPA && !horizontal && codigo == seleccionado && codigo != encuadrada) {
+                    if (vista == Vista.MAPA && !horizontal && codigo == nav.seleccionado && codigo != nav.encuadrada) {
                         estado.cajaDe(listOf(codigo))?.let {
                             // Centrada en el hueco libre: 16 bajo la barra de estado y 16 sobre la hoja
                             camara.mostrar(alcance, it, Margenes(arriba = arriba.value + 16f, abajo = alto.value + 16f, izq = 20f, der = 20f), centrar = true)
-                            encuadrada = codigo
+                            nav.marcarEncuadrada(codigo)
                         }
                     }
                 },
@@ -265,16 +244,12 @@ fun Interior(carrera: Carrera, alVolver: () -> Unit, vistaInicial: Vista = Vista
             horario = horario,
             cristal = cristal,
             efectos = efectos,
-            casillaAbierta = casillaAbierta,
-            aprobarAlElegir = aprobarAlElegir,
-            avanceAbierto = avanceAbierto,
-            alCerrarCasilla = { casillaAbierta = null },
-            alCerrarAvance = { avanceAbierto = false },
-            alVerEnMapa = { codigos ->
-                avanceAbierto = false
-                vista = Vista.MAPA
-                porEncuadrar = codigos
-            },
+            casillaAbierta = nav.casillaAbierta,
+            aprobarAlElegir = nav.aprobarAlElegir,
+            avanceAbierto = nav.avanceAbierto,
+            alCerrarCasilla = nav::cerrarCasilla,
+            alCerrarAvance = nav::cerrarAvance,
+            alVerEnMapa = { codigos -> nav.verEnMapa(codigos, cerrandoAvance = true) },
         )
     }
 }
