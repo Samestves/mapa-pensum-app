@@ -165,8 +165,12 @@ fun Portada(
             } else Column(
                 Modifier
                     .fillMaxSize()
-                    .verticalScroll(desplazamiento)
-                    .padding(start = margen, end = margen, top = bajoCabecera + Espacio.s, bottom = abajo + 60.dp),
+                    // Sin el estirón de Android en los bordes: el recorrido del home es corto (casi cabe) y el
+                    // estirón saltaba nada más empezar a bajar, y la página se sentía trabada
+                    .verticalScroll(desplazamiento, overscrollEffect = null)
+                    // Abajo, solo la barra del sistema y un respiro: con 60 dp de más, en un teléfono donde el home
+                    // casi cabe, la página bajaba ~70 dp, chocaba con el final y se estiraba, y se sentía trabada
+                    .padding(start = margen, end = margen, top = bajoCabecera + Espacio.s, bottom = abajo + Espacio.l),
             ) {
                 // Sin carrera elegida la tarjeta espera a saber si hay marcas: si las hay, la primera con marcas es la tuya
                 if (conTarjeta) tarjeta()
@@ -186,11 +190,13 @@ fun Portada(
             .sube(0, 0.dp, 320)
         CabeceraMarca(fila) { ajustes = PaginaAjustes.MENU }
 
+        // El fundido de abajo solo mientras queda algo por ver; se lee al dibujar, no recompone
         if (!horizontal) Box(
             Modifier
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
                 .height(abajo + 60.dp)
+                .graphicsLayer { alpha = if (desplazamiento.canScrollForward) 1f else 0f }
                 .background(Brush.verticalGradient(listOf(Paleta.lienzo.copy(alpha = 0f), Paleta.lienzo))),
         )
 
