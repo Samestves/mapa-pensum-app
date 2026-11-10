@@ -5,4 +5,5 @@ plugins {
     kotlin("plugin.serialization") version "2.3.20" apply false
     id("org.jetbrains.compose") version "1.10.3" apply false
     id("com.android.application") version "8.13.1" apply false
+    id("org.jlleitschuh.gradle.ktlint") version "13.1.0" apply false
 }

@@ -6,6 +6,7 @@ plugins {
     kotlin("plugin.serialization")
     id("org.jetbrains.compose")
     id("com.android.application")
+    id("org.jlleitschuh.gradle.ktlint")
 }
 
 kotlin {
@@ -95,4 +96,37 @@ android {
 dependencies {
     // La actividad vacía donde las pruebas de pantalla montan lo que capturan
     debugImplementation("androidx.compose.ui:ui-test-manifest:1.10.5")
+}
+
+// Linter mínimo: las reglas viven en .editorconfig (solo imports, espacios y líneas en blanco).
+// Las capturas generadas y el código de otros no se miran.
+ktlint {
+    version.set("1.7.1")
+    android.set(true)
+    ignoreFailures.set(false)
+    filter {
+        exclude { it.file.path.contains("${File.separator}build${File.separator}") }
+    }
+}
+
+// Pruebas rápidas por defecto: la lógica y los recorridos Qa*. Las capturas y los informes de coste
+// (Captura*, CosteCuadros, Rendimiento) no afirman nada: solo detectan cuelgues y escriben PNG o cifras.
+// Corren con `./gradlew :composeApp:capturas`, o con -Pcapturas junto a testDebugUnitTest.
+val lentas = listOf("*Captura*", "*CosteCuadros*", "*Rendimiento*")
+
+tasks.register("capturas") {
+    group = "verification"
+    description = "Corre solo las capturas y los informes de coste (las pruebas que no afirman nada)"
+    dependsOn("testDebugUnitTest")
+}
+
+gradle.taskGraph.whenReady {
+    val soloLentas = hasTask(":composeApp:capturas")
+    val todas = soloLentas || project.hasProperty("capturas")
+    tasks.withType<Test>().configureEach {
+        filter {
+            if (soloLentas) lentas.forEach { includeTestsMatching(it) }
+            else if (!todas) lentas.forEach { excludeTestsMatching(it) }
+        }
+    }
 }
