@@ -233,46 +233,45 @@ data class FilaLista(
     val descripcion: String get() = if (situacion == null) "$nombre, Electiva por elegir" else descripcionDeMateria(nombre, situacion, razon.replace("**", ""))
 }
 
-private fun mas(primero: String, total: Int) = if (total > 1) "$primero y ${total - 1} más" else primero
+/**
+ * Lo más largo que puede ser la razón de una fila: cabe entera en una línea
+ * de 13 sp en un teléfono de 360 dp, junto a las UC. Lo que no cabe no se
+ * corta con «…»: se dice de forma más corta.
+ */
+const val LARGO_RAZON = 30
 
-private fun abreTexto(m: MateriaLista, sinMargen: Boolean): String? = when {
-    m.abre.isEmpty() -> null
-    sinMargen && m.cadena >= 2 -> "abre ${m.cadena} en cadena"
-    m.abre.size == 1 -> "abre ${m.abre[0]}"
-    else -> "abre ${m.abre.size}"
-}
+/** La versión larga si cabe (sin contar las marcas de negrita); si no, la corta */
+private fun quepa(larga: String, corta: String) = if (larga.replace("**", "").length <= LARGO_RAZON) larga else corta
 
 private fun semestreTexto(semestre: Int?) = if (semestre == null) "Electiva" else "Semestre $semestre"
 
 /**
- * Lo que dice una materia bajo su nombre: una sola razón. De una inscribible,
- * cuánto puede esperar y qué abre; de una bloqueada, qué espera o qué le falta.
- * `margen` es null mientras se mide (o si la materia no está en el plan).
+ * Lo que dice una materia bajo su nombre: una sola razón corta. De una
+ * inscribible, cuánto puede esperar (y, si no puede, cuánto frena); de una
+ * cursando, qué abre; de una bloqueada, qué le falta. Los nombres van solo si
+ * caben; si no, se cuentan. `margen` es null mientras se mide (o si la materia
+ * no está en el plan).
  */
 fun razonDe(m: MateriaLista, margen: Int?): String = when (m.situacion) {
-    Situacion.INSCRIBIBLE -> {
-        val espera = when {
-            margen == null -> null
-            margen == 0 -> "**Sin margen**"
-            else -> "Puede esperar $margen"
-        }
-        val abre = abreTexto(m, sinMargen = margen == 0)
-        when {
-            espera != null && abre != null -> "$espera · $abre"
-            espera != null -> espera
-            abre != null -> abre.replaceFirstChar { it.uppercase() }
-            else -> "Puedes inscribirla"
-        }
+    Situacion.INSCRIBIBLE -> when {
+        margen == 0 && m.cadena >= 2 -> "**Sin margen** · abre ${m.cadena} en cadena"
+        margen == 0 -> "**Sin margen**"
+        margen != null -> "Puede esperar $margen"
+        else -> "Puedes inscribirla"
     }
     Situacion.CURSANDO -> when {
-        m.seAbren.size == 1 -> "Al aprobarla se abre ${m.seAbren[0]}"
-        m.seAbren.size > 1 -> "Al aprobarla se abren ${m.seAbren.size}"
+        m.seAbren.size == 1 -> quepa("Al aprobarla abre ${m.seAbren[0]}", "Al aprobarla abre 1")
+        m.seAbren.size > 1 -> "Al aprobarla abre ${m.seAbren.size}"
         else -> semestreTexto(m.semestre)
     }
-    Situacion.PROXIMA -> "Al aprobar ${mas(m.cursandoFaltan.firstOrNull() ?: "lo que cursas", m.cursandoFaltan.size)}"
+    Situacion.PROXIMA -> when (m.cursandoFaltan.size) {
+        1 -> quepa("Al aprobar ${m.cursandoFaltan[0]}", "Al aprobar lo que cursas")
+        else -> "Al aprobar lo que cursas"
+    }
     Situacion.LEJANA -> when {
-        m.faltan.isNotEmpty() -> "Falta ${mas(m.faltan[0], m.faltan.size)}"
-        m.requisitoEspecial != null -> "Pide ${m.requisitoEspecial}"
+        m.faltan.size == 1 -> quepa("Falta ${m.faltan[0]}", "Falta 1 materia")
+        m.faltan.size > 1 -> "Faltan ${materias(m.faltan.size)}"
+        m.requisitoEspecial != null -> quepa("Pide ${m.requisitoEspecial}", "Tiene un requisito especial")
         else -> "Bloqueada"
     }
     Situacion.HECHA -> semestreTexto(m.semestre)
@@ -385,7 +384,11 @@ fun planMuelle(m: MateriaLista, ucCursando: Int): PlanMuelle {
         Situacion.HECHA -> PlanMuelle("Cuenta **$uc UC** en tu avance", Situacion.HECHA, null, AccionMarca("Quitar la aprobación", null), lleno = false)
         Situacion.PROXIMA -> PlanMuelle("Se abre al aprobar **${m.cursandoFaltan.firstOrNull() ?: "lo que cursas"}**", Situacion.PROXIMA, cursando, aprobada, lleno = false)
         Situacion.LEJANA -> PlanMuelle(
-            if (m.faltan.isNotEmpty()) "Te falta **${mas(m.faltan[0], m.faltan.size)}**" else "Aún no puedes inscribirla",
+            when {
+                m.faltan.size == 1 -> "Te falta **${m.faltan[0]}**"
+                m.faltan.size > 1 -> "Te faltan **${m.faltan.size} materias**"
+                else -> "Aún no puedes inscribirla"
+            },
             Situacion.LEJANA, cursando, aprobada, lleno = false,
         )
     }
@@ -404,18 +407,26 @@ fun descendientes(codigo: String, adelante: Map<String, List<String>>): Int {
     return vistos.size
 }
 
-/** Cada semestre de la carrera en el dibujo del margen */
-enum class PuntoMargen { HECHO, ACTUAL, VENTANA, LEJOS }
+/** Las filas que ocupa un lado si enseña `k` de sus `n` materias: una cada una; sin ninguna no hay nube ni filas */
+private fun filasDeLado(n: Int, k: Int) = if (n == 0) 0 else k
+
+/** Cuántas materias de un lado de `n` se enseñan si le caben `filas` filas: nunca menos de una */
+fun cuantasCaben(n: Int, filas: Int): Int = minOf(n, maxOf(1, filas))
 
 /**
- * Un punto por semestre: los anteriores a la materia en verde, el suyo con
- * aro, los que puede esperar en tinta y el resto apagados.
+ * Cuántas materias de «Pide» y de «Abre» se enseñan en la página cuando caben
+ * `filas`: la página no tiene scroll. Cada lado enseña al menos una (un lado
+ * sin ninguna no ocupa nada) y el sitio que sobra se reparte por turnos, empezando
+ * por lo que pide. Lo que no cabe lo cuenta «+N más» en el rótulo del lado,
+ * que abre la lista entera.
  */
-fun puntosDeMargen(total: Int, semestre: Int, margen: Int): List<PuntoMargen> = (1..total).map { n ->
-    when {
-        n < semestre -> PuntoMargen.HECHO
-        n == semestre -> PuntoMargen.ACTUAL
-        n <= semestre + margen -> PuntoMargen.VENTANA
-        else -> PuntoMargen.LEJOS
+fun repartirRelaciones(pide: Int, abre: Int, filas: Int): Pair<Int, Int> {
+    var p = minOf(pide, 1)
+    var a = minOf(abre, 1)
+    var libres = filas - filasDeLado(pide, p) - filasDeLado(abre, a)
+    while (libres > 0 && (p < pide || a < abre)) {
+        if (p < pide) { p++; libres-- }
+        if (libres > 0 && a < abre) { a++; libres-- }
     }
+    return p to a
 }

@@ -1,0 +1,422 @@
+<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><title>Lista v2</title><style>
+@font-face { font-family: Jost; src: url(../../composeApp/src/commonMain/composeResources/font/jost.ttf); font-weight: 100 900; }
+@font-face { font-family: Inter; src: url(../../composeApp/src/commonMain/composeResources/font/inter.ttf); font-weight: 100 900; }
+@font-face { font-family: 'IBM Plex Mono'; src: url(../../composeApp/src/commonMain/composeResources/font/plex_mono_light.ttf); font-weight: 300; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #E6E7E9; color: #050608; font-family: Inter, sans-serif; padding: 56px 40px 80px; -webkit-font-smoothing: antialiased; }
+.pagina { width: 1480px; margin: 0 auto; }
+.portada h1 { font: 300 40px/44px Jost; letter-spacing: -.01em; }
+.portada p { font: 400 15px/22px Inter; color: #34383E; margin-top: 12px; max-width: 1180px; }
+b { font-weight: 500; color: #050608; }
+code { font: 300 13px "IBM Plex Mono"; background: rgb(0 0 0 / .06); padding: 1px 5px; border-radius: 4px; }
+.bloque { margin-top: 72px; }
+.bloque > h2 { font: 500 12px/16px Inter; letter-spacing: .08em; text-transform: uppercase; color: #52565C; margin-bottom: 8px; }
+.bloque > h3 { font: 300 30px/36px Jost; letter-spacing: -.01em; display: flex; align-items: center; gap: 14px; }
+.sello { font: 500 11px/16px Inter; letter-spacing: .08em; text-transform: uppercase; color: #fff; background: #050608; border-radius: 10px; padding: 3px 9px; }
+.explica { display: grid; grid-template-columns: repeat(4, 1fr); gap: 28px; margin: 16px 0 28px; }
+.explica div { font: 400 13px/19px Inter; color: #34383E; }
+.explica h4 { font: 500 11px/16px Inter; letter-spacing: .08em; text-transform: uppercase; color: #52565C; margin-bottom: 6px; }
+.fila-tel { display: flex; gap: 40px; align-items: flex-start; }
+.pie-tel { font: 400 13px/18px Inter; color: #52565C; margin-top: 12px; width: 375px; }
+.pie-tel b { color: #1C1F23; }
+.diag { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 16px; }
+.diag ul { padding-left: 18px; font: 400 13px/19px Inter; color: #34383E; }
+.diag li { margin-bottom: 8px; }
+.diag h4 { font: 500 16px/20px Inter; margin-bottom: 10px; }
+.bloque > h3 + .reco { margin-top: 14px; }
+.reco { font: 400 15px/23px Inter; color: #34383E; max-width: 1180px; }
+.reco ol { padding-left: 20px; margin-top: 10px; } .reco li { margin-bottom: 6px; }
+
+/* ===== Temas: la Paleta Acero, oscuro y claro ===== */
+.oscuro { --lienzo:#0B0C0E; --panel:#121316; --panelSuave:#16181B; --borde:#262A2F; --tinta:#ECEEF1; --suave:#B6BBC2; --tenue:#858B94; --apagada:#5D636C; --azul:#5B8AF5; --verde:#2EC27E; --rojo:#E5403A; --raya:rgb(255 255 255 / .07); --boton:#1E2024; --sobre:#0B0C0E; --barra:rgb(21 23 26 / .72); --filoBarra:rgb(255 255 255 / .12); --realce:rgb(255 255 255 / .045); }
+.claro  { --lienzo:#F3F4F6; --panel:#FFFFFF; --panelSuave:#F7F8F9; --borde:#DADDE1; --tinta:#171A20; --suave:#393C42; --tenue:#5B5F66; --apagada:#72767D; --azul:#3A66DC; --verde:#0F8A5F; --rojo:#CC1F24; --raya:rgb(0 0 0 / .08); --boton:#E7E9EC; --sobre:#F3F4F6; --barra:rgb(255 255 255 / .7); --filoBarra:rgb(0 0 0 / .06); --realce:rgb(0 0 0 / .035); }
+
+/* ===== Teléfono ===== */
+.tel, .tel-h { position: relative; overflow: hidden; background: var(--lienzo); color: var(--tinta); box-shadow: 0 0 0 1px rgb(0 0 0 / .08), 0 32px 64px -28px rgb(0 0 0 / .35); }
+.tel { width: 375px; height: 812px; border-radius: 44px; }
+.tel-h { width: 915px; height: 412px; border-radius: 36px; }
+.sis { height: 40px; display: flex; align-items: center; justify-content: space-between; padding: 6px 30px 0 32px; font: 600 14px/1 Inter; color: var(--tinta); }
+.sis i { display: inline-block; width: 24px; height: 11px; border: 1.5px solid var(--tenue); border-radius: 3px; position: relative; }
+.sis i::after { content: ''; position: absolute; inset: 1.5px 6px 1.5px 1.5px; background: var(--tinta); border-radius: 1px; }
+
+svg.i { fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; display: block; flex: none; }
+svg.e { display: block; flex: none; overflow: visible; }
+.c-hecha { color: var(--verde); } .c-cursando { color: var(--tinta); } .c-insc { color: var(--azul); } .c-prox { color: var(--suave); } .c-lej { color: var(--rojo); }
+
+/* Cabecera de la vista: título discreto en Jost, no el título grande */
+.cab { display: flex; align-items: center; justify-content: space-between; padding: 6px 16px 4px 20px; }
+.cab .t { font: 300 28px/34px Jost; letter-spacing: -.01em; }
+.cab .s { font: 400 13px/18px Inter; color: var(--tenue); margin-top: 1px; }
+.cab .s b { color: var(--suave); font-weight: 500; }
+.redondo { width: 40px; height: 40px; border-radius: 20px; background: var(--boton); display: grid; place-items: center; color: var(--tinta); }
+.botones-cab { display: flex; gap: 8px; }
+
+/* Encabezado de sección: mayúsculas finas y espaciadas, pegajoso */
+.sec { display: flex; justify-content: space-between; align-items: baseline; padding: 22px 20px 6px 20px; font: 500 11px/14px Inter; letter-spacing: .12em; text-transform: uppercase; color: var(--suave); background: var(--lienzo); }
+.sec .meta { font: 300 12px/14px 'IBM Plex Mono'; letter-spacing: 0; text-transform: none; color: var(--tenue); }
+.sec .accion { font: 500 13px/14px Inter; letter-spacing: 0; text-transform: none; color: var(--tinta); }
+.sec.pegada { box-shadow: 0 1px 0 var(--raya); padding-top: 14px; }
+.hilo { height: 2px; margin: 4px 20px 0; border-radius: 1px; background: var(--raya); position: relative; overflow: hidden; }
+.hilo i { position: absolute; top: 0; bottom: 0; left: 0; }
+
+/* La fila: icono (botón de 44), nombre en Jost, dato en Inter, raya bajo el texto */
+.fila { display: flex; align-items: stretch; padding-left: 8px; background: var(--lienzo); position: relative; }
+.fila .ic { width: 44px; min-height: 56px; display: grid; place-items: center; flex: none; margin-right: 6px; }
+.fila .cuerpo { flex: 1; display: flex; align-items: center; gap: 10px; padding: 9px 20px 9px 0; border-bottom: 1px solid var(--raya); min-width: 0; }
+.fila.ultima .cuerpo { border-bottom: 0; }
+.fila .txt { flex: 1; min-width: 0; }
+.nom { font: 400 16.5px/21px Jost; letter-spacing: -.003em; color: var(--tinta); }
+.nom.uno { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sub { font: 400 13px/18px Inter; color: var(--tenue); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sub b { color: var(--tinta); font-weight: 500; }
+.sub .ok { color: var(--verde); }
+.der { font: 300 12px/14px 'IBM Plex Mono'; color: var(--tenue); white-space: nowrap; flex: none; }
+.der.t { font: 500 13px/14px Inter; color: var(--tinta); }
+.chev { color: var(--apagada); }
+.fila.hecha .nom { color: var(--suave); }
+.fila.sel { background: var(--realce); border-radius: 14px; margin: 0 8px; padding-left: 0; }
+.fila.sel .cuerpo { border-bottom-color: transparent; }
+
+/* Gesto: la fila corrida descubre la acción debajo */
+.desliza { position: relative; overflow: hidden; }
+.desliza .fondo { position: absolute; inset: 0; display: flex; align-items: center; }
+.desliza .fondo.izq { background: var(--verde); padding-left: 22px; gap: 10px; color: #fff; font: 500 14px Inter; }
+.desliza .fondo.der { justify-content: flex-end; }
+.desliza .fondo.der span { width: 78px; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font: 500 12px Inter; color: #fff; }
+
+/* Ficha en línea (opción A) */
+.abierta { background: var(--realce); border-radius: 18px; margin: 4px 8px; padding-bottom: 14px; }
+.abierta .fila { background: transparent; padding-left: 0; }
+.abierta .fila .cuerpo { border-bottom: 0; }
+.det { padding: 0 16px 0 50px; }
+.par { display: flex; gap: 12px; align-items: flex-start; padding: 7px 0; font: 400 14px/20px Inter; color: var(--suave); }
+.par .et { width: 42px; flex: none; font: 500 10.5px/20px Inter; letter-spacing: .12em; color: var(--tenue); }
+.par .vals { display: flex; flex-wrap: wrap; gap: 4px 14px; }
+.par .v { display: inline-flex; align-items: center; gap: 6px; color: var(--tinta); }
+.par.margen { color: var(--tenue); }
+.par.margen b { color: var(--tinta); font-weight: 500; }
+.dos { display: flex; gap: 10px; margin: 12px 0 0 0; }
+.btn { height: 44px; border-radius: 22px; display: grid; place-items: center; font: 500 14px Inter; padding: 0 10px; flex: 1; white-space: nowrap; }
+.btn.lleno { background: var(--tinta); color: var(--lienzo); }
+.btn.gris { background: var(--boton); color: var(--tinta); }
+
+/* Electiva sin elegir: aro punteado */
+.punteado { width: 18px; height: 18px; border-radius: 9px; border: 1.5px dashed var(--tenue); }
+
+/* La barra Núcleo, la de siempre */
+.nucleo { position: absolute; left: 50%; bottom: 22px; transform: translateX(-50%); height: 58px; width: 296px; border-radius: 29px; background: var(--barra); backdrop-filter: blur(18px); box-shadow: inset 0 0 0 1px var(--filoBarra), 0 10px 30px -10px rgb(0 0 0 / .35); display: flex; align-items: center; justify-content: space-around; padding: 0 6px; color: var(--tinta); z-index: 5; }
+.nucleo svg.i { opacity: .42; }
+.nucleo svg.i.on { opacity: 1; }
+.aro { width: 40px; height: 40px; position: relative; display: flex; align-items: center; justify-content: center; font: 400 13px Jost; white-space: nowrap; }
+.aro small { font-size: 8.5px; color: var(--tenue); }
+.aro svg { position: absolute; inset: 0; }
+.velo-abajo { position: absolute; left: 0; right: 0; bottom: 0; height: 120px; background: linear-gradient(transparent, var(--lienzo) 70%); z-index: 4; pointer-events: none; }
+
+/* Menú contextual (opción B) */
+.tapa { position: absolute; inset: 0; backdrop-filter: blur(14px) brightness(.6); background: rgb(0 0 0 / .25); z-index: 8; }
+.claro .tapa { backdrop-filter: blur(14px); background: rgb(240 241 243 / .45); }
+.vista-previa { position: absolute; left: 16px; right: 16px; top: 168px; background: var(--panel); border-radius: 22px; padding: 18px 18px 14px; z-index: 9; box-shadow: inset 0 0 0 1px var(--filoBarra), 0 24px 50px -20px rgb(0 0 0 / .6); }
+.vista-previa .et0 { font: 300 11.5px/14px 'IBM Plex Mono'; color: var(--tenue); letter-spacing: .02em; }
+.vista-previa .tt { font: 300 24px/30px Jost; margin: 4px 0 8px; display: flex; align-items: center; gap: 10px; }
+.vista-previa .det { padding: 0; }
+.menu { position: absolute; left: 16px; width: 258px; top: 430px; background: var(--panel); border-radius: 16px; z-index: 9; overflow: hidden; box-shadow: inset 0 0 0 1px var(--filoBarra), 0 24px 50px -20px rgb(0 0 0 / .6); }
+.menu div { height: 46px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; font: 400 15px Inter; border-bottom: 1px solid var(--raya); }
+.menu div:last-child { border-bottom: 0; }
+.menu .grueso { height: 8px; padding: 0; background: var(--raya); border: 0; }
+
+/* Opción C: buscador, segmentos e índice */
+.buscar { margin: 4px 16px 0; height: 38px; border-radius: 12px; background: var(--boton); display: flex; align-items: center; gap: 8px; padding: 0 12px; font: 400 15px Inter; color: var(--tenue); }
+.buscar.activo { color: var(--tinta); }
+.buscar .cursor { width: 1.5px; height: 18px; background: var(--azul); margin-left: -6px; }
+.seg { margin: 10px 16px 0; height: 34px; border-radius: 10px; background: var(--boton); display: flex; padding: 2px; font: 500 13px Inter; color: var(--tenue); }
+.seg span { flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; border-radius: 8px; }
+.seg span.on { background: var(--borde); color: var(--tinta); box-shadow: 0 1px 2px rgb(0 0 0 / .3); }
+.indice { position: absolute; right: 6px; top: 226px; display: flex; flex-direction: column; gap: 7px; font: 300 10.5px/12px 'IBM Plex Mono'; color: var(--tenue); text-align: center; width: 16px; z-index: 3; }
+.indice .on { color: var(--tinta); font-weight: 600; }
+.denso .fila .ic { min-height: 48px; }
+.denso .fila .cuerpo { padding: 6px 34px 6px 0; }
+.marca { background: rgb(91 138 245 / .22); color: var(--tinta); border-radius: 3px; }
+.teclado { position: absolute; left: 0; right: 0; bottom: 0; height: 290px; background: #1B1D21; padding: 10px 4px 0; display: flex; flex-direction: column; gap: 12px; }
+.teclado .r { display: flex; justify-content: center; gap: 6px; }
+.teclado .r span { width: 31px; height: 42px; border-radius: 6px; background: #3A3D43; display: grid; place-items: center; font: 400 19px Inter; color: #ECEEF1; }
+.teclado .r span.w { width: 46px; background: #2A2C31; font-size: 13px; }
+.teclado .r span.esp { width: 180px; font-size: 14px; }
+.nav { display: flex; align-items: center; justify-content: space-between; padding: 6px 16px 0 10px; }
+.nav .vuelta { display: flex; align-items: center; gap: 2px; font: 400 16px Inter; color: var(--tinta); height: 44px; }
+.det-pag { padding: 14px 20px 0; }
+.det-pag .et0 { font: 300 12px/14px 'IBM Plex Mono'; color: var(--tenue); letter-spacing: .02em; }
+.det-pag h5 { font: 300 32px/38px Jost; letter-spacing: -.01em; margin: 6px 0 4px; font-weight: 300; }
+.det-pag .m { font: 400 14px/20px Inter; color: var(--tenue); }
+.seg3 { margin: 18px 0 6px; height: 44px; border-radius: 14px; background: var(--boton); display: flex; padding: 3px; font: 500 13.5px Inter; color: var(--tenue); }
+.seg3 span { flex: 1; display: flex; align-items: center; justify-content: center; gap: 7px; border-radius: 11px; }
+.seg3 span.on { background: var(--borde); color: var(--tinta); }
+
+/* Acostada */
+.riel { position: absolute; left: 16px; top: 86px; width: 52px; height: 240px; border-radius: 26px; background: var(--barra); box-shadow: inset 0 0 0 1px var(--filoBarra); display: flex; flex-direction: column; align-items: center; justify-content: space-evenly; color: var(--tinta); }
+.riel svg.i { opacity: .42; } .riel svg.i.on { opacity: 1; }
+.col-lista { position: absolute; left: 84px; top: 0; bottom: 0; width: 400px; overflow: hidden; }
+.col-ficha { position: absolute; left: 500px; right: 16px; top: 16px; bottom: 16px; border-radius: 26px; background: var(--realce); padding: 20px 24px; }
+.col-ficha h5 { font: 300 28px/34px Jost; margin: 4px 0 2px; }
+.col-ficha .et0 { font: 300 12px/14px 'IBM Plex Mono'; color: var(--tenue); }
+.col-ficha .m { font: 400 13.5px/19px Inter; color: var(--tenue); }
+.col-ficha .det { padding: 0; }
+</style></head><body><div class="pagina">
+
+<svg width="0" height="0" style="position:absolute"><defs>
+  <!-- Iconos de estado: los mismos trazos de componentes/Iconos.kt, en su rejilla de 20 -->
+  <symbol id="e-hecha" viewBox="0 0 20 20"><path d="M2.5 10a7.5 7.5 0 1 0 15 0a7.5 7.5 0 1 0-15 0z" fill="currentColor"/><path d="M6.6 10.3l2.3 2.3 4.5-4.9" fill="none" stroke="var(--sobre)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="e-cursando" viewBox="0 0 20 20"><path d="M10 6.1C8.3 4.85 6.3 4.35 4 4.5v9.9c2.3-.15 4.3.35 6 1.6 1.7-1.25 3.7-1.75 6-1.6V4.5c-2.3-.15-4.3.35-6 1.6z" fill="currentColor" fill-opacity=".14" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M10 6.1V16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></symbol>
+  <symbol id="e-insc" viewBox="0 0 20 20"><path d="M6.5 9h7a2.25 2.25 0 0 1 2.25 2.25v3.75a2.25 2.25 0 0 1-2.25 2.25h-7a2.25 2.25 0 0 1-2.25-2.25v-3.75a2.25 2.25 0 0 1 2.25-2.25z" fill="currentColor" stroke="currentColor" stroke-width="1.5"/><g transform="rotate(40 13.25 9)"><path d="M6.75 9V6.75a3.25 3.25 0 0 1 6.5 0V9" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></g><path d="M10 12.3v1.7" stroke="var(--sobre)" stroke-width="1.8" stroke-linecap="round"/></symbol>
+  <symbol id="e-lej" viewBox="0 0 20 20"><path d="M6.5 9h7a2.25 2.25 0 0 1 2.25 2.25v3.75a2.25 2.25 0 0 1-2.25 2.25h-7a2.25 2.25 0 0 1-2.25-2.25v-3.75a2.25 2.25 0 0 1 2.25-2.25z" fill="currentColor" stroke="currentColor" stroke-width="1.5"/><path d="M6.75 9V6.75a3.25 3.25 0 0 1 6.5 0V9" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M10 12.3v1.7" stroke="var(--sobre)" stroke-width="1.8" stroke-linecap="round"/></symbol>
+  <symbol id="e-prox" viewBox="0 0 20 20"><path d="M6 3.25h8M6 16.75h8M7 3.25v2.3c0 1.9 3 2.5 3 4.45s-3 2.55-3 4.45v2.3M13 3.25v2.3c0 1.9-3 2.5-3 4.45s3 2.55 3 4.45v2.3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <!-- Lucide, rejilla de 24 -->
+  <symbol id="l-buscar" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7.5"/><path d="m20.5 20.5-4.2-4.2"/></symbol>
+  <symbol id="l-mas" viewBox="0 0 24 24"><circle cx="5.5" cy="12" r="1.1" fill="currentColor"/><circle cx="12" cy="12" r="1.1" fill="currentColor"/><circle cx="18.5" cy="12" r="1.1" fill="currentColor"/></symbol>
+  <symbol id="l-der" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+  <symbol id="l-abajo" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+  <symbol id="l-atras" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
+  <symbol id="l-casa" viewBox="0 0 24 24"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol>
+  <symbol id="l-mapa" viewBox="0 0 24 24"><path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z"/><path d="M15 5.764v15"/><path d="M9 3.236v15"/></symbol>
+  <symbol id="l-lista" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></symbol>
+  <symbol id="l-cal" viewBox="0 0 24 24"><path d="M8 2v4M16 2v4"/><path d="M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/><path d="M3 10h18M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01"/></symbol>
+  <symbol id="l-orden" viewBox="0 0 24 24"><path d="M3 6h18M7 12h10M10 18h4"/></symbol>
+</defs></svg>
+
+<header class="portada">
+  <h1>Lista v2: tres caminos para rehacerla</h1>
+  <p>La lista es <b>otra forma de ver la misma carrera</b>, no un mapa en renglones. Las tres opciones usan los mismos iconos de estado (sello, libro, candados y reloj de arena), la Paleta Acero, Jost para nombres y títulos, Inter para el texto y Plex para códigos y UC. Ninguna abre la hoja inferior del mapa: cada una trae sus propios botones. Los datos son los de Ingeniería de Sistemas a la altura del semestre 5 (41 %). El margen de cada materia ("puede esperar 2") es ilustrativo, salvo el de Sistemas de Costo, que es el que hoy da la hoja de avance.</p>
+</header>
+
+<section class="bloque">
+  <h2>Diagnóstico</h2>
+  <h3>Lo que sobra y lo que falta en la lista de hoy</h3>
+  <div class="diag">
+    <div><h4>Sobra</h4><ul>
+      <li><b>Las cuatro pastillas de filtro</b> (cápsulas de 44 dp con cristal): ocupan la franja más valiosa para repetir cuentas que ya dan el Núcleo y la hoja de avance.</li>
+      <li><b>Cada semestre en un grupo de cristal</b> con borde, filo de luz y plegado tipo Ajustes: son cajas pesadas y la lista se lee como un acordeón, no como una lista.</li>
+      <li><b>El aro del semestre que aprueba todo</b> de un toque, con un «Deshacer» en la cabecera: es una acción masiva escondida en un indicador.</li>
+      <li><b>«Abre 1» en azul en cada fila</b>: gasta el único azul en algo que no es inscribible y repite el mismo dato cinco veces.</li>
+      <li><b>Retener filas con filtro</b>, la espera tras deshacer y el <b>panel resumen acostado</b> (PanelResumenLista), que repite la hoja de avance.</li>
+      <li><b>Todo toque abre la ficha del mapa</b>: marcar cuesta tocar, elegir y cerrar la hoja. Es la dependencia que hay que quitar.</li>
+    </ul></div>
+    <div><h4>Falta</h4><ul>
+      <li><b>Marcar desde la fila</b> con un toque o un gesto, sin hoja de por medio.</li>
+      <li><b>Buscar</b> por nombre o código. Hoy el código ni siquiera aparece.</li>
+      <li><b>Prelaciones a la vista</b>: qué le falta a una bloqueada y qué abre una inscribible, sin salir de la lista.</li>
+      <li><b>Prioridad</b>: el margen y la cadena que fija la fecha («No puedes atrasar») viven en la hoja de avance, pero la lista no los usa para ordenar.</li>
+      <li><b>Agrupar por estado</b>, que es la pregunta del estudiante antes de inscribir: «¿qué puedo meter ya?». También <b>la carga en UC</b> de lo que inscribe.</li>
+      <li><b>Las electivas en su sitio</b>: una casilla sin elegir que ya se puede cursar debe salir junto a lo inscribible.</li>
+    </ul></div>
+  </div>
+</section>
+
+<section class="bloque">
+  <h2>Opción A</h2>
+  <h3>Recorrido: por semestre, plano, con ficha en línea</h3>
+  <div class="explica">
+    <div><h4>Estructura</h4>Semestres con encabezado pegajoso y un hilo de 2 px que se llena (verde lo aprobado, tinta lo que cursas). Los semestres completos se juntan en un solo renglón arriba. Se entra con el semestre actual a la vista.</div>
+    <div><h4>Fila</h4>Icono de estado (botón de 44 dp), nombre en Jost y, debajo, «3 UC · abre Electrónica». Sin cajas: filas planas sobre el lienzo y una raya fina bajo el texto.</div>
+    <div><h4>Acciones propias</h4>Tocar el icono cambia el estado (inscribible, cursando, aprobada). Deslizar a la derecha aprueba. Tocar la fila la abre en el sitio: lo que pide, lo que abre, el margen y dos botones.</div>
+    <div><h4>Qué gana el estudiante</h4>Es el mismo orden del pensum oficial, así que reconoce dónde va. Marca un semestre entero en segundos y nunca pierde el contexto, porque la ficha se abre en la lista y no encima.</div>
+  </div>
+  <div class="fila-tel">
+    <div><div class="tel oscuro" id="a1"></div><p class="pie-tel"><b>Reposo.</b> Métodos Numéricos a mitad del gesto: deslizar a la derecha la aprueba.</p></div>
+    <div><div class="tel oscuro" id="a2"></div><p class="pie-tel"><b>Fila abierta.</b> Circuitos y Sistemas se despliega en su sitio, con sus propios botones.</p></div>
+  </div>
+</section>
+
+<section class="bloque">
+  <h2>Opción B</h2>
+  <h3>Por hacer: por estado, ordenada por urgencia <span class="sello">Recomendada</span></h3>
+  <div class="explica">
+    <div><h4>Estructura</h4>Cuatro secciones: <b>Puedes inscribir</b>, <b>Cursando</b>, <b>Bloqueadas</b> (primero la que solo espera lo que cursas, con el reloj de arena) y <b>Aprobadas</b>, plegada en un renglón. Arriba, una sola línea: UC, fecha y carga elegida.</div>
+    <div><h4>Fila</h4>Icono, nombre y una sola razón: «Sin margen · abre 4 en cadena», «Puede esperar 2», «Falta Circuitos y Sistemas». A la derecha, las UC en Plex. Las inscribibles van de la más urgente a la que más puede esperar.</div>
+    <div><h4>Acciones propias</h4>Tocar el icono la pasa al siguiente estado, y la fila se queda en su sitio con «Deshacer» en línea hasta que sales. «Aprobé las 2» en la sección Cursando. Mantener pulsado abre una vista previa con lo que pide y abre, y un menú propio. El botón «…» cambia el orden a «por semestre».</div>
+    <div><h4>Qué gana el estudiante</h4>Responde la pregunta de cada inscripción: <b>qué meto ya y qué no puedo atrasar</b>. Une la lista con la hoja de avance («No puedes atrasar», «Tu próximo semestre») sin repetirla, y deja ver cuánta carga en UC lleva.</div>
+  </div>
+  <div class="fila-tel">
+    <div><div class="tel oscuro" id="b1"></div><p class="pie-tel"><b>Reposo.</b> Lo inscribible arriba y en orden de urgencia; Sistemas de Costo fija tu fecha.</p></div>
+    <div><div class="tel oscuro" id="b2"></div><p class="pie-tel"><b>Mantener pulsado.</b> Vista previa con lo que pide y abre, y el menú propio de la lista.</p></div>
+    <div><div class="tel claro" id="b3"></div><p class="pie-tel"><b>Claro.</b> La misma vista, con Sistemas de Costo recién pasada a cursando y «Deshacer» en la fila, sin toast.</p></div>
+  </div>
+</section>
+
+<section class="bloque">
+  <h2>Opción C</h2>
+  <h3>Índice: buscador, agrupación a elegir y página propia</h3>
+  <div class="explica">
+    <div><h4>Estructura</h4>Buscador siempre visible y un control de dos segmentos, <b>Por semestre | Por estado</b>. A la derecha, un índice del 1 al 10 que se recorre con el pulgar, como en Contactos.</div>
+    <div><h4>Fila</h4>Densa, de 48 dp y una sola línea: icono, nombre y UC alineadas en columna. Caben unas 11 materias por pantalla.</div>
+    <div><h4>Acciones propias</h4>Deslizar a la izquierda descubre dos botones, «Cursando» y «Aprobada». Tocar la fila empuja una página propia con el estado en un control de tres segmentos y lo que pide y abre, cada uno enlazado a su materia.</div>
+    <div><h4>Qué gana el estudiante</h4>Encontrar rápido: escribir «elec» da Electrónica y las electivas. Sirve para consultar y navegar por prelaciones. Es la más potente, pero también la más cargada.</div>
+  </div>
+  <div class="fila-tel">
+    <div><div class="tel oscuro" id="c1"></div><p class="pie-tel"><b>Reposo.</b> Por semestre, con el índice a la derecha y Teoría de Sistemas deslizada.</p></div>
+    <div><div class="tel oscuro" id="c2"></div><p class="pie-tel"><b>Buscando «elec».</b> Las coincidencias con su semestre y lo que les falta.</p></div>
+    <div><div class="tel oscuro" id="c3"></div><p class="pie-tel"><b>Página de la materia.</b> Empujada desde la lista; «‹ Semestre 5» vuelve.</p></div>
+  </div>
+</section>
+
+<section class="bloque">
+  <h2>Opción B acostada</h2>
+  <h3>Lista a la izquierda, la materia elegida a la derecha</h3>
+  <div class="explica">
+    <div><h4>Reparto</h4>El riel Núcleo, la lista en 400 dp y, al lado, la materia que tocas. Sin hoja ni velo: el panel es parte de la vista.</div>
+    <div><h4>Sin elegir</h4>Al entrar se elige la primera de «Puedes inscribir», así la mitad derecha nunca queda vacía y desaparece el panel resumen de hoy.</div>
+    <div><h4>Acciones</h4>El mismo control de tres segmentos para el estado; lo que pide y abre, enlazado a cada materia, y su margen.</div>
+    <div><h4>Gana</h4>Se recorre la lista con el pulgar izquierdo y se decide con el derecho, sin abrir ni cerrar nada.</div>
+  </div>
+  <div class="tel-h oscuro" id="bh"></div>
+</section>
+
+<section class="bloque">
+  <h2>Recomendación</h2>
+  <h3>La B, «Por hacer», con el orden por semestre en su menú</h3>
+  <div class="reco">
+    <p>La lista tiene que ganarse su sitio al lado del mapa. El mapa ya cuenta la carrera por semestres y lo hace mejor que cualquier lista, así que la A acaba siendo <b>el mapa en renglones</b>. La C es la más potente, pero suma buscador, segmentos, índice y páginas: es más pantalla que lista y se aleja de «simple y minimalista». La B es la única que responde una pregunta que el mapa no responde de un vistazo: <b>qué puedo inscribir ya y qué no puedo atrasar</b>.</p>
+    <ol>
+      <li><b>Es útil desde el primer segundo:</b> lo inscribible va arriba y ordenado por urgencia, con la misma cuenta de la hoja de avance (margen y cadena).</li>
+      <li><b>Marca sin hojas:</b> se toca el icono o se mantiene pulsado para ver la vista previa y el menú. La fila no salta de sección hasta que sales, y «Deshacer» va en la propia fila.</li>
+      <li><b>Es la más limpia de hacer:</b> una <code>LazyColumn</code> con claves por código, cuatro encabezados pegajosos y un solo tipo de fila. Sin grupos de cristal ni plegado animado por semestre, y sin retención con temporizadores.</li>
+      <li><b>No pierde lo de la A:</b> el «…» ofrece «Ordenar por semestre» con la misma fila, y la búsqueda de la C entra tirando hacia abajo, como en iOS.</li>
+    </ol>
+  </div>
+</section>
+</div>
+
+<script>
+// ===== Piezas =====
+const E = (e, s = 20) => e === 'casilla' ? '<span class="punteado"></span>' : `<svg class="e c-${e}" width="${s}" height="${s}"><use href="#e-${e}"/></svg>`;
+const L = (id, s = 22, cls = '') => `<svg class="i ${cls}" width="${s}" height="${s}"><use href="#l-${id}"/></svg>`;
+const sis = () => `<div class="sis"><span>9:41</span><i></i></div>`;
+const aro = (p = 41) => { const r = 19.25, c = 2 * Math.PI * r; return `<div class="aro"><svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="${r}" fill="none" stroke="currentColor" stroke-opacity=".12" stroke-width="1.5"/><circle cx="20" cy="20" r="${r}" fill="none" stroke="var(--verde)" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="${c * p / 100} ${c}" transform="rotate(-90 20 20)"/></svg>${p}<small>%</small></div>`; };
+const nucleo = () => `<div class="velo-abajo"></div><div class="nucleo">${L('casa')}${L('mapa')}${aro()}${L('lista', 22, 'on')}${L('cal')}</div>`;
+const fila = ({ e, n, sub = '', der = '', cls = '', uno = false }) =>
+  `<div class="fila ${cls}"><div class="ic">${E(e)}</div><div class="cuerpo"><div class="txt"><div class="nom ${uno ? 'uno' : ''}">${n}</div>${sub ? `<div class="sub">${sub}</div>` : ''}</div>${der}</div></div>`;
+const uc = n => `<span class="der">${n} UC</span>`;
+const sec = (t, meta = '', cls = '') => `<div class="sec ${cls}"><span>${t}</span>${meta}</div>`;
+const meta = t => `<span class="meta">${t}</span>`;
+const v = (e, t) => `<span class="v">${E(e, 15)}${t}</span>`;
+const pideAbre = () => `
+  <div class="par"><span class="et">PIDE</span><span class="vals">${v('hecha', 'Física II')}${v('hecha', 'Matemáticas IV')}</span></div>
+  <div class="par"><span class="et">ABRE</span><span class="vals">${v('lej', 'Electrónica')}<span style="color:var(--tenue)">y tras ella 2 más</span></span></div>
+  <div class="par margen"><span class="et">${E('prox', 15)}</span><span>Puede esperar <b>2 semestres</b> sin mover Dic 2029</span></div>`;
+
+// ===== Opción A =====
+const s5 = [
+  { e: 'cursando', n: 'Estadística II', sub: '2 UC' },
+  { e: 'cursando', n: 'Inferencia y Diseño de Experimentos', sub: '2 UC · abre Análisis de Decisiones' },
+  { e: 'insc', n: 'Sistemas de Costo', sub: '2 UC · abre Economía de Empresas' },
+  { e: 'insc', n: 'Circuitos y Sistemas', sub: '3 UC · abre Electrónica' },
+  { e: 'insc', n: 'Teoría de Sistemas', sub: '2 UC · abre Enfoque Sistémico' },
+  { e: 'insc', n: 'Sistemas de Operación', sub: '3 UC · abre Admón. de Base de Datos' },
+];
+const hilo = (a, c) => `<div class="hilo"><i style="width:${a}%;background:var(--verde)"></i><i style="left:${a}%;width:${c}%;background:var(--tinta);opacity:.55"></i></div>`;
+const cabA = `<div class="cab"><div><div class="t">Sistemas</div><div class="s">Vas por el <b>semestre 5</b> · 62 de 153 UC</div></div><div class="botones-cab"><div class="redondo">${L('buscar', 19)}</div></div></div>`;
+const hechos = `<div style="padding:10px 0 0">${fila({ e: 'hecha', n: 'Semestres 1 a 4', sub: '23 aprobadas · <b>falta 1 electiva</b>', der: L('abajo', 18, 'chev') , cls: 'ultima' })}</div>`;
+const swipeA = `<div class="desliza"><div class="fondo izq">${E('hecha', 20).replace('c-hecha', '').replace('<svg', '<svg style="color:#fff;--sobre:var(--verde)"')}Aprobada</div><div style="transform:translateX(118px)">${fila({ e: 'insc', n: 'Métodos Numéricos', sub: '3 UC · abre Optimización', cls: 'ultima' })}</div></div>`;
+document.getElementById('a1').innerHTML = sis() + cabA + hechos +
+  `<div class="sec pegada">SEMESTRE 5 ${meta('0 de 7 · 17 UC')}</div>` + hilo(0, 24) +
+  s5.map(fila).join('') + swipeA +
+  sec('Semestre 6', meta('0 de 6 · 17 UC')) + hilo(0, 0) +
+  fila({ e: 'prox', n: 'Análisis de Decisiones', sub: '3 UC · al aprobar Inferencia' }) +
+  fila({ e: 'lej', n: 'Economía de Empresas', sub: '3 UC · falta Sistemas de Costo' }) + nucleo();
+
+document.getElementById('a2').innerHTML = sis() +
+  `<div class="sec pegada" style="padding-top:12px">SEMESTRE 5 ${meta('0 de 7 · 17 UC')}</div>` + hilo(0, 24) +
+  fila(s5[0]) + fila(s5[1]) + fila(s5[2]) +
+  `<div class="abierta">${fila({ e: 'insc', n: 'Circuitos y Sistemas', sub: '<span style="font-family:\'IBM Plex Mono\';font-weight:300">0713463</span> · 3 UC · Electrónica', der: L('abajo', 18, 'chev') })}
+    <div class="det">${pideAbre()}<div class="dos"><div class="btn gris">La estoy cursando</div><div class="btn lleno">Ya la aprobé</div></div></div></div>` +
+  fila(s5[4]) + fila(s5[5]) + fila({ e: 'insc', n: 'Métodos Numéricos', sub: '3 UC · abre Optimización', cls: 'ultima' }) +
+  sec('Semestre 6', meta('0 de 6 · 17 UC')) + hilo(0, 0) + nucleo();
+
+// ===== Opción B =====
+const cabB = (carga = '') => `<div class="cab"><div><div class="t">Sistemas</div><div class="s"><b>62</b> de 153 UC · te gradúas <b>Dic 2029</b>${carga}</div></div><div class="botones-cab"><div class="redondo">${L('mas', 20)}</div></div></div>`;
+const sinMargen = '<b>Sin margen</b> · abre 4 en cadena';
+const listaB = (marcada = false) => cabB() +
+  sec('Puedes inscribir', meta('6 · 16 UC')) +
+  (marcada
+    ? fila({ e: 'cursando', n: 'Sistemas de Costo', sub: 'Pasó a cursando', der: '<span class="der t">Deshacer</span>' })
+    : fila({ e: 'insc', n: 'Sistemas de Costo', sub: sinMargen, der: uc(2) })) +
+  fila({ e: 'insc', n: 'Métodos Numéricos', sub: 'Puede esperar 1 · abre Optimización', der: uc(3) }) +
+  fila({ e: 'insc', n: 'Sistemas de Operación', sub: 'Puede esperar 1 · abre 2', der: uc(3) }) +
+  fila({ e: 'insc', n: 'Circuitos y Sistemas', sub: 'Puede esperar 2 · abre Electrónica', der: uc(3) }) +
+  fila({ e: 'insc', n: 'Teoría de Sistemas', sub: 'Puede esperar 3', der: uc(2) }) +
+  fila({ e: 'casilla', n: 'Electiva Sociohumanística', sub: 'Del semestre 4 · elige 1 de 14', der: `<span class="der t">Elegir</span>`, cls: 'ultima' }) +
+  `<div class="sec">CURSANDO ${marcada ? meta('3 · 6 UC') : '<span class="accion">Aprobé las 2</span>'}</div>` +
+  fila({ e: 'cursando', n: 'Estadística II', sub: 'Semestre 5', der: uc(2) }) +
+  fila({ e: 'cursando', n: 'Inferencia y Diseño de Experimentos', sub: 'Al aprobarla se abre Análisis de Decisiones', der: uc(2), cls: 'ultima', uno: true }) +
+  sec('Bloqueadas', meta('18')) +
+  fila({ e: 'prox', n: 'Análisis de Decisiones', sub: 'Al aprobar Inferencia', der: uc(3) }) +
+  fila({ e: 'lej', n: 'Economía de Empresas', sub: 'Falta Sistemas de Costo', der: uc(3) }) +
+  fila({ e: 'lej', n: 'Electrónica', sub: 'Falta Circuitos y Sistemas', der: uc(3) }) + nucleo();
+document.getElementById('b1').innerHTML = sis() + listaB();
+document.getElementById('b3').innerHTML = sis() + listaB(true);
+document.getElementById('b2').innerHTML = sis() + listaB() + `<div class="tapa"></div>
+  <div class="vista-previa"><div class="et0">SEMESTRE 5 · 0713463 · 3 UC</div><div class="tt">${E('insc', 20)}Circuitos y Sistemas</div><div class="det">${pideAbre()}</div></div>
+  <div class="menu">
+    <div>Ya la aprobé ${E('hecha', 19)}</div>
+    <div>La estoy cursando ${E('cursando', 19)}</div>
+    <div class="grueso"></div>
+    <div>Ver en el mapa ${L('mapa', 19)}</div>
+    <div>Ordenar por semestre ${L('orden', 19)}</div>
+  </div>`;
+
+// ===== Opción C =====
+const cabC = `<div class="cab"><div class="t">Sistemas</div><div class="botones-cab"><div class="redondo">${L('mas', 20)}</div></div></div>
+  <div class="buscar">${L('buscar', 17)}Buscar materia o código</div>
+  <div class="seg"><span class="on">Por semestre</span><span>Por estado</span></div>`;
+const d = (e, n, u, cls = '') => fila({ e, n, der: uc(u), uno: true, cls });
+const indice = `<div class="indice">${[1,2,3,4,5,6,7,8,9,10].map(n => `<span class="${n === 5 ? 'on' : ''}">${n}</span>`).join('')}</div>`;
+const swipeC = `<div class="desliza"><div class="fondo der"><span style="background:#2E3137">${E('cursando', 18).replace('c-cursando', '').replace('<svg', '<svg style="color:#fff"')}Cursando</span><span style="background:var(--verde)">${E('hecha', 18).replace('c-hecha', '').replace('<svg', '<svg style="color:#fff;--sobre:var(--verde)"')}Aprobada</span></div><div style="transform:translateX(-156px)">${d('insc', 'Teoría de Sistemas', 2)}</div></div>`;
+document.getElementById('c1').innerHTML = sis() + cabC + `<div class="denso">` +
+  sec('Semestre 4', meta('5 de 6 · 16 UC')) +
+  d('hecha', 'Objetos y Abstracción de Datos', 3, 'hecha') +
+  d('casilla', 'Electiva Sociohumanística', 2, 'ultima') +
+  `<div class="sec pegada">SEMESTRE 5 ${meta('0 de 7 · 17 UC')}</div>` +
+  d('cursando', 'Estadística II', 2) + d('cursando', 'Inferencia y Diseño de Experimentos', 2) +
+  d('insc', 'Sistemas de Costo', 2) + d('insc', 'Circuitos y Sistemas', 3) + swipeC +
+  d('insc', 'Sistemas de Operación', 3) + d('insc', 'Métodos Numéricos', 3, 'ultima') +
+  sec('Semestre 6', meta('0 de 6 · 17 UC')) + d('prox', 'Análisis de Decisiones', 3) + d('lej', 'Economía de Empresas', 3) +
+  `</div>` + indice + nucleo();
+
+const teclas = r => `<div class="r">${r.split('').map(k => `<span>${k}</span>`).join('')}</div>`;
+document.getElementById('c2').innerHTML = sis() +
+  `<div class="cab" style="padding-top:10px"><div class="buscar activo" style="flex:1;margin:0 12px 0 0">${L('buscar', 17)}<span><span class="marca">elec</span></span><span class="cursor"></span></div><span style="font:400 16px Inter;color:var(--tinta)">Cancelar</span></div>` +
+  sec('Materias', meta('5')) +
+  fila({ e: 'lej', n: '<span class="marca">Elec</span>trónica', sub: 'Semestre 6 · falta Circuitos y Sistemas', der: uc(3) }) +
+  fila({ e: 'lej', n: 'Lab. de Circuitos y <span class="marca">Elec</span>trónica', sub: 'Semestre 7 · falta Electrónica', der: uc(1), uno: true }) +
+  fila({ e: 'casilla', n: '<span class="marca">Elec</span>tiva Sociohumanística', sub: 'Semestre 4 · elige 1 de 14', der: '<span class="der t">Elegir</span>' }) +
+  fila({ e: 'lej', n: '<span class="marca">Elec</span>tiva Técnica', sub: 'Semestre 7 · 15 UC del grupo', der: '' , cls: 'ultima'}) +
+  `<div class="teclado">${teclas('qwertyuiop')}${teclas('asdfghjklñ')}<div class="r"><span class="w">⇧</span>${'zxcvbnm'.split('').map(k => `<span>${k}</span>`).join('')}<span class="w">⌫</span></div><div class="r"><span class="w">123</span><span class="esp">espacio</span><span class="w">buscar</span></div></div>`;
+
+document.getElementById('c3').innerHTML = sis() +
+  `<div class="nav"><span class="vuelta">${L('atras', 24)}Semestre 5</span><div class="redondo">${L('mapa', 19)}</div></div>
+  <div class="det-pag"><div class="et0">0713463 · 3 UC · ELECTRÓNICA</div><h5>Circuitos y Sistemas</h5><div class="m">Puedes inscribirla</div>
+  <div class="seg3"><span class="on">${E('insc', 16)}Pendiente</span><span>${E('cursando', 16)}Cursando</span><span>${E('hecha', 16)}Aprobada</span></div></div>` +
+  sec('Pide') + fila({ e: 'hecha', n: 'Física II', sub: 'Semestre 3', der: L('der', 18, 'chev') }) + fila({ e: 'hecha', n: 'Matemáticas IV', sub: 'Semestre 4', der: L('der', 18, 'chev'), cls: 'ultima' }) +
+  sec('Abre') + fila({ e: 'lej', n: 'Electrónica', sub: 'Semestre 6', der: L('der', 18, 'chev') }) +
+  fila({ e: 'lej', n: 'Sistemas Dinámicos', sub: 'Semestre 7 · tras Electrónica', der: L('der', 18, 'chev'), cls: 'ultima' }) +
+  sec('Margen') + fila({ e: 'prox', n: 'Puede esperar 2 semestres', sub: 'Sin mover tu fecha, Dic 2029', cls: 'ultima' }) + nucleo();
+
+// ===== B acostada =====
+document.getElementById('bh').innerHTML =
+  `<div class="riel">${L('casa', 19)}${L('mapa', 19)}${aro()}${L('lista', 19, 'on')}${L('cal', 19)}</div>
+  <div class="col-lista">
+    <div class="cab" style="padding-top:14px"><div><div class="t" style="font-size:24px;line-height:30px">Sistemas</div><div class="s"><b>62</b> de 153 UC · Dic 2029</div></div><div class="redondo">${L('mas', 20)}</div></div>
+    ${sec('Puedes inscribir', meta('6 · 16 UC'))}
+    ${fila({ e: 'insc', n: 'Sistemas de Costo', sub: sinMargen, der: uc(2) })}
+    ${fila({ e: 'insc', n: 'Métodos Numéricos', sub: 'Puede esperar 1', der: uc(3) })}
+    ${fila({ e: 'insc', n: 'Sistemas de Operación', sub: 'Puede esperar 1', der: uc(3) })}
+    ${fila({ e: 'insc', n: 'Circuitos y Sistemas', sub: 'Puede esperar 2', der: uc(3), cls: 'sel' })}
+    ${fila({ e: 'insc', n: 'Teoría de Sistemas', sub: 'Puede esperar 3', der: uc(2) })}
+  </div>
+  <div class="col-ficha">
+    <div class="et0">SEMESTRE 5 · 0713463 · 3 UC</div>
+    <h5>Circuitos y Sistemas</h5>
+    <div class="m">Puedes inscribirla</div>
+    <div class="seg3" style="margin:14px 0 10px">${'<span class="on">' + E('insc', 16) + 'Pendiente</span><span>' + E('cursando', 16) + 'Cursando</span><span>' + E('hecha', 16) + 'Aprobada</span>'}</div>
+    <div class="det">${pideAbre()}</div>
+  </div>`;
+</script>
+</body></html>

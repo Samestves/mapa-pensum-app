@@ -18,8 +18,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalDensity
@@ -48,31 +46,25 @@ import mpensum.tema.inter
  */
 
 /** El alto del botón principal y de la acción de texto */
-private val ALTO_PRINCIPAL = 56.dp
+private val ALTO_PRINCIPAL = 52.dp
 private val ALTO_TEXTO = 44.dp
 
-/** Lo que tapa el muelle de pie, para que la página deje ese hueco al final: velo, consecuencia, botón y texto */
-internal val ALTO_MUELLE = 34.dp + 18.dp + 12.dp + ALTO_PRINCIPAL + 6.dp + ALTO_TEXTO + 26.dp
-
 /**
- * El muelle de pie: velo del lienzo que sube desde el borde para que el
- * contenido se desvanezca bajo él, y encima la consecuencia y los dos pasos.
- * `abajo` es lo que ocupan los gestos del sistema.
+ * El muelle de pie: la consecuencia y los dos pasos, al pie de la página. La
+ * página no tiene scroll, así que nada pasa por debajo y no lleva velo.
+ * `abajo` es lo que ocupan los gestos o los botones del sistema.
  */
 @Composable
 internal fun MuelleDePie(situacion: Situacion, plan: PlanMuelle, abajo: Dp, alMarcar: (Marca?) -> Unit, modifier: Modifier = Modifier) {
     Column(
-        modifier.fillMaxWidth().drawBehind {
-            // Un velo corto: el contenido se apaga bajo la consecuencia y queda lienzo liso detrás del botón
-            drawRect(Brush.verticalGradient(0f to Color.Transparent, 1f to Paleta.lienzo, startY = 0f, endY = 26.dp.toPx()))
-        }.padding(start = 20.dp, end = 20.dp, top = 34.dp, bottom = 26.dp + abajo),
+        modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 10.dp, bottom = 12.dp + abajo),
     ) {
         Crossfade(situacion, animationSpec = tween(Movimiento.CORTA), label = "muelle") { _ ->
             Column {
-                Consecuencia(plan, Modifier.fillMaxWidth().padding(bottom = 12.dp), centrada = true)
+                Consecuencia(plan, Modifier.fillMaxWidth().padding(bottom = 10.dp), centrada = true)
                 plan.principal?.let { Principal(it, plan.lleno, Modifier.fillMaxWidth(), alMarcar) }
                 Box(
-                    Modifier.fillMaxWidth().height(ALTO_TEXTO).padding(top = 6.dp)
+                    Modifier.fillMaxWidth().height(ALTO_TEXTO).padding(top = 2.dp)
                         .clickable(role = Role.Button) { alMarcar(plan.secundaria.marca) },
                     contentAlignment = Alignment.Center,
                 ) { BasicText(plan.secundaria.texto, Modifier.padding(horizontal = DENTRO_BOTON), style = estiloBoton(15.sp, Paleta.tinta), maxLines = 1, autoSize = TextAutoSize.StepBased(12.sp, 15.sp, 0.5.sp)) }

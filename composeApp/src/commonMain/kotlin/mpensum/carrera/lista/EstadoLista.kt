@@ -34,12 +34,34 @@ import mpensum.logica.universoDeLista
  * funde sin llevárselo.
  */
 @Stable
-class NavegacionLista(elegida: String? = null, abierta: Boolean = false, porEstado: Boolean = true, aprobadasAbiertas: Boolean = false) {
-    /** La materia de la página (de pie) o del panel (acostado) */
-    var elegida by mutableStateOf(elegida)
+class NavegacionLista(
+    elegida: String? = null,
+    abierta: Boolean = false,
+    porEstado: Boolean = true,
+    aprobadasAbiertas: Boolean = false,
+    relacion: String? = null,
+) {
+    private var materia by mutableStateOf(elegida)
+    private var empujada by mutableStateOf(abierta)
 
-    /** De pie: la página de la materia está empujada sobre la lista */
-    var abierta by mutableStateOf(abierta)
+    /** Qué lado de la página enseña su lista entera («Pide» o «Abre»); null es la página de la materia */
+    var relacion by mutableStateOf(relacion)
+
+    /** La materia de la página (de pie) o del panel (acostado); cambiarla cierra la subpágina de relaciones */
+    var elegida: String?
+        get() = materia
+        set(v) {
+            if (v != materia) this.relacion = null
+            materia = v
+        }
+
+    /** De pie: la página de la materia está empujada sobre la lista; al cerrarla no queda subpágina abierta */
+    var abierta: Boolean
+        get() = empujada
+        set(v) {
+            if (!v) this.relacion = null
+            empujada = v
+        }
 
     /** Por estado (lo de por hacer) o por semestre, el del pensum */
     var porEstado by mutableStateOf(porEstado)
@@ -49,8 +71,8 @@ class NavegacionLista(elegida: String? = null, abierta: Boolean = false, porEsta
 
     companion object {
         val Guardado = listSaver<NavegacionLista, Any?>(
-            save = { listOf(it.elegida, it.abierta, it.porEstado, it.aprobadasAbiertas) },
-            restore = { NavegacionLista(it[0] as String?, it[1] as Boolean, it[2] as Boolean, it[3] as Boolean) },
+            save = { listOf(it.elegida, it.abierta, it.porEstado, it.aprobadasAbiertas, it.relacion) },
+            restore = { NavegacionLista(it[0] as String?, it[1] as Boolean, it[2] as Boolean, it[3] as Boolean, it[4] as String?) },
         )
     }
 }
@@ -116,6 +138,19 @@ internal class SesionLista(
     /** Lo que se pinta: lo congelado si ya se marcó algo, y si no, lo de ahora */
     val estructura: List<GrupoLista> get() = congelada ?: if (navegacion.porEstado) vivaPorEstado else vivaPorSemestre
 
+    /**
+     * Cuántas filas de «Puedes inscribir», desde arriba, no tienen margen: van
+     * en su propia nube. Se congela con la estructura
+     * para que el hueco no salte bajo el dedo al marcar.
+     */
+    private var corteCongelado by mutableStateOf<Int?>(null)
+    val corteSinMargen: Int get() = corteCongelado ?: corteDe(estructura)
+
+    private fun corteDe(grupos: List<GrupoLista>): Int {
+        val inscribir = grupos.firstOrNull { it.clave == SeccionEstado.INSCRIBIR.clave } ?: return 0
+        return inscribir.codigos.takeWhile { margenes[it] == 0 }.size
+    }
+
     /** La primera materia de «Puedes inscribir»: la que se elige al entrar acostado para que el panel no quede vacío */
     val primera: String? get() {
         val grupos = estructura
@@ -131,12 +166,13 @@ internal class SesionLista(
         val sim = estado.simulador
         val codigos = universo.materias.filter { it.situacion == Situacion.INSCRIBIBLE }.map { it.codigo }
         margenes = withContext(Dispatchers.Default) {
-            codigos.mapNotNull { c -> margenDeMateria(sim, c)?.let { c to it.margen } }.toMap()
+            codigos.mapNotNull { c -> margenDeMateria(sim, c)?.let { c to it } }.toMap()
         }
     }
 
     fun soltar() {
         congelada = null
+        corteCongelado = null
     }
 
     fun ordenar(porEstado: Boolean) {
@@ -148,7 +184,10 @@ internal class SesionLista(
     /** Marca con los métodos de siempre del estado de la carrera, recuerda cómo estaba y enciende el realce */
     fun marcar(cambios: Map<String, Marca?>, seccion: String? = null) {
         if (cambios.isEmpty()) return
-        if (congelada == null) congelada = estructura
+        if (congelada == null) {
+            corteCongelado = corteDe(estructura)
+            congelada = estructura
+        }
         val previas = cambios.keys.associateWith { estado.marcas[it] }
         estado.marcarVarias(cambios)
         cambio = Cambio(cambios.keys.toList(), previas, seccion)

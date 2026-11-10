@@ -124,7 +124,8 @@ fun Interior(carrera: Carrera, alVolver: () -> Unit, vistaInicial: Vista = Vista
     // De pie, la página de la materia de la lista se cierra con Atrás. Cada Atrás tiene su condición propia y excluyente
     // (hoja, página, ruta del mapa): ninguno depende del orden en que se monten
     val paginaDeLista = vista == Vista.LISTA && !horizontal && lista.abierta
-    ManejarAtras(paginaDeLista && !hojaAbierta) { lista.abierta = false }
+    // Con la subpágina de «+N más» abierta, el primer Atrás cierra esa y el siguiente la página
+    ManejarAtras(paginaDeLista && !hojaAbierta) { if (lista.relacion != null) lista.relacion = null else lista.abierta = false }
     ManejarAtras(vista == Vista.MAPA && !hojaAbierta && seleccionado == null && efectos.ruta != null) { efectos.ruta = null }
     // Con otra orientación el panel de la ficha cambia de sitio: la materia se vuelve a encuadrar
     LaunchedEffect(horizontal) { encuadrada = null }

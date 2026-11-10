@@ -26,11 +26,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -48,24 +47,26 @@ import mpensum.logica.Marca
 import mpensum.logica.Paso
 import mpensum.logica.Situacion
 import mpensum.logica.pasoSiguiente
+import mpensum.tema.Espacio
 import mpensum.tema.Movimiento
 import mpensum.tema.Paleta
 
 /*
- * La fila de la lista: icono de estado, el nombre en Jost, una sola razón
- * debajo y, a la derecha, las UC. Cada línea es un solo BasicText y no hay
- * sombras. Lo que cambia con el tiempo (el realce que se apaga, el
+ * La fila de la lista, dentro de su nube: la pastilla de estado, el nombre en
+ * Jost (dos líneas si hace falta, nunca cortado a la mitad de una palabra
+ * corta), una sola razón corta debajo y, a la derecha, las UC en pequeño. No
+ * hay sombras. Lo que cambia con el tiempo (el realce que se apaga, el
  * desplazamiento del gesto) se lee al dibujar, no al componer.
+ *
+ * La fila pinta su trozo de nube (ver NubesLista.kt): el recorte redondo va en
+ * la misma capa que ya mueve el gesto, así que no cuesta una capa más.
  */
 
-/** Alto mínimo de una fila: el pulgar llega con holgura */
-internal val ALTO_FILA = 56.dp
+/** Alto mínimo de una fila: el de la hoja de progreso */
+private val ALTO_FILA = 64.dp
 
-/** Lo que mide la columna del icono, y el margen que la separa del borde y del texto */
-private val ANCHO_ICONO = 44.dp
-private val MARGEN_IZQ = 8.dp
-private val SEPARA_TEXTO = 6.dp
-private val SANGRIA = MARGEN_IZQ + ANCHO_ICONO + SEPARA_TEXTO
+/** La pastilla a 16 dp del borde de la nube y el texto a 60, como en el progreso. El hilo empieza donde el texto */
+private val SANGRIA = Espacio.m + 32.dp + Espacio.s
 
 /** Cuánto hay que arrastrar a la derecha para que el gesto cuente, y hasta dónde se deja correr la fila */
 private val UMBRAL_GESTO = 96.dp
@@ -82,16 +83,23 @@ internal class AccionesFila(
     val deshacer: () -> Unit,
 )
 
+/**
+ * `primera` y `ultima` dicen qué esquinas de la nube redondea la fila; `hueco`
+ * la separa de la nube anterior de su misma sección.
+ */
 @Composable
 internal fun FilaDeLista(
     fila: FilaLista,
+    primera: Boolean,
     ultima: Boolean,
     seleccionada: Boolean,
     ofreceDeshacer: Boolean,
     realce: Int,
     acciones: AccionesFila,
     modifier: Modifier = Modifier,
+    hueco: Boolean = false,
 ) {
+    val forma = remember(primera, ultima) { formaDeTrozo(primera, ultima) }
     val paso = remember(fila.situacion) { fila.situacion?.let(::pasoSiguiente) }
     val desplazo = remember { mutableFloatStateOf(0f) }
     val arrastrando by remember { derivedStateOf { desplazo.floatValue > 0f } }
@@ -112,21 +120,23 @@ internal fun FilaDeLista(
 
     val arrastre = rememberDraggableState { d -> desplazo.floatValue = (desplazo.floatValue + d).coerceIn(0f, tope) }
 
-    Box(modifier.fillMaxWidth().clipToBounds()) {
-        if (paso != null && arrastrando) FondoDelGesto(paso, Modifier.matchParentSize())
+    Box(modifier.fillMaxWidth().padding(start = MARGEN_TARJETA, end = MARGEN_TARJETA, top = if (hueco) HUECO_TARJETA else 0.dp).clipToBounds()) {
+        if (paso != null && arrastrando) FondoDelGesto(paso, Modifier.matchParentSize().clip(forma))
         Row(
             Modifier
                 .fillMaxWidth()
-                .graphicsLayer { translationX = desplazo.floatValue }
+                .graphicsLayer {
+                    translationX = desplazo.floatValue
+                    shape = forma
+                    clip = true
+                }
                 .semantics { contentDescription = fila.descripcion }
                 .drawBehind {
-                    drawRect(Paleta.lienzo)
-                    val dentro = MARGEN_IZQ.toPx()
-                    val caja = Size(size.width - 2 * dentro, size.height)
-                    val radio = CornerRadius(14.dp.toPx())
-                    if (seleccionada) drawRoundRect(REALCE, Offset(dentro, 0f), caja, radio)
-                    if (brillo.value > 0f) drawRoundRect(Paleta.tinta.copy(alpha = 0.09f * brillo.value), Offset(dentro, 0f), caja, radio)
-                    if (!ultima && !seleccionada) drawLine(RAYA, Offset(SANGRIA.toPx(), size.height - 0.5f), Offset(size.width, size.height - 0.5f), 1f)
+                    // El trozo de nube, opaco; la elegida y el realce lo tiñen entero, sin hilo
+                    drawRect(FONDO_TARJETA)
+                    if (seleccionada) drawRect(REALCE)
+                    if (brillo.value > 0f) drawRect(Paleta.tinta.copy(alpha = 0.09f * brillo.value))
+                    if (!ultima && !seleccionada) drawLine(HILO_TARJETA, Offset(SANGRIA.toPx(), size.height - 0.5f), Offset(size.width, size.height - 0.5f), 1f)
                 }
                 .draggable(
                     arrastre, Orientation.Horizontal, enabled = paso != null,
@@ -142,29 +152,27 @@ internal fun FilaDeLista(
                 )
                 .clickable(role = Role.Button) { acciones.tocar(fila) }
                 .heightIn(min = ALTO_FILA)
-                .padding(start = MARGEN_IZQ),
+                .padding(start = Espacio.m),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Box(Modifier.width(ANCHO_ICONO).heightIn(min = ALTO_FILA), contentAlignment = Alignment.Center) { IconoDeEstado(fila.situacion) }
-            Column(Modifier.weight(1f).padding(start = SEPARA_TEXTO, top = 9.dp, bottom = 9.dp)) {
+            PastillaDeEstado(fila.situacion)
+            Column(Modifier.weight(1f).padding(start = Espacio.s, top = 11.dp, bottom = 11.dp)) {
                 BasicText(
                     fila.nombre,
                     style = estiloNombre(if (fila.situacion == Situacion.HECHA) Paleta.suave else Paleta.tinta),
-                    maxLines = 1, overflow = TextOverflow.Ellipsis,
+                    maxLines = 2, overflow = TextOverflow.Ellipsis,
                 )
                 BasicText(
-                    conNegritas(fila.razon), Modifier.padding(top = 1.dp),
+                    conNegritas(fila.razon), Modifier.padding(top = 2.dp),
                     style = estiloRazon(), maxLines = 1, overflow = TextOverflow.Ellipsis,
                 )
             }
             when {
-                ofreceDeshacer -> Box(
-                    Modifier.heightIn(min = 44.dp).clickable(role = Role.Button, onClick = acciones.deshacer).padding(start = 12.dp, end = 20.dp),
-                    contentAlignment = Alignment.Center,
-                ) { BasicText("Deshacer", style = estiloAccion()) }
-                fila.esCasilla -> BasicText("Elegir", Modifier.padding(start = 12.dp, end = 20.dp), style = estiloAccion())
-                fila.uc != null -> BasicText("${fila.uc} UC", Modifier.padding(start = 10.dp, end = 20.dp), style = estiloPlex(), maxLines = 1)
-                else -> Box(Modifier.width(20.dp))
+                ofreceDeshacer -> AccionEnPastilla("Deshacer", acciones.deshacer)
+                fila.esCasilla -> AccionEnPastilla("Elegir", null)
+                // Las UC en pequeño: se leen al sumar, no compiten con el nombre
+                fila.uc != null -> BasicText("${fila.uc} UC", Modifier.padding(start = 10.dp, end = Espacio.m), style = estiloPlex(tam = 11f), maxLines = 1)
+                else -> Box(Modifier.width(Espacio.m))
             }
         }
     }
@@ -176,7 +184,7 @@ private fun FondoDelGesto(paso: Paso, modifier: Modifier) {
     val aprobar = paso.marca == Marca.APROBADA
     val fondo = if (aprobar) Paleta.verde else GRIS_GESTO
     Row(
-        modifier.drawBehind { drawRect(fondo) }.padding(start = 22.dp),
+        modifier.drawBehind { drawRect(fondo) }.padding(start = 18.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {

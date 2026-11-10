@@ -4,6 +4,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.test.hasScrollAction
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.AndroidComposeTestRule
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -12,6 +14,7 @@ import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeRight
+import androidx.compose.ui.test.swipeUp
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.activity.ComponentActivity
@@ -299,6 +302,8 @@ class QaAppTest {
         interiorDeSistemas(s1.associate { it.codigo to Marca.APROBADA } + mapOf("0081824" to Marca.CURSANDO, "0051324" to Marca.CURSANDO))
         regla.onNodeWithContentDescription("Lista").performClick()
         correr(900)
+        // Con filas de 64 dp, «Cursando» queda fuera de la pantalla: se baja hasta su pie
+        bajarHasta("Aprobé las 2")
         regla.onNodeWithText("Aprobé las 2").performClick()
         regla.waitForIdle()
         correr(600)
@@ -317,6 +322,7 @@ class QaAppTest {
         interiorDeSistemas(p.obligatorias.filter { it.semestre == 1 || it.semestre == 2 }.associate { it.codigo to Marca.APROBADA })
         regla.onNodeWithContentDescription("Lista").performClick()
         correr(900)
+        bajarHasta("Elegir")
         regla.onNodeWithText("Elegir").performClick()
         regla.waitForIdle()
         correr(1200)
@@ -347,4 +353,26 @@ class QaAppTest {
         // La clase aparece en el día y se abre su detalle
         assertTrue(textos("Extraacadémica") > 0, "la clase no aparece en el día")
     }
+    /**
+     * Baja la lista con gestos de verdad hasta que el texto esté en pantalla, con un tope de intentos.
+     * `performScrollToNode` se quedaba dando vueltas sin fin en la LazyColumn con encabezados pegajosos.
+     * Al llegar espera a que la lista se pare: con inercia, el primer toque solo la frena (como en el teléfono).
+     */
+    private fun bajarHasta(texto: String) {
+        val alto = regla.onRoot().fetchSemanticsNode().size.height
+        repeat(12) {
+            val nodos = regla.onAllNodesWithText(texto).fetchSemanticsNodes()
+            // Visible y por encima de la barra flotante de abajo (que tapa el último 20 %)
+            if (nodos.isNotEmpty() && nodos.first().boundsInRoot.bottom < alto * 0.72f) {
+                // Que la inercia del gesto acabe: el primer toque sobre una lista que aún se mueve solo la frena
+                correr(1500)
+                return
+            }
+            regla.onNode(hasScrollAction()).performTouchInput { swipeUp(startY = bottom * 0.7f, endY = bottom * 0.45f) }
+            regla.waitForIdle()
+            correr(300)
+        }
+        error("«$texto» no apareció tras 12 gestos")
+    }
+
 }

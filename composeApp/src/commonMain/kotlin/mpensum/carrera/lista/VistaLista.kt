@@ -14,10 +14,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
@@ -132,6 +133,9 @@ fun VistaLista(
         estabaAbierta[0] = navegacion.abierta
     }
 
+    // Acostado, Atrás cierra la subpágina de «+N más» del panel; de pie lo hace el Atrás del interior
+    ManejarAtras(acostada && navegacion.relacion != null) { navegacion.relacion = null }
+
     val etiquetaVolver = if (navegacion.porEstado) "Por hacer" else "Por semestre"
 
     Box(modifier.fillMaxSize().background(Paleta.lienzo)) {
@@ -172,6 +176,8 @@ private fun PaginaEmpujada(
     alVerEnMapa: (String) -> Unit,
 ) {
     val navegacion = sesion.navegacion
+    // La barra Núcleo se va con la página abierta: su muelle solo deja sitio a los botones o gestos del sistema
+    val abajoPagina = with(LocalDensity.current) { WindowInsets.navigationBars.getBottom(this).toDp() }
     // Si se gira con la página abierta, nace ya empujada: no se vuelve a animar
     val empuje = remember { Animatable(if (navegacion.abierta) 1f else 0f) }
     LaunchedEffect(navegacion.abierta) {
@@ -208,7 +214,7 @@ private fun PaginaEmpujada(
         ) {
             Crossfade(navegacion.elegida, animationSpec = tween(FUNDIDO_PANEL_MS), label = "pagina") { codigo ->
                 if (codigo != null) PaginaDeMateria(
-                    sesion, codigo, acostada = false, etiquetaVolver = etiquetaVolver, arriba = arriba, abajo = abajo,
+                    sesion, codigo, acostada = false, etiquetaVolver = etiquetaVolver, arriba = arriba, abajo = abajoPagina,
                     alVolver = { navegacion.abierta = false }, alVerEnMapa = alVerEnMapa, alIrA = { navegacion.elegida = it },
                 )
             }
@@ -228,17 +234,22 @@ private fun CuerpoDeLista(sesion: SesionLista, acciones: AccionesFila, arriba: D
     var menu by remember { mutableStateOf(false) }
     ManejarAtras(menu) { menu = false }
 
+    // Cursando lleva al pie «Aprobé las N» cuando tiene dos o más: así se aprueba el semestre de un toque
+    val conPie: (GrupoLista) -> Boolean = { g -> g.clave == SeccionEstado.CURSANDO.clave && g.codigos.size >= 2 }
+
     // Al cambiar de orden la lista es otra: por semestre se entra en el que vas; por estado, desde arriba
     val primera = remember { booleanArrayOf(true) }
     LaunchedEffect(navegacion.porEstado) {
         if (primera[0]) { primera[0] = false; return@LaunchedEffect }
-        val destino = if (navegacion.porEstado) 0 else indiceDeGrupo(sesion.estructura, claveDeActual(sesion), navegacion.aprobadasAbiertas)
+        val destino = if (navegacion.porEstado) 0 else indiceDeGrupo(sesion.estructura, claveDeActual(sesion), navegacion.aprobadasAbiertas, conPie)
         lista.scrollToItem(destino)
     }
 
     val progreso = estado.progreso
     val subtitulo = subtituloDeLista(progreso.ucAprobadas, progreso.ucTitulo, progreso.aprobadas, estado.graduacion.periodoFinal)
     val cursandoAhora = universo.materias.filter { it.situacion == Situacion.CURSANDO }
+    // Lo que no tiene margen va en su propia nube, encima del resto de «Puedes inscribir»
+    val corte = if (navegacion.porEstado) sesion.corteSinMargen else 0
 
     Box(Modifier.fillMaxSize()) {
         LazyColumn(
@@ -249,44 +260,53 @@ private fun CuerpoDeLista(sesion: SesionLista, acciones: AccionesFila, arriba: D
             item(key = "cabecera", contentType = "cabecera") {
                 CabeceraDeLista(estado.pensum.nombreCorto, subtitulo, compacta = acostada) { menu = true }
             }
+            var indice = 1
             for (g in estructura) {
+                val propio = indice
                 stickyHeader(key = "h-${g.clave}", contentType = "encabezado") {
-                    val c = sesion.cambio
-                    val deshace = c != null && c.seccion == g.clave
-                    val aprobarTodas = g.clave == SeccionEstado.CURSANDO.clave && cursandoAhora.size >= 2
                     EncabezadoDeSeccion(
                         titulo = tituloDeGrupo(g.clave),
                         meta = metaDeGrupo(g.clave, universo),
-                        accion = when {
-                            deshace -> "Deshacer"
-                            aprobarTodas -> "Aprobé las ${cursandoAhora.size}"
-                            else -> null
-                        },
-                        alAccion = {
-                            if (deshace) sesion.deshacer()
-                            else sesion.marcar(cursandoAhora.associate { it.codigo to Marca.APROBADA }, seccion = g.clave)
-                        },
                         plegable = g.clave == SeccionEstado.APROBADAS.clave,
                         abierto = navegacion.aprobadasAbiertas,
                         alPlegar = { navegacion.aprobadasAbiertas = !navegacion.aprobadasAbiertas },
+                        fijado = { lista.firstVisibleItemIndex > propio || (lista.firstVisibleItemIndex == propio && lista.firstVisibleItemScrollOffset > 0) },
                     )
                 }
-                if (g.clave == SeccionEstado.APROBADAS.clave && !navegacion.aprobadasAbiertas) continue
-                items(g.codigos, key = { it }, contentType = { "fila" }) { codigo ->
+                val plegada = g.clave == SeccionEstado.APROBADAS.clave && !navegacion.aprobadasAbiertas
+                val pie = conPie(g)
+                indice += 1 + (if (plegada) 0 else g.codigos.size) + (if (pie) 1 else 0)
+                if (plegada) continue
+                val corteAqui = if (g.clave == SeccionEstado.INSCRIBIR.clave && corte in 1 until g.codigos.size) corte else 0
+                itemsIndexed(g.codigos, key = { _, c -> c }, contentType = { _, _ -> "fila" }) { i, codigo ->
                     val base = universo.materia(codigo)?.let { filaDe(it, sesion.margenes[codigo]) }
                         ?: universo.casilla(codigo)?.let { filaDeCasilla(it, resumida = navegacion.porEstado) }
-                        ?: return@items
+                        ?: return@itemsIndexed
                     val c = sesion.cambio
                     val marcada = c != null && codigo in c.codigos
                     val fila = if (marcada) base.copy(razon = razonTrasMarcar(estado.marcas[codigo])) else base
                     FilaDeLista(
                         fila = fila,
-                        ultima = codigo == g.codigos.last(),
+                        primera = i == 0 || (corteAqui > 0 && i == corteAqui),
+                        ultima = (i == g.codigos.lastIndex && !pie) || (corteAqui > 0 && i == corteAqui - 1),
                         seleccionada = acostada && navegacion.elegida == codigo,
                         ofreceDeshacer = c != null && marcada && c.codigos.size == 1,
                         realce = sesion.realces[codigo] ?: 0,
                         acciones = acciones,
+                        hueco = corteAqui > 0 && i == corteAqui,
                     )
+                }
+                if (pie) item(key = "pie-${g.clave}", contentType = "pie") {
+                    val c = sesion.cambio
+                    val n = cursandoAhora.size
+                    when {
+                        c != null && c.seccion == g.clave -> PieDeTarjeta("Deshacer", conSello = false, alTocar = sesion::deshacer)
+                        n >= 1 -> PieDeTarjeta(
+                            if (n == 1) "Aprobé la que queda" else "Aprobé las $n", conSello = true,
+                            alTocar = { sesion.marcar(cursandoAhora.associate { it.codigo to Marca.APROBADA }, seccion = g.clave) },
+                        )
+                        else -> PieDeTarjeta("Ninguna en curso", conSello = false, alTocar = null)
+                    }
                 }
             }
         }
@@ -302,12 +322,12 @@ private fun CuerpoDeLista(sesion: SesionLista, acciones: AccionesFila, arriba: D
 /** El grupo del semestre por el que vas, al ordenar por semestre */
 private fun claveDeActual(sesion: SesionLista): String = claveDeSemestre(sesion.actual)
 
-/** El lugar que ocupa un grupo en la columna: la cabecera, y por cada grupo anterior su encabezado y sus filas */
-private fun indiceDeGrupo(estructura: List<GrupoLista>, clave: String, aprobadasAbiertas: Boolean): Int {
+/** El lugar que ocupa un grupo en la columna: la cabecera, y por cada grupo anterior su encabezado, sus filas y su pie */
+private fun indiceDeGrupo(estructura: List<GrupoLista>, clave: String, aprobadasAbiertas: Boolean, conPie: (GrupoLista) -> Boolean): Int {
     var indice = 1
     for (g in estructura) {
         if (g.clave == clave) return indice
-        indice += 1 + if (g.clave == SeccionEstado.APROBADAS.clave && !aprobadasAbiertas) 0 else g.codigos.size
+        indice += 1 + (if (g.clave == SeccionEstado.APROBADAS.clave && !aprobadasAbiertas) 0 else g.codigos.size) + (if (conPie(g)) 1 else 0)
     }
     return 0
 }

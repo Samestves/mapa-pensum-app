@@ -100,19 +100,19 @@ class ListaTest {
         val f = foto()
         fun razon(c: String) = razonDe(f.u.materia(c)!!, margenes[c])
         assertEquals("**Sin margen** · abre 5 en cadena", razon(costo))
-        assertEquals("Puede esperar 1 · abre Optimización de Operaciones", razon(metodos))
-        assertEquals("Puede esperar 2 · abre Electrónica", razon(circuitos))
+        assertEquals("Puede esperar 1", razon(metodos))
+        assertEquals("Puede esperar 2", razon(circuitos))
         assertEquals("Puede esperar 5", razon(leyes))
         // Mientras el margen se mide, solo se dice lo que abre
-        assertEquals("Abre Electrónica", razonDe(f.u.materia(circuitos)!!, null))
+        assertEquals("Puedes inscribirla", razonDe(f.u.materia(circuitos)!!, null))
         assertEquals("Puedes inscribirla", razonDe(f.u.materia(leyes)!!, null))
         // Cursando: qué se abre al aprobarla, o en qué semestre va
         assertEquals("Semestre 5", razon("0624622"))
-        assertEquals("Al aprobarla se abre Análisis de Decisiones", razon("0713122"))
+        assertEquals("Al aprobarla abre 1", razon("0713122"))
         // Bloqueadas: lo que ya cursas, o lo que falta
-        assertEquals("Al aprobar Inferencia y Diseño de Experimentos", razon("0713653"))
+        assertEquals("Al aprobar lo que cursas", razon("0713653"))
         assertEquals("Falta Sistemas de Costo", razon("0713113"))
-        assertEquals("Falta Modelos de Operaciones II y 1 más", razon("0715116"))
+        assertEquals("Faltan 2 materias", razon("0715116"))
         assertEquals("Semestre 3", razon("0052134"))
     }
 
@@ -207,17 +207,55 @@ class ListaTest {
     }
 
     @Test
-    fun elMargenSeDibujaUnPuntoPorSemestre() {
-        val puntos = puntosDeMargen(10, semestre = 5, margen = 2)
-        assertEquals(10, puntos.size)
-        assertEquals(List(4) { PuntoMargen.HECHO }, puntos.take(4))
-        assertEquals(PuntoMargen.ACTUAL, puntos[4])
-        assertEquals(listOf(PuntoMargen.VENTANA, PuntoMargen.VENTANA), puntos.subList(5, 7))
-        assertEquals(List(3) { PuntoMargen.LEJOS }, puntos.drop(7))
-        // Sin margen solo hay el aro
-        assertEquals(0, puntosDeMargen(10, 5, 0).count { it == PuntoMargen.VENTANA })
-        // Cerca del final la ventana no se sale
-        assertEquals(10, puntosDeMargen(10, 10, 3).size)
+    fun ningunaRazonSePasaDeUnaLinea() {
+        // Con cualquier margen ninguna razón necesita «…»; las largas se acortan por construcción (`quepa`)
+        val f = foto(base)
+        for (m in f.u.materias) for (margen in listOf(null, 0, 1, 3)) {
+            val r = razonDe(m, margen).replace("**", "")
+            assertTrue(r.length <= LARGO_RAZON, "«$r» no cabe en una línea")
+        }
+    }
+
+    /**
+     * El peor caso de la página en las nueve carreras, con las relaciones que
+     * usa la app (las del mapa, electivas incluidas): cuánto puede llegar a
+     * pedir o abrir una sola materia. Si un pensum nuevo lo sube, el reparto
+     * sin scroll lo sigue resolviendo, pero conviene mirar la captura.
+     */
+    @Test
+    fun elPeorCasoDePideYAbreEnLasNueveCarreras() {
+        var peorPide = 0 to ""
+        var peorAbre = 0 to ""
+        var peorJuntas = 0 to ""
+        for (archivo in File("src/commonMain/composeResources/files/carreras").listFiles()!!.filter { it.extension == "json" }) {
+            val pensum = leerPensum(archivo.readText())
+            val r = calcularLayout(pensum.asignaturas, pensum.grupos).relaciones
+            for (a in pensum.todas) {
+                val pide = r.atras[a.codigo].orEmpty().size
+                val abre = r.adelante[a.codigo].orEmpty().size
+                if (pide > peorPide.first) peorPide = pide to "${pensum.nombreCorto}: ${a.nombre}"
+                if (abre > peorAbre.first) peorAbre = abre to "${pensum.nombreCorto}: ${a.nombre}"
+                if (pide + abre > peorJuntas.first) peorJuntas = pide + abre to "${pensum.nombreCorto}: ${a.nombre} ($pide + $abre)"
+            }
+        }
+        println("Peor pide: $peorPide · peor abre: $peorAbre · peor juntas: $peorJuntas")
+        assertTrue(peorPide.first <= 6 && peorAbre.first <= 12, "Peor pide $peorPide, peor abre $peorAbre")
+    }
+
+    @Test
+    fun laPaginaRepartePideYAbreSinScroll() {
+        // Cabe todo: se enseña todo
+        assertEquals(2 to 1, repartirRelaciones(2, 1, 9))
+        // El peor caso real (pide 3, abre 4): cada lado enseña lo que cabe, por turnos, y el resto va en «+N más»
+        assertEquals(2 to 1, repartirRelaciones(3, 4, 3))
+        assertEquals(2 to 2, repartirRelaciones(3, 4, 4))
+        // Un lado vacío no ocupa nada y el otro se queda con el resto
+        assertEquals(0 to 3, repartirRelaciones(0, 4, 3))
+        // Sin sitio, nunca menos de una por lado
+        assertEquals(1 to 1, repartirRelaciones(3, 4, 0))
+        assertEquals(1, cuantasCaben(4, 0))
+        assertEquals(2, cuantasCaben(4, 2))
+        assertEquals(3, cuantasCaben(3, 8))
     }
 
     @Test

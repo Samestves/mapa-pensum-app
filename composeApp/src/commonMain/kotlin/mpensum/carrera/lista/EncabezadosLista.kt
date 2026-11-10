@@ -22,6 +22,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -34,6 +38,7 @@ import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import mpensum.carrera.IconoLucide
 import mpensum.componentes.IconoTrazo
+import mpensum.componentes.Lucide
 import mpensum.tema.Paleta
 import mpensum.tema.inter
 import mpensum.tema.jost
@@ -47,14 +52,18 @@ import mpensum.tema.jost
 /** El alto de un encabezado de sección: también es su zona de toque */
 internal val ALTO_ENCABEZADO = 44.dp
 
+/** Lo que cae el velo bajo un encabezado fijo sobre una nube */
+private val VELO_FIJO = 14.dp
+
 /**
  * El título discreto en Jost y, debajo, UC y fecha de grado en una línea.
  * `compacta` es la lista acostada, con la letra del título un punto menor.
+ * `fin` alinea el círculo del «…» con el borde derecho de las nubes.
  */
 @Composable
-internal fun CabeceraDeLista(titulo: String, subtitulo: String, compacta: Boolean, alAbrirMenu: () -> Unit) {
+internal fun CabeceraDeLista(titulo: String, subtitulo: String, compacta: Boolean, fin: Dp = 16.dp, alAbrirMenu: () -> Unit) {
     Row(
-        Modifier.fillMaxWidth().padding(start = 20.dp, end = 8.dp, top = if (compacta) 14.dp else 6.dp, bottom = 4.dp),
+        Modifier.fillMaxWidth().padding(start = 20.dp, end = fin, top = if (compacta) 14.dp else 6.dp, bottom = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
@@ -87,36 +96,57 @@ internal fun BotonRedondo(alTocar: () -> Unit, descripcion: String, modifier: Mo
 /**
  * El encabezado de una sección. Opaco, con el lienzo detrás, para que las
  * filas pasen por debajo sin verse. A la derecha, lo que cuenta la sección o,
- * si trae una, su acción («Aprobé las 2», «Deshacer»). Con `plegable` todo el
- * renglón se toca y lleva un chevron que dice si está abierto.
+ * si trae una, su acción (en la página, «+2 más» abre la lista entera).
+ * Con `plegable` todo el renglón se toca y lleva un chevron que dice si está abierto.
  */
 @Composable
 internal fun EncabezadoDeSeccion(
     titulo: String,
     meta: String,
-    accion: String?,
-    alAccion: () -> Unit,
     plegable: Boolean,
     abierto: Boolean,
     alPlegar: () -> Unit,
     modifier: Modifier = Modifier,
+    sangria: Dp = SANGRIA_ROTULO,
+    alto: Dp = ALTO_ENCABEZADO,
+    fijado: (() -> Boolean)? = null,
+    accion: String? = null,
+    alAccion: () -> Unit = {},
 ) {
     Row(
-        modifier.fillMaxWidth().height(ALTO_ENCABEZADO).background(Paleta.lienzo)
+        modifier.fillMaxWidth().height(alto)
+            .then(
+                // Con nubes, fijo arriba deja caer un velo corto: la nube se hunde bajo el rótulo en vez de cortarse en seco
+                if (fijado == null) Modifier else Modifier.drawWithContent {
+                    drawContent()
+                    if (fijado()) {
+                        val alto = VELO_FIJO.toPx()
+                        drawRect(
+                            Brush.verticalGradient(0f to Paleta.lienzo, 1f to Paleta.lienzo.copy(alpha = 0f), startY = size.height, endY = size.height + alto),
+                            Offset(0f, size.height), Size(size.width, alto),
+                        )
+                    }
+                },
+            )
+            .background(Paleta.lienzo)
             .then(if (plegable) Modifier.clickable(role = Role.Button, onClick = alPlegar) else Modifier)
-            .padding(start = 20.dp, end = 20.dp),
+            .padding(start = sangria, end = sangria),
         verticalAlignment = Alignment.Bottom,
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
         BasicText(titulo.uppercase(), Modifier.padding(bottom = 8.dp), style = estiloSeccion(), maxLines = 1)
         Row(Modifier.fillMaxHeight(), verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             if (accion != null) {
-                Box(
-                    Modifier.fillMaxHeight().clickable(role = Role.Button, onClick = alAccion).padding(start = 12.dp),
-                    contentAlignment = Alignment.BottomEnd,
-                ) { BasicText(accion, Modifier.padding(bottom = 8.dp), style = estiloAccion().copy(fontSize = 13.sp)) }
+                Row(
+                    Modifier.fillMaxHeight().clickable(role = Role.Button, onClick = alAccion).padding(start = 16.dp, end = 0.dp),
+                    verticalAlignment = Alignment.Bottom,
+                ) {
+                    BasicText(accion, Modifier.padding(bottom = 8.dp), style = estiloAccion().copy(fontSize = 13.sp), maxLines = 1)
+                    Box(Modifier.padding(bottom = 7.dp)) { IconoLucide(Lucide.siguiente, Paleta.suave, 16.dp) }
+                }
             } else {
-                BasicText(meta, Modifier.padding(bottom = 8.dp), style = estiloPlex(), maxLines = 1)
+                // El contador con el mismo peso del rótulo, un tono más tenue: un solo estilo de rótulo
+                BasicText(meta.uppercase(), Modifier.padding(bottom = 8.dp), style = estiloSeccion().copy(color = Paleta.tenue), maxLines = 1)
             }
             if (plegable) Box(Modifier.padding(bottom = 6.dp)) {
                 IconoLucide(if (abierto) TrazosLista.chevronArriba else TrazosLista.chevronAbajo, Paleta.apagada, 16.dp)
