@@ -2,9 +2,6 @@ package mpensum.componentes
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,10 +15,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
-import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -29,7 +23,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -42,34 +35,23 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.PathParser
-import androidx.compose.ui.layout.FirstBaseline
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.layout
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import mpensum.tema.Movimiento
-import mpensum.tema.Alto
 import mpensum.tema.Espacio
 import mpensum.tema.Paleta
-import mpensum.tema.Tipo
-import mpensum.tema.Radio
 import mpensum.tema.Tema
 import mpensum.tema.inter
-import mpensum.tema.jost
-import mpensum.tema.porTema
 import kotlin.math.max
-import kotlin.math.roundToInt
 
 /*
  * El sistema de la hoja del progreso refinada (docs/refinado-progreso.md):
@@ -78,185 +60,14 @@ import kotlin.math.roundToInt
  * agrupadas, rótulos de sección, comparaciones y botones).
  */
 
-/** Las opacidades de la tinta por rol: la primera en oscuro, la segunda en los claros */
-internal object Velo {
-    val superficie get() = porTema(0.05f, 0.045f)
-    val hilo get() = porTema(0.09f, 0.12f)
-    val pastilla get() = porTema(0.08f, 0.07f)
-    val pendiente get() = porTema(0.15f, 0.13f)
-    val pastillaAzul get() = porTema(0.16f, 0.10f)
-}
-
-/** El alto de las mayúsculas de Inter, en em: para recortar una cifra a su tope y su línea base */
-private const val ALTO_MAYUSCULA = 0.727f
-
 /** La fila agrupada: 64 dp de alto (48 la corta), 16 a los lados y 12 entre la pastilla y el texto */
 private val ALTO_FILA = 64.dp
 private val ALTO_FILA_CORTA = 48.dp
-private val LADO_PASTILLA = 32.dp
 
 /** Donde empieza el hilo entre filas: alineado con el texto (16 + 32 + 12) */
 private val INICIO_HILO = 60.dp
 
 // ─────────────────────────────────── Texto por rol ──────────────────────────────────
-
-/** Rótulo: Inter 500, 11/16, +8 %, en mayúsculas (el texto ya viene en mayúsculas) */
-@Composable
-internal fun estiloRotulo(color: Color = Paleta.tenue) =
-    TextStyle(fontFamily = inter(), fontWeight = FontWeight.Medium, fontSize = 11.sp, lineHeight = 16.sp, letterSpacing = 0.08.em, color = color, fontFeatureSettings = "tnum")
-
-/** Título: Jost 300, 28/32, −0,5 % */
-@Composable
-internal fun estiloTitulo() =
-    TextStyle(fontFamily = jost(), fontWeight = FontWeight.Light, fontSize = 28.sp, lineHeight = 32.sp, letterSpacing = (-0.005).em, color = Paleta.tinta)
-
-/** Fila: Inter 500, 15/20, −0,9 % */
-@Composable
-internal fun estiloFila(color: Color = Paleta.tinta, peso: FontWeight = FontWeight.Medium) =
-    TextStyle(fontFamily = inter(), fontWeight = peso, fontSize = 15.sp, lineHeight = 20.sp, letterSpacing = (-0.009).em, color = color, fontFeatureSettings = "tnum")
-
-/** Cuerpo: Inter 400, 15/20, −0,9 %, suave */
-@Composable
-internal fun estiloCuerpo(color: Color = Paleta.suave) = estiloFila(color, FontWeight.Normal)
-
-/** Nota: Inter 400, 13/16, −0,3 %, cifras tabulares, tenue */
-@Composable
-internal fun estiloNota(color: Color = Paleta.tenue, peso: FontWeight = FontWeight.Normal) =
-    TextStyle(fontFamily = inter(), fontWeight = peso, fontSize = 13.sp, lineHeight = 16.sp, letterSpacing = (-0.003).em, color = color, fontFeatureSettings = "tnum")
-
-/** Cifra media (24/28, 300, −1,5 %): las fechas */
-@Composable
-internal fun estiloFecha(color: Color = Paleta.tinta) =
-    estiloCifra(24.sp, color, FontWeight.Light, 28.sp).copy(letterSpacing = (-0.015).em)
-
-/**
- * Recorta un texto a sus mayúsculas: el tope en la altura de las mayúsculas y
- * el pie en la línea base, como `text-box: trim-both cap alphabetic`. Así dos
- * cifras de tamaños distintos se alinean por arriba o por abajo de verdad.
- */
-internal fun Modifier.recorteCap(tamaño: TextUnit): Modifier = layout { medible, limites ->
-    val p = medible.measure(limites.copy(minHeight = 0))
-    val base = p[FirstBaseline]
-    if (base == androidx.compose.ui.layout.AlignmentLine.Unspecified) return@layout layout(p.width, p.height) { p.place(0, 0) }
-    val cap = (tamaño.toPx() * ALTO_MAYUSCULA).roundToInt()
-    layout(p.width, cap) { p.place(0, cap - base) }
-}
-
-/** El alto de las mayúsculas de una cifra de ese tamaño, en px */
-internal fun altoMayuscula(tamañoPx: Float) = tamañoPx * ALTO_MAYUSCULA
-
-// ─────────────────────────────────── Superficies ──────────────────────────────────
-
-/** La tarjeta de la hoja: radio 24 y la tinta al 4,5 % (5 % en oscuro), sin filo */
-internal fun Modifier.superficie(radio: Dp = Radio.Grande): Modifier =
-    this.clip(RoundedCornerShape(radio)).background(Paleta.tinta.copy(alpha = Velo.superficie))
-
-/** La pastilla de icono: 32 dp, radio 8, el icono Lucide de 18 dp. La azul es la de «Tu próximo semestre» */
-@Composable
-internal fun Pastilla(trazos: List<Path>, azul: Boolean = false, modifier: Modifier = Modifier) {
-    Box(
-        modifier.size(LADO_PASTILLA).clip(RoundedCornerShape(8.dp))
-            .background(if (azul) Paleta.azul.copy(alpha = Velo.pastillaAzul) else Paleta.tinta.copy(alpha = Velo.pastilla)),
-        contentAlignment = Alignment.Center,
-    ) { IconoLucide(trazos, if (azul) Paleta.azul else Paleta.tinta) }
-}
-
-/** La pastilla vacía de una casilla sin elegir: contorno de 1,5 dp y el «+» tenue */
-@Composable
-internal fun PastillaVacia(trazos: List<Path> = IconosHoja.mas) {
-    Box(
-        Modifier.size(LADO_PASTILLA).border(1.5.dp, Paleta.tinta.copy(alpha = 0.28f), RoundedCornerShape(8.dp)),
-        contentAlignment = Alignment.Center,
-    ) { IconoLucide(trazos, Paleta.tenue) }
-}
-
-/** Un icono suelto en el sitio de la pastilla, con el estado en su color */
-@Composable
-internal fun IconoDeFila(trazos: List<Path>, color: Color) {
-    Box(Modifier.size(LADO_PASTILLA), contentAlignment = Alignment.Center) { IconoLucide(trazos, color) }
-}
-
-/** Un icono Lucide con el trazo visual de 1,5 dp a cualquier tamaño */
-@Composable
-internal fun IconoLucide(trazos: List<Path>, color: Color, tam: Dp = 18.dp, modifier: Modifier = Modifier) {
-    IconoTrazo(trazos, color, tam, 1.5f * 24f / tam.value, modifier)
-}
-
-/** El chevron de 16 dp, apagado */
-@Composable
-internal fun Chevron(trazos: List<Path> = Lucide.siguiente, modifier: Modifier = Modifier) {
-    IconoLucide(trazos, Paleta.apagada, 16.dp, modifier)
-}
-
-/** El círculo de atrás y de cerrar: 36 dp dibujados dentro de una zona de 44, el toque mínimo, y con su nombre para el lector de pantalla */
-@Composable
-internal fun BotonRedondo(trazos: List<Path>, descripcion: String, alTocar: () -> Unit) {
-    Box(
-        Modifier.size(Alto.toque).clip(CircleShape).clickable(role = Role.Button, onClick = alTocar).semantics { contentDescription = descripcion },
-        contentAlignment = Alignment.Center,
-    ) {
-        Box(Modifier.size(36.dp).clip(CircleShape).background(Paleta.tinta.copy(alpha = Velo.pastilla)), contentAlignment = Alignment.Center) {
-            IconoLucide(trazos, Paleta.suave)
-        }
-    }
-}
-
-/**
- * El botón de tinta a lo ancho: 52 dp, radio 26. Con `nota` lleva una segunda
- * línea pequeña («Se te abre 1»); con `superficie` no es el lleno sino el
- * de la tinta al 8 %, el que acompaña al paso siguiente.
- */
-@Composable
-internal fun BotonTinta(
-    texto: String,
-    alTocar: () -> Unit,
-    modifier: Modifier = Modifier,
-    nota: String? = null,
-    colorNota: Color? = null,
-    superficie: Boolean = false,
-    /** La burbuja acostada usa botones de 48 con radio 16; la ficha de pie, los de 52 con radio 26 */
-    alto: Dp = 52.dp,
-    radio: Dp = Radio.Barra,
-    /** Una flecha tras el verbo, a 8 dp: la acción que lleva a otra pantalla */
-    flecha: Boolean = false,
-) {
-    val lleno = !superficie
-    Column(
-        modifier.fillMaxWidth().heightIn(min = alto).clip(RoundedCornerShape(radio))
-            .background(if (lleno) Paleta.tinta else Paleta.tinta.copy(alpha = Velo.pastilla))
-            .clickable(role = Role.Button, onClick = alTocar),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
-        val centrado = TextAlign.Center
-        // Un botón dice su verbo en una línea: si no cabe (la burbuja acostada, 320 dp), la letra baja hasta 13 antes que partirse
-        val letra = estiloFila(if (lleno) Paleta.panel else Paleta.tinta).copy(textAlign = centrado)
-        val verbo: @Composable (Modifier) -> Unit = { m ->
-            BasicText(
-                texto, m.padding(horizontal = Espacio.xs, vertical = if (nota == null) Espacio.xs else 0.dp),
-                style = letra, maxLines = 1,
-                autoSize = TextAutoSize.StepBased(minFontSize = 13.sp, maxFontSize = 15.sp, stepSize = 0.5.sp),
-            )
-        }
-        if (flecha) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
-            verbo(Modifier.weight(1f, fill = false))
-            IconoLucide(Lucide.flecha, letra.color, 18.dp)
-        } else verbo(Modifier)
-        if (nota != null) BasicText(nota, Modifier.padding(horizontal = Espacio.xs), style = estiloNota(colorNota ?: if (lleno) Paleta.panel.copy(alpha = 0.6f) else Paleta.tenue).copy(textAlign = centrado))
-    }
-}
-
-/** El botón de tinta a lo ancho: 52 dp, radio 26 */
-@Composable
-internal fun BotonTinta(texto: String, alTocar: () -> Unit, modifier: Modifier = Modifier) {
-    Box(
-        modifier.fillMaxWidth().heightIn(min = 52.dp).clip(RoundedCornerShape(Radio.Barra)).background(Paleta.tinta)
-            .clickable(role = Role.Button, onClick = alTocar),
-        contentAlignment = Alignment.Center,
-    ) { BasicText(texto, Modifier.padding(horizontal = Espacio.m, vertical = Espacio.xs), style = estiloFila(Paleta.panel).copy(textAlign = TextAlign.Center)) }
-}
-
-// ─────────────────────────────────── Filas agrupadas ──────────────────────────────────
 
 /** Un grupo de filas: la tarjeta de radio 24 */
 @Composable
@@ -449,26 +260,6 @@ internal fun CabeceraInterna(d: DatosCabecera, modifier: Modifier = Modifier) {
 }
 
 /**
- * «Ver en el mapa», arriba a la derecha de la cabecera: una cápsula de 36 dp
- * (el alto de los círculos de atrás y cerrar) con el icono del mapa. Es una
- * acción de la pantalla, no un bloque más al final de la lista.
- */
-@Composable
-internal fun BotonMapa(alTocar: () -> Unit) {
-    Row(
-        Modifier.height(36.dp).clip(RoundedCornerShape(18.dp)).background(Paleta.tinta.copy(alpha = Velo.pastilla))
-            .clickable(role = Role.Button, onClick = alTocar).padding(start = Espacio.s, end = 14.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(Espacio.xs),
-    ) {
-        IconoLucide(Lucide.mapa, Paleta.tinta, 16.dp)
-        BasicText("Ver en el mapa", style = estiloNota(Paleta.tinta, FontWeight.Medium), maxLines = 1)
-    }
-}
-
-// ─────────────────────────────────── Iconos ──────────────────────────────────
-
-/**
  * Los trazos Lucide de la hoja y de Ajustes, en la rejilla de 24 de IconoTrazo.
  */
 internal object IconosHoja {
@@ -519,23 +310,5 @@ internal fun DrawScope.icono(trazos: List<Path>, color: Color, izq: Float, arrib
     }
 }
 
-/** Los rótulos: mayúsculas semibold de 11 sp con 0,05 em de espaciado */
-@Composable
-internal fun versal(color: Color) = TextStyle(fontFamily = inter(), fontWeight = FontWeight.SemiBold, fontSize = Tipo.xxs, lineHeight = 14.sp, letterSpacing = 0.05.em, color = color)
-
-/** Un texto de la hoja: Inter, con el tamaño, el peso y el color que pida */
-@Composable
-internal fun estilo(tam: Int, color: Color, peso: FontWeight = FontWeight.Normal, interlinea: Int = (tam * 1.35f).roundToInt()) =
-    estilo(tam.sp, color, peso, interlinea)
-
-/** Lo mismo con el tamaño de un token de [Tipo]: la interlínea por defecto es 1,35 veces el tamaño */
-@Composable
-internal fun estilo(tam: TextUnit, color: Color, peso: FontWeight = FontWeight.Normal, interlinea: Int = (tam.value * 1.35f).roundToInt()) =
-    TextStyle(fontFamily = inter(), fontWeight = peso, fontSize = tam, lineHeight = interlinea.sp, color = color, fontFeatureSettings = "tnum")
-
 /** Los iconos de las filas, por su nombre: la interfaz los traduce a trazos (`IconoFila.trazos()`) */
 internal enum class IconoFila { REINICIAR, LIBRO_ABIERTO, USUARIOS, LLAVE, ESLABON, CALENDARIO, RELOJ_ARENA, BIRRETE }
-
-/** El aspa de las hojas: el mismo círculo que el de cerrar de las demás pantallas */
-@Composable
-fun BotonCerrar(alCerrar: () -> Unit) = BotonRedondo(Lucide.cerrar, "Cerrar", alCerrar)
