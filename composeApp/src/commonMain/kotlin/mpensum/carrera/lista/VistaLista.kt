@@ -139,7 +139,7 @@ fun VistaLista(
     // Acostado, Atrás cierra la subpágina de «+N más» del panel; de pie lo hace el Atrás del interior
     ManejarAtras(acostada && navegacion.relacion != null) { navegacion.relacion = null }
 
-    val etiquetaVolver = if (navegacion.porEstado) "Por hacer" else "Por semestre"
+    val etiquetaVolver = if (navegacion.porEstado) "Por hacer" else "Lista"
 
     Box(modifier.fillMaxSize().background(Paleta.lienzo)) {
         if (acostada) {
@@ -233,12 +233,14 @@ private fun CuerpoDeLista(sesion: SesionLista, acciones: AccionesFila, arriba: D
     val navegacion = sesion.navegacion
     val estructura = sesion.estructura
     val universo = sesion.universo
-    val lista = rememberLazyListState()
-    var menu by remember { mutableStateOf(false) }
-    ManejarAtras(menu) { menu = false }
-
     // Cursando lleva al pie «Aprobé las N» cuando tiene dos o más: así se aprueba el semestre de un toque
     val conPie: (GrupoLista) -> Boolean = { g -> g.clave == SeccionEstado.CURSANDO.clave && g.codigos.size >= 2 }
+    // Por semestres se entra en el que vas, con el anterior asomando arriba; por estado, desde arriba
+    val lista = rememberLazyListState(
+        initialFirstVisibleItemIndex = if (navegacion.porEstado) 0 else indiceDeGrupo(estructura, claveDeActual(sesion), navegacion.aprobadasAbiertas, conPie),
+    )
+    var menu by remember { mutableStateOf(false) }
+    ManejarAtras(menu) { menu = false }
 
     // Al cambiar de orden la lista es otra: por semestre se entra en el que vas; por estado, desde arriba
     val primera = remember { booleanArrayOf(true) }
@@ -297,6 +299,8 @@ private fun CuerpoDeLista(sesion: SesionLista, acciones: AccionesFila, arriba: D
                         realce = sesion.realces[codigo] ?: 0,
                         acciones = acciones,
                         hueco = corteAqui > 0 && i == corteAqui,
+                        // Por semestres solo lleva razón lo que la necesita: lo recién marcado y la electiva por elegir
+                        conRazon = navegacion.porEstado || marcada || fila.esCasilla,
                     )
                 }
                 if (pie) item(key = "pie-${g.clave}", contentType = "pie") {

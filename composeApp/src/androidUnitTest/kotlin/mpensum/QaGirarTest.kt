@@ -8,6 +8,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.junit4.AndroidComposeTestRule
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
@@ -80,19 +81,19 @@ class QaGirarTest {
         regla.onNodeWithContentDescription("Matemáticas I, Puedes inscribirla").performClick()
         regla.waitForIdle()
         correr(900)
-        assertTrue(textos("Por hacer") > 0, "no se empujó la página")
+        assertTrue(regla.onAllNodesWithContentDescription("Ver en el mapa").fetchSemanticsNodes().isNotEmpty(), "no se empujó la página")
         ventana = Ventana(844.dp, 390.dp)
         regla.waitForIdle()
         correr(1500)
         assertTrue(textos("SEMESTRE 1 · 0081814") > 0, "el panel perdió la materia al girar")
-        assertEquals(0, textos("Por hacer"), "acostada no hay página empujada")
+        assertEquals(0, textos("Lista"), "acostada no hay página empujada")
 
         // De vuelta de pie la página sigue abierta: el estado vive en el interior, no en la vista
         ventana = Ventana(390.dp, 844.dp)
         regla.waitForIdle()
         correr(1200)
-        assertTrue(textos("Por hacer") > 0, "la página no sobrevivió al giro")
-        regla.onNodeWithText("Por hacer").performClick()
+        assertTrue(textos("Lista") > 0, "la página no sobrevivió al giro")
+        regla.onNodeWithText("Lista").performClick()
         correr(900)
         // Y con la hoja de una clase a medio llenar: se abre de pie y se gira
         regla.onNodeWithContentDescription("Horario").performClick()

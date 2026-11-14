@@ -68,6 +68,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
+import mpensum.componentes.IconoDeEstado
 import mpensum.componentes.iconoEstado
 import mpensum.componentes.colorEstado
 import mpensum.componentes.Lucide
@@ -241,13 +242,51 @@ internal fun DatosFicha(enc: EncabezadoFicha, modifier: Modifier = Modifier) {
     }
 }
 
-/** La cabecera entera de pie: rótulo con la X, nombre y datos con la píldora */
+/** Cómo se dice cada estado en la cabecera: una frase corta junto a su icono */
+private fun EstadoFicha.frase() = when (this) {
+    EstadoFicha.DISPONIBLE -> "Puedes inscribirla"
+    EstadoFicha.CURSANDO -> "La estás cursando"
+    EstadoFicha.APROBADA -> "Aprobada"
+    EstadoFicha.BLOQUEADA -> "Bloqueada"
+    EstadoFicha.PROXIMA -> "Se abre con lo que cursas"
+    EstadoFicha.POR_ELEGIR -> "Por elegir"
+}
+
+/**
+ * La cabecera de pie, en dos renglones: el nombre con la X, y debajo el estado
+ * (icono y frase), las UC y, a la derecha, el código. El semestre no se repite:
+ * ya lo dice la columna del mapa.
+ */
 @Composable
 internal fun CabeceraFicha(enc: EncabezadoFicha, alCerrar: () -> Unit, alCambiar: (String) -> Unit) {
     Column(Modifier.fillMaxWidth().padding(horizontal = margenPantalla())) {
-        RotuloFicha(enc, alCerrar, alCambiar)
-        TituloFicha(enc, Modifier.padding(top = 2.dp))
-        DatosFicha(enc, Modifier.padding(top = Espacio.xs + 2.dp))
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
+            TituloFicha(enc, Modifier.weight(1f).padding(top = Espacio.xs, end = Espacio.s))
+            BotonRedondo(Lucide.cerrar, "Cerrar", alCerrar)
+        }
+        Row(Modifier.fillMaxWidth().padding(top = Espacio.xxs).heightIn(min = 28.dp), verticalAlignment = Alignment.CenterVertically) {
+            AnimatedContent(targetState = enc.estado, transitionSpec = { fundidoEnSerie().using(null) }, label = "estado") { e ->
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Espacio.xs)) {
+                    if (e == EstadoFicha.POR_ELEGIR) IconoDeEstado(null, 16.dp) else IconoSituacion(situacionDeFicha(e), 16.dp)
+                    BasicText(e.frase(), style = estiloNota(Paleta.tinta, FontWeight.Medium), maxLines = 1)
+                }
+            }
+            // De «3 UC · Electrónica» basta lo primero; una casilla vacía dice entera su cuota
+            val dato = if (enc.estado == EstadoFicha.POR_ELEGIR) enc.datos else enc.datos.substringBefore(" · ")
+            // El dato se queda con el resto del renglón: así el código acaba justo en el margen
+            BasicText(if (dato.isNotEmpty()) " · $dato" else "", Modifier.weight(1f).padding(end = Espacio.xs), style = estiloNota(), maxLines = 1, overflow = TextOverflow.Ellipsis)
+            if (enc.codigo != null) {
+                BasicText(enc.codigo, style = TextStyle(fontFamily = plex(), fontWeight = FontWeight.Light, fontSize = Tipo.xxs, lineHeight = 16.sp, letterSpacing = 0.04.em, color = Paleta.tenue), maxLines = 1)
+            }
+            if (enc.casilla != null) {
+                BasicText(
+                    "Cambiar",
+                    Modifier.padding(start = Espacio.xs).clickable(role = Role.Button) { alCambiar(enc.casilla) }.padding(horizontal = Espacio.xs, vertical = Espacio.xs),
+                    style = estiloNota(Paleta.tinta, FontWeight.Medium),
+                    maxLines = 1,
+                )
+            }
+        }
     }
 }
 

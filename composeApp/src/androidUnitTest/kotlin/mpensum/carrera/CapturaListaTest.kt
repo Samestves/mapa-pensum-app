@@ -10,6 +10,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
@@ -228,8 +229,8 @@ class CapturaListaTest {
     fun subpagina360() {
         val navegacion = NavegacionLista(elegida = "0633123", abierta = true)
         montar(carrera("ingenieria-de-petroleo", 4), navegacion, arriba = 24.dp, abajo = 48.dp)
-        // A 360×640 «Abre» enseña una y cuenta las otras tres
-        regla.onNodeWithText("+3 más").performClick()
+        // A 360×640 «Abre» no cabe entero: enseña las que caben y cuenta el resto («+N más»)
+        regla.onAllNodesWithText(" más", substring = true)[0].performClick()
         capturar("subpagina-360")
     }
 

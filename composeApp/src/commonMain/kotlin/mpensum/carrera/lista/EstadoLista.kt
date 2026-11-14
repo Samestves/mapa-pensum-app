@@ -38,7 +38,8 @@ import mpensum.logica.universoDeLista
 class NavegacionLista(
     elegida: String? = null,
     abierta: Boolean = false,
-    porEstado: Boolean = true,
+    /** La lista entra por semestres, como el pensum; «Por hacer» (por estado) se elige en el menú */
+    porEstado: Boolean = false,
     aprobadasAbiertas: Boolean = false,
     relacion: String? = null,
 ) {

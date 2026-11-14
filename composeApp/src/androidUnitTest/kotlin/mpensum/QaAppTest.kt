@@ -10,6 +10,7 @@ import androidx.compose.ui.test.junit4.AndroidComposeTestRule
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performScrollToIndex
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTouchInput
@@ -239,7 +240,22 @@ class QaAppTest {
 
     private fun sistemas() = pensumDe("ingenieria-de-sistemas")
 
-    private fun hayPagina() = textos("Por hacer") > 0
+    // La página de una materia es lo único de la lista con «Ver en el mapa»
+    private fun hayPagina() = regla.onAllNodesWithContentDescription("Ver en el mapa").fetchSemanticsNodes().isNotEmpty()
+
+    /** La lista entra por semestres; «Aprobé las N» y las electivas juntas viven en «Por hacer» (por estado) */
+    private fun ordenarPorEstado() {
+        // Se entra en el semestre que vas: el «…» está arriba, en la cabecera
+        regla.onNode(hasScrollAction()).performScrollToIndex(0)
+        regla.waitForIdle()
+        correr(300)
+        regla.onNodeWithContentDescription("Más opciones").performClick()
+        regla.waitForIdle()
+        correr(300)
+        regla.onNodeWithText("Ordenar por estado").performClick()
+        regla.waitForIdle()
+        correr(600)
+    }
 
     @Test
     fun atrasCierraLaPaginaDeLaMateriaYVuelveALaLista() {
@@ -301,6 +317,7 @@ class QaAppTest {
         interiorDeSistemas(s1.associate { it.codigo to Marca.APROBADA } + mapOf("0081824" to Marca.CURSANDO, "0051324" to Marca.CURSANDO))
         regla.onNodeWithContentDescription("Lista").performClick()
         correr(900)
+        ordenarPorEstado()
         // Con filas de 64 dp, «Cursando» queda fuera de la pantalla: se baja hasta su pie
         bajarHasta("Aprobé las 2")
         regla.onNodeWithText("Aprobé las 2").performClick()
@@ -321,6 +338,7 @@ class QaAppTest {
         interiorDeSistemas(p.obligatorias.filter { it.semestre == 1 || it.semestre == 2 }.associate { it.codigo to Marca.APROBADA })
         regla.onNodeWithContentDescription("Lista").performClick()
         correr(900)
+        ordenarPorEstado()
         bajarHasta("Elegir")
         regla.onNodeWithText("Elegir").performClick()
         regla.waitForIdle()

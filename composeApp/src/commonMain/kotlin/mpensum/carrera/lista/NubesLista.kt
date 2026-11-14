@@ -55,8 +55,8 @@ internal val HUECO_TARJETA = Espacio.s
 internal val SANGRIA_ROTULO = MARGEN_TARJETA + Espacio.m
 
 /** Las palabras de las dos secciones de relación de la página. Otra fase las cambia: viven solo aquí */
-internal const val ROTULO_PIDE = "Pide"
-internal const val ROTULO_ABRE = "Abre"
+internal const val ROTULO_PIDE = mpensum.componentes.ROTULO_ANTES
+internal const val ROTULO_ABRE = mpensum.componentes.ROTULO_DESPUES
 
 /** El fondo de la nube, opaco: la superficie del progreso ya mezclada con el lienzo */
 internal val FONDO_TARJETA: Color get() = Paleta.tinta.copy(alpha = Velo.superficie).compositeOver(Paleta.lienzo)

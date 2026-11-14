@@ -188,11 +188,16 @@ internal fun PaginaDeMateria(
                 maxHeight >= ALTO_ROTULO_RELACION * 2 + HUECO_HOLGADO + ALTO_RELACION_HOLGADA * (nPide + nAbre) + 24.dp
             val alto = if (holgada) ALTO_RELACION_HOLGADA else ALTO_RELACION
             Column(Modifier.fillMaxWidth()) {
-                RotuloDeRelacion(ROTULO_PIDE, metaPide, nPide - vePide, masPide)
-                NubeDeRelacion(pide, vePide, situaciones, alto, alIrA)
-                Spacer(Modifier.height(if (holgada) HUECO_HOLGADO else HUECO_SECCIONES))
-                RotuloDeRelacion(ROTULO_ABRE, metaAbre, nAbre - veAbre, masAbre)
-                NubeDeRelacion(abre, veAbre, situaciones, alto, alIrA)
+                // Un lado sin materias no se enseña: un rótulo que dice «Ninguna» no informa
+                if (nPide > 0) {
+                    RotuloDeRelacion(ROTULO_PIDE, metaPide, nPide - vePide, masPide)
+                    NubeDeRelacion(pide, vePide, situaciones, alto, alIrA)
+                }
+                if (nPide > 0 && nAbre > 0) Spacer(Modifier.height(if (holgada) HUECO_HOLGADO else HUECO_SECCIONES))
+                if (nAbre > 0) {
+                    RotuloDeRelacion(ROTULO_ABRE, metaAbre, nAbre - veAbre, masAbre)
+                    NubeDeRelacion(abre, veAbre, situaciones, alto, alIrA)
+                }
             }
         }
         MuelleDePie(materia.situacion, plan, abajo, alMarcar)

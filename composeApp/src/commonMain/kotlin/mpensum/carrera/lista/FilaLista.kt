@@ -69,8 +69,11 @@ import mpensum.tema.Paleta
  * la misma capa que ya mueve el gesto, así que no cuesta una capa más.
  */
 
-/** Alto mínimo de una fila: el de la hoja de progreso */
+/** Alto mínimo de una fila con su razón debajo: el de la hoja de progreso */
 private val ALTO_FILA = 64.dp
+
+/** Y el de una fila de un solo renglón, cuando la lista va por semestres */
+private val ALTO_FILA_CORTA = 52.dp
 
 /** La pastilla a 16 dp del borde de la nube y el texto a 60, como en el progreso. El hilo empieza donde el texto */
 private val SANGRIA = Espacio.m + 32.dp + Espacio.s
@@ -105,6 +108,8 @@ internal fun FilaDeLista(
     acciones: AccionesFila,
     modifier: Modifier = Modifier,
     hueco: Boolean = false,
+    /** Por semestres el renglón de la razón sobra: el semestre ya lo dice el encabezado */
+    conRazon: Boolean = true,
 ) {
     val forma = remember(primera, ultima) { formaDeTrozo(primera, ultima) }
     val paso = remember(fila.situacion) { fila.situacion?.let(::pasoSiguiente) }
@@ -158,7 +163,7 @@ internal fun FilaDeLista(
                     },
                 )
                 .clickable(role = Role.Button) { acciones.tocar(fila) }
-                .heightIn(min = ALTO_FILA)
+                .heightIn(min = if (conRazon) ALTO_FILA else ALTO_FILA_CORTA)
                 .padding(start = Espacio.m),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -169,7 +174,7 @@ internal fun FilaDeLista(
                     style = estiloNombre(if (fila.situacion == Situacion.HECHA) Paleta.suave else Paleta.tinta),
                     maxLines = 2, overflow = TextOverflow.Ellipsis,
                 )
-                BasicText(
+                if (conRazon) BasicText(
                     conNegritas(fila.razon), Modifier.padding(top = 2.dp),
                     style = estiloRazon(), maxLines = 1, overflow = TextOverflow.Ellipsis,
                 )

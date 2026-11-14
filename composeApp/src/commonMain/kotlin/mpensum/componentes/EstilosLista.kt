@@ -126,3 +126,7 @@ internal fun conNegritas(texto: String, tinta: Color = Paleta.tinta): AnnotatedS
         }
     }
 }
+
+/** Cómo se llaman, en la ficha del mapa y en la lista, lo que una materia pide y lo que abre */
+internal const val ROTULO_ANTES = "Necesitas antes"
+internal const val ROTULO_DESPUES = "Te abre"

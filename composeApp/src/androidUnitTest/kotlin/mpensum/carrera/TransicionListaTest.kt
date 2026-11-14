@@ -52,7 +52,8 @@ class TransicionListaTest {
 
     @Test
     fun laPaginaEntraYSaleSinSaltosYLaListaQuedaDondeEstaba() {
-        val navegacion = NavegacionLista()
+        // La transición se mide en «Por hacer»: allí la fila y la etiqueta de volver son las de siempre
+        val navegacion = NavegacionLista(porEstado = true)
         regla.mainClock.autoAdvance = false
         val carrera = estado()
         regla.setContentSincrono {

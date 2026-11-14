@@ -155,17 +155,16 @@ private class MedidasFicha {
     }
 }
 
-/** De pie, en orden de lectura: la respuesta, lo que pide y abre, y los botones */
+/** De pie, en orden de lectura: lo que necesita antes, lo que abre y los botones */
 @Composable
 private fun CuerpoDePie(codigo: String, estado: EstadoCarrera, alMarcar: (String, Marca?) -> Unit, alIrA: (String) -> Unit) {
     Column(Modifier.padding(horizontal = margenPantalla()).padding(bottom = Espacio.m)) {
-        RespuestaFicha(codigo, estado, Modifier.padding(top = Espacio.m))
         PideAbre(codigo, estado, alIrA, Modifier.padding(top = Espacio.s))
-        BotonesMarca(codigo, estado, alMarcar, Modifier.padding(top = Espacio.m))
+        BotonesMarca(codigo, estado, alMarcar, Modifier.padding(top = Espacio.s))
     }
 }
 
-/** Acostada, dos columnas: a la izquierda lo que responde y lo que se marca; a la derecha, lo que pide y lo que abre */
+/** Acostada, dos columnas: a la izquierda lo que se marca; a la derecha, lo que necesita antes y lo que abre */
 @Composable
 private fun CuerpoAcostado(codigo: String, estado: EstadoCarrera, alMarcar: (String, Marca?) -> Unit, alIrA: (String) -> Unit) {
     Row(
@@ -173,10 +172,7 @@ private fun CuerpoAcostado(codigo: String, estado: EstadoCarrera, alMarcar: (Str
         horizontalArrangement = Arrangement.spacedBy(Espacio.l),
         verticalAlignment = Alignment.Top,
     ) {
-        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Espacio.m)) {
-            RespuestaFicha(codigo, estado)
-            BotonesMarca(codigo, estado, alMarcar)
-        }
+        BotonesMarca(codigo, estado, alMarcar, Modifier.weight(1f))
         PideAbre(codigo, estado, alIrA, Modifier.weight(1f))
     }
 }

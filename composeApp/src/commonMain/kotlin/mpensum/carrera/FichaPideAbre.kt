@@ -27,6 +27,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import mpensum.componentes.pulsable
+import mpensum.componentes.ROTULO_ANTES
+import mpensum.componentes.ROTULO_DESPUES
 import mpensum.datos.Asignatura
 import mpensum.logica.Situacion
 import mpensum.tema.Espacio
@@ -48,24 +50,30 @@ internal fun PideAbre(codigo: String, estado: EstadoCarrera, alIrA: (String) -> 
     val pide = relaciones.atras[codigo].orEmpty().mapNotNull { porCodigo[it]?.asignatura }
     val abre = relaciones.adelante[codigo].orEmpty().mapNotNull { porCodigo[it]?.asignatura }
     val especial = porCodigo[codigo]?.asignatura?.requisitoEspecial
+    val hayAntes = pide.isNotEmpty() || especial != null
+    // Sin nada antes ni después no hay tarjeta: una fila que dice «Ninguna» no informa
+    if (!hayAntes && abre.isEmpty()) return
     TarjetaLista(modifier) {
-        GrupoPideAbre("PIDE", pide, vacio = especial == null, estado, alIrA)
-        // Una condición del pensum que no es una materia: no se toca, solo se dice
-        if (especial != null) {
-            BasicText("Además: $especial", Modifier.padding(start = Espacio.m + ANCHO_ROTULO + Espacio.xs, end = Espacio.m, bottom = Espacio.xs), style = estiloNota(Paleta.suave))
+        if (hayAntes) {
+            RotuloGrupo(ROTULO_ANTES)
+            pide.forEach { FilaPideAbre(null, it, estado, alIrA) }
+            // Una condición del pensum que no es una materia: no se toca, solo se dice
+            if (especial != null) {
+                BasicText(especial, Modifier.padding(start = Espacio.m, end = Espacio.m, top = Espacio.xxs, bottom = Espacio.s), style = estiloNota(Paleta.suave))
+            }
         }
-        Box(Modifier.padding(start = Espacio.m).fillMaxWidth().height(1.dp).background(Paleta.tinta.copy(alpha = Velo.hilo)))
-        GrupoPideAbre("ABRE", abre, vacio = true, estado, alIrA)
+        if (hayAntes && abre.isNotEmpty()) Box(Modifier.padding(start = Espacio.m).fillMaxWidth().height(1.dp).background(Paleta.tinta.copy(alpha = Velo.hilo)))
+        if (abre.isNotEmpty()) {
+            RotuloGrupo(ROTULO_DESPUES)
+            abre.forEach { FilaPideAbre(null, it, estado, alIrA) }
+        }
     }
 }
 
+/** El rótulo de un grupo, sobre sus filas */
 @Composable
-private fun GrupoPideAbre(rotulo: String, materias: List<Asignatura>, vacio: Boolean, estado: EstadoCarrera, alIrA: (String) -> Unit) {
-    if (materias.isEmpty()) {
-        if (vacio) FilaPideAbre(rotulo, null, estado, alIrA)
-        return
-    }
-    materias.forEachIndexed { k, m -> FilaPideAbre(if (k == 0) rotulo else null, m, estado, alIrA) }
+private fun RotuloGrupo(texto: String) {
+    BasicText(texto.uppercase(), Modifier.padding(start = Espacio.m, end = Espacio.m, top = Espacio.s), style = estiloRotulo(), maxLines = 1)
 }
 
 /** Una fila de 48: rótulo (36), icono de estado (16), nombre a dos líneas y chevrón; sin materia dice «Ninguna» */
@@ -73,22 +81,22 @@ private fun GrupoPideAbre(rotulo: String, materias: List<Asignatura>, vacio: Boo
 private fun FilaPideAbre(rotulo: String?, materia: Asignatura?, estado: EstadoCarrera, alIrA: (String) -> Unit) {
     val puedeIr = materia != null && estado.nodoDe(materia.codigo) != null
     Row(
-        Modifier.fillMaxWidth().heightIn(min = 48.dp)
+        Modifier.fillMaxWidth().heightIn(min = 44.dp)
             .then(if (puedeIr) Modifier.pulsable({ alIrA(materia!!.codigo) }, escala = 0.985f) else Modifier)
             .padding(horizontal = Espacio.m, vertical = Espacio.xxs),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Box(Modifier.widthIn(min = ANCHO_ROTULO)) { if (rotulo != null) BasicText(rotulo, style = estiloRotulo(), maxLines = 1, softWrap = false) }
+        if (rotulo != null) Box(Modifier.widthIn(min = ANCHO_ROTULO)) { BasicText(rotulo, style = estiloRotulo(), maxLines = 1, softWrap = false) }
         if (materia == null) {
             Spacer(Modifier.width(Espacio.xs + 16.dp))
             BasicText("Ninguna", style = estiloFila(Paleta.tenue, FontWeight.Normal))
             return@Row
         }
         val s = estado.situaciones[materia.codigo] ?: Situacion.LEJANA
-        Spacer(Modifier.width(Espacio.xs))
+        if (rotulo != null) Spacer(Modifier.width(Espacio.xs))
         IconoSituacion(s, 16.dp)
         BasicText(
-            materia.nombre, Modifier.weight(1f).padding(horizontal = Espacio.xs),
+            materia.nombre, Modifier.weight(1f).padding(start = Espacio.s, end = Espacio.xs),
             style = estiloFila(if (s == Situacion.HECHA) Paleta.suave else Paleta.tinta), maxLines = 2, overflow = TextOverflow.Ellipsis,
         )
         if (puedeIr) Chevron()
