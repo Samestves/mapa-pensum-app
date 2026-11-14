@@ -1,9 +1,11 @@
 /*
  * Saca el bucle cuadro a cuadro con Chromium y lo monta con ffmpeg.
  *
- *   node render.mjs                 el video entero  → out/mapa-pensum-fondo-logo-3x2.mp4
- *   node render.mjs --cuadros 0,300 solo esos cuadros → out/prueba-0000.png …
- *   node render.mjs --servir        solo sirve la escena para verla en el navegador
+ *   node render.mjs fase-01-mapa                 el video entero → out/mapa-pensum-fase-01-mapa-3x2.mp4
+ *   node render.mjs fase-01-mapa --cuadros 0,300 solo esos cuadros → out/prueba-0000.png …
+ *   node render.mjs fase-01-mapa --servir        solo sirve la escena para verla en el navegador
+ *
+ * Un render cortado se retoma: los cuadros ya hechos quedan en out/cuadros-<escena>.
  */
 import { createServer } from 'node:http';
 import { readFile, mkdir, rm } from 'node:fs/promises';
@@ -15,15 +17,22 @@ import os from 'node:os';
 import { fileURLToPath } from 'node:url';
 
 const AQUI = path.dirname(fileURLToPath(import.meta.url));
+const RECURSOS = path.join(AQUI, '..', 'composeApp', 'src', 'commonMain', 'composeResources');
+// Los datos y las letras son los de la app: se sirven de donde viven, sin copiarlos
+const ALIAS = { '/carreras/': path.join(RECURSOS, 'files', 'carreras'), '/fuentes/': path.join(RECURSOS, 'font') };
 const SALIDA = path.join(AQUI, 'out');
-const CUADROS_DIR = path.join(SALIDA, 'cuadros');
-const TIPOS = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.png': 'image/png' };
+const TIPOS = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.png': 'image/png', '.json': 'application/json', '.ttf': 'font/ttf' };
 const args = process.argv.slice(2);
+const ESCENA = args[0] && !args[0].startsWith('--') ? args[0] : 'fase-00-inicio';
+const CUADROS_DIR = path.join(SALIDA, `cuadros-${ESCENA}`);
 const opcion = (n) => (args.includes(n) ? args[args.indexOf(n) + 1] ?? true : null);
 
 const servidor = createServer(async (req, res) => {
-  const ruta = path.join(AQUI, decodeURIComponent(new URL(req.url, 'http://x').pathname).replace(/^\/$/, '/index.html'));
-  if (!ruta.startsWith(AQUI)) return res.writeHead(403).end();
+  const pedido = decodeURIComponent(new URL(req.url, 'http://x').pathname).replace(/\/$/, '/index.html');
+  const alias = Object.keys(ALIAS).find((a) => pedido.startsWith(a));
+  const raiz = alias ? ALIAS[alias] : AQUI;
+  const ruta = path.join(raiz, alias ? pedido.slice(alias.length) : pedido);
+  if (!ruta.startsWith(raiz)) return res.writeHead(403).end();
   try {
     const datos = await readFile(ruta);
     res.writeHead(200, { 'content-type': TIPOS[path.extname(ruta)] ?? 'application/octet-stream' }).end(datos);
@@ -32,7 +41,7 @@ const servidor = createServer(async (req, res) => {
   }
 });
 await new Promise((ok) => servidor.listen(Number(opcion('--puerto')) || 0, '127.0.0.1', ok));
-const url = `http://127.0.0.1:${servidor.address().port}/`;
+const url = `http://127.0.0.1:${servidor.address().port}/${ESCENA}/`;
 
 if (opcion('--servir')) {
   console.log(`Escena en ${url}`);
@@ -76,7 +85,7 @@ if (opcion('--servir')) {
         }
       }),
     );
-    const mp4 = path.join(SALIDA, 'mapa-pensum-fondo-logo-3x2.mp4');
+    const mp4 = path.join(SALIDA, `mapa-pensum-${ESCENA}-3x2.mp4`);
     // H.264 con todos los cuadros cerca de ser clave: Resolume lo recorre y lo pone en bucle sin tirones
     await new Promise((ok, mal) => {
       const ff = spawn(

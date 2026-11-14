@@ -1,6 +1,6 @@
-import { CUADROS, FPS } from './tiempo.js';
-import { PLACA, crearFondo, pintarGrano } from './fondo.js';
-import { crearLogo } from './logo.js';
+import { CUADROS, FPS } from '../comun/tiempo.js';
+import { PLACA, crearFondo, pintarGrano } from '../comun/fondo.js';
+import { crearLogo } from '../comun/logo.js';
 
 const LADO_LOGO = 900;
 const lienzoLogo = document.getElementById('logo');
@@ -16,7 +16,7 @@ window.cuadro = (f) => {
   const u = (((f % CUADROS) + CUADROS) % CUADROS) / CUADROS;
   const { metaX, metaY, sube } = logo.cuadro(u);
   const origen = { x: PLACA.cx - LADO_LOGO / 2 + metaX * LADO_LOGO, y: PLACA.cy - LADO_LOGO / 2 + metaY * LADO_LOGO };
-  fondo(u, origen, sube);
+  fondo(u, origen, { ...PLACA, sube });
 };
 window.CUADROS = CUADROS;
 window.listo = true;

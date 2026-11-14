@@ -1,0 +1,13 @@
+{
+  "name": "mapa-pensum-motion",
+  "private": true,
+  "type": "module",
+  "description": "Los videos de Mapa de Pensum para la pantalla LED (Resolume), una fase por carpeta",
+  "scripts": {
+    "ver": "node render.mjs fase-01-mapa --servir",
+    "render": "node render.mjs fase-01-mapa"
+  },
+  "dependencies": {
+    "three": "^0.170.0"
+  }
+}

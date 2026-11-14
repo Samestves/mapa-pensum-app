@@ -15,7 +15,7 @@ const X0 = (ANCHO - (COLS * PASO - HUECO)) / 2;
 const Y0 = (ALTO - (FILAS * PASO - HUECO)) / 2;
 
 /** La placa del centro */
-export const PLACA = { cx: ANCHO / 2, cy: ALTO / 2, lado: 640 };
+export const PLACA = { cx: ANCHO / 2, cy: ALTO / 2, w: 640, h: 640, r: 320 };
 
 /** Los cinco niveles, de vacío a lleno: r, g, b, alfa */
 const NIVELES = [
@@ -95,19 +95,27 @@ const haloCelda = (() => {
   return c;
 })();
 
-/** La superelipse del icono de la app (exponente 4) */
-function squircle(ctx, cx, cy, lado) {
-  const a = lado / 2;
+/**
+ * La forma de la placa: un rectángulo cuyas esquinas son cuartos de superelipse
+ * (exponente 4, la esquina continua del icono). Con w = h = 2r es el squircle
+ * del icono de la app; con r menor, un panel de esquinas suaves.
+ */
+export function forma(ctx, { cx, cy, w, h, r }, meter = 0) {
+  const a = w / 2 - meter;
+  const b = h / 2 - meter;
+  const rr = Math.max(1, Math.min(r - meter, a, b));
+  const signos = [[1, 1], [-1, 1], [-1, -1], [1, -1]];
+  const N = 40;
   ctx.beginPath();
-  for (let i = 0; i <= 160; i++) {
-    const t = (TAU * i) / 160;
-    const c = Math.cos(t);
-    const s = Math.sin(t);
-    const x = cx + a * Math.sign(c) * Math.pow(Math.abs(c), 0.5);
-    const y = cy + a * Math.sign(s) * Math.pow(Math.abs(s), 0.5);
-    if (i) ctx.lineTo(x, y);
-    else ctx.moveTo(x, y);
-  }
+  signos.forEach(([sx, sy], k) => {
+    for (let i = 0; i <= N; i++) {
+      const t = ((k + i / N) * Math.PI) / 2;
+      const x = cx + sx * (a - rr) + rr * sx * Math.sqrt(Math.abs(Math.cos(t)));
+      const y = cy + sy * (b - rr) + rr * sy * Math.sqrt(Math.abs(Math.sin(t)));
+      if (k === 0 && i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+  });
   ctx.closePath();
 }
 
@@ -201,10 +209,20 @@ export function crearFondo(destino) {
     cc.fillRect(0, 0, ANCHO, ALTO);
   }
 
-  function placa(u, sube) {
+  /**
+   * La placa de vidrio. `p` trae su forma (cx, cy, w, h, r) y además:
+   * `sube`, lo que flota el logo; `apoyo`, cuánto se ve el resplandor y la
+   * sombra del logo posado (0..1); `oscuro`, cuánto se oscurece el vidrio
+   * para que se lea lo que lleva dentro (0..1).
+   */
+  function placa(u, p) {
     const { desdeLlegada } = pulso(u);
-    const { cx, lado } = PLACA;
-    const cy = PLACA.cy - sube * 0.25;
+    const { cx, w, h, sube = 0, apoyo = 1, oscuro = 0 } = p;
+    const cy = p.cy - sube * 0.25;
+    const f = { ...p, cy };
+    const x0 = cx - w / 2;
+    const y0 = cy - h / 2;
+    const lado = Math.min(w, h);
     const llegada = Math.exp(-desdeLlegada * 1.6);
 
     // La sombra con que la placa se despega de la cuadrícula
@@ -213,12 +231,12 @@ export function crearFondo(destino) {
     ctx.shadowBlur = 110;
     ctx.shadowOffsetY = 44;
     ctx.fillStyle = '#060913';
-    squircle(ctx, cx, cy, lado - 8);
+    forma(ctx, f, 4);
     ctx.fill();
     ctx.restore();
 
     ctx.save();
-    squircle(ctx, cx, cy, lado);
+    forma(ctx, f);
     ctx.clip();
     // Lo de atrás, desenfocado y un poco más grande: el vidrio esmerilado
     ctx.filter = 'blur(15px) saturate(160%) brightness(0.95)';
@@ -226,75 +244,86 @@ export function crearFondo(destino) {
     ctx.drawImage(capa, cx - cx * z, cy - cy * z, ANCHO * z, ALTO * z);
     ctx.filter = 'none';
     // El tinte: más claro arriba, azul noche abajo
-    let g = ctx.createLinearGradient(0, cy - lado / 2, 0, cy + lado / 2);
+    let g = ctx.createLinearGradient(0, y0, 0, y0 + h);
     g.addColorStop(0, 'rgba(130,160,240,0.14)');
     g.addColorStop(0.4, 'rgba(18,27,62,0.38)');
     g.addColorStop(1, 'rgba(5,8,20,0.6)');
     ctx.fillStyle = g;
-    ctx.fillRect(cx - lado / 2, cy - lado / 2, lado, lado);
+    ctx.fillRect(x0, y0, w, h);
+    if (oscuro > 0) {
+      ctx.fillStyle = `rgba(7,11,25,${0.66 * oscuro})`;
+      ctx.fillRect(x0, y0, w, h);
+    }
     // Luz que entra por la esquina de arriba a la izquierda
-    g = ctx.createRadialGradient(cx - lado * 0.36, cy - lado * 0.44, 0, cx - lado * 0.36, cy - lado * 0.44, lado * 0.8);
-    g.addColorStop(0, 'rgba(255,255,255,0.20)');
+    g = ctx.createRadialGradient(x0 + w * 0.14, y0 + h * 0.06, 0, x0 + w * 0.14, y0 + h * 0.06, lado * 0.8);
+    g.addColorStop(0, `rgba(255,255,255,${0.2 - 0.1 * oscuro})`);
     g.addColorStop(1, 'rgba(255,255,255,0)');
     ctx.fillStyle = g;
-    ctx.fillRect(cx - lado / 2, cy - lado / 2, lado, lado);
+    ctx.fillRect(x0, y0, w, h);
     // Un reflejo en diagonal que cruza la placa una vez por bucle
     const s = ((u + 0.35) % 1) * 2.6 - 0.8;
-    const bx = cx - lado / 2 + s * lado;
+    const bx = x0 + s * w;
     g = ctx.createLinearGradient(bx - 190, cy - 100, bx + 190, cy + 100);
     g.addColorStop(0, 'rgba(255,255,255,0)');
-    g.addColorStop(0.5, 'rgba(225,236,255,0.13)');
+    g.addColorStop(0.5, `rgba(225,236,255,${0.13 * (1 - 0.6 * oscuro)})`);
     g.addColorStop(1, 'rgba(255,255,255,0)');
     ctx.fillStyle = g;
-    ctx.fillRect(cx - lado / 2, cy - lado / 2, lado, lado);
-    // El resplandor azul bajo el mapa y su sombra de apoyo
-    const py = cy + lado * 0.335;
-    ctx.save();
-    ctx.translate(cx, py);
-    ctx.scale(1, 0.24);
-    g = ctx.createRadialGradient(0, 0, 0, 0, 0, lado * 0.43);
-    g.addColorStop(0, `rgba(70,120,255,${0.5 + 0.22 * llegada})`);
-    g.addColorStop(0.5, `rgba(50,95,235,${0.2 + 0.1 * llegada})`);
-    g.addColorStop(1, 'rgba(40,80,220,0)');
-    ctx.fillStyle = g;
-    ctx.beginPath();
-    ctx.arc(0, 0, lado * 0.43, 0, TAU);
-    ctx.fill();
-    const rs = lado * (0.3 - sube * 0.0012);
-    g = ctx.createRadialGradient(0, -30, 0, 0, -30, rs);
-    g.addColorStop(0, `rgba(2,4,14,${0.5 - sube * 0.006})`);
-    g.addColorStop(1, 'rgba(2,4,14,0)');
-    ctx.fillStyle = g;
-    ctx.beginPath();
-    ctx.arc(0, -30, rs, 0, TAU);
-    ctx.fill();
+    ctx.fillRect(x0, y0, w, h);
+    // El resplandor azul bajo el logo y su sombra de apoyo
+    if (apoyo > 0.001) {
+      const py = cy + lado * 0.335;
+      ctx.save();
+      ctx.globalAlpha = apoyo;
+      ctx.translate(cx, py);
+      ctx.scale(1, 0.24);
+      g = ctx.createRadialGradient(0, 0, 0, 0, 0, lado * 0.43);
+      g.addColorStop(0, `rgba(70,120,255,${0.5 + 0.22 * llegada})`);
+      g.addColorStop(0.5, `rgba(50,95,235,${0.2 + 0.1 * llegada})`);
+      g.addColorStop(1, 'rgba(40,80,220,0)');
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.arc(0, 0, lado * 0.43, 0, TAU);
+      ctx.fill();
+      const rs = lado * (0.3 - sube * 0.0012);
+      g = ctx.createRadialGradient(0, -30, 0, 0, -30, rs);
+      g.addColorStop(0, `rgba(2,4,14,${0.5 - sube * 0.006})`);
+      g.addColorStop(1, 'rgba(2,4,14,0)');
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.arc(0, -30, rs, 0, TAU);
+      ctx.fill();
+      ctx.restore();
+    }
     ctx.restore();
-    ctx.restore();
-
-    // El canto: recoge luz arriba y un poco abajo
-    g = ctx.createLinearGradient(cx - lado * 0.2, cy - lado / 2, cx + lado * 0.2, cy + lado / 2);
-    g.addColorStop(0, 'rgba(255,255,255,0.78)');
-    g.addColorStop(0.22, 'rgba(210,225,255,0.22)');
-    g.addColorStop(0.6, 'rgba(160,185,255,0.07)');
-    g.addColorStop(1, 'rgba(150,185,255,0.34)');
-    ctx.strokeStyle = g;
-    ctx.lineWidth = 2;
-    squircle(ctx, cx, cy, lado - 2);
-    ctx.stroke();
-    ctx.strokeStyle = 'rgba(255,255,255,0.05)';
-    ctx.lineWidth = 1;
-    squircle(ctx, cx, cy, lado - 12);
-    ctx.stroke();
+    filo(ctx, f);
   }
 
   /** `origen` es dónde cae la meta del mapa en pantalla: de ahí sale la onda */
-  return function cuadro(u, origen, sube) {
+  return function cuadro(u, origen, p) {
     manchas(u);
     cuadricula(u, origen);
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.drawImage(capa, 0, 0);
-    placa(u, sube);
+    placa(u, p);
   };
+}
+
+/** El canto de la placa: recoge luz arriba y un poco abajo */
+export function filo(ctx, f) {
+  const { cx, cy, w, h } = f;
+  const g = ctx.createLinearGradient(cx - w * 0.2, cy - h / 2, cx + w * 0.2, cy + h / 2);
+  g.addColorStop(0, 'rgba(255,255,255,0.78)');
+  g.addColorStop(0.22, 'rgba(210,225,255,0.22)');
+  g.addColorStop(0.6, 'rgba(160,185,255,0.07)');
+  g.addColorStop(1, 'rgba(150,185,255,0.34)');
+  ctx.strokeStyle = g;
+  ctx.lineWidth = 2;
+  forma(ctx, f, 1);
+  ctx.stroke();
+  ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+  ctx.lineWidth = 1;
+  forma(ctx, f, 6);
+  ctx.stroke();
 }
 
 /** Un grano fijo y muy leve: quita las bandas de los degradados oscuros en la pantalla LED */
