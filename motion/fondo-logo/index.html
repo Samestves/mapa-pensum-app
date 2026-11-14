@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Mapa de Pensum · fondo con logo</title>
+<style>
+  html, body { margin: 0; background: #05060b; overflow: hidden; }
+  #escena { position: relative; width: 1920px; height: 1280px; overflow: hidden; }
+  #escena canvas { position: absolute; left: 0; top: 0; }
+</style>
+<script type="importmap">
+  { "imports": { "three": "./node_modules/three/build/three.module.min.js" } }
+</script>
+</head>
+<body>
+<div id="escena">
+  <canvas id="fondo" width="1920" height="1280"></canvas>
+  <canvas id="logo"></canvas>
+  <canvas id="grano" width="1920" height="1280"></canvas>
+</div>
+<script type="module" src="./src/main.js"></script>
+</body>
+</html>
