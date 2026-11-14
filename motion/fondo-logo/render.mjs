@@ -7,6 +7,7 @@
  */
 import { createServer } from 'node:http';
 import { readFile, mkdir, rm } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 import { spawn } from 'node:child_process';
 import { createRequire } from 'node:module';
 import path from 'node:path';
@@ -65,8 +66,12 @@ if (opcion('--servir')) {
       Array.from({ length: obreros }, async () => {
         const p = await pagina();
         for (let f = siguiente++; f < total; f = siguiente++) {
-          await p.evaluate((n) => window.cuadro(n), f);
-          await p.screenshot({ path: path.join(CUADROS_DIR, `${String(f).padStart(5, '0')}.png`) });
+          // Un render cortado se retoma: los cuadros que ya están no se repiten
+          const archivo = path.join(CUADROS_DIR, `${String(f).padStart(5, '0')}.png`);
+          if (!existsSync(archivo)) {
+            await p.evaluate((n) => window.cuadro(n), f);
+            await p.screenshot({ path: archivo });
+          }
           if (++hechos % 60 === 0) console.log(`${hechos}/${total}`);
         }
       }),
